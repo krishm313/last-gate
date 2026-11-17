@@ -1,0 +1,783 @@
+import { getItem, setItem } from "../ui/store";
+import { Music } from "../audio/music";
+import { Sfx } from "../audio/sfx";
+import { chooseBlessing, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { CampRenderer } from "./render";
+import { buildStrip, CampHud } from "./hud";
+import { INCOME_PILE, STEP, VIEW_H, VIEW_W } from "./world";
+import { RenderInterp } from "./interp";
+import { crispCache, crispStats } from "./sprites";
+import type { GameEvent } from "../core/events";
+import { CHAPTER_BY_ID } from "../core/chapters";
+import { applyRun, buyPerm, canBuy, chapterUnlocked, heroUnlocked, PERMS } from "../core/meta";
+import { Hub } from "../ui/hub";
+import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
+import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
+import { campBotInput, campBotPick, campBotStep } from "./bot";
+import { claim, claimable } from "../core/achievements";
+import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
+import { buzz, loadSettings, saveSettings } from "../ui/settings";
+import { padMove, pollPad } from "./input";
+import { Tutorial } from "./tutorial";
+
+const tutorial = new Tutorial();
+
+const canvas = document.getElementById("game") as HTMLCanvasElement;
+const uiRoot = document.getElementById("ui") as HTMLDivElement;
+const renderer = new CampRenderer(canvas);
+const sfx = new Sfx();
+const music = new Music(() => sfx.context, () => sfx.musicOutput);
+const settings = loadSettings();
+sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
+renderer.fx.shakeScale = settings.shake ? 1 : 0;
+sfx.muted = getItem("lastgate.muted") === "1";
+
+let camp: Camp | null = null;
+let save = loadSave();
+let chapterId = save.lastChapter;
+let paused = false;
+let callWave = false;
+/** Kills and loot at the start of the current wave, for the wave recap on the blessing screen. */
+let waveStartTally = { kills: 0, gold: 0, hits: 0 };
+/** Waves held without a wall/hall hit this run (end-screen stat). */
+let flawlessWaves = 0;
+/** Set by finishRun: this run's best kill streak is a new lifetime record. */
+let streakIsBest = false;
+let abilityQueued = false;
+/** Buildings unlocked by the wave just held (announced when the build phase starts). */
+let unlockedLabels: string[] = [];
+/** Fast-forward multiplier (1×, 2×, 3×); resets each run. */
+let gameSpeed = 1;
+function cycleSpeed(): number {
+  gameSpeed = gameSpeed >= 3 ? 1 : gameSpeed + 1;
+  setItem("lastgate.speed", String(gameSpeed));
+  return gameSpeed;
+}
+let accumulator = 0;
+/** Blends movers between the last two sim ticks when drawing (smooth motion at any refresh rate). */
+const interp = new RenderInterp();
+let last = performance.now();
+
+const hud = new CampHud(uiRoot, {
+  onToggleMute: () => {
+    sfx.setMuted(!sfx.muted);
+    setItem("lastgate.muted", sfx.muted ? "1" : "0");
+    return sfx.muted;
+  },
+  onCallWave: () => (callWave = true),
+  onPause: () => setPaused(true),
+  onAbility: () => (abilityQueued = true),
+  onSpeed: () => cycleSpeed(),
+});
+const hub = new Hub(uiRoot, {
+  onClick: () => sfx.click(),
+  onDenied: () => sfx.denied(),
+  onDaily: () => startDaily(),
+  onPlay: (id) => newRun(id),
+  onSelectHero: (id) => {
+    if (!heroUnlocked(save, id)) return;
+    save.hero = id;
+    writeSave(save);
+    sfx.heroPick(); // a bright "ready for battle" two-note to go with the Selected! pop
+    hub.showHub(save);
+  },
+  onBuy: (id) => {
+    if (buyPerm(save, id)) {
+      writeSave(save);
+      sfx.play({ type: "upgrade", id });
+    }
+    hub.showHub(save);
+  },
+  onClaim: (id) => {
+    if (claim(save, id) > 0) {
+      writeSave(save);
+      sfx.built();
+    }
+    hub.showHub(save, "trophies");
+  },
+  onSettings: () => showMenuSettings(),
+  onReset: () => {
+    save = resetSave();
+    tutorial.reset();
+    hub.showHub(save, "battle");
+  },
+});
+hub.volume = {
+  get: (k) => (k === "music" ? settings.musicVol : settings.sfxVol),
+  set: (k, v) => setVolume(k === "music" ? "musicVol" : "sfxVol", v),
+};
+
+hud.setMuted(sfx.muted);
+
+function layout() {
+  const scale = renderer.fit();
+  uiRoot.style.width = `${VIEW_W * scale}px`;
+  uiRoot.style.height = `${VIEW_H * scale}px`;
+  uiRoot.style.setProperty("--s", String(scale));
+}
+window.addEventListener("resize", layout);
+layout();
+window.addEventListener("pointerdown", () => sfx.unlock(), { capture: true });
+
+// ---- Virtual joystick: touch anywhere, drag to move. Keyboard WASD/arrows also work. ----
+const JOY_R = 48;
+let joyId: number | null = null;
+let joyOrigin: Vec = { x: 0, y: 0 };
+let joyVec: Vec = { x: 0, y: 0 };
+const keys = new Set<string>();
+
+function toView(ev: PointerEvent): Vec {
+  const r = canvas.getBoundingClientRect();
+  return { x: ((ev.clientX - r.left) / r.width) * VIEW_W, y: ((ev.clientY - r.top) / r.height) * VIEW_H };
+}
+canvas.addEventListener("pointerdown", (ev) => {
+  if (joyId !== null) return;
+  joyId = ev.pointerId;
+  canvas.setPointerCapture(ev.pointerId);
+  joyOrigin = toView(ev);
+  joyVec = { x: 0, y: 0 };
+});
+canvas.addEventListener("pointermove", (ev) => {
+  if (ev.pointerId !== joyId) return;
+  const p = toView(ev);
+  let dx = p.x - joyOrigin.x;
+  let dy = p.y - joyOrigin.y;
+  const d = Math.hypot(dx, dy);
+  if (d > JOY_R) {
+    // Drag the base along so the stick never "runs out".
+    joyOrigin.x += (dx / d) * (d - JOY_R);
+    joyOrigin.y += (dy / d) * (d - JOY_R);
+    dx = p.x - joyOrigin.x;
+    dy = p.y - joyOrigin.y;
+  }
+  joyVec = { x: dx / JOY_R, y: dy / JOY_R };
+});
+const endJoy = (ev: PointerEvent) => {
+  if (ev.pointerId !== joyId) return;
+  joyId = null;
+  joyVec = { x: 0, y: 0 };
+};
+canvas.addEventListener("pointerup", endJoy);
+canvas.addEventListener("pointercancel", endJoy);
+window.addEventListener("keydown", (e) => keys.add(e.code));
+window.addEventListener("keyup", (e) => keys.delete(e.code));
+canvas.addEventListener("lostpointercapture", endJoy);
+// Losing focus (alt-tab, notification, app switch) eats keyup/pointerup: drop held input so the hero
+// doesn't keep walking on its own when you come back.
+window.addEventListener("blur", () => {
+  keys.clear();
+  joyId = null;
+  joyVec = { x: 0, y: 0 };
+});
+
+function moveInput(): Vec {
+  let x = joyVec.x;
+  let y = joyVec.y;
+  if (keys.has("KeyA") || keys.has("ArrowLeft")) x -= 1;
+  if (keys.has("KeyD") || keys.has("ArrowRight")) x += 1;
+  if (keys.has("KeyW") || keys.has("ArrowUp")) y -= 1;
+  if (keys.has("KeyS") || keys.has("ArrowDown")) y += 1;
+  const pad = padMove();
+  x += pad.x;
+  y += pad.y;
+  const d = Math.hypot(x, y);
+  return d > 1 ? { x: x / d, y: y / d } : { x, y };
+}
+
+function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b) {
+  sfx.unlock();
+  dailyRun = null;
+  chapterId = id;
+  const chapter = CHAPTER_BY_ID[id]!;
+  camp = createCamp(seed, chapter, setup);
+  renderer.setGround(chapter.ground, chapter.id);
+  lastMood = chapter.id;
+  hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
+  knownTrophies = new Set(claimable(save).map((a) => a.id));
+  flawlessWaves = 0;
+  unlockedLabels = [];
+  accumulator = 0;
+  paused = false;
+  // Keep the speed the player last chose (1×/2×/3×) instead of resetting every run.
+  gameSpeed = Math.min(3, Math.max(1, Number(getItem("lastgate.speed")) || 1));
+  hud.setSpeed(gameSpeed);
+  hud.hideOverlay();
+  hub.hide();
+  hud.setVisible(true);
+  music.start();
+}
+
+let dailyRun: DailyChallenge | null = null;
+
+function startDaily() {
+  const d = dailyFor(todayString());
+  const setup = campSetupFromSave(save, d.hero);
+  setup.mods!.drops *= d.twist.drops;
+  setup.mods!.heroDamage *= d.twist.heroDamage;
+  setup.mods!.towerDamage *= d.twist.towerDamage;
+  setup.enemyHpMult = d.twist.enemyHp;
+  setup.startBlessings = [d.blessing];
+  newRun(d.chapterId, setup, d.seed);
+  dailyRun = d;
+  // Remind the player what makes today's run different.
+  hud.banner(`Daily: ${d.twist.name}`, d.twist.desc);
+}
+
+type ToggleKey = "music" | "sfx" | "shake" | "haptics";
+
+function toggleSetting(k: string) {
+  const key = k as ToggleKey;
+  settings[key] = !settings[key];
+  saveSettings(settings);
+  sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
+  renderer.fx.shakeScale = settings.shake ? 1 : 0;
+  if (key === "haptics") buzz(settings, 30);
+}
+
+/** Volume slider moved (0..1): apply live, persist. */
+function setVolume(k: "musicVol" | "sfxVol", v: number) {
+  settings[k] = Math.max(0, Math.min(1, v));
+  saveSettings(settings);
+  sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
+}
+
+function showMenuSettings() {
+  hub.showSettings(
+    settings as unknown as Record<string, boolean>,
+    toggleSetting,
+    () => {
+      hub.hide();
+      hud.showTitle(() => {
+        hud.hideOverlay();
+        hub.showHub(save, "battle");
+      }, true);
+    },
+    () => hub.showHub(save),
+    {
+      onExport: () => hub.showSaveCode("export", showMenuSettings, { code: exportSave(save) }),
+      onImport: () =>
+        hub.showSaveCode("import", showMenuSettings, {
+          onLoad: (code) => {
+            const loaded = importSave(code);
+            if (!loaded) return false;
+            save = loaded;
+            writeSave(save);
+            hub.showHub(save, "battle");
+            return true;
+          },
+        }),
+    },
+  );
+}
+
+function goHub(tab: "battle" | "armory" = "battle") {
+  camp = null;
+  hud.setTip(null);
+  paused = false;
+  hud.setVisible(false);
+  hud.hideOverlay();
+  hub.showHub(save, tab);
+}
+
+function setPaused(p: boolean) {
+  if (!camp || camp.phase === "won" || camp.phase === "lost" || camp.phase === "pick") return;
+  paused = p;
+  if (p)
+    hub.showPause(() => setPaused(false), () => finishRun(camp!, false, true), {
+      values: settings as unknown as Record<string, boolean>,
+      onToggle: toggleSetting,
+    }, buildStrip(camp!.owned), dailyRun ? `🎯 Daily: ${dailyRun.twist.name} — ${dailyRun.twist.desc}` : undefined, pauseStatus(camp!));
+  else hub.hide();
+}
+
+/** Where the run stands, for the pause panel: chapter, wave, kills, time. */
+function pauseStatus(c: Camp): string[] {
+  // Same numbering as the HUD: between waves it shows the wave coming up.
+  const total = c.chapter.waves.length;
+  const cur = c.phase === "wave" ? c.wave : c.chapter.endless ? c.wave + 1 : Math.min(total, c.wave + 1);
+  const wave = c.chapter.endless ? `🌙 Night ${cur}` : `🌙 Night ${cur}/${total}`;
+  const t = Math.floor(c.time);
+  return [`📜 ${c.chapter.name}`, wave, `⚔️ ${c.kills} slain`, `⏱ ${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`];
+}
+
+/** One actionable tip for the end screen, based on how the run went. */
+function lossTip(c: Camp): string {
+  const s = c.runStats;
+  const built = (kind: string) => c.plots.some((p) => p.kind === kind && p.level > 0);
+  if (s.flyerHallDamage > c.hallMaxHp * 0.3) return "Bats fly over the wall. Upgrade the Hall (stronger hall archers) and fight near it when flyers come.";
+  if (s.breaches >= 3 && !built("fortify")) return "The wall kept breaking. Fortify it into stone, and stand on Repair Wall during the day.";
+  if (s.breaches >= 3 && !built("barracks")) return "Build a Barracks — its soldiers hold breaches while you repair.";
+  if (s.heroDeaths >= 2) return "Your hero fell often. Fight from behind the wall, or take Vigor / the Knight Captain.";
+  if (!built("lumber")) return "Build the Lumber Camp early: logs unlock tower levels 3–4 and stone walls.";
+  if (c.plots.filter((p) => p.kind === "tower" && p.level >= 3).length < 2) return "Push a couple of towers to level 3+ — they're your main damage.";
+  return "Spend your gold in the Armory, then try again — every run makes you stronger.";
+}
+
+function finishRun(c: Camp, won: boolean, abandoned = false) {
+  // Record whether this run beat the lifetime best streak (shown on the end screen).
+  streakIsBest = renderer.bestStreak >= 10 && renderer.bestStreak > (save.stats.bestStreak ?? 0);
+  save.stats.bestStreak = Math.max(save.stats.bestStreak ?? 0, renderer.bestStreak);
+  if (dailyRun) return finishDaily(c, won, abandoned, dailyRun);
+  const prevBest = save.best[c.chapter.id] ?? 0;
+  // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
+  const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
+  const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD) });
+  writeSave(save);
+  if (abandoned) {
+    goHub("battle");
+    // Abandoned runs still pay out: say so, or the gold just silently appears.
+    if (reward.gold > 0) hud.toast(`🪙 +${reward.gold} gold banked from the run`);
+    return;
+  }
+  hud.setVisible(false);
+  hub.showEnd(
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
+    reward,
+    () => newRun(chapterId),
+    () => goHub("armory"),
+    nextChapter(won, c.chapter.id),
+  );
+}
+
+/** After a campaign win, offer the next chapter (if there is one and it's open) as the main action. */
+function nextChapter(won: boolean, id: number): { name: string; go: () => void } | undefined {
+  const nxt = CHAPTER_BY_ID[id + 1];
+  if (!won || !nxt || nxt.endless || !chapterUnlocked(save, nxt.id)) return undefined;
+  return { name: nxt.name, go: () => newRun(nxt.id) };
+}
+/** Daily runs pay gold (plus a once-a-day victory bonus) but don't touch campaign stars or records. */
+function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChallenge) {
+  // A run started on yesterday's daily that ends after midnight still pays, but can't touch today's record.
+  const stale = save.daily.date > d.date;
+  if (!stale && save.daily.date !== d.date) save.daily = { date: d.date, best: 0, won: false };
+  const firstWin = won && !stale && !save.daily.won;
+  // Abandoned between waves (build phase): wave N is held, like the campaign's waveReached.
+  const reached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
+  if (!stale) save.daily.best = Math.max(save.daily.best, reached);
+  const streak = firstWin ? recordDailyWin(save.stats, d.date) : 0;
+  if (firstWin) save.stats.dailyWins = (save.stats.dailyWins ?? 0) + 1;
+  if (!stale) save.daily.won ||= won;
+  const waveBonus = Math.max(0, reached - (won ? 0 : 1)) * 4 * d.chapterId;
+  const winBonus = firstWin ? DAILY_BONUS : 0;
+  const loot = Math.round(c.goldEarned * LOOT_TO_GOLD);
+  const reward = { gold: loot + waveBonus + winBonus, waveBonus, winBonus, stars: 0, newStars: 0, firstClear: false, unlockedHeroes: [] };
+  save.gold += reward.gold;
+  save.runs += 1;
+  writeSave(save);
+  dailyRun = null;
+  if (abandoned) {
+    goHub("battle");
+    // Abandoned runs still pay out: say so, or the gold just silently appears.
+    if (reward.gold > 0) hud.toast(`🪙 +${reward.gold} gold banked from the run`);
+    return;
+  }
+  hud.setVisible(false);
+  hub.showEnd(
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c) },
+    reward,
+    () => startDaily(),
+    () => goHub("battle"),
+  );
+}
+
+/** Keyboard: one handler, branching by context (title card → menus → blessing pick → in-run). */
+function onKey(e: KeyboardEvent): void {
+  // Keyboard (and, where the browser allows it, gamepad) presses can start audio too, not just taps.
+  sfx.unlock();
+  // Typing in a text box (save-code import): letters like "m" aren't shortcuts there.
+  const t = (e as Partial<KeyboardEvent>).target as HTMLElement | null | undefined;
+  if (e.code !== "Escape" && t && (t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && (t as HTMLInputElement).type === "text"))) return;
+  const enter = e.code === "Enter" || e.code === "NumpadEnter";
+  // M mutes / unmutes anywhere.
+  if (e.code === "KeyM" && !e.repeat) return hud.toggleMute();
+  const inRun = !!camp && camp.phase !== "won" && camp.phase !== "lost";
+  // A button focused with Tab: Enter/Space press *it* (native behaviour) in menus; in a run Space/Enter
+  // are game keys, so stop the browser from also "clicking" whatever button has focus.
+  const focusedBtn = document.activeElement instanceof HTMLButtonElement;
+  if (focusedBtn && (enter || e.code === "Space")) {
+    // Menus and the pause panel: let the browser press the focused button.
+    if (!inRun || paused) return;
+    // Gamepad presses arrive as plain { code, repeat } objects without preventDefault.
+    e.preventDefault?.();
+  }
+
+  // Title / How-to card: Enter presses its big button.
+  const big = document.querySelector<HTMLElement>(".title-screen .big-btn");
+  if (big?.offsetParent) {
+    if (enter && !e.repeat) big.click();
+    return;
+  }
+
+  // Menus (map, settings, end screen…): Esc backs out to the map, Enter takes the primary action.
+  if (!inRun) {
+    if (!hub.visible || e.repeat) return;
+    if (e.code === "Escape" && !hub.onHubScreen) goHub("battle");
+    if (enter) {
+      const target = hub.onHubScreen
+        ? (document.querySelector<HTMLElement>(".chapter.next") ?? [...document.querySelectorAll<HTMLElement>(".chapter:not(.locked):not(.endless):not(.daily)")].pop())
+        : document.querySelector<HTMLElement>(".btn-col .btn:not(.btn-ghost)");
+      target?.click();
+    }
+    return;
+  }
+
+  // Blessing pick: 1/2/3 choose a card, R rerolls (clicks go through the cards' own tap guard).
+  if (camp!.phase === "pick") {
+    if (e.repeat) return;
+    const idx = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
+    if (idx >= 0) document.querySelectorAll<HTMLButtonElement>(".pick .card")[idx]?.click();
+    if (e.code === "KeyR") document.querySelector<HTMLButtonElement>(".pick .btn-small")?.click();
+    return;
+  }
+
+  // In a run.
+  if (e.code === "Escape" || e.code === "KeyP") return e.repeat ? undefined : setPaused(!paused);
+  if (paused || e.repeat) return;
+  if (e.code === "Space") abilityQueued = true;
+  if (e.code === "KeyC" || enter) callWave = true;
+  if (e.code === "KeyF") hud.setSpeed(cycleSpeed());
+}
+window.addEventListener("keydown", onKey);
+// Plugging in a controller: say it's recognised and how to start (no manual needed).
+window.addEventListener("gamepadconnected", () => hud.toast("🎮 Controller connected — A to play, Start to pause"));
+// Mouse/touch clicks shouldn't leave a button focused (a later Space would "click" it again — e.g. the
+// speed button changing speed when you meant the hero ability). Keyboard-made clicks have detail 0.
+document.addEventListener("click", (e) => {
+  if (e.detail > 0) (e.target as Element | null)?.closest?.("button")?.blur();
+}, true);
+document.addEventListener("visibilitychange", () => {
+  // Silence (and stop scheduling) audio while the tab is hidden; pick it back up when it returns.
+  const ac = sfx.context;
+  if (document.hidden) void ac?.suspend().catch(() => {});
+  else if (ac && ac.state !== "running") void ac.resume().catch(() => {});
+  if (!document.hidden) return;
+  setPaused(true);
+  // Keep lifetime stats (trophy progress) earned mid-run if the tab is closed.
+  writeSave(save);
+});
+window.addEventListener("pagehide", () => writeSave(save));
+// The game open in two tabs: adopt what the other tab saves, or this tab's save-on-hide would later
+// overwrite it with stale data (undoing progress, an erase, or an imported save code).
+window.addEventListener("storage", (e) => {
+  if (e.key !== SAVE_KEY || !e.newValue) return;
+  const theirs = loadSave();
+  // On the menus, take whatever the other tab wrote (including an erase or an imported code);
+  // mid-run, only adopt progress that isn't behind ours.
+  if (camp && theirs.runs < save.runs) return;
+  // Mid-run, this tab's stats (kills, waves held…) may not be written yet: keep the higher value of each.
+  // (Daily streak fields belong together — keep the other tab's set as-is.)
+  if (camp) for (const [k, v] of Object.entries(save.stats)) if (!k.startsWith("daily")) theirs.stats[k] = Math.max(theirs.stats[k] ?? 0, v ?? 0);
+  save = theirs;
+  if (!camp && hub.onHubScreen) hub.showHub(save);
+});
+// Phone turned sideways (rotate hint showing): pause the run so nothing happens unseen.
+const sideways = matchMedia("(orientation: landscape) and (max-height: 500px) and (pointer: coarse)");
+sideways.addEventListener("change", (e) => {
+  if (e.matches) setPaused(true);
+});
+
+/** Matches the red danger vignette: under 30% hall HP during a wave, a heartbeat that quickens as it drops. */
+let heartTimer = 0;
+function heartbeatTick(c: Camp, dt: number): void {
+  const frac = c.hallHp / c.hallMaxHp;
+  if (c.phase !== "wave" || frac >= 0.3 || frac <= 0) {
+    heartTimer = 0;
+    return;
+  }
+  const urgency = 1 - frac / 0.3;
+  heartTimer -= dt;
+  if (heartTimer <= 0) {
+    sfx.heartbeat(urgency);
+    heartTimer = 1.1 - urgency * 0.55;
+  }
+}
+
+let coinStreak = 0;
+let lastCoinAt = 0;
+
+/** Map camp events onto the shared SFX vocabulary. */
+/** Lifetime stats for achievements (saved with the next run result). */
+/** Trophies already claimable/claimed when we last looked, so new ones can be announced in-run. */
+let knownTrophies = new Set<string>();
+function announceTrophies(): void {
+  for (const a of claimable(save)) {
+    if (knownTrophies.has(a.id)) continue;
+    knownTrophies.add(a.id);
+    hud.toast(`🏆 Trophy unlocked: ${a.name}`);
+    sfx.unlockChime();
+  }
+}
+
+function trackStats(ev: CampEvent) {
+  const add = (k: string, n = 1) => (save.stats[k] = (save.stats[k] ?? 0) + n);
+  if (ev.type === "waveClear") add("wavesHeld");
+  else if (ev.type === "build" && ev.kind === "tower" && ev.level === 1) add("towersBuilt");
+  else if (ev.type === "logsDelivered") add("logs", ev.n);
+  else if (ev.type === "forged") add("bows");
+  else if (ev.type === "kill") {
+    add("kills");
+    if (ev.enemy.boss) add("bosses");
+  }
+}
+
+function playSfx(ev: CampEvent, c: Camp) {
+  switch (ev.type) {
+    case "coinPickup":
+    case "logPickup": {
+      const now = performance.now();
+      coinStreak = now - lastCoinAt < 600 ? coinStreak + 1 : 0;
+      lastCoinAt = now;
+      sfx.coin(coinStreak);
+      break;
+    }
+    case "coinSpend":
+    case "logSpend": {
+      const p = c.plots.find((q) => q.x === ev.to.x && q.y === ev.to.y);
+      sfx.pay(p ? (p.paid + p.paidLogs) / Math.max(1, plotCost(p) + plotLogCost(p)) : 0.5);
+      break;
+    }
+    case "build":
+      sfx.built();
+      buzz(settings, 25);
+      break;
+    case "blessing":
+      sfx.play({ type: "upgrade", id: "x" });
+      break;
+    case "offers":
+      sfx.play({ type: "offers" });
+      break;
+    case "boom":
+      sfx.play({ type: "boom", x: ev.x, y: ev.y, r: ev.r, kind: ev.kind === "nova" ? "nova" : "boulder" });
+      break;
+    case "wallHit":
+    case "hallHit":
+      sfx.play({ type: "gateHit", x: ev.x, damage: ev.damage, source: "" });
+      break;
+    case "wallBreak":
+      sfx.play({ type: "sapper", x: ev.x, y: ev.y });
+      buzz(settings, 90);
+      break;
+    case "heroHit":
+      buzz(settings, 15);
+      break;
+    case "heroDown":
+      sfx.play({ type: "lost" });
+      buzz(settings, 120);
+      break;
+    case "levelUp":
+      sfx.play({ type: "upgrade", id: "lvl" });
+      break;
+    case "earlyBonus":
+      sfx.coin(6);
+      break;
+    case "heroRespawn":
+      sfx.play({ type: "upgrade", id: "respawn" });
+      break;
+    case "thief":
+      sfx.jingle();
+      break;
+    case "allyDown":
+      sfx.grunt();
+      break;
+    case "plotUnlocked":
+      sfx.unlockChime();
+      break;
+    case "shoot":
+      if (ev.owner === "catapult") sfx.catapult();
+      else sfx.play(ev as unknown as GameEvent);
+      break;
+    case "ability":
+    case "abilityReady":
+    case "hit":
+    case "kill":
+    case "heal":
+    case "summon":
+    case "enrage":
+    case "bossSpawn":
+    case "sapper":
+    case "waveStart":
+    case "won":
+    case "lost":
+      sfx.play(ev as unknown as GameEvent);
+      if (ev.type === "bossSpawn") buzz(settings, 80);
+      if (ev.type === "won") buzz(settings, 150);
+      break;
+
+    default:
+      break;
+  }
+}
+
+function frame(now: number) {
+  pollPad(onKey, () => (camp?.phase === "build" || camp?.phase === "wave") && !paused, camp?.phase === "pick");
+  const realDt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (document.visibilityState === "visible" && !paused) renderer.perfSample(realDt);
+  const dt = (renderer.fx.slowmo > 0 ? realDt * 0.3 : realDt) * gameSpeed;
+  const c = camp;
+  if (c && !paused) {
+    accumulator += dt;
+    // Debug autoplay (window.__autoplay = true): the bot drives the hero, for visual QA runs.
+    const auto = (window as unknown as { __autoplay?: boolean }).__autoplay;
+    const move = auto ? campBotInput(c).move : moveInput();
+    if (auto && c.phase === "pick" && !(window as unknown as { __noAutoPick?: boolean }).__noAutoPick) {
+      chooseBlessing(c, campBotPick(c));
+      hud.hideOverlay();
+    }
+    while (accumulator >= STEP) {
+      interp.snapshot(c);
+      step(c, { move, callWave, ability: abilityQueued });
+      callWave = false;
+      abilityQueued = false;
+      accumulator -= STEP;
+    }
+    const events = drainEvents(c);
+    // Let the renderer count this frame's kills first: finishRun reads the kill streak, and the
+    // winning (or last) kill arrives in the same batch as "won"/"lost".
+    renderer.consume(events);
+    for (const ev of events) {
+      playSfx(ev, c);
+      trackStats(ev);
+      if (ev.type === "waveStart") waveStartTally = { kills: c.kills, gold: c.goldEarned, hits: 0 };
+      if (ev.type === "wallHit" || ev.type === "hallHit") waveStartTally.hits += 1;
+      // Endless: the moment you pass your best wave, celebrate it in-run (once).
+      const endlessBest = save.best[c.chapter.id] ?? 0;
+      if (ev.type === "waveStart" && c.chapter.endless && !dailyRun && endlessBest > 0 && ev.wave === endlessBest + 1) {
+        hud.banner(`Night ${ev.wave}`, "🏆 New record!");
+        renderer.celebrate();
+        continue;
+      }
+      if (ev.type === "waveStart")
+        hud.banner(
+          !c.chapter.endless && ev.wave === c.chapter.waves.length ? "🌙 FINAL NIGHT" : ev.boss ? `🌙 Night ${ev.wave} — Boss!` : `🌙 Night ${ev.wave}`,
+          ev.boss ?? (ev.intro ? `New enemy: ${ev.intro}` : "The horde comes in the dark"),
+          !c.chapter.endless && ev.wave === c.chapter.waves.length ? "red" : undefined,
+        );
+      // Wave-end unlocks are announced after the blessing pick; a hall upgrade mid-build is announced now.
+      if (ev.type === "plotUnlocked") {
+        if (c.phase === "build") hud.banner("New building!", `${ev.label} unlocked`);
+        else unlockedLabels.push(ev.label);
+      }
+      if (ev.type === "kill" && ev.enemy.boss) hud.banner(`${ev.enemy.name} defeated!`, "👑 Boss slain");
+      if (ev.type === "kill" && ev.enemy.id === "thief") hud.banner("Goblin caught!", `🪙 +${ev.gold} coins`);
+      if (ev.type === "thief") hud.banner("Treasure goblin!", "Catch it before it escapes!");
+      if (ev.type === "thiefEscaped") hud.banner("It got away…", undefined, "red");
+      // Endless: every 5th wave held is a milestone worth a moment (banner + fireworks).
+      // (When a blessing pick follows, its screen already says "Wave N held!" + a Milestone chip.)
+      if (ev.type === "waveClear" && c.chapter.endless && ev.wave % 5 === 0) {
+        if (c.phase !== "pick") hud.banner(`Night ${ev.wave} survived!`, "The siege rages on…");
+        renderer.celebrate();
+      }
+      if (ev.type === "waveClear" && waveStartTally.hits === 0) {
+        flawlessWaves += 1;
+        save.stats.flawlessWaves = (save.stats.flawlessWaves ?? 0) + 1;
+      }
+      if (ev.type === "offers")
+        hud.showOffers(
+          c,
+          {
+            kills: c.kills - waveStartTally.kills,
+            loot: Math.round(c.goldEarned - waveStartTally.gold),
+            hall: Math.round((c.hallHp / c.hallMaxHp) * 100),
+            flawless: waveStartTally.hits === 0,
+          },
+          (id) => {
+            if (chooseBlessing(c, id)) {
+              hud.hideOverlay();
+              sfx.dawn();
+              if (unlockedLabels.length) hud.banner("New building!", `${[...new Set(unlockedLabels)].join(" & ")} unlocked`);
+              else hud.banner("☀ Dawn", "Build and upgrade before nightfall");
+              unlockedLabels = [];
+              // One-time hint (phones never see the desktop notes): the wave preview is tappable.
+              if (getItem("lastgate.tipPreview") !== "1") {
+                window.setTimeout(() => {
+                  if (camp !== c || paused || c.phase !== "build") return; // left the run: try again next time
+                  setItem("lastgate.tipPreview", "1");
+                  hud.toast("💡 Tap NEXT (top right) to see who's coming");
+                }, 1800);
+              }
+            }
+          },
+          () => rerollBlessings(c),
+        );
+      if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
+      if (ev.type === "heroDown") hud.banner("You fell!", "Back in 5 seconds…", "red");
+      if (ev.type === "won") finishRun(c, true);
+      if (ev.type === "lost") finishRun(c, false);
+    }
+    music.intensity = Math.min(1, c.wave / c.chapter.waves.length);
+    music.boss = c.enemies.some((e) => e.def.boss);
+    if (events.length) announceTrophies();
+    if (renderer.takeFlawless()) sfx.unlockChime();
+    const streakTier = renderer.takeStreakCall();
+    if (streakTier) {
+      sfx.streak(streakTier);
+      buzz(settings, 20 + streakTier * 10);
+    }
+    renderer.joystick = joyId !== null ? { origin: joyOrigin, knob: { x: joyOrigin.x + joyVec.x * JOY_R, y: joyOrigin.y + joyVec.y * JOY_R } } : null;
+    hud.noStars = !!dailyRun;
+    hud.update(c);
+    heartbeatTick(c, realDt);
+    hud.setTip(c.phase === "build" || c.phase === "wave" ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
+    renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;
+    interp.apply(c, accumulator / STEP);
+    renderer.draw(c, realDt);
+    interp.restore(c);
+  } else if (c) renderer.draw(c, 0);
+  else {
+    // Attract mode: the bot defends a camp behind the menus.
+    attractAcc += realDt;
+    while (attractAcc >= STEP) {
+      campBotStep(attract);
+      attractAcc -= STEP;
+    }
+    drainEvents(attract);
+    if (attract.phase === "won" || attract.phase === "lost") attract = createCamp((Date.now() >>> 0) ^ 0xa77, CHAPTER_BY_ID[1]!);
+    if (lastMood !== 1) {
+      renderer.setGround(CHAPTER_BY_ID[1]!.ground, 1);
+      lastMood = 1;
+    }
+    renderer.ambient = true;
+    renderer.draw(attract, realDt);
+    renderer.ambient = false;
+  }
+  requestAnimationFrame(frame);
+}
+
+let attract = createCamp(1);
+let attractAcc = 0;
+let lastMood = 1;
+hud.setVisible(false);
+// The how-to-play title screen is for first launches; returning players go straight to the menu.
+if (getItem("lastgate.seenTitle") === "1") hub.showHub(save, "battle");
+else
+  hud.showTitle(() => {
+    setItem("lastgate.seenTitle", "1");
+    sfx.unlock();
+    hud.hideOverlay();
+    // A brand-new player goes straight into chapter 1; the menu can wait until after the first run.
+    if (save.runs === 0) newRun(1);
+    else hub.showHub(save, "battle");
+  });
+requestAnimationFrame(frame);
+
+// Offline support when installed to the home screen (production builds only).
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => void navigator.serviceWorker.register("./sw.js"));
+}
+
+Object.assign(window, {
+  __camp: () => camp,
+  __renderer: renderer,
+  __crisp: crispCache,
+  __crispStats: crispStats,
+  __spawnThief: () => camp && spawnThief(camp),
+  // Visual QA: drop an enemy (e.g. a boss) onto the field.
+  __spawn: (enemy: string, x?: number, y?: number) => camp && spawnEnemy(camp, { at: 0, enemy: enemy as never, hpMult: 1, lane: 0.5 }, x !== undefined && y !== undefined ? { x, y } : undefined),
+  __save: () => save,
+  __setSave: (patch: Partial<typeof save>) => {
+    Object.assign(save, patch);
+    writeSave(save);
+    hub.showHub(save);
+  },
+});

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#16294d" />
+    <meta name="apple-mobile-web-app-title" content="Last Gate" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="icon" href="./icon-192.png" />
+    <title>Last Gate</title>
+    <link rel="stylesheet" href="./src/ui/style.css" />
+  </head>
+  <body>
+    <aside class="side side-l" aria-hidden="true">
+      <div class="side-logo">Last Gate</div>
+      <div class="side-sub">Build. Defend. Hold the wall.</div>
+      <div class="side-card">
+        <div class="side-h">Controls</div>
+        <div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>or arrows — walk</span></div>
+        <div class="keys"><kbd class="wide">Space</kbd><span>hero ability</span></div>
+        <div class="keys"><kbd>P</kbd><kbd>Esc</kbd><span>pause · Esc backs out of menus</span></div>
+        <div class="keys"><kbd>C</kbd><kbd class="wide">Enter</kbd><span>start the night early</span></div>
+        <div class="keys"><kbd>F</kbd><span>game speed 1×/2×/3×</span></div>
+        <div class="keys"><kbd>M</kbd><span>mute / unmute</span></div>
+        <div class="keys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>R</kbd><span>pick / reroll blessing</span></div>
+        <div class="keys"><kbd class="wide">Enter</kbd><span>in menus: play next / confirm</span></div>
+        <div class="keys"><span class="mouse">🖱️</span><span>or drag anywhere to walk</span></div>
+        <div class="keys"><span class="mouse">🎮</span><span>gamepad: stick walk · A ability/confirm · X start night · d‑pad pick · LB reroll · Start pause</span></div>
+      </div>
+    </aside>
+    <aside class="side side-r" aria-hidden="true">
+      <div class="side-card">
+        <div class="side-h">Commander's notes</div>
+        <ul class="side-tips">
+          <li>Stand on a plot to pour coins in — hold still to pay faster.</li>
+          <li>Logs from the Lumber Camp unlock tower levels 3–4 and stone walls.</li>
+          <li>Start the night early for bonus coins.</li>
+          <li>Click (or tap) the NEXT panel, top right, to see what each incoming enemy does.</li>
+          <li>Catapults splash the densest crowd — great against swarms.</li>
+          <li>Soldiers from the Barracks plug a breach while you repair.</li>
+          <li>Every run earns gold for the Armory, even the ones you lose.</li>
+        </ul>
+      </div>
+    </aside>
+    <div class="rotate-hint" aria-hidden="true"><div class="rotate-icon">📱</div><div>Turn your phone upright to play</div></div>
+    <div id="app">
+      <canvas id="game"></canvas>
+      <div id="ui"></div>
+    </div>
+    <script type="module" src="./src/camp/main.ts"></script>
+  </body>
+</html>

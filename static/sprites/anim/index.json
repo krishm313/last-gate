@@ -1,0 +1,137 @@
+{
+ "king": {
+  "cellW": 182,
+  "cellH": 170,
+  "foot": 166,
+  "anims": {
+   "idle": {
+    "row": 0,
+    "frames": 4
+   },
+   "walk": {
+    "row": 1,
+    "frames": 8
+   },
+   "attack": {
+    "row": 2,
+    "frames": 6
+   },
+   "hit": {
+    "row": 3,
+    "frames": 2
+   },
+   "death": {
+    "row": 4,
+    "frames": 6
+   }
+  }
+ },
+ "horde_horned": {
+  "cellW": 185,
+  "cellH": 170,
+  "foot": 166,
+  "anims": {
+   "idle": {
+    "row": 0,
+    "frames": 4
+   },
+   "walk": {
+    "row": 1,
+    "frames": 8
+   },
+   "attack": {
+    "row": 2,
+    "frames": 6
+   },
+   "hit": {
+    "row": 3,
+    "frames": 2
+   },
+   "death": {
+    "row": 4,
+    "frames": 6
+   }
+  }
+ },
+ "brute": {
+  "cellW": 186,
+  "cellH": 170,
+  "foot": 167,
+  "anims": {
+   "idle": {
+    "row": 0,
+    "frames": 4
+   },
+   "walk": {
+    "row": 1,
+    "frames": 8
+   },
+   "attack": {
+    "row": 2,
+    "frames": 6
+   },
+   "hit": {
+    "row": 3,
+    "frames": 2
+   },
+   "death": {
+    "row": 4,
+    "frames": 6
+   }
+  }
+ },
+ "horde_archer": {
+  "cellW": 189,
+  "cellH": 170,
+  "foot": 166,
+  "anims": {
+   "idle": {
+    "row": 0,
+    "frames": 4
+   },
+   "walk": {
+    "row": 1,
+    "frames": 8
+   },
+   "attack": {
+    "row": 2,
+    "frames": 6
+   },
+   "hit": {
+    "row": 3,
+    "frames": 2
+   },
+   "death": {
+    "row": 4,
+    "frames": 6
+   }
+  }
+ },
+ "knight_ally": {
+  "cellW": 165,
+  "cellH": 170,
+  "foot": 167,
+  "anims": {
+   "idle": {
+    "row": 0,
+    "frames": 4
+   },
+   "walk": {
+    "row": 1,
+    "frames": 8
+   },
+   "attack": {
+    "row": 2,
+    "frames": 6
+   },
+   "hit": {
+    "row": 3,
+    "frames": 2
+   },
+   "death": {
+    "row": 4,
+    "frames": 6
+   }
+  }
+ }
+}
