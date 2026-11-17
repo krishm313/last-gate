@@ -333,6 +333,7 @@ export class CampRenderer {
   /** Milestone tier (1..4) reached since the last takeStreakCall(), 0 if none. */
   private streakCall = 0;
   private lastHero: Vec = { x: 0, y: 0 };
+  private heroWasMoving = false;
   /** Wall/hall hits during the current wave; 0 at wave end = flawless. */
   private waveHits = 0;
   private flawless = false;
@@ -666,6 +667,21 @@ fx.shake(0.15);
         this.prints.push({ x: c.hero.x + Math.cos(ang + Math.PI / 2) * (foot ? 3.5 : -3.5), y: c.hero.y + 12 + Math.sin(ang + Math.PI / 2) * (foot ? 2 : -2), a: ang, t: this.time });
       }
       this.heroFoot = foot;
+    }
+    // Setting off kicks up a ring of dust behind the King; stopping short skids a puff ahead.
+    if (!c.hero.dead) {
+      const mv = c.hero.moving;
+      if (mv !== this.heroWasMoving && this.time > 1) {
+        const ang = c.hero.facing;
+        const dx = Math.cos(ang), dy = Math.sin(ang);
+        if (mv) {
+          for (let i = 0; i < 6; i++) {
+            const a = ang + Math.PI + (i - 2.5) * 0.35;
+            this.fx.burst(c.hero.x + Math.cos(a) * 6, c.hero.y + 12 + Math.sin(a) * 3, "rgba(206,190,160,0.75)", 1, 55, { max: 0.45, size: 4, gravity: -12, drag: 4 });
+          }
+        } else this.fx.burst(c.hero.x + dx * 8, c.hero.y + 12 + dy * 4, "rgba(206,190,160,0.8)", 5, 45, { max: 0.4, size: 4.5, gravity: -10, drag: 5 });
+      }
+      this.heroWasMoving = mv;
     }
     this.lastHero = { x: c.hero.x, y: c.hero.y };
     // Enemy tracks: every walker presses a print each stride-length it covers, alternating feet
