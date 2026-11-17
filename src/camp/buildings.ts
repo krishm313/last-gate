@@ -213,7 +213,10 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   // Archers stand on the deck, turning to aim at their target.
   for (let i = 0; i < st.archers; i++) {
     const ax = x + 2 + (i - (st.archers - 1) / 2) * 17;
-    const ay = py - D * 0.5 - 6;
+    // Just built/upgraded: once the tower lands, its archers hop for joy (staggered).
+    const cheerT = env.time - (env.builtAt.get(p.id) ?? -9) - 0.6 - i * 0.07;
+    const cheer = cheerT > 0 && cheerT < 0.7 ? Math.abs(Math.sin((cheerT / 0.35) * Math.PI)) * 5 * (1 - cheerT / 0.7) : 0;
+    const ay = py - D * 0.5 - 6 - cheer;
     const recoil = Math.max(0, 1 - p.fired / 0.2);
     // The blue archer: draw-and-loose frames right after a shot, idle breathing otherwise.
     // Timed so the arrow leaves on the release pose (~4 of 6): draw back while the next shot is
