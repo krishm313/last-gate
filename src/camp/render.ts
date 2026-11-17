@@ -2515,13 +2515,8 @@ fx.shake(0.15);
       if (ax < -10 || ax > VIEW_W + 10 || ay < -10 || ay > VIEW_H + 10) continue;
       this.drawBlob(ctx, glint, ax, ay, 9, 9, ease * 0.5);
     }
-    // A red menace glow around bosses.
-    const menace = this.blob("menace", [[0, "rgba(255,60,30,1)"], [1, "rgba(255,60,30,0)"]]);
-    for (const e of c.enemies) {
-      if (!e.def.boss) continue;
-      const bx = e.x - o.x + sh.x, by = e.y - e.def.radius - o.y + sh.y;
-      this.drawBlob(ctx, menace, bx, by, e.def.radius * 3, e.def.radius * 2.4, ease * (0.32 + 0.1 * Math.sin(this.time * 3)));
-    }
+    // (Bosses' red menace glow is drawn on the ground beneath them in drawEnemyInner, so it no
+    // longer washes out the boss sprite.)
     // Dropped torches burning out on the ground.
     for (const f of this.groundFires) {
       const k2 = 1 - (this.time - f.t) / 3;
@@ -3298,6 +3293,14 @@ fx.shake(0.15);
 
   private drawEnemyInner(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
     const r = e.def.radius;
+    if (e.def.boss) {
+      // Menace: a pulsing red glow pooled on the ground under the boss (brighter after dark).
+      const menace = this.blob("menace", [[0, "rgba(255,60,30,1)"], [1, "rgba(255,60,30,0)"]]);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      this.drawBlob(ctx, menace, e.x, e.y + r * 0.85, r * 3.2, r * 1.3, (0.18 + 0.32 * this.night) * (0.85 + 0.15 * Math.sin(this.time * 3)));
+      ctx.restore();
+    }
     this.drawStrikeTell(ctx, e);
     const id = e.def.id;
     const lunge = e.attacking ? Math.max(0, 1 - (e.def.attackInterval - e.attackTimer) / 0.2) : 0;
