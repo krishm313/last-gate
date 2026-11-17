@@ -2556,6 +2556,9 @@ fx.shake(0.15);
           this.fx.burst((MAP_W * i) / 6, WALL_Y + WALL_THICK - 18, "#ffb040", 6, 70, { max: 0.5, size: 2, gravity: -60, shape: "spark" });
         }
       }
+      // Night won: the torches flare in a ripple from the gate outwards, a victory salute.
+      const vt = this.time - this.cheerAt - Math.abs(i - 3) * 0.12;
+      if (vt > 0 && vt < 0.6) sc *= 1 + Math.sin((vt / 0.6) * Math.PI) * 0.8;
       if (tx < -20 || tx > VIEW_W + 20 || ty < -20 || ty > VIEW_H + 20) continue;
       this.drawFlame(ctx, tx, ty, sc, i * 1.7, fresh ? Math.max(ease, 0.9) : ease);
     }
