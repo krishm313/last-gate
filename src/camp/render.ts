@@ -2193,24 +2193,58 @@ fx.shake(0.15);
 
   /** Repair plot while every wall segment is whole: a quiet plate that takes no coins. */
   private drawIdleRepair(ctx: CanvasRenderingContext2D, p: Plot): void {
+    // Walls are fine: the repair spot is a carpenter's corner rather than an empty dashed box —
+    // a stone pad with a sawhorse, a stack of planks and a hammer, and a small green check.
     const half = CAMP.plotHalf;
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.globalAlpha = 0.55;
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.beginPath();
-    ctx.roundRect(-half, -half, half * 2, half * 2, 10);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.setLineDash([9, 6]);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.9;
+    ctx.drawImage(this.padSprite(half), -half - 6, -half - 4, half * 2 + 12, half * 2 + 14);
+    ctx.globalAlpha = 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    // Plank stack (back left): three boards, lit tops, dark ends.
+    for (let i = 0; i < 3; i++) {
+      const y = 2 - i * 4.2, x = -16 + (i % 2) * 1.5;
+      ctx.fillStyle = INK;
+      ctx.beginPath(); ctx.roundRect(x - 1, y - 1, 24, 6, 1.5); ctx.fill();
+      ctx.fillStyle = i === 2 ? "#d9a866" : "#c08a4e";
+      ctx.beginPath(); ctx.roundRect(x, y, 22, 4, 1); ctx.fill();
+      ctx.fillStyle = "rgba(255,236,190,0.55)";
+      ctx.fillRect(x + 1, y, 20, 1);
+      ctx.fillStyle = "#8a5a2c";
+      ctx.fillRect(x + 20, y, 2, 4);
+    }
+    // Sawhorse (front right): splayed legs and a beam, with a board laid across it.
+    softShadow(ctx, 10, 13, 15, 4, 0.3);
+    const leg = (x1: number, y1: number, x2: number, y2: number): void => {
+      ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.strokeStyle = "#a8743c"; ctx.lineWidth = 2.2; ctx.stroke();
+    };
+    leg(1, 1, -2, 13); leg(4, 1, 6, 13); leg(16, 1, 13, 13); leg(19, 1, 22, 13);
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(-1, -2, 23, 5, 1.5); ctx.fill();
+    ctx.fillStyle = "#b8803f"; ctx.fillRect(0, -1, 21, 3);
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(-5, -6.5, 31, 5, 1.5); ctx.fill();
+    ctx.fillStyle = "#e0b070"; ctx.fillRect(-4, -5.5, 29, 3);
+    ctx.fillStyle = "rgba(255,240,200,0.6)"; ctx.fillRect(-4, -5.5, 29, 1);
+    // Hammer resting on the board.
+    ctx.save();
+    ctx.translate(12, -8);
+    ctx.rotate(-0.35);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(5, 0); ctx.stroke();
+    ctx.strokeStyle = "#7a4a22"; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(4, -3.5, 5, 7, 1); ctx.fill();
+    ctx.fillStyle = "#9aa2ae"; ctx.fillRect(5, -2.5, 3, 5);
+    ctx.restore();
+    // "All good" badge: a small green check in a disc, gently bobbing.
+    const bob = Math.sin(this.time * 2.2 + p.x * 0.01) * 1.2;
+    const bx = half - 6, by = -half + 4 + bob;
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(bx, by, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#5fc04a"; ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - 3, by); ctx.lineTo(bx - 0.8, by + 2.4); ctx.lineTo(bx + 3.2, by - 2.4); ctx.stroke();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    drawIcon(ctx, "hammer", 0, -9, 10, "#f4e6c8");
-    ctx.globalAlpha = 0.9;
-    outlined(ctx, "Walls OK", 0, 16, 10.5, "#b8f0a0");
+    ctx.globalAlpha = 0.85;
     outlined(ctx, p.label, 0, -half - 9, 10.5);
     ctx.restore();
   }
