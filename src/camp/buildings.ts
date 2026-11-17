@@ -961,6 +961,23 @@ export function drawHall(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): 
     ctx.fillRect(x - 41, y + 48, Math.max(0, 84 * frac - 2), 1.2);
     // Chimney-less castle: a thin wisp of torch smoke from the keep (soft puffs, like the chimneys).
     chimneySmoke(ctx, x + 4, y + 40 - castleH * 0.86, env.time + 1.3, 0.7, 0xb8, env.gustAt(x));
+    // Badly damaged: dark smoke pours from the battlements and embers drift up — the more hurt,
+    // the more of it — so a hall in danger reads on the building itself, not only in the bar.
+    const hurt = Math.max(0, Math.min(1, (0.55 - c.hallHp / c.hallMaxHp) / 0.45));
+    if (hurt > 0 && c.hallHp > 0) {
+      for (let k = 0; k < 2; k++) chimneySmoke(ctx, x - 28 + k * 5, y + 40 - castleH * 0.74, env.time + 0.4 + k * 1.4, 1, 0x2a, env.gustAt(x));
+      if (hurt > 0.4) for (let k = 0; k < 2; k++) chimneySmoke(ctx, x + 30 - k * 4, y + 40 - castleH * 0.7, env.time + 2.2 + k * 1.1, 1, 0x26, env.gustAt(x));
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < Math.round(4 + hurt * 8); i++) {
+        const u = (env.time * (0.35 + (i % 4) * 0.08) + i * 0.137) % 1;
+        const ex = x - 40 + ((i * 53) % 80) + Math.sin(env.time * 2 + i) * 6 * u;
+        const ey = y + 40 - castleH * 0.55 - u * 60;
+        ctx.fillStyle = `rgba(255,${150 + (i % 3) * 30},60,${((1 - u) * 0.9).toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(ex, ey, 1.4 + (1 - u) * 1.2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
     return;
   }
   const DX = 14; // depth: the right side recedes up-right
