@@ -4354,7 +4354,9 @@ fx.shake(0.15);
     // Everything stacked on the hero sits above the (taller) scaled figure.
     const top = (kingDrawn ? 28 : (K - 1) * 22 + 6) + drop;
     // Coin stack on the back, leaning with movement.
-    const n = Math.min(26, Math.ceil(h.coins / 2));
+    // Capped at 10 coins tall (a 26-coin tower hid the enemies behind the King); a full load shows
+    // its exact count on a little tag on top instead.
+    const n = Math.min(10, Math.ceil(h.coins / 3));
     // The stack lags behind the hero's motion on a damped spring: it leans back when he sets
     // off, sways forward when he stops, and bends more toward the top.
     const sdt = Math.min(0.05, Math.max(0, this.time - this.stack.t));
@@ -4372,6 +4374,19 @@ fx.shake(0.15);
       const cy = y - bob - 24 - top - i * 3;
       // Shaded coin seen from above: dark edge band, lit rim, embossed face (cached sprite).
       ctx.drawImage(this.stackCoin(i % 2), cx - 7.5, cy - 3.5, 15, 8);
+    }
+    if (h.coins >= 12) {
+      const tx = x + lean * 3 * n ** 1.25, ty = y - bob - 24 - top - n * 3 - 9;
+      const label = `${h.coins}`;
+      ctx.save();
+      ctx.font = `900 9px ${FONT}`;
+      const tw = ctx.measureText(label).width + 9;
+      ctx.fillStyle = "rgba(20,12,4,0.85)";
+      ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 6, tw, 12, 6); ctx.fill();
+      ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = "#ffe9a0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label, tx, ty + 0.5);
+      ctx.restore();
     }
     // Log stack beside the coins.
     const nl = Math.min(10, Math.ceil(h.logs / 2));
