@@ -2084,6 +2084,44 @@ fx.shake(0.15);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       if (!built) {
+        // Construction rising as it's paid for: corner posts grow up out of the pad, a cross-brace
+        // and a top rail appear part-way, and a rope swings between the posts.
+        if (prog > 0.02) {
+          const grow = (k: number): number => Math.max(0, Math.min(1, (prog - k) / 0.35));
+          const H = half * 1.5;
+          const posts: [number, number, number][] = [[-half + 6, half - 6, 0], [half - 6, half - 6, 0.08], [-half + 9, -half + 12, 0.16], [half - 9, -half + 12, 0.24]];
+          ctx.save();
+          ctx.lineCap = "round";
+          for (const [px, py, k] of posts) {
+            const g = grow(k);
+            if (g <= 0) continue;
+            const e = 1 - (1 - g) ** 3; // posts shoot up then settle
+            ctx.strokeStyle = INK; ctx.lineWidth = 4.5;
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py - H * e); ctx.stroke();
+            ctx.strokeStyle = "#b07a40"; ctx.lineWidth = 2.6; ctx.stroke();
+            ctx.strokeStyle = "rgba(255,230,180,0.5)"; ctx.lineWidth = 0.9;
+            ctx.beginPath(); ctx.moveTo(px - 0.8, py); ctx.lineTo(px - 0.8, py - H * e); ctx.stroke();
+          }
+          const beam = (x1: number, y1: number, x2: number, y2: number, g: number): void => {
+            if (g <= 0) return;
+            const ex = x1 + (x2 - x1) * g, ey = y1 + (y2 - y1) * g;
+            ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
+            ctx.strokeStyle = "#c48c4c"; ctx.lineWidth = 2.2; ctx.stroke();
+          };
+          const g2 = grow(0.4), g3 = grow(0.6);
+          beam(-half + 6, half - 6 - H * 0.55, half - 6, half - 6 - H * 0.55, g2);
+          beam(-half + 6, half - 6 - H * 0.15, half - 6, half - 6 - H * 0.85, g2);
+          beam(-half + 6, half - 6 - H, half - 6, half - 6 - H, g3);
+          if (grow(0.7) > 0) {
+            const sw = Math.sin(this.time * 2.4 + p.x * 0.03) * 3;
+            ctx.strokeStyle = `rgba(200,170,120,${(0.85 * grow(0.7)).toFixed(3)})`; ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(-half + 9, -half + 12 - H * 0.9);
+            ctx.quadraticCurveTo(0, -half + 12 - H * 0.9 + 7 + sw, half - 9, -half + 12 - H * 0.9);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
         // Ghost icon of what will be built.
         ctx.globalAlpha = 0.65;
         drawIcon(ctx, p.kind === "tower" ? "tower" : p.kind === "fortify" ? "wall" : p.kind === "lumber" ? "sword" : p.kind === "forge" ? "hammer" : p.kind === "hall" ? "crown" : p.kind === "catapult" ? "warn" : p.kind === "barracks" ? "sword" : "hammer", 0, -9, 10, "#f4e6c8");
