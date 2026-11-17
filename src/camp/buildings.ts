@@ -309,17 +309,22 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   ctx.strokeStyle = "#d8c098";
   ctx.lineWidth = 1.2;
   ctx.stroke();
-  const t = env.time * 4 + x * 0.05;
+  // Built or upgraded: once the tower has risen, the pennant is hoisted up the pole (overshooting
+  // a touch and flapping hard on the way up) instead of just appearing.
+  const hu = Math.max(0, Math.min(1, (since - 0.45) / 0.7));
+  const he = hu >= 1 ? 1 : 1 + 2.4 * (hu - 1) ** 3 + 1.4 * (hu - 1) ** 2;
+  const flagTop = poleTop + (1 - he) * 26;
+  const t = env.time * (4 + (1 - hu) * 6) + x * 0.05;
   // Travelling wave, growing toward the free end (a little gust layered in).
-  const wave = (k: number): number => (Math.sin(t - k * 3.2) * 2.4 + Math.sin(t * 0.37 - k * 1.3) * 0.8) * k;
+  const wave = (k: number): number => (Math.sin(t - k * 3.2) * 2.4 + Math.sin(t * 0.37 - k * 1.3) * 0.8) * k * (1 + (1 - hu) * 0.8);
   const len = 21, hgt = 11, N = 10;
   const top: [number, number][] = [], bot: [number, number][] = [];
   for (let i = 0; i <= N; i++) {
     const k = i / N;
     const w = wave(k);
     const taper = hgt * (1 - k * 0.35);
-    top.push([poleX + k * len, poleTop + 1 + w + k * 1.5]);
-    bot.push([poleX + k * len, poleTop + 1 + w + k * 1.5 + taper]);
+    top.push([poleX + k * len, flagTop + 1 + w + k * 1.5]);
+    bot.push([poleX + k * len, flagTop + 1 + w + k * 1.5 + taper]);
   }
   // Swallowtail notch at the free end.
   const tip = top[N]!, tipB = bot[N]!;
@@ -339,7 +344,7 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
     const slope = top[i + 1]![1] - top[i]![1];
     const lit = Math.max(-1, Math.min(1, -slope / 1.4));
     ctx.fillStyle = lit > 0 ? `rgba(160,200,255,${(lit * 0.45).toFixed(3)})` : `rgba(10,20,50,${(-lit * 0.4).toFixed(3)})`;
-    ctx.fillRect(top[i]![0], poleTop - 8, len / N + 0.6, hgt + 20);
+    ctx.fillRect(top[i]![0], flagTop - 8, len / N + 0.6, hgt + 20);
   }
   // Gold trim along the top edge.
   ctx.strokeStyle = "rgba(255,216,74,0.9)";
@@ -352,7 +357,7 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   ctx.lineWidth = 0.8;
   ctx.stroke();
   // Level number on the cloth.
-  const py2 = poleTop + 7 + wave(0.35);
+  const py2 = flagTop + 7 + wave(0.35);
   ctx.fillStyle = "#ffd84a";
   ctx.font = `bold 9px ${FONT}`;
   ctx.textAlign = "center";
