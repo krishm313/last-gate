@@ -760,3 +760,21 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 @keyframes overlay-in { from { opacity: 0; } }
 @keyframes panel-in { from { opacity: 0; transform: translateY(calc(24 * var(--u))) scale(0.92); } }
 @media (prefers-reduced-motion: reduce) { .overlay, .overlay > .panel { animation: none; } }
+/* Banner ribbon: a dark band sweeps open from the centre behind the text, edged with gold, and a
+   light streak passes across it — so "Night 3" and boss warnings land like a title card. */
+.banner { isolation: isolate; padding: calc(10 * var(--u)) 0; }
+.banner::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, #0000 0%, #0a1430d0 18%, #0a1430e0 50%, #0a1430d0 82%, #0000 100%);
+  border-top: calc(2 * var(--u)) solid #ffd56a99; border-bottom: calc(2 * var(--u)) solid #ffd56a99;
+  transform: scaleX(0); transition: transform 0.3s ease-in;
+}
+.banner.red::before { background: linear-gradient(90deg, #0000 0%, #3a0a06d0 18%, #3a0a06e8 50%, #3a0a06d0 82%, #0000 100%); border-color: #ff6a4a99; }
+.banner.show::before { transform: scaleX(1); transition: transform 0.38s cubic-bezier(0.2, 1.1, 0.3, 1); }
+.banner::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, #fff0 0%, #fff4 50%, #fff0 100%); opacity: 0;
+}
+.banner.show::after { animation: banner-streak 0.9s 0.25s ease-out both; }
+@keyframes banner-streak { from { opacity: 1; transform: translateX(-120%) skewX(-20deg); } to { opacity: 0; transform: translateX(380%) skewX(-20deg); } }
+@media (prefers-reduced-motion: reduce) { .banner.show::after { animation: none; } }
