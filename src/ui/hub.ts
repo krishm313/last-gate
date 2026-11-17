@@ -171,6 +171,7 @@ export class Hub {
       const stars = save.stars[ch.id] ?? 0;
       const isNext = unlocked && stars === 0 && !CHAPTERS.some((o) => o.id < ch.id && chapterUnlocked(save, o.id) && !(save.stars[o.id] ?? 0));
       const card = el("button", `chapter${unlocked ? "" : " locked"}${isNext ? " next" : ""}`);
+      card.style.setProperty("--i", String(ch.id)); // entrance stagger (daily card is 0)
       if (unlocked && !seen.has(ch.id)) {
         card.classList.add("fresh");
         card.append(el("div", "ch-fresh", "🔓 NEW!"));
