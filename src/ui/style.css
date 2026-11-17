@@ -778,3 +778,19 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .banner.show::after { animation: banner-streak 0.9s 0.25s ease-out both; }
 @keyframes banner-streak { from { opacity: 1; transform: translateX(-120%) skewX(-20deg); } to { opacity: 0; transform: translateX(380%) skewX(-20deg); } }
 @media (prefers-reduced-motion: reduce) { .banner.show::after { animation: none; } }
+/* Title screen embers: warm sparks rising behind the King, swaying and fading as they climb. */
+.title-embers { position: absolute; left: 50%; bottom: calc(10 * var(--u)); width: 0; height: calc(220 * var(--u)); pointer-events: none; z-index: 2; }
+.title-embers i {
+  position: absolute; bottom: 0; left: calc(var(--x) * 3 * var(--u)); width: calc(7 * var(--u)); height: calc(7 * var(--u));
+  border-radius: 50%; background: #ffe7a0; box-shadow: 0 0 calc(10 * var(--u)) calc(2 * var(--u)) #ff9a3a, 0 0 calc(3 * var(--u)) #fff6d0;
+  opacity: 0; animation: ember-rise calc(var(--s) * 1s) ease-out calc(var(--d) * 1s) infinite;
+}
+.title-embers i:nth-child(3n) { width: calc(4.5 * var(--u)); height: calc(4.5 * var(--u)); }
+@keyframes ember-rise {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  12% { opacity: 1; }
+  70% { opacity: 0.9; }
+  50% { transform: translate(calc(var(--w) * 4 * var(--u)), calc(-110 * var(--u))) scale(0.9); }
+  100% { opacity: 0; transform: translate(calc(var(--w) * -3 * var(--u)), calc(-220 * var(--u))) scale(0.4); }
+}
+@media (prefers-reduced-motion: reduce) { .title-embers { display: none; } }

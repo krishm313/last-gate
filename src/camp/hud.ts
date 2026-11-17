@@ -284,7 +284,17 @@ export class CampHud {
     king.src = "./sprites/units/king.png";
     king.alt = "";
     const kingWrap = el("div", "title-king-wrap");
-    kingWrap.append(el("div", "end-rays"), king);
+    // Embers drifting up behind the King (each its own lane, speed and delay; pure CSS motion).
+    const embers = el("div", "title-embers");
+    for (let i = 0; i < 14; i++) {
+      const e = el("i", "");
+      e.style.setProperty("--x", `${((i * 37) % 100) - 50}`);
+      e.style.setProperty("--d", `${(i * 0.53) % 4}`);
+      e.style.setProperty("--s", `${3.2 + ((i * 7) % 5) * 0.45}`);
+      e.style.setProperty("--w", `${((i * 13) % 7) - 3}`);
+      embers.append(e);
+    }
+    kingWrap.append(el("div", "end-rays"), embers, king);
     box.append(
       kingWrap,
       el("h1", "logo", "Last Gate"),
