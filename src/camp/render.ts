@@ -3257,8 +3257,48 @@ fx.shake(0.15);
     this.drawEnemyInner(ctx, c, e);
   }
 
+  /** Strike telegraph: in the last ~0.35 s before an enemy's blow lands, a red ring tightens under
+   *  it and a glint flares on its weapon side, so incoming hits read before they connect. */
+  private drawStrikeTell(ctx: CanvasRenderingContext2D, e: Enemy): void {
+    if (!e.attacking || e.def.flying) return;
+    const W = 0.35;
+    if (e.attackTimer > W || e.attackTimer <= 0) return;
+    const u = 1 - e.attackTimer / W; // 0 -> 1 as the blow comes due
+    const r = e.def.radius;
+    ctx.save();
+    ctx.globalAlpha = 0.25 + u * 0.55;
+    ctx.strokeStyle = "#ff4a2a";
+    ctx.lineWidth = 1.5 + u * 1.5;
+    const rr = r * (2.2 - u * 1.1);
+    ctx.beginPath();
+    ctx.ellipse(e.x, e.y + r * 0.9, rr, rr * 0.4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    if (u > 0.55) {
+      const mv = this.enemyMove.get(e.id);
+      const side = mv?.flip ? 1 : -1;
+      const gx = e.x + side * r * 0.9, gy = e.y - r * 1.4;
+      const a = Math.sin(((u - 0.55) / 0.45) * Math.PI);
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = a;
+      ctx.fillStyle = "#fff0d0";
+      ctx.translate(gx, gy);
+      ctx.rotate(u * 1.5);
+      const L = 5 + a * 4;
+      ctx.beginPath();
+      for (let q = 0; q < 4; q++) {
+        const an = (q * Math.PI) / 2;
+        ctx.lineTo(Math.cos(an) * L, Math.sin(an) * L);
+        ctx.lineTo(Math.cos(an + Math.PI / 4) * 1.1, Math.sin(an + Math.PI / 4) * 1.1);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   private drawEnemyInner(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
     const r = e.def.radius;
+    this.drawStrikeTell(ctx, e);
     const id = e.def.id;
     const lunge = e.attacking ? Math.max(0, 1 - (e.def.attackInterval - e.attackTimer) / 0.2) : 0;
     const flash = e.flash > 0;
