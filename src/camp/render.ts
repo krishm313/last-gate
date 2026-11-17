@@ -409,9 +409,15 @@ export class CampRenderer {
           fx.burst(ev.x + 6, ev.y - 20, "#6aaa50", 5, 80, { max: 0.5, size: 3, gravity: 200 });
           fx.burst(ev.x + 10, ev.y, "#c8a070", 4, 70, { max: 0.4, size: 2.5, gravity: 300, shape: "chunk" });
           break;
-        case "coinPickup":
+        case "coinPickup": {
           this.pickupBatch += 1;
+          // A coin flies from where it was picked up into the HUD coin counter (capped).
+          if (!this.ambient && this.uiCoins.length < 14) {
+            const oc = this.camOrigin();
+            this.uiCoins.push({ x: ev.x - oc.x, y: ev.y - 20 - oc.y, t: -this.uiCoins.length * 0.05, spin: Math.random() * 6 });
+          }
           break;
+        }
         case "coinSpend":
           if (this.flyers.length < 40) this.flyers.push({ from: ev.from, to: ev.to, t: 0 });
           break;
@@ -946,6 +952,7 @@ fx.shake(0.15);
       this.drawIndicators(ctx, c, o);
       this.drawCombo(ctx, c);
     }
+    this.drawUiCoins(ctx, dt);
     this.drawJoystick(ctx);
     if (this.fx.flash > 0) {
       ctx.globalAlpha = Math.min(0.6, this.fx.flash);
@@ -2230,6 +2237,40 @@ fx.shake(0.15);
   }
 
   /** Repair plot while every wall segment is whole: a quiet plate that takes no coins. */
+  /** Coins flying from the King to the HUD coin counter (screen space). */
+  private uiCoins: { x: number; y: number; t: number; spin: number }[] = [];
+  private coinTarget = { x: 52, y: 52, at: -9 };
+  private drawUiCoins(ctx: CanvasRenderingContext2D, dt: number): void {
+    if (!this.uiCoins.length) return;
+    // Where the HUD coin pill sits, in canvas units (re-measured now and then; the HUD is DOM).
+    if (this.time - this.coinTarget.at > 1 && typeof document !== "undefined") {
+      const pill = document.querySelector(".coin-pill"), cv = this.canvas.getBoundingClientRect();
+      if (pill && cv.width > 0) {
+        const r = pill.getBoundingClientRect();
+        this.coinTarget = { x: ((r.left + r.height * 0.55 - cv.left) / cv.width) * VIEW_W, y: ((r.top + r.height / 2 - cv.top) / cv.height) * VIEW_H, at: this.time };
+      }
+    }
+    const T = 0.55;
+    const { x: tx, y: ty } = this.coinTarget;
+    for (const k of this.uiCoins) {
+      k.t += dt;
+      if (k.t < 0) continue;
+      const u = Math.min(1, k.t / T);
+      const e = u * u * (3 - 2 * u);
+      // Arc: pops up first, then accelerates into the counter, shrinking a little on arrival.
+      const x = k.x + (tx - k.x) * e;
+      const y = k.y + (ty - k.y) * e - Math.sin(u * Math.PI) * 50;
+      const w = Math.max(1, Math.abs(Math.cos(k.spin + k.t * 14)) * 6);
+      const sc = 1 - Math.max(0, u - 0.8) * 2;
+      ctx.fillStyle = "#8a5a10";
+      ctx.beginPath(); ctx.ellipse(x + 0.5, y + 0.7, (w + 0.6) * sc, 5.6 * sc, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f7d256";
+      ctx.beginPath(); ctx.ellipse(x, y, w * sc, 5.2 * sc, 0, 0, Math.PI * 2); ctx.fill();
+      if (w > 3) { ctx.fillStyle = "rgba(255,250,220,0.85)"; ctx.beginPath(); ctx.ellipse(x - w * 0.35, y - 1.6, w * 0.25, 1.5, 0, 0, Math.PI * 2); ctx.fill(); }
+    }
+    this.uiCoins = this.uiCoins.filter((k) => k.t < T);
+  }
+
   private drawIdleRepair(ctx: CanvasRenderingContext2D, p: Plot): void {
     // Walls are fine: the repair spot is a carpenter's corner rather than an empty dashed box —
     // a stone pad with a sawhorse, a stack of planks and a hammer, and a small green check.
