@@ -821,3 +821,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .ch-fresh { animation: pop-in 0.35s ease-out 0.9s backwards, badge-wobble 2.6s ease-in-out 1.6s infinite; transform-origin: 50% 100%; }
 @keyframes badge-wobble { 0%, 78%, 100% { transform: none; } 84% { transform: rotate(-8deg) scale(1.12); } 90% { transform: rotate(6deg) scale(1.08); } 95% { transform: rotate(-3deg); } }
 @media (prefers-reduced-motion: reduce) { .hub-body.tab-in .chapter, .ch-fresh { animation: none !important; } }
+/* The main end-screen action invites another run: a slow breathe and a glint sweeping across. */
+.btn-again, .btn-next { position: relative; overflow: hidden; animation: again-breathe 1.8s ease-in-out 1.2s infinite; }
+@keyframes again-breathe { 50% { transform: scale(1.045); filter: brightness(1.08); } }
+.btn-again::after, .btn-next::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; pointer-events: none;
+  background: linear-gradient(100deg, #fff0 0%, #fff7 50%, #fff0 100%); transform: translateX(-160%) skewX(-18deg);
+  animation: cta-glint 3s ease-in-out 1.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) { .btn-again, .btn-next, .btn-again::after, .btn-next::after { animation: none; } }

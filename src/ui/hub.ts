@@ -550,7 +550,7 @@ export class Hub {
     const btns = el("div", "btn-col");
     const upLabel = "Upgrades & map";
     if (next) btns.append(this.button(`Next: ${next.name} ▶`, "btn btn-next", next.go), this.button("Upgrades & map", "btn btn-ghost", onMenu), this.button("Play again", "btn btn-ghost btn-mini", onAgain));
-    else btns.append(this.button(r.endless ? "New siege ▶" : r.won ? "Play again" : "Try again", "btn", onAgain), this.button("Upgrades & map", "btn btn-ghost", onMenu));
+    else btns.append(this.button(r.endless ? "New siege ▶" : r.won ? "Play again" : "Try again", "btn btn-again", onAgain), this.button("Upgrades & map", "btn btn-ghost", onMenu));
     if (r.upgradesReady) {
       const up = [...btns.querySelectorAll(".btn")].find((b) => b.textContent === upLabel);
       up?.classList.add("has-badge");
