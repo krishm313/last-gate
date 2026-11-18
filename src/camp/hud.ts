@@ -162,6 +162,7 @@ export class CampHud {
   private pauseBtn = el("button", "hud-btn round-btn pause-btn", "II");
   private speedBtn = el("button", "hud-btn round-btn speed-btn", "▶");
   private status = el("div", "status-chip");
+  private lastLeft = 9999;
   private callBtn = el("button", "call-wave");
   private countdown = el("div", "countdown");
   private tip = el("div", "tip");
@@ -634,9 +635,16 @@ export class CampHud {
     }
     this.lastHall = c.hallHp;
     if (c.hero.dead) this.status.textContent = `💀 Respawning in ${Math.ceil(c.hero.respawn)}…`;
-    else if (c.phase === "wave") this.status.textContent = `⚔ ${left} foes left`;
+    else if (c.phase === "wave") {
+      this.status.textContent = `⚔ ${left} ${left === 1 ? "foe" : "foes"} left`;
+      // Each kill bumps the counter; the last few foes make it pulse (the night is almost won).
+      if (left < this.lastLeft) this.bump(this.status);
+      this.status.classList.toggle("last-few", left > 0 && left <= 3);
+    }
     else if (c.phase === "pick") this.status.textContent = "🌅 Dawn breaks…";
     else this.status.textContent = "☀ Day — build & upgrade";
+    if (c.phase !== "wave") this.status.classList.remove("last-few");
+    this.lastLeft = c.phase === "wave" ? left : 9999;
     this.status.classList.toggle("red", c.hero.dead);
   }
 }

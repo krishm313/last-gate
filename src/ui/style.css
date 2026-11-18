@@ -830,3 +830,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
   animation: cta-glint 3s ease-in-out 1.6s infinite;
 }
 @media (prefers-reduced-motion: reduce) { .btn-again, .btn-next, .btn-again::after, .btn-next::after { animation: none; } }
+/* The last few foes of a night: the counter glows gold and pulses — almost there. */
+.status-chip.last-few { border-color: #ffd56a; color: #ffe9a0; animation: last-few 0.9s ease-in-out infinite; }
+.status-chip.last-few.bump { animation: bump 0.34s cubic-bezier(.3,.7,.4,1), last-few 0.9s ease-in-out 0.34s infinite; }
+@keyframes last-few { 50% { box-shadow: 0 0 calc(12 * var(--u)) #ffd56a; } }
+@media (prefers-reduced-motion: reduce) { .status-chip.last-few { animation: none; } }
