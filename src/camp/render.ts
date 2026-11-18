@@ -2078,6 +2078,9 @@ fx.shake(0.15);
       ui.aff = affordable;
       const pulse = 1 + Math.sin(this.time * 10) * 0.05 * ui.near + ui.near * 0.03;
       ctx.save();
+      // Upgrade plates you can't afford yet recede (the camp mid-game was a wall of prices); they
+      // come back to full strength when affordable or when the King walks up to them.
+      if (built && !affordable) ctx.globalAlpha = 0.45 + 0.55 * ui.near;
       ctx.translate(p.x, p.y + (built ? 46 : 0));
       ctx.scale(pulse, pulse);
       // Stone foundation pad under empty plots (a real building site, not just a dashed box).
