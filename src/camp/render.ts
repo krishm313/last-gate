@@ -2169,67 +2169,80 @@ fx.shake(0.15);
         drawIcon(ctx, p.kind === "tower" ? "tower" : p.kind === "fortify" ? "wall" : p.kind === "lumber" ? "sword" : p.kind === "forge" ? "hammer" : p.kind === "hall" ? "crown" : p.kind === "catapult" ? "warn" : p.kind === "barracks" ? "sword" : "hammer", 0, -9, 10, "#f4e6c8");
         ctx.globalAlpha = 1;
       }
-      // Price pill: pops with an overshoot when it becomes affordable (a shine sweeps across it), bumps
-      // each time the count ticks down while paying, and bobs gently while it's affordable.
-      const label = `${cost - p.paid}`;
-      if (label !== ui.label) { ui.label = label; ui.labelAt = this.time; }
-      const at = this.time - ui.affAt, lt0 = this.time - ui.labelAt;
-      const pop = at < 0.4 ? 1 + Math.sin((at / 0.4) * Math.PI) * 0.28 * (1 - at / 0.4) : 1;
-      const tick = lt0 < 0.18 ? 1 + Math.sin((lt0 / 0.18) * Math.PI) * 0.12 : 1;
-      const bob = affordable && !near ? Math.sin(this.time * 3 + p.x * 0.05) * 1.2 : 0;
-      ctx.font = `bold 13px ${FONT}`;
-      const w = ctx.measureText(label).width + 26;
-      const py0 = built ? 0 : 15;
-      ctx.save();
-      ctx.translate(0, py0 + bob);
-      ctx.scale(pop * tick, pop * tick);
-      const py = 0;
-      // Each pill is judged on its own resource, so a plate short only of logs shows exactly that:
-      // the coin pill stays gold, the missing one turns red.
-      const coinOk = h.coins >= cost - p.paid;
-      const short = !affordable && !coinOk;
-      ctx.fillStyle = coinOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
-      ctx.beginPath();
-      ctx.roundRect(-w / 2, py - 9, w, 18, 9);
-      ctx.fill();
-      ctx.strokeStyle = affordable ? "#ffd84a" : coinOk ? "#c8a050" : short && logCost > 0 ? "#d0605a" : "#8a6a4a";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      coinIcon(ctx, -w / 2 + 10, py, 5.5);
-      ctx.fillStyle = affordable ? "#ffe9a0" : coinOk ? "#f0dca0" : logCost > 0 ? "#ffa890" : "#c8b090";
-      ctx.fillText(label, 7, py + 1);
-      if (at < 0.5) {
+      // Prices and caption: at night they're drawn after the darkness (with this exact transform and
+      // alpha) so they read in the dark — Hollow Night builds in permanent night. By day, in place.
+      const labels = (ctx: CanvasRenderingContext2D): void => {
+        // Price pill: pops with an overshoot when it becomes affordable (a shine sweeps across it), bumps
+        // each time the count ticks down while paying, and bobs gently while it's affordable.
+        const label = `${cost - p.paid}`;
+        if (label !== ui.label) { ui.label = label; ui.labelAt = this.time; }
+        const at = this.time - ui.affAt, lt0 = this.time - ui.labelAt;
+        const pop = at < 0.4 ? 1 + Math.sin((at / 0.4) * Math.PI) * 0.28 * (1 - at / 0.4) : 1;
+        const tick = lt0 < 0.18 ? 1 + Math.sin((lt0 / 0.18) * Math.PI) * 0.12 : 1;
+        const bob = affordable && !near ? Math.sin(this.time * 3 + p.x * 0.05) * 1.2 : 0;
+        ctx.font = `bold 13px ${FONT}`;
+        const w = ctx.measureText(label).width + 26;
+        const py0 = built ? 0 : 15;
         ctx.save();
+        ctx.translate(0, py0 + bob);
+        ctx.scale(pop * tick, pop * tick);
+        const py = 0;
+        // Each pill is judged on its own resource, so a plate short only of logs shows exactly that:
+        // the coin pill stays gold, the missing one turns red.
+        const coinOk = h.coins >= cost - p.paid;
+        const short = !affordable && !coinOk;
+        ctx.fillStyle = coinOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
         ctx.beginPath();
         ctx.roundRect(-w / 2, py - 9, w, 18, 9);
-        ctx.clip();
-        const sx = -w / 2 - 10 + (w + 20) * (at / 0.5);
-        ctx.fillStyle = "rgba(255,250,220,0.55)";
-        ctx.beginPath();
-        ctx.moveTo(sx - 4, py - 10); ctx.lineTo(sx + 4, py - 10); ctx.lineTo(sx - 2, py + 10); ctx.lineTo(sx - 10, py + 10);
         ctx.fill();
-        ctx.restore();
-      }
-      ctx.restore();
-      if (logCost > 0) {
-        const lt = `${logCost - p.paidLogs}`;
-        const lw = ctx.measureText(lt).width + 26;
-        const ly = py0 + 20;
-        const logOk = h.logs >= logCost - p.paidLogs;
-        ctx.fillStyle = logOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
-        ctx.beginPath();
-        ctx.roundRect(-lw / 2, ly - 9, lw, 18, 9);
-        ctx.fill();
-        ctx.strokeStyle = logOk ? "#e8b070" : "#d0605a";
+        ctx.strokeStyle = affordable ? "#ffd84a" : coinOk ? "#c8a050" : short && logCost > 0 ? "#d0605a" : "#8a6a4a";
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        drawLogPile(ctx, -lw / 2 + 10, ly - 7, 1, false);
-        ctx.fillStyle = logOk ? "#f0d8b0" : "#ffa890";
-        ctx.fillText(lt, 7, ly + 1);
-      }
-      // Caption.
-      const caption = p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
-      outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
+        coinIcon(ctx, -w / 2 + 10, py, 5.5);
+        ctx.fillStyle = affordable ? "#ffe9a0" : coinOk ? "#f0dca0" : logCost > 0 ? "#ffa890" : "#c8b090";
+        ctx.fillText(label, 7, py + 1);
+        if (at < 0.5) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, py - 9, w, 18, 9);
+          ctx.clip();
+          const sx = -w / 2 - 10 + (w + 20) * (at / 0.5);
+          ctx.fillStyle = "rgba(255,250,220,0.55)";
+          ctx.beginPath();
+          ctx.moveTo(sx - 4, py - 10); ctx.lineTo(sx + 4, py - 10); ctx.lineTo(sx - 2, py + 10); ctx.lineTo(sx - 10, py + 10);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+        if (logCost > 0) {
+          const lt = `${logCost - p.paidLogs}`;
+          const lw = ctx.measureText(lt).width + 26;
+          const ly = py0 + 20;
+          const logOk = h.logs >= logCost - p.paidLogs;
+          ctx.fillStyle = logOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
+          ctx.beginPath();
+          ctx.roundRect(-lw / 2, ly - 9, lw, 18, 9);
+          ctx.fill();
+          ctx.strokeStyle = logOk ? "#e8b070" : "#d0605a";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          drawLogPile(ctx, -lw / 2 + 10, ly - 7, 1, false);
+          ctx.fillStyle = logOk ? "#f0d8b0" : "#ffa890";
+          ctx.fillText(lt, 7, ly + 1);
+        }
+        // Caption.
+        const caption = p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
+        outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
+      };
+      if (this.night > 0.3) {
+        const m = ctx.getTransform(), ga = ctx.globalAlpha, ta = ctx.textAlign, tb = ctx.textBaseline;
+        this.lateBars.push((ctx) => {
+          ctx.save();
+          ctx.setTransform(m); ctx.globalAlpha = ga; ctx.textAlign = ta; ctx.textBaseline = tb;
+          labels(ctx);
+          ctx.restore();
+        });
+      } else labels(ctx);
       ctx.restore();
     }
   }
