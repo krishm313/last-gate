@@ -878,3 +878,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
   100% { opacity: 1; transform: none; text-shadow: 0 0 calc(4 * var(--u)) #b8ff7a55; }
 }
 @media (prefers-reduced-motion: reduce) { .end-row, .end-unlock { animation: none; } }
+
+/* Locked chapters keep a dim hint of their own ground colours (marsh green, iron rust, night
+   violet…) instead of all reading as the same grey slab; the padlock jiggles now and then. */
+.chapter.locked { filter: grayscale(0.4) brightness(0.62) saturate(0.85); }
+.chapter.locked .ch-stars { display: inline-block; animation: lock-jiggle 4.2s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 0.7s); transform-origin: 50% 20%; }
+@keyframes lock-jiggle { 0%, 86%, 100% { transform: none; } 89% { transform: rotate(-14deg); } 92% { transform: rotate(11deg); } 95% { transform: rotate(-6deg); } 98% { transform: rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) { .chapter.locked .ch-stars { animation: none; } }
