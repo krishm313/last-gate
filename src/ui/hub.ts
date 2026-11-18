@@ -520,6 +520,7 @@ export class Hub {
       for (let i = 0; i < 3; i++) {
         const s = el("span", i < reward.stars ? "star on" : "star", "★");
         s.style.animationDelay = `${0.3 + i * 0.25}s`;
+        s.style.setProperty("--d", `${0.3 + i * 0.25 + 0.2}s`);
         stars.append(s);
       }
       box.append(stars);
