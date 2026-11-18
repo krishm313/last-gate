@@ -2116,6 +2116,7 @@ fx.shake(0.15);
       // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
       if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks")) {
         const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
+        const ribbon = (ctx: CanvasRenderingContext2D): void => {
         ctx.save();
         ctx.translate(p.x, p.y + 46 + bob);
         ctx.font = `900 10px ${FONT}`;
@@ -2130,6 +2131,12 @@ fx.shake(0.15);
         ctx.fillStyle = "#3a1e06";
         ctx.fillText("★ MAX", 0, 0.5);
         ctx.restore();
+        };
+        // Like the price plates: above the darkness at night.
+        if (this.night > 0.3) {
+          const m = ctx.getTransform();
+          this.lateBars.push((ctx) => { ctx.save(); ctx.setTransform(m); ribbon(ctx); ctx.restore(); });
+        } else ribbon(ctx);
       }
       if (plotMaxed(p) || p.locked) continue;
       const near = !h.dead && this.nearPlot(h, p);
