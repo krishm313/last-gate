@@ -416,7 +416,8 @@ export class CampRenderer {
           // A fallen torch-bearer's torch keeps burning on the ground for a moment.
           if (this.night > 0.4 && ev.eid % 3 === 0 && !ev.enemy.flying && this.groundFires.length < 12) this.groundFires.push({ x: ev.x + 10, y: ev.y + 6, t: this.time });
           // Walkers with a body sprite topple over and fade (bats, rams and the dragon just burst).
-          if (LOOKS[ev.enemy.id] && !ev.enemy.flying && !ev.enemy.boss && this.corpses.length < 30) {
+          // Walking bosses topple too (a heavy fall with a ring of dust), instead of vanishing.
+          if (LOOKS[ev.enemy.id] && !ev.enemy.flying && this.corpses.length < 30) {
             this.corpseFlip = -this.corpseFlip;
             const mv = this.enemyMove.get(ev.eid);
             this.corpses.push({ x: ev.x, y: ev.y, id: ev.enemy.id, r: ev.enemy.radius, t: this.time, dir: mv ? (mv.flip ? 1 : -1) : this.corpseFlip });
@@ -429,6 +430,13 @@ export class CampRenderer {
             fx.flash = 0.5;
             fx.flashColor = "#fff2c0";
             fx.slowmo = 1.2;
+            if (!ev.enemy.flying) {
+              for (let k = 0; k < 18; k++) {
+                const a = (k / 18) * Math.PI * 2;
+                fx.burst(ev.x + Math.cos(a) * ev.enemy.radius * 1.4, ev.y + 6 + Math.sin(a) * ev.enemy.radius * 0.5, "rgba(214,198,166,0.85)", 1, 70, { max: 0.9, size: 8, gravity: -14, drag: 3 });
+              }
+              fx.rings.push({ x: ev.x, y: ev.y + 6, r: ev.enemy.radius * 3.2, color: "#e8d8b0", life: 0.7, max: 0.7, width: 4 });
+            }
           }
           break;
         case "logSpend":
