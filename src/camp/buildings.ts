@@ -1312,11 +1312,17 @@ export function drawBowItem(ctx: CanvasRenderingContext2D, x: number, y: number,
 
 export function drawLogPile(ctx: CanvasRenderingContext2D, x: number, y: number, n: number, plate: boolean, box = plate): void {
   if (box) {
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.setLineDash([5, 5]);
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x - 26, y - 20, 52, 40);
-    ctx.setLineDash([]);
+    // A timber pallet the logs are stacked on (instead of a dashed debug box).
+    softShadow(ctx, x + 3, y + 15, 26, 6, 0.28);
+    for (let k = 0; k < 4; k++) {
+      const py = y + 2 + k * 4;
+      ctx.fillStyle = INK;
+      ctx.beginPath(); ctx.roundRect(x - 24, py - 1, 48, 4.5, 1); ctx.fill();
+      ctx.fillStyle = k % 2 ? "#b8844a" : "#c99558";
+      ctx.fillRect(x - 23, py, 46, 2.5);
+      ctx.fillStyle = "rgba(255,236,190,0.45)";
+      ctx.fillRect(x - 23, py, 46, 0.8);
+    }
   }
   const count = Math.min(n, 15);
   let i = 0;
