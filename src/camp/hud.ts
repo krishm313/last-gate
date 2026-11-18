@@ -371,10 +371,26 @@ export class CampHud {
     this.overlay.style.display = "flex";
   }
 
+  private tipDoneTimer = 0;
   setTip(text: string | null): void {
     const t = text ?? "";
     if (t === this.lastTip) return;
+    const prev = this.lastTip;
     this.lastTip = t;
+    window.clearTimeout(this.tipDoneTimer);
+    // A step just completed (one tutorial tip replaced by the next): the old tip turns green with a
+    // tick for a beat, then the next one pops in, so progress is felt rather than just swapped.
+    if (prev && t && !this.tip.classList.contains("tip-done")) {
+      this.tip.classList.add("tip-done");
+      this.tip.replaceChildren(el("span", "tip-ico tip-tick", "✔"), document.createTextNode(` ${prev.slice(prev.indexOf(" ") + 1)}`));
+      this.tipDoneTimer = window.setTimeout(() => {
+        this.tip.classList.remove("tip-done");
+        this.lastTip = "";
+        this.setTip(t);
+      }, 550);
+      return;
+    }
+    this.tip.classList.remove("tip-done");
     // The leading emoji gets its own element so it can move: the 👆 of "drag to walk" swipes
     // across like a finger demonstrating the gesture; other tip icons bob gently.
     const sp = t.indexOf(" ");

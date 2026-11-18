@@ -965,3 +965,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Heroes tab: a newly unlocked hero is revealed once (gold flash) with a wobbling NEW! badge. */
 .hero { position: relative; }
 .hub-body .hero.fresh { animation: ch-reveal 0.9s cubic-bezier(.2,1.4,.4,1) 0.35s backwards; }
+
+/* Tutorial step done: the tip flashes green with a tick before the next one pops in. */
+.tip.tip-done { background: linear-gradient(#5ec43a, #2f8a1e) !important; animation: tip-done-pop 0.4s cubic-bezier(.2,1.6,.4,1); }
+.tip-tick { animation: tip-tick-in 0.35s cubic-bezier(.2,1.8,.4,1) both; color: #fff; }
+@keyframes tip-done-pop { 50% { transform: translateX(-50%) scale(1.06); } }
+@keyframes tip-tick-in { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
