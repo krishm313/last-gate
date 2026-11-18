@@ -119,6 +119,7 @@ export class CampRenderer {
     // New run / back to the menu: drop any boss-entrance pan + card still playing from the last run.
     this.focus = null;
     this.corpses = [];
+    this.pendingUnlocks = [];
   }
 
   /** Chapter lighting: 1 day, 2 marsh mist, 3 dusty, 4 night, 5 blood-red dusk. */
@@ -188,8 +189,23 @@ export class CampRenderer {
     ctx.restore();
   }
 
+  private pendingUnlocks: Vec[] = [];
+  /** A newly unlocked plot announces itself: double green ring, a burst and a "NEW!" label. */
+  private revealUnlock(x: number, y: number): void {
+    this.fx.rings.push({ x, y, r: 60, color: "#8ef06a", life: 0.8, max: 0.8, width: 5 });
+    this.fx.rings.push({ x, y, r: 95, color: "#d8ffb8", life: 1.1, max: 1.1, width: 3 });
+    this.fx.burst(x, y, "#8ef06a", 24, 170, { max: 0.9, size: 3, gravity: -40, shape: "spark" });
+    this.fx.number(x, y + 50, "NEW!", "#8ef06a", 18, 1.6); // below the plot: the "New building!" banner sits above
+  }
+  /** Play unlock reveals held back during the blessing pick (called once the camp is visible again). */
+  flushUnlocks(): void {
+    for (const u of this.pendingUnlocks) this.revealUnlock(u.x, u.y);
+    this.pendingUnlocks = [];
+  }
+
   /** A blessing was just chosen: the golden pillar rises around the King, with its icon and name. */
   blessed(c: Camp, icon: string, name: string): void {
+    this.flushUnlocks();
     if (this.ambient || c.hero.dead) return;
     const h = c.hero;
     this.levelUpAt = this.time;
@@ -499,9 +515,9 @@ fx.shake(0.15);
           fx.shake(0.45);
           break;
         case "plotUnlocked":
-          this.builtAt.set(`unlock-${ev.label}`, this.time);
-          fx.rings.push({ x: ev.x, y: ev.y, r: 60, color: "#8ef06a", life: 0.8, max: 0.8, width: 5 });
-          fx.burst(ev.x, ev.y, "#8ef06a", 20, 160, { max: 0.8, size: 3, gravity: -40 });
+          // Unlocks land at dawn, behind the blessing pick: hold the reveal until the pick closes.
+          if (picking) this.pendingUnlocks.push({ x: ev.x, y: ev.y });
+          else this.revealUnlock(ev.x, ev.y);
           break;
         case "allyDown":
           // The knight topples with his death frames, kicks up dust and fades (see drawAllyFalls).
