@@ -526,6 +526,7 @@ export class Hub {
       if (v.startsWith("● ")) val.append(el("i", "coin-dot"), v.slice(2));
       else val.textContent = v;
       x.append(el("span", "", k), val);
+      x.style.setProperty("--i", String(rows.childElementCount));
       rows.append(x);
       return val;
     };
@@ -541,12 +542,15 @@ export class Hub {
     if (reward.waveBonus) row("Nights bonus", `● ${reward.waveBonus}`);
     if (reward.winBonus) row(reward.firstClear ? "First victory bonus" : "Victory bonus", `● ${reward.winBonus}`);
     const total = row("Gold earned", `● 0`, "total");
-    countUp(total, reward.gold, (r.won ? 2000 : 900) + 350);
+    // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
+    const nRows = rows.childElementCount;
+    countUp(total, reward.gold, (r.won ? 2000 : 900) + 350 + nRows * 70);
     box.append(rows);
     if (!r.won && r.tip) box.append(el("div", "end-tip", `💡 ${r.tip}`));
     if (r.dailyStreak && r.dailyStreak >= 2) box.append(el("div", "end-unlock end-record", `🔥 ${r.dailyStreak}-day streak!`));
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
+    box.querySelectorAll<HTMLElement>(".end-unlock").forEach((u, i) => u.style.setProperty("--d", `${0.45 + nRows * 0.07 + i * 0.15}s`));
     const btns = el("div", "btn-col");
     const upLabel = "Upgrades & map";
     if (next) btns.append(this.button(`Next: ${next.name} ▶`, "btn btn-next", next.go), this.button("Upgrades & map", "btn btn-ghost", onMenu), this.button("Play again", "btn btn-ghost btn-mini", onAgain));
