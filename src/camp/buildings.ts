@@ -876,15 +876,31 @@ export function drawForge(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp, 
 }
 
 export function drawForgeZones(_env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): void {
-  for (const [z, label] of [[FORGE_IN, "Logs in"], [FORGE_OUT, "Bows"]] as const) {
-    ctx.strokeStyle = "rgba(255,255,255,0.45)";
-    ctx.setLineDash([5, 5]);
-    ctx.lineWidth = 2;
-    ctx.strokeRect(z.x - 26, z.y - 20, 52, 40);
-    ctx.setLineDash([]);
+  // Drop-off spots read as real fixtures, not dashed debug boxes: a timber pallet for logs going
+  // in, a rack frame for finished bows, each with a small sign.
+  for (const [z, label, rack] of [[FORGE_IN, "Logs in", false], [FORGE_OUT, "Bows", true]] as const) {
+    softShadow(ctx, z.x + 3, z.y + 15, 26, 6, 0.28);
+    ctx.lineJoin = "round";
+    for (let k = 0; k < 4; k++) {
+      const py = z.y + 2 + k * 4;
+      ctx.fillStyle = INK;
+      ctx.beginPath(); ctx.roundRect(z.x - 24, py - 1, 48, 4.5, 1); ctx.fill();
+      ctx.fillStyle = k % 2 ? "#b8844a" : "#c99558";
+      ctx.fillRect(z.x - 23, py, 46, 2.5);
+      ctx.fillStyle = "rgba(255,236,190,0.45)";
+      ctx.fillRect(z.x - 23, py, 46, 0.8);
+    }
+    if (rack) {
+      ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(z.x - 20, z.y + 4); ctx.lineTo(z.x - 20, z.y - 14); ctx.lineTo(z.x + 20, z.y - 14); ctx.lineTo(z.x + 20, z.y + 4); ctx.stroke();
+      ctx.strokeStyle = "#9a6a38"; ctx.lineWidth = 1.8; ctx.stroke();
+    }
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.save();
+    ctx.globalAlpha *= 0.85;
     outlined(ctx, label, z.x, z.y + 30, 9.5);
+    ctx.restore();
   }
   drawLogPile(ctx, FORGE_IN.x, FORGE_IN.y, c.forgeLogs, false);
   for (let i = 0; i < Math.min(15, c.forgeBows); i++) drawBowItem(ctx, FORGE_OUT.x + ((i % 3) - 1) * 13, FORGE_OUT.y + 8 - Math.floor(i / 3) * 6);
