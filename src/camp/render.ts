@@ -430,7 +430,8 @@ export class CampRenderer {
           fx.burst(ev.x, ev.y, "#ffe08a", 26, 220, { max: 0.6, size: 3.5, gravity: -30 });
           fx.burst(ev.x, ev.y, "#c8a070", 14, 160, { max: 0.6, size: 4, gravity: 300, shape: "chunk" });
           fx.rings.push({ x: ev.x, y: ev.y, r: 70, color: "#ffe08a", life: 0.5, max: 0.5, width: 5 });
-          fx.number(ev.x, ev.y - 50, ev.level === 1 && ev.kind !== "repair" ? "BUILT!" : ev.kind === "repair" ? "REPAIRED!" : "UPGRADED!", "#ffe66a", 20, 1.1);
+          // High enough to clear the King's coin stack and tag while he stands on the plot.
+          fx.number(ev.x, ev.y - 112, ev.level === 1 && ev.kind !== "repair" ? "BUILT!" : ev.kind === "repair" ? "REPAIRED!" : "UPGRADED!", "#ffe66a", 20, 1.1);
 fx.shake(0.15);
           // A low dust cloud rolls out from the base as the building lands at the end of its rise.
           if (ev.kind !== "repair") this.buildDust.push({ x: ev.x, y: ev.y + 16, t: this.time + 0.3 });
