@@ -2171,15 +2171,19 @@ fx.shake(0.15);
       ctx.translate(0, py0 + bob);
       ctx.scale(pop * tick, pop * tick);
       const py = 0;
-      ctx.fillStyle = affordable ? "#2a1a0e" : "rgba(40,20,10,0.75)";
+      // Each pill is judged on its own resource, so a plate short only of logs shows exactly that:
+      // the coin pill stays gold, the missing one turns red.
+      const coinOk = h.coins >= cost - p.paid;
+      const short = !affordable && !coinOk;
+      ctx.fillStyle = coinOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
       ctx.beginPath();
       ctx.roundRect(-w / 2, py - 9, w, 18, 9);
       ctx.fill();
-      ctx.strokeStyle = affordable ? "#ffd84a" : "#8a6a4a";
+      ctx.strokeStyle = affordable ? "#ffd84a" : coinOk ? "#c8a050" : short && logCost > 0 ? "#d0605a" : "#8a6a4a";
       ctx.lineWidth = 1.5;
       ctx.stroke();
       coinIcon(ctx, -w / 2 + 10, py, 5.5);
-      ctx.fillStyle = affordable ? "#ffe9a0" : "#c8b090";
+      ctx.fillStyle = affordable ? "#ffe9a0" : coinOk ? "#f0dca0" : logCost > 0 ? "#ffa890" : "#c8b090";
       ctx.fillText(label, 7, py + 1);
       if (at < 0.5) {
         ctx.save();
@@ -2198,15 +2202,16 @@ fx.shake(0.15);
         const lt = `${logCost - p.paidLogs}`;
         const lw = ctx.measureText(lt).width + 26;
         const ly = py0 + 20;
-        ctx.fillStyle = h.logs >= logCost - p.paidLogs ? "#2a1a0e" : "rgba(40,20,10,0.75)";
+        const logOk = h.logs >= logCost - p.paidLogs;
+        ctx.fillStyle = logOk ? "#2a1a0e" : "rgba(40,20,10,0.75)";
         ctx.beginPath();
         ctx.roundRect(-lw / 2, ly - 9, lw, 18, 9);
         ctx.fill();
-        ctx.strokeStyle = h.logs >= logCost - p.paidLogs ? "#e8b070" : "#8a6a4a";
+        ctx.strokeStyle = logOk ? "#e8b070" : "#d0605a";
         ctx.lineWidth = 1.5;
         ctx.stroke();
         drawLogPile(ctx, -lw / 2 + 10, ly - 7, 1, false);
-        ctx.fillStyle = "#f0d8b0";
+        ctx.fillStyle = logOk ? "#f0d8b0" : "#ffa890";
         ctx.fillText(lt, 7, ly + 1);
       }
       // Caption.
