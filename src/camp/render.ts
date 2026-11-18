@@ -2568,7 +2568,7 @@ fx.shake(0.15);
   }
 
   /** 0 = full day, 1 = full night; eases between them over ~2 s (dusk / dawn). */
-  private night = 0;
+  night = 0;
   private nightLayer: HTMLCanvasElement | null = null;
 
   /** World-space light sources at night: the hero's lantern, the hall, built plots, wall torches. */

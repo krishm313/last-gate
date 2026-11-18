@@ -118,6 +118,8 @@ export interface DrawEnv {
   gustAt(x: number): number;
   /** Draws the rendered lumberjack (also used as the smith); returns the frame drawn or -1. */
   drawLumberjackFrame(ctx: CanvasRenderingContext2D, x: number, footY: number, walking: boolean, t: number, flip: boolean, still?: boolean): number;
+  /** 0 = day, 1 = full night (eased). */
+  night: number;
   /** Draws a label now by day, or above the night darkness at night (same transform/alpha). */
   overlay(ctx: CanvasRenderingContext2D, draw: (ctx: CanvasRenderingContext2D) => void): void;
 }
@@ -964,6 +966,30 @@ export function drawHall(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): 
   ctx.translate(-x, -(y + 40));
   const drewCastle = drawSprite(ctx, "castle", x, y + 40, castleH, { walk: 0, time: 0, seed: 0, flip: false, flash: hitT < 0.12 ? 1 - hitT / 0.12 : 0, lunge: 0 });
   ctx.restore();
+  // At night the keep is lived in: its doorway and arrow slits glow with warm, flickering light
+  // (drawn above the darkness so the windows actually shine).
+  if (drewCastle && env.night > 0.3) {
+    const k = Math.min(1, (env.night - 0.3) / 0.5);
+    const H = castleH;
+    env.overlay(ctx, (ctx) => {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const fl = 0.8 + Math.sin(env.time * 7.3) * 0.1 + Math.sin(env.time * 13.1) * 0.06;
+      const win = (wx: number, wy: number, r: number, a: number): void => {
+        const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, r);
+        g.addColorStop(0, `rgba(255,190,90,${(a * fl * k).toFixed(3)})`);
+        g.addColorStop(1, "rgba(255,150,60,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(wx - r, wy - r, r * 2, r * 2);
+      };
+      win(x, y + 40 - H * 0.08, 26, 0.55); // doorway
+      win(x - 34, y + 40 - H * 0.42, 9, 0.7); // side tower slits
+      win(x + 34, y + 40 - H * 0.42, 9, 0.7);
+      win(x - 12, y + 40 - H * 0.62, 8, 0.6); // keep
+      win(x + 12, y + 40 - H * 0.62, 8, 0.6);
+      ctx.restore();
+    });
+  }
   // The Grand Hall (fully upgraded) wears a crown of light: a soft gold glow round the keep's top
   // and a few stars that twinkle in turn above the battlements.
   const hallPlot = c.plots.find((p) => p.kind === "hall");
