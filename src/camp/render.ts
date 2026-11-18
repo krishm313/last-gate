@@ -2377,7 +2377,16 @@ fx.shake(0.15);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.globalAlpha = 0.85;
-    outlined(ctx, p.label, 0, -half - 9, 10.5);
+    // Like the other plot captions: after the darkness at night, so it reads in Hollow Night.
+    if (this.night > 0.3) {
+      const m = ctx.getTransform();
+      this.lateBars.push((ctx) => {
+        ctx.save();
+        ctx.setTransform(m); ctx.globalAlpha = 0.85; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        outlined(ctx, p.label, 0, -half - 9, 10.5);
+        ctx.restore();
+      });
+    } else outlined(ctx, p.label, 0, -half - 9, 10.5);
     ctx.restore();
   }
 
