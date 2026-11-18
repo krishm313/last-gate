@@ -1022,3 +1022,15 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .call-wave.soon { background: linear-gradient(#ff8a6a, #e8402a 55%, #b8201a) !important; animation: call-soon 0.8s ease-in-out infinite; }
 @keyframes call-soon { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) { .call-wave.soon { animation: none; } }
+
+/* Legendary blessing (the rarest): a shimmering gold border that sweeps round the card. */
+.card.r-legendary::before {
+  content: ""; position: absolute; inset: calc(-3 * var(--u)); border-radius: inherit; pointer-events: none; z-index: 0;
+  background: conic-gradient(from var(--leg-a, 0deg), #ffb020, #fff3b0, #ffb020, #ff7a2a, #ffb020);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  padding: calc(3 * var(--u)); animation: leg-spin 2.4s linear infinite;
+}
+@property --leg-a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes leg-spin { to { --leg-a: 360deg; } }
+.card.r-legendary .card-rarity { text-shadow: 0 0 calc(8 * var(--u)) #ffe066; }
+@media (prefers-reduced-motion: reduce) { .card.r-legendary::before { animation: none; } }
