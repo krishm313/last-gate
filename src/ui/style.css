@@ -1000,3 +1000,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 }
 @keyframes full-pulse { 50% { transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .coin-pill.full::after { animation: none; } }
+
+/* Defeat tip: slides in after the stats, then the bulb flicks on and glows softly. */
+.lose-tip { animation: end-row-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) 1s both; }
+.tip-bulb { display: inline-block; animation: bulb-on 0.6s ease-out 1.3s both, bulb-glow 2.4s ease-in-out 1.9s infinite; }
+@keyframes bulb-on { 0% { filter: grayscale(1) brightness(0.6); } 30% { filter: none drop-shadow(0 0 calc(10 * var(--u)) #ffe066); transform: scale(1.35); } 50% { filter: grayscale(1) brightness(0.6); } 100% { filter: drop-shadow(0 0 calc(6 * var(--u)) #ffe066); transform: none; } }
+@keyframes bulb-glow { 50% { filter: drop-shadow(0 0 calc(10 * var(--u)) #ffe066); } }
+@media (prefers-reduced-motion: reduce) { .lose-tip, .tip-bulb { animation: none; } }

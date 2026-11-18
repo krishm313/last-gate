@@ -556,7 +556,12 @@ export class Hub {
     const nRows = rows.childElementCount;
     countUp(total, reward.gold, (r.won ? 2000 : 900) + 350 + nRows * 70);
     box.append(rows);
-    if (!r.won && r.tip) box.append(el("div", "end-tip", `💡 ${r.tip}`));
+    if (!r.won && r.tip) {
+      // The bulb lights up after the stats deal in, so the advice reads as the takeaway.
+      const tip = el("div", "end-tip lose-tip");
+      tip.append(el("span", "tip-bulb", "💡"), document.createTextNode(` ${r.tip}`));
+      box.append(tip);
+    }
     if (r.dailyStreak && r.dailyStreak >= 2) box.append(el("div", "end-unlock end-record", `🔥 ${r.dailyStreak}-day streak!`));
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
