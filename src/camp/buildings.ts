@@ -338,7 +338,9 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   ctx.lineTo(notch[0], notch[1]);
   for (let i = N; i >= 0; i--) ctx.lineTo(bot[i]![0], bot[i]![1]);
   ctx.closePath();
-  ctx.fillStyle = "#3d6aa8";
+  // A fully upgraded tower flies a gold pennant with a star (instead of a number).
+  const maxed = p.level >= p.maxLevel;
+  ctx.fillStyle = maxed ? "#e0a82a" : "#3d6aa8";
   ctx.fill();
   // Fold shading: bands lit where the cloth turns toward the light, shaded where it turns away.
   ctx.save();
@@ -346,7 +348,7 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   for (let i = 0; i < N; i++) {
     const slope = top[i + 1]![1] - top[i]![1];
     const lit = Math.max(-1, Math.min(1, -slope / 1.4));
-    ctx.fillStyle = lit > 0 ? `rgba(160,200,255,${(lit * 0.45).toFixed(3)})` : `rgba(10,20,50,${(-lit * 0.4).toFixed(3)})`;
+    ctx.fillStyle = lit > 0 ? (maxed ? `rgba(255,245,190,${(lit * 0.55).toFixed(3)})` : `rgba(160,200,255,${(lit * 0.45).toFixed(3)})`) : maxed ? `rgba(90,40,0,${(-lit * 0.4).toFixed(3)})` : `rgba(10,20,50,${(-lit * 0.4).toFixed(3)})`;
     ctx.fillRect(top[i]![0], flagTop - 8, len / N + 0.6, hgt + 20);
   }
   // Gold trim along the top edge.
@@ -361,11 +363,36 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   ctx.stroke();
   // Level number on the cloth.
   const py2 = flagTop + 7 + wave(0.35);
-  ctx.fillStyle = "#ffd84a";
-  ctx.font = `bold 9px ${FONT}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(String(p.level), poleX + 7, py2);
+  if (maxed) {
+    // Star on the cloth, and a slow twinkle at the pole top.
+    ctx.fillStyle = "#fff6d0";
+    ctx.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const rr = k % 2 ? 1.8 : 4.2, aa = (k * Math.PI) / 5 - Math.PI / 2;
+      ctx.lineTo(poleX + 8 + Math.cos(aa) * rr, py2 + Math.sin(aa) * rr);
+    }
+    ctx.closePath();
+    ctx.fill();
+    const tw = Math.max(0, Math.sin(env.time * 2.2 + x * 0.1));
+    if (tw > 0.2) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = `rgba(255,240,170,${(tw * 0.9).toFixed(3)})`;
+      ctx.lineWidth = 1.2;
+      const r = 2 + tw * 4;
+      ctx.beginPath();
+      ctx.moveTo(poleX - r, poleTop); ctx.lineTo(poleX + r, poleTop);
+      ctx.moveTo(poleX, poleTop - r); ctx.lineTo(poleX, poleTop + r);
+      ctx.stroke();
+      ctx.restore();
+    }
+  } else {
+    ctx.fillStyle = "#ffd84a";
+    ctx.font = `bold 9px ${FONT}`;
+    ctx.fillText(String(p.level), poleX + 7, py2);
+  }
   ctx.restore();
 }
 
