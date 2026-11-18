@@ -145,7 +145,7 @@ export class Hub {
       tabs.append(t);
     }
     wrap.append(tabs);
-    const claimedNow = !!this.justClaimed;
+    const claimedNow = !!this.justClaimed, boughtNow = !!this.justBought;
     // Slide the content in only when the tab actually changes (not on re-renders after a purchase).
     const body = el("div", `hub-body${tab !== this.renderedTab ? " tab-in" : ""}`);
     this.renderedTab = tab;
@@ -157,7 +157,8 @@ export class Hub {
     body.querySelectorAll<HTMLElement>(".hero, .perm, .trophy").forEach((e, i) => e.style.setProperty("--i", String(Math.min(i, 10))));
     wrap.append(body);
     this.show(wrap);
-    if (claimedNow) requestAnimationFrame(() => flyCoins(wrap));
+    if (claimedNow) requestAnimationFrame(() => flyCoins(wrap, ".trophy.just", ".res-gold", true));
+    else if (boughtNow) requestAnimationFrame(() => flyCoins(wrap, ".res-gold", ".perm.just", false));
   }
 
   private battleTab(body: HTMLElement, save: SaveData): void {
@@ -684,15 +685,17 @@ export class Hub {
 
 /** Ticks the last text node of `host` from 0 to `to` after `delayMs`, then pops it. */
 /** Trophy claimed: a burst of coins arcs from the claimed row up into the gold counter, which bumps as they land. */
-function flyCoins(root: HTMLElement): void {
-  const from = root.querySelector<HTMLElement>(".trophy.just");
-  const to = root.querySelector<HTMLElement>(".res-gold");
+/** Coins arc between two elements: trophy → gold counter on a claim, gold counter → upgrade on a
+ *  purchase. `bumpTarget` bumps the gold counter as the coins land. */
+function flyCoins(root: HTMLElement, fromSel: string, toSel: string, bumpTarget: boolean): void {
+  const from = root.querySelector<HTMLElement>(fromSel);
+  const to = root.querySelector<HTMLElement>(toSel);
   if (!from || !to || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const host = root.getBoundingClientRect();
   const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
-  const sx = a.right - a.width * 0.2 - host.left, sy = a.top + a.height / 2 - host.top;
-  const ex = b.left + 8 - host.left, ey = b.top + b.height / 2 - host.top;
-  const n = 10;
+  const sx = (bumpTarget ? a.right - a.width * 0.2 : a.left + 8) - host.left, sy = a.top + a.height / 2 - host.top;
+  const ex = (bumpTarget ? b.left + 8 : b.left + b.width / 2) - host.left, ey = b.top + b.height / 2 - host.top;
+  const n = bumpTarget ? 10 : 7;
   for (let i = 0; i < n; i++) {
     const c = el("i", "fly-coin");
     root.append(c);
@@ -709,7 +712,7 @@ function flyCoins(root: HTMLElement): void {
     );
     anim.onfinish = () => {
       c.remove();
-      if (i === n - 1 || i === Math.floor(n / 2)) {
+      if (bumpTarget && (i === n - 1 || i === Math.floor(n / 2))) {
         to.classList.remove("spent");
         void to.offsetWidth;
         to.classList.add("spent");
