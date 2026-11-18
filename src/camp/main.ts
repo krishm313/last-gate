@@ -701,7 +701,7 @@ function frame(now: number) {
           () => rerollBlessings(c),
         );
       if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
-      if (ev.type === "heroDown") hud.banner("You fell!", "Back in 5 seconds…", "red");
+      if (ev.type === "heroDown") hud.banner("You fell!", "You'll rise again at the hall…", "red"); // (the corner chip counts the seconds)
       if (ev.type === "won") finishRun(c, true);
       if (ev.type === "lost") finishRun(c, false);
     }
