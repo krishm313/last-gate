@@ -5362,7 +5362,9 @@ fx.shake(0.15);
       .filter((p) => (p.kind !== "repair" || c.segments.some((sg) => sg.hp < sg.maxHp * 0.6)) && !plotMaxed(p) && !p.locked && h.coins >= plotCost(p) - p.paid && h.logs >= plotLogCost(p) - p.paidLogs && h.coins + h.logs > 0)
       .sort((a, b) => plotCost(a) - a.paid - (plotCost(b) - b.paid))[0];
     if (affordable) {
-      goal = affordable;
+      // An upgrade's price plate sits below the building: point there, so the arrow and its
+      // landing ring hit the ground instead of the roof.
+      goal = affordable.level > 0 && affordable.kind !== "tower" ? { x: affordable.x, y: affordable.y + 46 } : affordable;
       icon = affordable.kind === "tower" ? "tower" : "hammer";
     } else if (h.bows > 0 && c.plots.some((p) => p.kind === "tower" && p.level > 0 && p.bows < BOWS_PER_TOWER)) {
       goal = c.plots.filter((p) => p.kind === "tower" && p.level > 0 && p.bows < BOWS_PER_TOWER).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0]!;
