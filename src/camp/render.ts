@@ -654,7 +654,8 @@ fx.shake(0.15);
       }
     }
     if (this.pickupBatch > 0 && this.pickupTimer > 0.25 && !c.hero.dead) {
-      this.fx.number(c.hero.x + 14, c.hero.y - 40, `+${this.pickupBatch}`, "#ffe66a", 15, 0.8);
+      // Off to the King's side at shoulder height, clear of the coin stack and its count tag.
+      this.fx.number(c.hero.x + 30, c.hero.y - 20, `+${this.pickupBatch}`, "#ffe66a", 15, 0.8);
       this.pickupBatch = 0;
       this.pickupTimer = 0;
     }
