@@ -751,6 +751,7 @@ fx.shake(0.15);
     ctx.imageSmoothingQuality = "low";
     ctx.fillStyle = "#24361c";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    this.lateBars.length = 0; // (never carried across frames, even if a frame skipped the flush)
     ctx.translate(-o.x + sh.x, -o.y + sh.y);
 
     this.drawGround(ctx);
@@ -971,6 +972,8 @@ fx.shake(0.15);
     this.drawWeather(ctx, dt, o);
     // Floating numbers sit above the night darkness and weather, so damage, loot and "LEVEL N!"
     // read at full brightness anywhere on screen, not only inside a light.
+    for (const draw of this.lateBars) draw(ctx);
+    this.lateBars.length = 0;
     ctx.save();
     ctx.translate(-o.x + sh.x, -o.y + sh.y);
     this.fx.drawNumbers(ctx);
@@ -3678,11 +3681,15 @@ fx.shake(0.15);
     if (e.hp < e.maxHp && !e.def.boss) {
       // The bar fades in on the first hit; the red fill eases down quickly, while a pale "damage
       // chunk" hangs where the health was for a beat and then drains after it; a hit flashes white.
+      // Drawn later (after the night darkness), with the transform it has now, so it stays readable.
       const b = this.barState(e.id, Math.max(0, e.hp) / e.maxHp);
       const w = Math.max(20, r * 2.1);
       const by = y - r * 2 - 6;
       const fade = b.fade;
+      const m = ctx.getTransform();
+      this.lateBars.push((ctx) => {
       ctx.save();
+      ctx.setTransform(m);
       ctx.globalAlpha = fade * baseA;
       ctx.fillStyle = "rgba(20,10,5,0.85)";
       ctx.beginPath();
@@ -3699,9 +3706,12 @@ fx.shake(0.15);
       ctx.fillStyle = "rgba(255,255,255,0.35)";
       ctx.fillRect(x - w / 2 + 1, by, Math.max(0, w * b.shown - 2), 1);
       ctx.restore();
+      });
     }
     if (this.hpBars.size > 160) { const live = new Set(c.enemies.map((q) => q.id)); for (const id of this.hpBars.keys()) if (typeof id === "number" && !live.has(id)) this.hpBars.delete(id); }
   }
+  /** Enemy health bars queued during the world pass, drawn after night lighting. */
+  private lateBars: ((ctx: CanvasRenderingContext2D) => void)[] = [];
   private hpBars = new Map<number | string, { shown: number; trail: number; last: number; hitAt: number; t: number; born: number }>();
   /** Eased health-bar state for one unit: `shown` slides quickly to the true fraction, `trail` (the
    *  pale damage chunk) holds for a beat after a loss then drains after it; `hit` is the time since
