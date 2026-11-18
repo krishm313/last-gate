@@ -885,3 +885,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .chapter.locked .ch-stars { display: inline-block; animation: lock-jiggle 4.2s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 0.7s); transform-origin: 50% 20%; }
 @keyframes lock-jiggle { 0%, 86%, 100% { transform: none; } 89% { transform: rotate(-14deg); } 92% { transform: rotate(11deg); } 95% { transform: rotate(-6deg); } 98% { transform: rotate(3deg); } }
 @media (prefers-reduced-motion: reduce) { .chapter.locked .ch-stars { animation: none; } }
+
+/* Heroes / Armory / Trophies: cards deal in one after another when the tab opens, like the chapters. */
+.hub-body.tab-in .hero:not(.nope):not(.just), .hub-body.tab-in .trophy:not(.just) { animation: ch-enter 0.42s cubic-bezier(.2,1.3,.4,1) calc(var(--i, 0) * 0.05s) backwards; }
+.hub-body.tab-in .perm:not(.nope):not(.just) { animation: perm-enter 0.4s cubic-bezier(.2,1.5,.4,1) calc(var(--i, 0) * 0.04s) backwards; }
+@keyframes perm-enter { from { opacity: 0; transform: scale(0.6) rotate(-4deg); } }
+@media (prefers-reduced-motion: reduce) { .hub-body.tab-in .hero, .hub-body.tab-in .trophy, .hub-body.tab-in .perm { animation: none !important; } }

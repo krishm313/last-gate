@@ -152,6 +152,8 @@ export class Hub {
     else if (tab === "heroes") this.heroesTab(body, save);
     else if (tab === "trophies") this.trophiesTab(body, save);
     else this.armoryTab(body, save);
+    // Entrance stagger for the other tabs' cards (the chapter list sets its own --i).
+    body.querySelectorAll<HTMLElement>(".hero, .perm, .trophy").forEach((e, i) => e.style.setProperty("--i", String(Math.min(i, 10))));
     wrap.append(body);
     this.show(wrap);
   }
