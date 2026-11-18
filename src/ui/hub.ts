@@ -663,7 +663,7 @@ export class Hub {
     const col = el("div", "btn-col");
     // Abandoning ends the run, so it takes a second tap to confirm.
     let armed = false;
-    const quit = this.button("Abandon run", "btn btn-ghost", () => {
+    const quit = this.button("Abandon run", "btn btn-ghost btn-quit", () => {
       if (armed) return onQuit();
       armed = true;
       quit.textContent = "Tap again to abandon";

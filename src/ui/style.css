@@ -891,3 +891,14 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .hub-body.tab-in .perm:not(.nope):not(.just) { animation: perm-enter 0.4s cubic-bezier(.2,1.5,.4,1) calc(var(--i, 0) * 0.04s) backwards; }
 @keyframes perm-enter { from { opacity: 0; transform: scale(0.6) rotate(-4deg); } }
 @media (prefers-reduced-motion: reduce) { .hub-body.tab-in .hero, .hub-body.tab-in .trophy, .hub-body.tab-in .perm { animation: none !important; } }
+
+/* Pause menu: abandoning is the risky, secondary choice; it reads smaller and muted red so
+   Resume is the obvious tap. The confirm state flashes a stronger red. */
+.btn.btn-quit {
+  font-size: calc(14 * var(--u)); padding: calc(8 * var(--u)) calc(22 * var(--u)); min-width: 0;
+  background: linear-gradient(#4a2430, #2e1620); color: #ffb8a8; border-color: #d0605a;
+  box-shadow: 0 calc(3 * var(--u)) 0 #1a0a0e;
+}
+.btn.btn-quit.confirm { background: linear-gradient(#d84a3a, #a02a20); color: #fff; border-color: #ffd0c0; animation: quit-pulse 0.5s ease-in-out infinite alternate; }
+@keyframes quit-pulse { to { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .btn.btn-quit.confirm { animation: none; } }
