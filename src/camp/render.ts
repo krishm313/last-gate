@@ -5126,6 +5126,31 @@ fx.shake(0.15);
       ctx.moveTo(ax - cs * tl, ay - sn * tl);
       ctx.lineTo(ax, ay);
       ctx.stroke();
+      // At night the dark shafts vanish: each arrow also leaves a glowing trail drawn above the
+      // darkness, so the volley reads as streaks of light raining down.
+      if (this.night > 0.3) {
+        const m = ctx.getTransform(), gl = tl * 1.6;
+        this.lateBars.push((ctx) => {
+          ctx.save();
+          ctx.setTransform(m);
+          ctx.globalCompositeOperation = "lighter";
+          const g = ctx.createLinearGradient(ax - cs * gl, ay - sn * gl, ax, ay);
+          g.addColorStop(0, "rgba(255,200,110,0)");
+          g.addColorStop(1, "rgba(255,230,160,0.85)");
+          ctx.strokeStyle = g;
+          ctx.lineWidth = 2.6;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(ax - cs * gl, ay - sn * gl);
+          ctx.lineTo(ax, ay);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(255,245,210,0.9)";
+          ctx.beginPath();
+          ctx.arc(ax, ay, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
       const L = 13;
       ctx.strokeStyle = "#3a2410";
       ctx.lineWidth = 2.4;
