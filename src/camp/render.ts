@@ -275,6 +275,7 @@ export class CampRenderer {
     const q = this.quip;
     if (!q) return;
     const age = this.time - q.t;
+    if (age < 0) return;
     if (age > 2.3) {
       this.quip = null;
       return;
@@ -307,9 +308,10 @@ export class CampRenderer {
     ctx.restore();
   }
 
-  private say(lines: string[]): void {
+  /** `delay` holds the line back (e.g. until a big floating label above the King has risen away). */
+  private say(lines: string[], delay = 0): void {
     if (this.ambient) return;
-    this.quip = { text: lines[this.quipN++ % lines.length]!, t: this.time };
+    this.quip = { text: lines[this.quipN++ % lines.length]!, t: this.time + delay };
   }
   /** Where the King fell (plays his death animation until he respawns). */
   private heroFell: { x: number; y: number; t: number; flip: boolean; landed?: boolean } | null = null;
@@ -511,7 +513,7 @@ fx.shake(0.15);
           break;
         case "levelUp":
           this.levelUpAt = this.time;
-          this.say(["For the crown!", "Stronger!", "Feel that?", "Ha! Come on!"]);
+          this.say(["For the crown!", "Stronger!", "Feel that?", "Ha! Come on!"], 0.9);
           // Above the coin stack and the King's quip bubble, so the two never overlap.
           fx.number(ev.x, ev.y - 112, `LEVEL ${ev.level}!`, "#ffe66a", 22, 1.4);
           fx.burst(ev.x, ev.y, "#ffe08a", 26, 190, { max: 0.8, size: 3, gravity: -80 });
@@ -4549,7 +4551,8 @@ fx.shake(0.15);
       ctx.fill();
     }
     for (let i = 0; i < Math.min(10, h.bows); i++) drawBowItem(ctx, x + 14 * K, y - bob - 14 - top - i * 4, 0.8);
-    this.drawQuip(ctx, x, y - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (full ? 6 : 0));
+    // Sits above the count tag (shown from 12 coins, or when full) instead of on it.
+    this.drawQuip(ctx, x, y - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (h.coins >= 12 || full ? 14 : 0));
     if (h.hp < h.maxHp) {
       ctx.fillStyle = "rgba(20,10,5,0.85)";
       ctx.beginPath();
