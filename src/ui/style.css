@@ -921,3 +921,11 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 }
 @keyframes daily-sheen { 0% { background-position: -150% 0; } 45%, 100% { background-position: 250% 0; } }
 @media (prefers-reduced-motion: reduce) { .cal, .cal::after, .chapter.daily::after { animation: none; } .cal::after { display: none; } }
+
+/* Heroes tab: the chosen hero's portrait breathes a gold glow and bobs gently, so the pick feels alive. */
+.hero.selected:not(.just) .hero-portrait { animation: portrait-live 2.6s ease-in-out infinite; }
+@keyframes portrait-live {
+  0%, 100% { transform: translateY(0); box-shadow: inset 0 calc(-6 * var(--u)) calc(10 * var(--u)) #0004, 0 0 calc(6 * var(--u)) #ffd84a55; }
+  50% { transform: translateY(calc(-2 * var(--u))); box-shadow: inset 0 calc(-6 * var(--u)) calc(10 * var(--u)) #0004, 0 0 calc(16 * var(--u)) #ffd84acc; }
+}
+@media (prefers-reduced-motion: reduce) { .hero.selected .hero-portrait { animation: none; } }
