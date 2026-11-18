@@ -188,6 +188,16 @@ export class CampRenderer {
     ctx.restore();
   }
 
+  /** A blessing was just chosen: the golden pillar rises around the King, with its icon and name. */
+  blessed(c: Camp, icon: string, name: string): void {
+    if (this.ambient || c.hero.dead) return;
+    const h = c.hero;
+    this.levelUpAt = this.time;
+    this.fx.rings.push({ x: h.x, y: h.y + 12, r: 70, color: "#bfe8ff", life: 0.6, max: 0.6, width: 5 });
+    this.fx.burst(h.x, h.y - 10, "#fff2b0", 22, 170, { max: 0.8, size: 3, gravity: -90, shape: "spark" });
+    this.fx.number(h.x, h.y - 112, `${icon} ${name}`, "#bfe8ff", 18, 1.6);
+  }
+
   /** Short fireworks burst for in-run milestones (e.g. a new endless record). */
   celebrate(): void {
     this.fireworks = Math.max(this.fireworks, 1.2);

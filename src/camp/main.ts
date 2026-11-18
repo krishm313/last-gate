@@ -3,6 +3,7 @@ import { Music } from "../audio/music";
 import { Sfx } from "../audio/sfx";
 import { chooseBlessing, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
+import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
 import { INCOME_PILE, STEP, VIEW_H, VIEW_W } from "./world";
 import { RenderInterp } from "./interp";
@@ -684,6 +685,8 @@ function frame(now: number) {
           (id) => {
             if (chooseBlessing(c, id)) {
               hud.hideOverlay();
+              const bl = BLESSING_BY_ID[id];
+              if (bl) renderer.blessed(c, bl.icon, bl.name);
               sfx.dawn();
               if (unlockedLabels.length) hud.banner("New building!", `${[...new Set(unlockedLabels)].join(" & ")} unlocked`);
               else hud.banner("☀ Dawn", "Build and upgrade before nightfall");
