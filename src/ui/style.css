@@ -971,3 +971,21 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .tip-tick { animation: tip-tick-in 0.35s cubic-bezier(.2,1.8,.4,1) both; color: #fff; }
 @keyframes tip-done-pop { 50% { transform: translateX(-50%) scale(1.06); } }
 @keyframes tip-tick-in { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
+
+/* Ability ready: a warm, powered-up fill (not a washed-out grey) with a bright sweep orbiting the
+   rim, and the pulse keeps the gold outer ring instead of replacing it. */
+.ability.ready { background: radial-gradient(circle at 50% 40%, #ffe9a0, #f2a83a 55%, #b8601a) !important; }
+.ability.ready .ability-fill { background: transparent; box-shadow: none; }
+.ability.ready::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 70%, rgba(255,255,255,0.75) 80%, transparent 90%);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 62%); mask: radial-gradient(circle, transparent 58%, #000 62%);
+  animation: ability-orbit 1.6s linear infinite;
+}
+.ability.ready .ability-label { color: #2a1606; text-shadow: 0 1px 0 #fff6c8; }
+@keyframes ability-orbit { to { transform: rotate(360deg); } }
+@keyframes ready-pulse {
+  0%, 100% { box-shadow: 0 0 0 calc(3 * var(--u)) #ffd56a, 0 calc(5 * var(--u)) 0 #0008; transform: scale(1); }
+  50% { box-shadow: 0 0 0 calc(3 * var(--u)) #fff2b0, 0 0 calc(22 * var(--u)) #ffd84a, 0 calc(5 * var(--u)) 0 #0008; transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) { .ability.ready::before { animation: none; } }
