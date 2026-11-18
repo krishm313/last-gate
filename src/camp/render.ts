@@ -2473,6 +2473,11 @@ fx.shake(0.15);
     for (const e of this.torchBearers(c)) out.push({ x: e.x + 8, y: e.y - 10, r: 62, f: 1 });
     // Barracks soldiers carry a lantern, so your own men read in a night brawl at the gate.
     for (const a of c.allies.slice(0, 12)) out.push({ x: a.x, y: a.y - 8, r: 52 });
+    // Fire Nova lights up the night: a burst of firelight swells with the ring and dies away.
+    for (const w of this.shockwaves) {
+      const u = (this.time - w.t) / 0.7;
+      if (w.nova && u >= 0 && u < 1) out.push({ x: w.x, y: w.y, r: 30 + w.r * 1.15 * Math.sin(Math.min(1, u * 1.6) * Math.PI * 0.5) * (1 - u * u), f: 1.2 });
+    }
     return out;
   }
 
