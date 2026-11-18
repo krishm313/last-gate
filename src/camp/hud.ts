@@ -304,11 +304,13 @@ export class CampHud {
     const how = el("div", "how");
     for (const [i, t] of [["🕹️", matchMedia("(pointer: fine)").matches ? "WASD / arrows or drag to walk" : "Drag anywhere to walk"], ["🪙", "Grab coins from fallen foes and your hall"], ["🏹", "Stand on a plot to build & upgrade"], ["🏰", full ? "Keep the hall standing for 10 nights — end above the bar marks (50% / 80%) for ★★ / ★★★" : "Keep the hall standing for 10 nights"], ...(full ? HOW_MORE : [])] as const) {
       const row = el("div", "how-row");
+      row.style.setProperty("--i", String(how.childElementCount));
       row.append(el("span", "how-icon", i), el("span", "", t));
       how.append(row);
     }
     box.append(how);
-    const b = el("button", "btn big-btn", full ? "Got it" : "Defend the camp");
+    const b = el("button", "btn big-btn title-play", full ? "Got it" : "Defend the camp");
+    b.style.setProperty("--i", String(how.childElementCount));
     b.onclick = onPlay;
     box.append(b);
     this.overlay.replaceChildren(box);
