@@ -2113,6 +2113,24 @@ fx.shake(0.15);
     const pdt = Math.min(0.05, Math.max(0, this.time - this.plotUiT));
     this.plotUiT = this.time;
     for (const p of c.plots) {
+      // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
+      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks")) {
+        const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
+        ctx.save();
+        ctx.translate(p.x, p.y + 46 + bob);
+        ctx.font = `900 10px ${FONT}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const w = ctx.measureText("★ MAX").width + 14;
+        const g = ctx.createLinearGradient(0, -8, 0, 8);
+        g.addColorStop(0, "#ffe98a"); g.addColorStop(1, "#e0a02a");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.roundRect(-w / 2, -8, w, 16, 8); ctx.fill();
+        ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = "#3a1e06";
+        ctx.fillText("★ MAX", 0, 0.5);
+        ctx.restore();
+      }
       if (plotMaxed(p) || p.locked) continue;
       const near = !h.dead && this.nearPlot(h, p);
       const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks") && p.level > 0;
