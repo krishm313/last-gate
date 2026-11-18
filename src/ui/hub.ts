@@ -141,6 +141,7 @@ export class Hub {
       if (id === "trophies" && ready) t.append(el("span", "tab-badge", String(ready)));
       const affordable = PERMS.filter((p) => canBuy(save, p.id)).length;
       if (id === "armory" && affordable) t.append(el("span", "tab-badge", String(affordable)));
+      if (id === "heroes" && freshHeroes(save).length) t.append(el("span", "tab-badge", "NEW"));
       t.setAttribute("aria-label", `${names[id]}${extra}${id === "armory" && affordable ? `, ${affordable} affordable` : ""}`);
       tabs.append(t);
     }
@@ -349,10 +350,14 @@ export class Hub {
   }
 
   private heroesTab(body: HTMLElement, save: SaveData): void {
+    // Heroes unlocked since the player last opened this tab get a one-time reveal.
+    const fresh = new Set(freshHeroes(save));
+    setItem(HERO_SEEN_KEY, JSON.stringify(HEROES.filter((h) => heroUnlocked(save, h.id)).map((h) => h.id)));
     for (const h of HEROES) {
       const unlocked = heroUnlocked(save, h.id);
       const selected = save.hero === h.id;
-      const card = el("button", `hero${unlocked ? "" : " locked"}${selected ? " selected" : ""}`);
+      const card = el("button", `hero${unlocked ? "" : " locked"}${selected ? " selected" : ""}${fresh.has(h.id) ? " fresh" : ""}`);
+      if (fresh.has(h.id)) card.append(el("div", "ch-fresh", "🔓 NEW!"));
       if (this.justPicked === h.id) {
         card.classList.add("just");
         card.append(el("div", "hero-picked", "Selected!"));
@@ -684,6 +689,18 @@ export class Hub {
 }
 
 /** Ticks the last text node of `host` from 0 to `to` after `delayMs`, then pops it. */
+const HERO_SEEN_KEY = "lastgate.seenHeroes";
+/** Unlocked heroes the player hasn't seen on the Heroes tab yet (none on a save with no record). */
+function freshHeroes(save: SaveData): string[] {
+  const stored = getJson<unknown>(HERO_SEEN_KEY, null);
+  const open = HEROES.filter((h) => heroUnlocked(save, h.id)).map((h) => h.id);
+  if (!Array.isArray(stored)) {
+    setItem(HERO_SEEN_KEY, JSON.stringify(open));
+    return [];
+  }
+  return open.filter((id) => !(stored as string[]).includes(id));
+}
+
 /** Trophy claimed: a burst of coins arcs from the claimed row up into the gold counter, which bumps as they land. */
 /** Coins arc between two elements: trophy → gold counter on a claim, gold counter → upgrade on a
  *  purchase. `bumpTarget` bumps the gold counter as the coins land. */

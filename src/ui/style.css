@@ -961,3 +961,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
   85%, 100% { transform: translate(calc(10 * var(--u)), calc(-3 * var(--u))) scale(1.05); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .tip-ico, .tip-ico.swipe { animation: none; } }
+
+/* Heroes tab: a newly unlocked hero is revealed once (gold flash) with a wobbling NEW! badge. */
+.hero { position: relative; }
+.hub-body .hero.fresh { animation: ch-reveal 0.9s cubic-bezier(.2,1.4,.4,1) 0.35s backwards; }
