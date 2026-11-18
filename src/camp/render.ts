@@ -5327,7 +5327,7 @@ fx.shake(0.15);
       const bounce = 4 * ph * (1 - ph) * 12;
       const contact = Math.max(0, 1 - Math.min(ph, 1 - ph) / 0.09);
       const sq = contact * contact * 0.16;
-      const flip = goal.y - o.y - 52 - 22 < 112;
+      const flip = goal.y - o.y - 68 - 22 < 112;
       const gy = goal.y - o.y;
       // Ground ring at the goal, launched by each landing.
       ctx.save();
@@ -5338,7 +5338,8 @@ fx.shake(0.15);
       ctx.ellipse(bx, gy + 4, 14 + ph * 22, (14 + ph * 22) * 0.42, 0, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
-      const tipY = flip ? gy + 36 + bounce : gy - 36 - bounce;
+      // Above a plot the tip lands just over its caption, so the arrow never covers the name.
+      const tipY = flip ? gy + 36 + bounce : gy - 52 - bounce;
       ctx.save();
       ctx.translate(bx, tipY);
       if (flip) ctx.scale(1, -1);
