@@ -17,7 +17,7 @@ const FINE = typeof matchMedia === "function" && matchMedia("(pointer: fine)").m
 const STEPS: Step[] = [
   { text: FINE ? "⌨️ Walk with WASD / arrow keys (or drag)" : "👆 Drag anywhere on the screen to walk", done: (_c, t) => t.moved > 1.2 },
   { text: "🏹 Walk onto a glowing plot to build an Archer Tower", done: (c) => c.plots.some((p) => p.kind === "tower" && p.level > 0) },
-  { text: "🪙 Your hall makes coins — walk to the coin pile to collect", done: (c, t) => c.hero.coins > t.startCoins || c.hero.coins >= carryCap(c) || c.wave > 0 },
+  { text: "🪙 Your hall sends you coins — watch them fly to you!", done: (c, t) => c.hero.coins > t.startCoins || c.hero.coins >= carryCap(c) || c.wave > 0 },
   { text: FINE ? "🌙 Ready? Press C (or click “Start the night”) — or wait for sunset" : "🌙 Ready? Tap “Start the night” — or wait for sunset", done: (c) => c.wave > 0 },
   { text: "🎯 You shoot automatically. Grab the coins enemies drop!", done: (c) => c.goldEarned >= 4 || c.wave > 1 },
 ];
@@ -33,7 +33,7 @@ export class Tutorial {
 
   /** Where the current tip wants the player to go (the guide arrow follows it), if anywhere. */
   get focus(): "income" | null {
-    return this.active && this.step === 2 ? "income" : null;
+    return null; // (hall coins now fly to the King on their own: no need to point at the pile)
   }
 
   /** Progress reset: show the first-run tips again from the start. */

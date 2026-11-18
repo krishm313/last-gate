@@ -40,6 +40,8 @@ export const CAMP = {
   fortifyMult: 1.4,
   gateHp: 320,
   incomeEvery: 1.0,
+  /** Coins per second the courier carries from the hall's pile to the King. */
+  courierRate: 6,
   /** Coins dropped per point of enemy gold value. */
   dropMult: 1.5,
   incomeCap: 30,
@@ -188,6 +190,8 @@ export type CampEvent =
   | { type: "hit"; x: number; y: number; damage: number; crit: boolean; owner: string; eid?: number }
   | { type: "kill"; x: number; y: number; enemy: EnemyDef; gold: number; eid: number }
   | { type: "coinPickup"; x: number; y: number }
+  /** A coin sent from the hall's pile straight to the King (wherever he is). */
+  | { type: "courier"; x: number; y: number }
   | { type: "coinSpend"; from: Vec; to: Vec }
   | { type: "logSpend"; from: Vec; to: Vec }
   | { type: "logPickup"; x: number; y: number }
@@ -262,6 +266,8 @@ export interface Camp {
   bolts: Bolt[];
   incomePile: number;
   incomeTimer: number;
+  /** Royal courier: time banked toward the next coin sent from the hall's pile to the King. */
+  courierTimer: number;
   hallCooldown: number;
   /** Palisade level: 0 wood, 1 banded, 2 stone, 3 stone + battlements. */
   wallLevel: number;
@@ -404,6 +410,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     bolts: [],
     incomePile: 6,
     incomeTimer: 0,
+    courierTimer: 0,
     hallCooldown: 0,
     wallLevel: 0,
     mods,
@@ -1368,6 +1375,18 @@ function updateIncome(c: Camp): void {
     c.incomeTimer -= CAMP.incomeEvery / c.mods.income;
     if (c.incomePile < CAMP.incomeCap) c.incomePile += 1;
   }
+  // Royal courier: the hall sends its coins straight to the King, wherever he is (no walk back to
+  // the hall to collect). Coins only wait in the pile while he's full or fallen.
+  const h = c.hero;
+  if (c.incomePile > 0 && !h.dead && h.coins < carryCap(c)) {
+    c.courierTimer += STEP;
+    while (c.courierTimer >= 1 / CAMP.courierRate && c.incomePile > 0 && h.coins < carryCap(c)) {
+      c.courierTimer -= 1 / CAMP.courierRate;
+      c.incomePile -= 1;
+      h.coins += 1;
+      c.events.push({ type: "courier", x: INCOME_PILE.x, y: INCOME_PILE.y });
+    }
+  } else c.courierTimer = 0;
 }
 
 function reap(c: Camp): void {

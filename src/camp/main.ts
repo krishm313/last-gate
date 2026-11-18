@@ -42,6 +42,7 @@ let callWave = false;
 let waveStartTally = { kills: 0, gold: 0, hits: 0 };
 /** Waves held without a wall/hall hit this run (end-screen stat). */
 let flawlessWaves = 0;
+let lastCourierSfx = 0;
 /** Set by finishRun: this run's best kill streak is a new lifetime record. */
 let streakIsBest = false;
 let abilityQueued = false;
@@ -523,6 +524,15 @@ function trackStats(ev: CampEvent) {
 
 function playSfx(ev: CampEvent, c: Camp) {
   switch (ev.type) {
+    case "courier": {
+      // The hall's steady trickle shouldn't chime every second all day: a soft coin now and then.
+      const now = performance.now();
+      if (now - lastCourierSfx > 2200) {
+        lastCourierSfx = now;
+        sfx.coin(0);
+      }
+      break;
+    }
     case "coinPickup":
     case "logPickup": {
       const now = performance.now();

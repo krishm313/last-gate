@@ -13,7 +13,7 @@ import {
 import { FOREST_Y, GATE_SEGMENTS, HALL, HERO_SPAWN, INCOME_PILE, MAP_H, MAP_W, SEGMENT_W, SEGMENTS, VIEW_H, VIEW_W, WALL_THICK, WALL_Y } from "./world";
 
 interface Tree { x: number; y: number; s: number; shade: number; v: string }
-interface Flyer { from: Vec; to: Vec; t: number; log?: boolean; bow?: boolean }
+interface Flyer { from: Vec; to: Vec; t: number; log?: boolean; bow?: boolean; speed?: number; follow?: boolean }
 
 const OUTLINE = INK;
 const TERRAIN_X = -80;
@@ -62,6 +62,8 @@ export class CampRenderer {
   private cam: Vec = { x: MAP_W / 2, y: 900 };
   private trees: Tree[] = [];
   private flyers: Flyer[] = [];
+  /** Where courier coins fly to (the King, updated each frame). */
+  private courierTo: Vec = { x: 0, y: 0 };
   private ground: [string, string] = ["#5f9a48", "#6aa851"];
   private terrain: HTMLCanvasElement | null = null;
   private treeSprites = new Map<string, HTMLCanvasElement>();
@@ -461,6 +463,11 @@ export class CampRenderer {
           }
           break;
         }
+        case "courier":
+          // A coin arcs from the hall's pile to the King, homing on him as he moves.
+          this.pickupBatch += 1;
+          if (!this.ambient && this.flyers.length < 40) this.flyers.push({ from: { x: ev.x, y: ev.y - 8 }, to: { x: this.courierTo.x, y: this.courierTo.y - 20 }, t: 0, speed: 1.6, follow: true });
+          break;
         case "coinSpend":
           if (this.flyers.length < 40) this.flyers.push({ from: ev.from, to: ev.to, t: 0 });
           break;
@@ -678,6 +685,7 @@ fx.shake(0.15);
     this.time += dt;
     this.fx.update(dt);
     this.pickupTimer += dt;
+    this.courierTo = { x: c.hero.x, y: c.hero.y };
     if (this.fireworks > 0) {
       this.fireworks -= dt;
       this.fireworkTimer -= dt;
@@ -5335,7 +5343,8 @@ fx.shake(0.15);
       return [f.from.x + (f.to.x - f.from.x) * e, f.from.y + (f.to.y - f.from.y) * e - Math.sin(t * Math.PI) * 40];
     };
     for (const f of this.flyers) {
-      f.t += dt * 3.5;
+      f.t += dt * (f.speed ?? 3.5);
+      if (f.follow) f.to = { x: this.courierTo.x, y: this.courierTo.y - 20 };
       const t = Math.min(1, f.t);
       const [x, y] = pos(f, t);
       const spin = t * Math.PI * 3 + (f.from.x + f.to.y) * 0.05;

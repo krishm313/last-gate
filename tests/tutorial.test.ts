@@ -11,8 +11,8 @@ describe("tutorial", () => {
     t.update(c, 1.5, true); // moved enough
     expect(t.update(c, 0.1, false)).toMatch(/Archer Tower/);
     c.plots.find((p) => p.kind === "tower")!.level = 1;
-    expect(t.update(c, 0.1, false)).toMatch(/coin pile/);
-    expect(t.focus).toBe("income");
+    expect(t.update(c, 0.1, false)).toMatch(/hall sends you coins/);
+    expect(t.focus).toBeNull(); // coins come to the King; nothing to point at
     c.hero.coins = carryCap(c); // full: can't collect more, so the step must still finish
     expect(t.update(c, 0.1, false)).toMatch(/Start the night/);
     expect(t.focus).toBeNull();

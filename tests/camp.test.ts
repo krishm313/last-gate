@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, chooseBlessing, createCamp, drainEvents, plotCost, step, type Camp } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, createCamp, drainEvents, plotCost, step, type Camp } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 
 const still = { move: { x: 0, y: 0 } };
@@ -47,6 +47,8 @@ describe("camp", () => {
     c.hero.x = plot.x;
     c.hero.y = plot.y;
     c.hero.coins = 30;
+    c.incomePile = 0;
+    c.mods.income = 1e-9; // (no hall income: the courier would otherwise top up the King's purse)
     run(c, 3);
     expect(c.hero.coins).toBe(30);
     expect(plot.paid).toBe(0);
@@ -84,6 +86,8 @@ describe("camp", () => {
   it("enemy kills drop coins the hero can vacuum up", () => {
     const c = createCamp(1);
     c.hero.coins = 0;
+    c.incomePile = 0;
+    c.mods.income = 1e-9; // (isolate the dropped coin from the hall courier)
     c.coins.push({ id: 999, x: c.hero.x + 40, y: c.hero.y, vx: 0, vy: 0, z: 0, vz: 0, homing: false });
     run(c, 1);
     expect(c.hero.coins).toBe(1);
@@ -269,5 +273,23 @@ describe("riseScale (build animation)", () => {
     expect(peak).toBeGreaterThan(1.02);
     expect(riseScale(0.6)).toEqual([1, 1]);
     expect(riseScale(-1)).toEqual([1, 1]);
+  });
+});
+
+describe("royal courier", () => {
+  it("sends the hall's coins to the King wherever he is, and holds them while he's full", () => {
+    const c = createCamp(1);
+    c.hero.x = 360; c.hero.y = 660; // far from the hall, on no plot
+    c.hero.coins = 0;
+    c.incomePile = 10;
+    c.mods.income = 1e-9;
+    run(c, 2);
+    expect(c.hero.coins).toBe(10);
+    expect(c.incomePile).toBe(0);
+    c.hero.coins = carryCap(c);
+    c.incomePile = 5;
+    run(c, 2);
+    expect(c.hero.coins).toBe(carryCap(c));
+    expect(c.incomePile).toBe(5);
   });
 });
