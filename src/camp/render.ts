@@ -1905,6 +1905,33 @@ fx.shake(0.15);
       ctx.translate(-(x0 + SEGMENT_W / 2), -(WALL_Y + 8));
       const drewPiece = this.drawWallPiece(ctx, c, i, x0, frac, gate);
       ctx.restore();
+      // Battlements (fully fortified): royal banners hang from the wall face, swaying gently.
+      if (c.wallLevel >= 3 && gate && frac > 0.25) {
+        // Hung on the gate pillar (left pillar for the left gate leaf, right for the right).
+        const left = i === GATE_SEGMENTS[0];
+        const bx = left ? x0 + 3 : x0 + SEGMENT_W - 3, by = WALL_Y - 34;
+        const sw = Math.sin(this.time * 1.8 + i * 1.3) * 1.6;
+        ctx.save();
+        ctx.fillStyle = INK;
+        ctx.fillRect(bx - 8, by - 1.5, 16, 3);
+        ctx.beginPath();
+        ctx.moveTo(bx - 6.5, by);
+        ctx.lineTo(bx + 6.5, by);
+        ctx.lineTo(bx + 6.5 + sw, by + 16);
+        ctx.lineTo(bx + sw * 0.6, by + 12);
+        ctx.lineTo(bx - 6.5 + sw, by + 16);
+        ctx.closePath();
+        ctx.fillStyle = "#3d6aa8";
+        ctx.fill();
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = "#ffd84a";
+        ctx.fillRect(bx - 6.5, by + 1.5, 13, 1.6);
+        ctx.beginPath();
+        ctx.moveTo(bx - 3 + sw * 0.4, by + 9); ctx.lineTo(bx - 3 + sw * 0.4, by + 5.5); ctx.lineTo(bx - 1.5 + sw * 0.4, by + 7);
+        ctx.lineTo(bx + sw * 0.4, by + 5); ctx.lineTo(bx + 1.5 + sw * 0.4, by + 7); ctx.lineTo(bx + 3 + sw * 0.4, by + 5.5); ctx.lineTo(bx + 3 + sw * 0.4, by + 9);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
       if (drewPiece) {
         // 3D-rendered piece drawn.
       } else if (gate) {
