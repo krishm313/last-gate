@@ -906,7 +906,8 @@ fx.shake(0.15);
           ctx.save();
           ctx.translate(LUMBER_PILE.x, LUMBER_PILE.y + 30);
           ctx.scale(tb, tb);
-          outlined(ctx, c.lumberPile > 0 ? `Logs ${c.lumberPile}` : "Logs", 0, 0, 9.5);
+          const lt = c.lumberPile > 0 ? `Logs ${c.lumberPile}` : "Logs";
+          this.overlay(ctx, (ctx) => { ctx.textAlign = "center"; ctx.textBaseline = "middle"; outlined(ctx, lt, 0, 0, 9.5); });
           ctx.restore();
         },
       });
@@ -4057,6 +4058,12 @@ fx.shake(0.15);
   private ljImg: HTMLImageElement | null = null;
   /** Lumberjack frames rendered from the CC0 KayKit Barbarian (walk 8 + axe chop 8). */
   /** The rendered lumberjack (walk row / chop row); `still` holds the first chop frame. Returns the frame drawn, or -1 while loading. */
+  overlay(ctx: CanvasRenderingContext2D, draw: (ctx: CanvasRenderingContext2D) => void): void {
+    if (this.night <= 0.3) return draw(ctx);
+    const m = ctx.getTransform(), ga = ctx.globalAlpha;
+    this.lateBars.push((ctx) => { ctx.save(); ctx.setTransform(m); ctx.globalAlpha = ga; draw(ctx); ctx.restore(); });
+  }
+
   drawLumberjackFrame(ctx: CanvasRenderingContext2D, x: number, footY: number, walking: boolean, t: number, flip: boolean, still = false): number {
     if (!this.drawLumberjack(ctx, x, footY, walking, still ? 0 : t, flip)) return -1;
     // Reported in the old 8-frame units (callers key effects off the impact pose, frame 5).

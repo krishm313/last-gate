@@ -118,6 +118,8 @@ export interface DrawEnv {
   gustAt(x: number): number;
   /** Draws the rendered lumberjack (also used as the smith); returns the frame drawn or -1. */
   drawLumberjackFrame(ctx: CanvasRenderingContext2D, x: number, footY: number, walking: boolean, t: number, flip: boolean, still?: boolean): number;
+  /** Draws a label now by day, or above the night darkness at night (same transform/alpha). */
+  overlay(ctx: CanvasRenderingContext2D, draw: (ctx: CanvasRenderingContext2D) => void): void;
 }
 
 /** Last left/right facing of each tower archer (render-only memory for the facing dead zone). */
@@ -924,10 +926,14 @@ export function drawForgeZones(_env: DrawEnv, ctx: CanvasRenderingContext2D, c: 
     }
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.save();
-    ctx.globalAlpha *= 0.85;
-    outlined(ctx, label, z.x, z.y + 30, 9.5);
-    ctx.restore();
+    _env.overlay(ctx, (ctx) => {
+      ctx.save();
+      ctx.globalAlpha *= 0.85;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      outlined(ctx, label, z.x, z.y + 30, 9.5);
+      ctx.restore();
+    });
   }
   drawLogPile(ctx, FORGE_IN.x, FORGE_IN.y, c.forgeLogs, false);
   for (let i = 0; i < Math.min(15, c.forgeBows); i++) drawBowItem(ctx, FORGE_OUT.x + ((i % 3) - 1) * 13, FORGE_OUT.y + 8 - Math.floor(i / 3) * 6);
