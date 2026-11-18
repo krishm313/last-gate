@@ -311,6 +311,11 @@ export class Fx {
       c.fill();
       c.stroke();
     }
+    c.globalAlpha = 1;
+  }
+
+  /** Floating numbers/labels: drawn separately (after night lighting) so they stay readable. */
+  drawNumbers(c: CanvasRenderingContext2D): void {
     c.textAlign = "center";
     c.textBaseline = "middle";
     for (const n of this.nums) {

@@ -511,7 +511,8 @@ fx.shake(0.15);
         case "levelUp":
           this.levelUpAt = this.time;
           this.say(["For the crown!", "Stronger!", "Feel that?", "Ha! Come on!"]);
-          fx.number(ev.x, ev.y - 64, `LEVEL ${ev.level}!`, "#ffe66a", 20, 1.4);
+          // Above the coin stack and the King's quip bubble, so the two never overlap.
+          fx.number(ev.x, ev.y - 112, `LEVEL ${ev.level}!`, "#ffe66a", 22, 1.4);
           fx.burst(ev.x, ev.y, "#ffe08a", 26, 190, { max: 0.8, size: 3, gravity: -80 });
           fx.rings.push({ x: ev.x, y: ev.y + 12, r: 60, color: "#ffe08a", life: 0.6, max: 0.6, width: 5 });
           break;
@@ -965,6 +966,12 @@ fx.shake(0.15);
     // Chapter 4 is permanently night; everywhere else waves are fought at night, building by day.
     this.drawDayNight(ctx, c, o, sh, dt);
     this.drawWeather(ctx, dt, o);
+    // Floating numbers sit above the night darkness and weather, so damage, loot and "LEVEL N!"
+    // read at full brightness anywhere on screen, not only inside a light.
+    ctx.save();
+    ctx.translate(-o.x + sh.x, -o.y + sh.y);
+    this.fx.drawNumbers(ctx);
+    ctx.restore();
     if (this.focus && !this.ambient) drawBossCard(ctx, this.focus.name, this.focus.t);
     drawDanger(ctx, c, this.time);
     if (!this.ambient) {
