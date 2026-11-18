@@ -958,6 +958,33 @@ export function drawHall(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): 
   ctx.translate(-x, -(y + 40));
   const drewCastle = drawSprite(ctx, "castle", x, y + 40, castleH, { walk: 0, time: 0, seed: 0, flip: false, flash: hitT < 0.12 ? 1 - hitT / 0.12 : 0, lunge: 0 });
   ctx.restore();
+  // The Grand Hall (fully upgraded) wears a crown of light: a soft gold glow round the keep's top
+  // and a few stars that twinkle in turn above the battlements.
+  const hallPlot = c.plots.find((p) => p.kind === "hall");
+  if (drewCastle && hallPlot && hallPlot.level >= hallPlot.maxLevel) {
+    const ty = y + 40 - castleH * 0.8;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const pu = 0.5 + 0.5 * Math.sin(env.time * 1.6);
+    const g = ctx.createRadialGradient(x, ty, 4, x, ty, 58);
+    g.addColorStop(0, `rgba(255,220,120,${(0.28 + pu * 0.14).toFixed(3)})`);
+    g.addColorStop(1, "rgba(255,220,120,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(x - 60, ty - 60, 120, 120);
+    for (let i = 0; i < 5; i++) {
+      const tw = Math.max(0, Math.sin(env.time * 2.1 + i * 1.9));
+      if (tw < 0.3) continue;
+      const sx = x + Math.cos(i * 1.26 - 1.9) * 54, sy = ty - 10 + Math.sin(i * 1.26 - 1.9) * 26;
+      const r = 2 + tw * 6;
+      ctx.strokeStyle = `rgba(255,240,170,${(tw * 0.9).toFixed(3)})`;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(sx - r, sy); ctx.lineTo(sx + r, sy);
+      ctx.moveTo(sx, sy - r); ctx.lineTo(sx, sy + r);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   if (drewCastle && upT >= 0 && upT < 1.4) {
     const u = upT / 1.4;
     const bandY = y + 40 - castleH * (u * 0.95);
