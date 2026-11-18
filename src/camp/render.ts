@@ -4295,6 +4295,22 @@ fx.shake(0.15);
       }
       ctx.restore();
     }
+    // Ability charged: a cool blue ring breathes at the King's feet with sparks circling it, so
+    // "ready" reads on the hero himself, not only on the corner button.
+    if (c.phase === "wave" && c.abilityCharge >= 1 && !h.dead) {
+      const pu = 0.5 + 0.5 * Math.sin(this.time * 5);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = `rgba(140,200,255,${(0.45 + pu * 0.35).toFixed(3)})`;
+      ctx.lineWidth = 2 + pu;
+      ctx.beginPath(); ctx.ellipse(x, y + 12, 38 + pu * 4, 13 + pu * 1.5, 0, 0, Math.PI * 2); ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const a = this.time * 3 + (i * Math.PI * 2) / 3;
+        ctx.fillStyle = "rgba(200,235,255,0.9)";
+        ctx.beginPath(); ctx.arc(x + Math.cos(a) * 40, y + 12 + Math.sin(a) * 14, 2.2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
     // Low HP: a pulsing red ring at the hero's feet says "back off to the hall".
     const hpFrac = h.hp / h.maxHp;
     if (hpFrac < 0.3) {
