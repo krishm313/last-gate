@@ -2471,6 +2471,8 @@ fx.shake(0.15);
     for (const f of this.groundFires) out.push({ x: f.x, y: f.y, r: 54 * (1 - (this.time - f.t) / 3) + 10, f: 1.3 });
     // Torch-bearers in the horde: moving pools of light in the dark.
     for (const e of this.torchBearers(c)) out.push({ x: e.x + 8, y: e.y - 10, r: 62, f: 1 });
+    // Barracks soldiers carry a lantern, so your own men read in a night brawl at the gate.
+    for (const a of c.allies.slice(0, 12)) out.push({ x: a.x, y: a.y - 8, r: 52 });
     return out;
   }
 
