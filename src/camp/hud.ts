@@ -414,6 +414,15 @@ export class CampHud {
   }
 
   /** Small toast that slides in under the HUD (e.g. a trophy unlocked mid-run). */
+  /** A toast with custom content; `key` stops a second copy stacking while one is on screen. */
+  toastNode(node: HTMLElement, key: string): void {
+    if ([...this.toastHost.children].some((n) => (n as HTMLElement).dataset.key === key && !n.classList.contains("out"))) return;
+    node.dataset.key = key;
+    this.toastHost.append(node);
+    window.setTimeout(() => node.classList.add("out"), 3600);
+    window.setTimeout(() => node.remove(), 4100);
+  }
+
   toast(text: string): void {
     // The same message already on screen (e.g. tapping the wave preview twice): don't stack a copy.
     if ([...this.toastHost.children].some((n) => n.textContent === text && !n.classList.contains("out"))) return;
@@ -470,16 +479,26 @@ export class CampHud {
     if (items.length > 3) row.append(el("div", "wp-more", `+${items.length - 3}`));
     this.preview.append(row);
     // Tap / click: who exactly is coming, and what each one does.
-    this.preview.onclick = () =>
-      this.toast(
-        items
-          .map(([id, n]) => {
-            const def = ENEMIES[id];
-            const traits = enemyTraits(def);
-            return `${def.boss ? "👑 " : `${n}× `}${def.name}${traits.length ? ` (${traits.filter((x) => x !== "boss").join(", ") || "boss"})` : ""}`;
-          })
-          .join(" · "),
-      );
+    this.preview.onclick = () => {
+      // A little scouting report: portrait, count, name and what each one does, one row per kind.
+      const card = el("div", "toast scout");
+      card.append(el("div", "scout-title", plan.boss ? "👑 Boss night" : `Night ${c.wave + 1} — scouts report`));
+      items.forEach(([id, n], i) => {
+        const def = ENEMIES[id];
+        const traits = enemyTraits(def).filter((x) => x !== "boss");
+        const rowEl = el("div", `scout-row${def.boss ? " boss" : ""}`);
+        rowEl.style.setProperty("--i", String(i));
+        const img = document.createElement("img");
+        img.src = portrait(id);
+        img.alt = def.name;
+        const txt = el("div", "scout-txt");
+        txt.append(el("b", "", `${def.boss ? "" : `${n}× `}${def.name}`), el("span", "", traits.join(" · ") || (def.boss ? "boss" : "")));
+        rowEl.append(img, txt);
+        if (plan.intro === id) rowEl.append(el("i", "scout-new", "NEW"));
+        card.append(rowEl);
+      });
+      this.toastNode(card, `scout|${key}`);
+    };
     this.preview.title = "Tap for details";
   }
 

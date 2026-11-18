@@ -934,3 +934,14 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .switch::after { transition: left 0.32s cubic-bezier(0.34, 1.7, 0.5, 1), width 0.16s ease-out; }
 .setting:active .switch::after { width: calc(21 * var(--u)); }
 .setting.on:active .switch::after { left: calc(16 * var(--u)); }
+
+/* Wave preview tap: a scouting report card (portrait, count, name, traits per enemy kind). */
+.toast.scout { display: flex; flex-direction: column; gap: calc(4 * var(--u)); text-align: left; padding: calc(8 * var(--u)) calc(12 * var(--u)); min-width: calc(220 * var(--u)); }
+.scout-title { font-weight: 900; font-size: calc(12 * var(--u)); color: #ffd84a; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+.scout-row { display: flex; align-items: center; gap: calc(8 * var(--u)); position: relative; animation: how-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(0.08s + var(--i, 0) * 0.07s); }
+.scout-row img { width: calc(28 * var(--u)); height: calc(28 * var(--u)); border-radius: 50%; object-fit: cover; border: calc(2 * var(--u)) solid #1d1208; background: #3a2a1e; flex-shrink: 0; }
+.scout-row.boss img { border-color: #ff5a3a; box-shadow: 0 0 calc(8 * var(--u)) #ff5a3a; }
+.scout-txt { display: flex; flex-direction: column; line-height: 1.15; }
+.scout-txt b { font-size: calc(13 * var(--u)); }
+.scout-txt span { font-size: calc(10.5 * var(--u)); opacity: 0.8; }
+.scout-new { position: absolute; right: 0; font-style: normal; font-size: calc(9 * var(--u)); font-weight: 900; background: linear-gradient(#b8f58a, #5ec43a); color: #1d1208; border-radius: calc(6 * var(--u)); padding: 0 calc(5 * var(--u)); }
