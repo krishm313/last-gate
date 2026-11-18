@@ -2539,6 +2539,30 @@ fx.shake(0.15);
       this.drawBlob(g, cut, x, y, r * 1.7, r * 2.1, 0.5);
     }
     ctx.drawImage(L, 0, 0, VIEW_W, VIEW_H);
+    // Wall torches stand on a short wooden pole with an iron cup, seen as a silhouette lit warm
+    // from above by its own flame (so the flames below don't float in mid-air).
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, ease * 1.2);
+    for (let i = 1; i <= 5; i++) {
+      const tx = (MAP_W * i) / 6 - o.x + sh.x;
+      const ty = WALL_Y + WALL_THICK - 14 - o.y + sh.y;
+      if (tx < -20 || tx > VIEW_W + 20 || ty < -20 || ty > VIEW_H + 30) continue;
+      const pole = ctx.createLinearGradient(0, ty + 4, 0, ty + 22);
+      pole.addColorStop(0, "#b0743a");
+      pole.addColorStop(1, "#3a2414");
+      ctx.fillStyle = pole;
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(tx - 1.6, ty + 5, 3.2, 17, 1.2); ctx.fill(); ctx.stroke();
+      // Iron cup: a little trapezoid with a warm-lit rim.
+      ctx.fillStyle = "#2a2622";
+      ctx.beginPath();
+      ctx.moveTo(tx - 5, ty + 3); ctx.lineTo(tx + 5, ty + 3); ctx.lineTo(tx + 3, ty + 8); ctx.lineTo(tx - 3, ty + 8); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ffb050";
+      ctx.fillRect(tx - 4.5, ty + 3, 9, 1.2);
+    }
+    ctx.restore();
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const l of vis) {
