@@ -2477,8 +2477,11 @@ fx.shake(0.15);
     for (const pp of PLAZA_PROPS) if (pp.n === "lantern1") out.push({ x: pp.x + (pp.flip ? -1 : 1) * 6 * pp.s, y: pp.y - 14 * pp.s, r: 70 });
     for (const p of c.plots) if (p.level > 0) out.push({ x: p.x, y: p.y - 10, r: p.kind === "tower" ? 95 + p.level * 12 : 72, f: 0.4 });
     for (let i = 1; i <= 5; i++) out.push({ x: (MAP_W * i) / 6, y: WALL_Y + WALL_THICK, r: 68, f: 1 });
-    // Bosses are never lost in the dark.
-    for (const e of c.enemies) if (e.def.boss) out.push({ x: e.x, y: e.y - e.def.radius, r: e.def.radius * 4.2 });
+    // Bosses are never lost in the dark; the treasure goblin glitters, a lure worth chasing.
+    for (const e of c.enemies) {
+      if (e.def.boss) out.push({ x: e.x, y: e.y - e.def.radius, r: e.def.radius * 4.2 });
+      else if (e.def.id === "thief") out.push({ x: e.x, y: e.y - 6, r: 64 + Math.sin(this.time * 8) * 6 });
+    }
     this.groundFires = this.groundFires.filter((f) => this.time - f.t < 3);
     for (const f of this.groundFires) out.push({ x: f.x, y: f.y, r: 54 * (1 - (this.time - f.t) / 3) + 10, f: 1.3 });
     // Torch-bearers in the horde: moving pools of light in the dark.
