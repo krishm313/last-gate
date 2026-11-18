@@ -353,6 +353,9 @@ export class CampRenderer {
 
   consume(events: CampEvent[]): void {
     const fx = this.fx;
+    // A blessing pick opens in the same tick: its screen covers mid-view, so world popups
+    // there would ghost through behind the title (its recap already says "Flawless").
+    const picking = events.some((e) => e.type === "offers");
     for (const ev of events) {
       switch (ev.type) {
         case "hit":
@@ -579,8 +582,8 @@ fx.shake(0.15);
             }
           }
           if (this.waveHits === 0) {
-            fx.number(this.cam.x, this.cam.y - 140, "FLAWLESS!", "#8ef06a", 26, 1.6);
-            fx.rings.push({ x: this.cam.x, y: this.cam.y - 140, r: 110, color: "#8ef06a", life: 0.7, max: 0.7, width: 6 });
+            if (!picking) fx.number(this.cam.x, this.cam.y - 140, "FLAWLESS!", "#8ef06a", 26, 1.6);
+            if (!picking) fx.rings.push({ x: this.cam.x, y: this.cam.y - 140, r: 110, color: "#8ef06a", life: 0.7, max: 0.7, width: 6 });
             this.flawless = true;
             this.say(["Not a scratch!", "Flawless!", "Too easy."]);
           }
