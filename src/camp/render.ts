@@ -4460,17 +4460,26 @@ fx.shake(0.15);
       // Shaded coin seen from above: dark edge band, lit rim, embossed face (cached sprite).
       ctx.drawImage(this.stackCoin(i % 2), cx - 7.5, cy - 3.5, 15, 8);
     }
-    if (h.coins >= 12) {
+    const full = h.coins >= CAMP.carryCap + c.mods.carry;
+    if (h.coins >= 12 || full) {
+      // Count tag over the stack; when the King can't carry more it turns gold, reads
+      // "40 FULL" and pulses (one tag, so the two labels never pile up on each other).
       const tx = x + lean * 3 * n ** 1.25, ty = y - bob - 24 - top - n * 3 - 9;
-      const label = `${h.coins}`;
+      const label = full ? `${h.coins} FULL` : `${h.coins}`;
       ctx.save();
       ctx.font = `900 9px ${FONT}`;
-      const tw = ctx.measureText(label).width + 9;
-      ctx.fillStyle = "rgba(20,12,4,0.85)";
-      ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 6, tw, 12, 6); ctx.fill();
-      ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = "#ffe9a0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(label, tx, ty + 0.5);
+      const tw = ctx.measureText(label).width + 10;
+      ctx.translate(tx, ty);
+      if (full) { const s = 1 + 0.07 * (0.5 + 0.5 * Math.sin(this.time * 6)); ctx.scale(s, s); }
+      if (full) {
+        const g = ctx.createLinearGradient(0, -6, 0, 6);
+        g.addColorStop(0, "#ffe98a"); g.addColorStop(1, "#f2a83a");
+        ctx.fillStyle = g;
+      } else ctx.fillStyle = "rgba(20,12,4,0.85)";
+      ctx.beginPath(); ctx.roundRect(-tw / 2, -6, tw, 12, 6); ctx.fill();
+      ctx.strokeStyle = full ? INK : "#ffd84a"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = full ? "#2a1606" : "#ffe9a0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label, 0, 0.5);
       ctx.restore();
     }
     // Log stack beside the coins.
@@ -4503,10 +4512,7 @@ fx.shake(0.15);
       ctx.fill();
     }
     for (let i = 0; i < Math.min(10, h.bows); i++) drawBowItem(ctx, x + 14 * K, y - bob - 14 - top - i * 4, 0.8);
-    if (h.coins >= CAMP.carryCap + c.mods.carry) {
-      outlined(ctx, "FULL", x, y - bob - 36 - top - n * 3, 10, "#ffd84a");
-    }
-    this.drawQuip(ctx, x, y - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (h.coins >= CAMP.carryCap + c.mods.carry ? 16 : 0));
+    this.drawQuip(ctx, x, y - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (full ? 6 : 0));
     if (h.hp < h.maxHp) {
       ctx.fillStyle = "rgba(20,10,5,0.85)";
       ctx.beginPath();
