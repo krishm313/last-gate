@@ -279,6 +279,9 @@ export class CampRenderer {
   }
 
   private pickupBatch = 0;
+  /** The live "+N" pickup label and its running total (merged while it's still fresh). */
+  private pickupNum: (typeof this.fx.nums)[number] | null = null;
+  private pickupTotal = 0;
   private segHitAt: number[] = [];
   hallHitAt = -9;
   private heroHitAt = -9;
@@ -681,7 +684,20 @@ fx.shake(0.15);
     }
     if (this.pickupBatch > 0 && this.pickupTimer > 0.25 && !c.hero.dead) {
       // Off to the King's side at shoulder height, clear of the coin stack and its count tag.
-      this.fx.number(c.hero.x + 30, c.hero.y - 20, `+${this.pickupBatch}`, "#ffe66a", 15, 0.8);
+      // While the last "+N" is still young, fold the new coins into it (re-popping it) instead of
+      // stacking another label: a quick run of pickups reads as one counter ticking up.
+      const prev = this.pickupNum && this.fx.nums.includes(this.pickupNum) && this.pickupNum.life > this.pickupNum.max * 0.45 ? this.pickupNum : null;
+      if (prev) {
+        this.pickupTotal += this.pickupBatch;
+        prev.text = `+${this.pickupTotal}`;
+        prev.life = prev.max;
+        prev.x = c.hero.x + 30; prev.y = c.hero.y - 28;
+        prev.vy = -60;
+      } else {
+        this.pickupTotal = this.pickupBatch;
+        this.fx.number(c.hero.x + 30, c.hero.y - 20, `+${this.pickupBatch}`, "#ffe66a", 15, 0.8);
+        this.pickupNum = this.fx.nums[this.fx.nums.length - 1] ?? null;
+      }
       this.pickupBatch = 0;
       this.pickupTimer = 0;
     }
