@@ -486,7 +486,7 @@ export class CampHud {
       items.forEach(([id, n], i) => {
         const def = ENEMIES[id];
         const traits = enemyTraits(def).filter((x) => x !== "boss");
-        const rowEl = el("div", `scout-row${def.boss ? " boss" : ""}`);
+        const rowEl = el("div", `scout-row${def.boss ? " scout-boss" : ""}`);
         rowEl.style.setProperty("--i", String(i));
         const img = document.createElement("img");
         img.src = portrait(id);
