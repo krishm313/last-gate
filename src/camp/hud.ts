@@ -375,7 +375,13 @@ export class CampHud {
     const t = text ?? "";
     if (t === this.lastTip) return;
     this.lastTip = t;
-    this.tip.textContent = t;
+    // The leading emoji gets its own element so it can move: the 👆 of "drag to walk" swipes
+    // across like a finger demonstrating the gesture; other tip icons bob gently.
+    const sp = t.indexOf(" ");
+    const ico = sp > 0 && sp <= 4 ? t.slice(0, sp) : "";
+    if (ico && /\p{Extended_Pictographic}/u.test(ico)) {
+      this.tip.replaceChildren(el("span", `tip-ico${ico.startsWith("👆") ? " swipe" : ""}`, ico), document.createTextNode(t.slice(sp)));
+    } else this.tip.textContent = t;
     this.tip.classList.toggle("show", !!t);
     if (t) {
       this.tip.classList.remove("tip-pop");
