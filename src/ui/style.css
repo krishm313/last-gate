@@ -1017,3 +1017,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 }
 @keyframes star-burst { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .end-stars .star.on::after { animation: none; display: none; } }
+
+/* Start-the-night button in the last seconds of day: deeper red with a heartbeat pulse. */
+.call-wave.soon { background: linear-gradient(#ff8a6a, #e8402a 55%, #b8201a) !important; animation: call-soon 0.8s ease-in-out infinite; }
+@keyframes call-soon { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .call-wave.soon { animation: none; } }

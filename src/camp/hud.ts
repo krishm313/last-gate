@@ -590,6 +590,8 @@ export class CampHud {
     }
     const building = c.phase === "build";
     this.callBtn.style.display = building && c.timer > 3 ? "flex" : "none";
+    // Last 10 s of daylight: the button turns urgent (deeper red, pulsing) — the bonus is shrinking.
+    this.callBtn.classList.toggle("soon", building && c.timer <= 10);
     if (building) {
       const key = FINE_POINTER ? `<i class="call-key">C</i>` : "";
       const html = `<span>🌙 Start the night${key}</span><small>+${Math.floor(c.timer / 2)} coins · ${Math.ceil(c.timer)}s</small>`;
