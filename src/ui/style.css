@@ -835,3 +835,21 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .status-chip.last-few.bump { animation: bump 0.34s cubic-bezier(.3,.7,.4,1), last-few 0.9s ease-in-out 0.34s infinite; }
 @keyframes last-few { 50% { box-shadow: 0 0 calc(12 * var(--u)) #ffd56a; } }
 @media (prefers-reduced-motion: reduce) { .status-chip.last-few { animation: none; } }
+
+/* Blessing cards: the icon sits on a glowing medallion in its rarity colour, and a small tag
+   (NEW / Lv 1 → 2) above the pips fills the lower half and says what the pick does for you. */
+.card-icon { position: relative; font-size: calc(46 * var(--u)); margin-top: calc(4 * var(--u)); padding: calc(10 * var(--u)); z-index: 0; }
+.card-icon::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--rc) 55%, transparent) 0%, color-mix(in srgb, var(--rc) 18%, transparent) 55%, transparent 72%);
+  box-shadow: inset 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--rc) 35%, transparent);
+  animation: medal-breathe 2.4s ease-in-out infinite;
+}
+@keyframes medal-breathe { 0%, 100% { transform: scale(0.94); opacity: 0.8; } 50% { transform: scale(1.04); opacity: 1; } }
+.card-tag {
+  font-size: calc(11 * var(--u)); font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #ffe7a8; background: rgba(0, 0, 0, 0.32); border-radius: calc(8 * var(--u));
+  padding: calc(2 * var(--u)) calc(8 * var(--u)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.card-tag.new { color: #1d1208; background: linear-gradient(#b8f58a, #5ec43a); box-shadow: 0 calc(2 * var(--u)) 0 #0005; }
+@media (prefers-reduced-motion: reduce) { .card-icon::before { animation: none; } }

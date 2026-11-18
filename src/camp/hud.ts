@@ -343,6 +343,7 @@ export class CampHud {
         el("div", "card-icon", b.icon),
         el("div", "card-name", b.name),
         el("div", "card-desc", b.desc),
+        el("div", `card-tag${owned ? "" : " new"}`, owned ? `Lv ${owned} → ${owned + 1}` : "New"),
         b.max > 1 ? levelPips(owned, b.max) : el("div", "card-lvl", "Unique"),
       );
       if (b.requires) card.append(el("div", "card-combo", "COMBO"));
