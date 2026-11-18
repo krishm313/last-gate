@@ -981,6 +981,18 @@ fx.shake(0.15);
     ctx.restore();
     if (this.focus && !this.ambient) drawBossCard(ctx, this.focus.name, this.focus.t);
     drawDanger(ctx, c, this.time);
+    // Hall struck while below half health: the screen edges flash red, harder the closer it is
+    // to falling, so you feel it even when the King is far from the hall.
+    const hitAge = this.time - this.hallHitAt;
+    const hallFrac = c.hallHp / c.hallMaxHp;
+    if (!this.ambient && c.phase === "wave" && hallFrac < 0.5 && hallFrac > 0 && hitAge < 0.4) {
+      const k = (1 - hitAge / 0.4) * (0.35 + 0.5 * (1 - hallFrac / 0.5));
+      const g = ctx.createRadialGradient(VIEW_W / 2, VIEW_H / 2, VIEW_H * 0.28, VIEW_W / 2, VIEW_H / 2, VIEW_H * 0.6);
+      g.addColorStop(0, "rgba(255,30,20,0)");
+      g.addColorStop(1, `rgba(255,30,20,${k.toFixed(3)})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    }
     if (!this.ambient) {
       this.drawIndicators(ctx, c, o);
       this.drawCombo(ctx, c);
