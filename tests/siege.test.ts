@@ -24,15 +24,18 @@ describe("Siege Lord (reverse mode)", () => {
     expect(deploy(c, "ram", 0)).toBe(false); // can't afford
   });
 
-  it("refills the chest during a push, and a push ends on the clock (not when the field is clear)", () => {
+  it("refills the chest during a push; the next push starts on the clock and the siege runs on", () => {
     const c = toFirstPush();
     c.reverse!.chest = 0;
     for (let i = 0; i < Math.round(10 / STEP); i++) campBotStep(c);
     expect(c.reverse!.chest).toBeCloseTo(Math.min(REVERSE.cap, REVERSE.income * 10), 0);
-    expect(c.phase).toBe("wave"); // empty field, but the push runs its full length
-    for (let i = 0; i < Math.round((REVERSE.push - 9) / STEP) && c.phase === "wave"; i++) campBotStep(c);
-    expect(c.phase).not.toBe("wave");
-    expect(c.wave).toBe(1);
+    expect(c.phase).toBe("wave"); // an empty field doesn't end the push
+    deploy(c, "footman", 1);
+    const before = c.enemies.length;
+    for (let i = 0; i < Math.round((REVERSE.push - 9) / STEP); i++) campBotStep(c);
+    expect(c.wave).toBe(2); // next push
+    expect(c.phase).toBe("wave"); // continuous siege: no build break
+    expect(before).toBeGreaterThan(0);
   });
 
   it("pays a bounty for a broken wall section, and taking the hall is a win", () => {
