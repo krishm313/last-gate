@@ -187,6 +187,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   building; crackle / hiss SFX.
 
 ## Shipped (newest first)
+- Balance bot stamps out Fire Imp fires (like a player would): ch7 @L10 42% → 67%, @L7 25% — on target, no retune needed.
 - Fire Imp: ch7 flyer that sets support buildings ablaze until the King stamps the fire out (art, fx, SFX, test).
 - New hero: The Warden — extra-target shots and Snare Field (roots foes, +30% damage taken); 14★ to unlock (test).
 - Daily variety: 4 new twists using the newer systems (Elite Rush, Fog of War, Storm Day, Iron Walls) + Bounty Hunter / Vigor as starting blessings — from 2026-11-20 so days already played keep their daily (test).

@@ -23,6 +23,10 @@ export function campBotInput(c: Camp): CampInput {
     return { move: d < 6 ? { x: 0, y: 0 } : { x: dx / d, y: dy / d } };
   };
 
+  // 0. A building on fire (Fire Imp): go and stamp it out.
+  const burning = c.plots.find((p) => (p.fire ?? 0) > 0.3);
+  if (burning) return go({ x: burning.x, y: burning.y });
+
   // 1. Loose coins nearby (inside the wall, or just outside when no enemies are close).
   const safe = (v: Vec) => v.y > WALL_Y + 10 || c.enemies.every((e) => Math.hypot(e.x - v.x, e.y - v.y) > 120);
   let coin: Vec | null = null;
