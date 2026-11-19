@@ -332,6 +332,8 @@ export class CampRenderer {
 
   /** When the spike trap last caught a foe (and where): stakes near it flash and judder. */
   private spikeHit = { x: 0, t: -9 };
+  /** When each tower was last stunned by a War Raven. */
+  towerStunAt = new Map<string, number>();
   /** One row of the spike trap: sharpened stakes leaning out toward the forest (denser per level). */
   private drawSpikeRow(ctx: CanvasRenderingContext2D, level: number, row: number): void {
     const y = SPIKES.y0 + 12 + row * 18;
@@ -639,6 +641,12 @@ export class CampRenderer {
         case "mageZap":
           fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
           for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
+          break;
+        case "towerStunned":
+          this.towerStunAt.set(ev.plot, this.time);
+          fx.burst(ev.x, ev.y, "#2a2438", 14, 150, { max: 0.6, size: 3, gravity: 120, shape: "chunk" });
+          fx.rings.push({ x: ev.x, y: ev.y, r: 34, color: "#c890ff", life: 0.4, max: 0.4, width: 3 });
+          fx.number(ev.x, ev.y - 30, "STUNNED!", "#d8b0ff", 15, 1);
           break;
         case "spikeHit":
           this.spikeHit = { x: ev.x, t: this.time };
@@ -3770,7 +3778,7 @@ fx.shake(0.15);
     if (e.def.flying) {
       // Flyers cast a smaller, fainter shadow further below them (height cue); it swells and darkens
       // as the flyer dips on its bob and shrinks as it rises.
-      const bob = id === "bat" ? Math.sin(c.time * 6 + e.sway) : 0;
+      const bob = id === "bat" || id === "raven" ? Math.sin(c.time * 6 + e.sway) : 0;
       const k = 1 + bob * 0.12;
       softShadow(ctx, e.x, e.y + r * 1.9, r * 0.85 * k, r * 0.32 * k, 0.2 * (1 + bob * 0.25));
     } else {
@@ -3783,7 +3791,22 @@ fx.shake(0.15);
     }
     const baseA = ctx.globalAlpha;
     ctx.globalAlpha = baseA * (red >= 1 ? 0.35 : id === "wraith" ? 0.8 : 1);
-    if (id === "bat") {
+    if (id === "raven") {
+      // War Raven: a bigger, faster-flapping dark wing-beast with burning red eyes and a red
+      // war-paint streak, trailing dark feathers as it dives at a tower.
+      const by = y - 6 + Math.sin(c.time * 9 + e.sway) * 2;
+      if (!this.drawBat3d(ctx, x, by, r * 1.25, c.time * 1.4 + e.sway, flash, "bat", this.bankFor(e.id, e.x, 0.6))) drawBat(ctx, x, by, r * 1.25, c.time * 1.4 + e.sway, flash);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const eye = this.blob("raveneye", [[0, "rgba(255,120,80,1)"], [0.5, "rgba(255,40,20,0.7)"], [1, "rgba(255,0,0,0)"]]);
+      this.drawBlob(ctx, eye, x - 3, by - r * 0.35, 4.5, 4.5, 0.95);
+      this.drawBlob(ctx, eye, x + 3, by - r * 0.35, 4.5, 4.5, 0.95);
+      ctx.restore();
+      ctx.strokeStyle = "#d8302a"; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(x - 5, by - r * 0.85); ctx.lineTo(x, by - r * 1.15); ctx.lineTo(x + 5, by - r * 0.85); ctx.stroke();
+      if (Math.floor(c.time * 8 + e.id) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(x, by, "#2a2438", 1, 30, { max: 0.5, size: 2.4, gravity: 40, shape: "chunk" });
+    }
+    else if (id === "bat") {
       const by = y - 6 + Math.sin(c.time * 6 + e.sway) * 3;
       if (!this.drawBat3d(ctx, x, by, r, c.time + e.sway, flash, "bat", this.bankFor(e.id, e.x, 0.45))) drawBat(ctx, x, by, r, c.time + e.sway, flash);
     }

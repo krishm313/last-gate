@@ -470,3 +470,25 @@ describe("banner-bearer", () => {
     expect(reduction(far)).toBe(0);
   });
 });
+
+describe("war raven", () => {
+  it("dives at the nearest archer tower and stuns it (the tower stops shooting), then is spent", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    const t = c.plots.find((p) => p.kind === "tower")!;
+    t.level = 1;
+    const r = spawnEnemy(c, { at: 0, enemy: "raven", hpMult: 50, lane: 0.5 }, { x: t.x, y: t.y - 120 });
+    run(c, 3);
+    expect(c.enemies.includes(r)).toBe(false);
+    expect(t.stun ?? 0).toBeGreaterThan(0);
+    // While stunned it ignores a foe in range.
+    const f = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 5, lane: 0.5 }, { x: t.x, y: t.y - 150 });
+    const hp = f.hp;
+    run(c, 0.5);
+    expect(f.hp).toBe(hp);
+  });
+});

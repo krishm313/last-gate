@@ -58,7 +58,7 @@ export const CHAPTERS: ChapterDef[] = [
     waves: [
       { mix: { footman: 3, shield: 2, crossbow: 1 } },
       { mix: { footman: 2, shield: 2, knight: 1 }, intro: "knight" },
-      { mix: { shield: 2, crossbow: 2, knight: 1, brute: 0.6 } },
+      { mix: { shield: 2, crossbow: 2, knight: 1, brute: 0.6, raven: 1.2 }, intro: "raven" },
       { mix: { footman: 3, runner: 2 }, breather: true },
       { mix: { shield: 2, knight: 1, crossbow: 1, brute: 0.8 }, boss: "ogre" },
       { mix: { footman: 2, shield: 2, knight: 1, ram: 0.6 }, intro: "ram" },

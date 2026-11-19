@@ -132,6 +132,8 @@ export interface Plot {
   unlockWave?: number;
   /** Archer towers: specialisation chosen on reaching level 3 (unset until chosen). */
   spec?: TowerSpec;
+  /** Seconds left of a War Raven's stun (the tower doesn't shoot). */
+  stun?: number;
 }
 
 /** Spike trap: a strip of stakes in front of the gate that wounds and slows foes walking through. */
@@ -240,6 +242,7 @@ export type CampEvent =
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
+  | { type: "towerStunned"; plot: string; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
   /** Healer's tent mended someone (throttled): green motes rise from each point. */
@@ -894,6 +897,10 @@ function towerScale(c: Camp): number {
 function updateTowers(c: Camp): void {
   for (const p of c.plots) {
     if (p.kind !== "tower" || p.level === 0) continue;
+    if (p.stun && p.stun > 0) {
+      p.stun -= STEP;
+      continue;
+    }
     const st = TOWER_LEVELS[p.level - 1]!;
     const range = st.range * c.mods.towerRange;
     p.fired += STEP;
@@ -1281,6 +1288,25 @@ function updateEnemy(c: Camp, e: Enemy): void {
         attackTick(c, e, () => damageAlly(c, a, def.gateDamage));
         return;
       }
+    }
+  }
+
+  // War Ravens dive at the nearest archer tower and stun it (spent on impact).
+  if (def.towerHunter) {
+    let t: Plot | null = null, best = Infinity;
+    for (const p of c.plots) {
+      if (p.kind !== "tower" || p.level === 0) continue;
+      const d = (p.x - e.x) ** 2 + (p.y - 30 - e.y) ** 2;
+      if (d < best) { best = d; t = p; }
+    }
+    if (t) {
+      if (moveToward(c, e, t.x, t.y - 30) < def.radius + 8) {
+        t.stun = Math.max(t.stun ?? 0, def.towerHunter);
+        e.hp = 0;
+        e.exploded = true;
+        c.events.push({ type: "towerStunned", plot: t.id, x: t.x, y: t.y - 30 });
+      }
+      return;
     }
   }
 

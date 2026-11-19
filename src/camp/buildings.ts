@@ -400,6 +400,19 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
     ctx.fillText(String(p.level), poleX + 7, py2);
   }
   ctx.restore();
+  // Stunned by a War Raven: dizzy stars circle over the archers until it wears off.
+  if (p.stun && p.stun > 0) {
+    ctx.save();
+    for (let i = 0; i < 3; i++) {
+      const a = env.time * 5 + (i * Math.PI * 2) / 3;
+      const sx = p.x + Math.cos(a) * 16, sy = p.y - 52 + Math.sin(a) * 5;
+      ctx.fillStyle = "#ffe066"; ctx.strokeStyle = INK; ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let k = 0; k < 10; k++) { const rr = k % 2 ? 1.6 : 4, aa = (k * Math.PI) / 5 - Math.PI / 2; ctx.lineTo(sx + Math.cos(aa) * rr, sy + Math.sin(aa) * rr); }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 
 export function drawBarracks(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot): void {

@@ -21,7 +21,8 @@ export type EnemyId =
   | "golem"
   | "dragon"
   | "colossus"
-  | "banner";
+  | "banner"
+  | "raven";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -81,11 +82,14 @@ export interface EnemyDef {
   boss?: boolean;
   /** Rallying aura: other foes within `radius` move `speed` faster and gain `armor` reduction. */
   aura?: { radius: number; speed: number; armor: number };
+  /** Dives at the nearest archer tower and stuns it for this many seconds (then is spent). */
+  towerHunter?: number;
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
+  raven: { ...base, id: "raven", name: "War Raven", hp: 20, speed: 88, radius: 9, gateDamage: 3, gold: 2, color: "#2a2438", cost: 2, flying: true, towerHunter: 3.5 },
   banner: { ...base, id: "banner", name: "Banner-bearer", hp: 40, speed: 38, radius: 12, gateDamage: 4, gold: 3, color: "#c83a3a", cost: 3, aura: { radius: 120, speed: 0.3, armor: 0.25 } },
   footman: { ...base, id: "footman", name: "Footman", hp: 22, speed: 46, radius: 11, gateDamage: 5, gold: 1, color: "#b8423a", cost: 1 },
   runner: { ...base, id: "runner", name: "Runner", hp: 12, speed: 96, radius: 9, gateDamage: 3, attackInterval: 0.6, gold: 1, color: "#e0803a", cost: 1 },
@@ -135,6 +139,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.behavior === "ranged") t.push("shoots from range");
   if (d.behavior === "healer") t.push("heals allies");
   if (d.aura) t.push("rallies nearby foes");
+  if (d.towerHunter) t.push("dives at towers");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");
