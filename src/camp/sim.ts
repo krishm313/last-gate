@@ -1111,7 +1111,7 @@ export function reduction(e: Enemy): number {
 function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false): void {
   const red = reduction(e);
   if (red >= 1) return;
-  const dmg = base * (1 - red);
+  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1);
   e.hp -= dmg;
   e.flash = 0.08;
   c.events.push({ type: "hit", x: e.x, y: e.y, damage: Math.round(dmg), crit, owner, eid: e.id });
@@ -1355,7 +1355,7 @@ function updateEnemies(c: Camp): void {
     e.flash = Math.max(0, e.flash - STEP);
     if (e.burnTime > 0) {
       e.burnTime -= STEP;
-      e.hp -= e.burnDps * STEP;
+      e.hp -= e.burnDps * STEP * (e.slowTime > 0 ? c.mods.thermal : 1);
     }
     if (e.slowTime > 0) e.slowTime -= STEP;
     if (e.stunTime > 0) {

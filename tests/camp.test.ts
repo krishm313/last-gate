@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
 import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
+import { rollBlessings } from "../src/camp/blessings";
+import { createRng } from "../src/core/rng";
 
 const still: CampInput = { move: { x: 0, y: 0 } };
 function run(c: Camp, seconds: number, input = still) {
@@ -422,5 +424,30 @@ describe("healer's tent", () => {
     c.hero.x = t.x + 400; c.hero.y = t.y - 300; c.hero.hp = 50; c.hero.sinceHit = 0;
     step(c, still);
     expect(c.hero.hp).toBe(50);
+  });
+});
+
+describe("blessing combos", () => {
+  it("are only offered once every part is owned", () => {
+    const offered = (owned: Record<string, number>) => {
+      const seen = new Set<string>();
+      for (let i = 0; i < 300; i++) for (const b of rollBlessings(createRng(i), 6, owned, 3, new Set())) seen.add(b.id);
+      return seen;
+    };
+    expect(offered({ fire: 1 }).has("thermal")).toBe(false);
+    expect(offered({ fire: 1, frost: 1 }).has("thermal")).toBe(true);
+    expect(offered({ tax: 1 }).has("trove")).toBe(false);
+    expect(offered({ tax: 1, bounty: 1 }).has("trove")).toBe(true);
+  });
+  it("Thermal Shock: burning bites 3x harder on slowed foes", () => {
+    const c = createCamp(1);
+    applyBlessing(c, "thermal");
+    const a = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 20, lane: 0.5 }, { x: 200, y: 200 });
+    const b = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 20, lane: 0.5 }, { x: 520, y: 200 });
+    for (const e of [a, b]) { e.burnDps = 10; e.burnTime = 5; }
+    b.slowTime = 5; b.slowPct = 0.3;
+    const [ha, hb] = [a.hp, b.hp];
+    step(c, still);
+    expect((hb - b.hp) / (ha - a.hp)).toBeCloseTo(3, 1);
   });
 });

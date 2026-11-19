@@ -338,11 +338,21 @@ export class CampRenderer {
   }
 
   /** A blessing was just chosen: the golden pillar rises around the King, with its icon and name. */
-  blessed(c: Camp, icon: string, name: string): void {
+  blessed(c: Camp, icon: string, name: string, combo = false): void {
     this.flushUnlocks();
     if (this.ambient || c.hero.dead) return;
     const h = c.hero;
     this.levelUpAt = this.time;
+    if (combo) {
+      // A combo completes: a bigger, two-tone shockwave and a shower of gold and violet sparks.
+      this.fx.rings.push({ x: h.x, y: h.y + 12, r: 130, color: "#ffd84a", life: 0.8, max: 0.8, width: 7 });
+      this.fx.rings.push({ x: h.x, y: h.y + 12, r: 90, color: "#c890ff", life: 0.6, max: 0.6, width: 4 });
+      this.fx.burst(h.x, h.y - 20, "#ffd84a", 30, 260, { max: 1, size: 3.5, gravity: 120, shape: "spark" });
+      this.fx.burst(h.x, h.y - 20, "#c890ff", 20, 220, { max: 0.9, size: 3, gravity: 120, shape: "spark" });
+      this.fx.flash = 0.25;
+      this.fx.flashColor = "#fff2c0";
+      this.fx.shake(0.25);
+    }
     this.fx.rings.push({ x: h.x, y: h.y + 12, r: 70, color: "#bfe8ff", life: 0.6, max: 0.6, width: 5 });
     this.fx.burst(h.x, h.y - 10, "#fff2b0", 22, 170, { max: 0.8, size: 3, gravity: -90, shape: "spark" });
     this.fx.number(h.x, h.y - 112, `${icon} ${name}`, "#bfe8ff", 18, 1.6);

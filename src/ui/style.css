@@ -1040,3 +1040,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .spec-frost { --rc: #7ad8ff; --rg: #7ad8ff88; }
 .spec-volley { --rc: #ffd84a; --rg: #ffd84a88; }
 .spec-card .card-rarity { background: var(--rc); color: #1d1208 !important; }
+
+/* Combo badge sits inside the card under the rarity tag (cards clip their edges), glowing. */
+.card .card-combo {
+  position: static; transform: none; margin-top: calc(-2 * var(--u)); white-space: nowrap;
+  background: linear-gradient(#ffe98a, #ff9a20); color: #2a1408; font-size: calc(10.5 * var(--u)); font-weight: 900;
+  letter-spacing: 0.06em; box-shadow: 0 0 calc(8 * var(--u)) #ffb020aa; animation: combo-pulse 1.4s ease-in-out infinite;
+}
+@keyframes combo-pulse { 50% { box-shadow: 0 0 calc(14 * var(--u)) #ffd84a; } }
+@media (prefers-reduced-motion: reduce) { .card .card-combo { animation: none; } }

@@ -710,9 +710,10 @@ function frame(now: number) {
             if (chooseBlessing(c, id)) {
               hud.hideOverlay();
               const bl = BLESSING_BY_ID[id];
-              if (bl) renderer.blessed(c, bl.icon, bl.name);
+              if (bl) renderer.blessed(c, bl.icon, bl.name, !!bl.requires);
               sfx.dawn();
-              if (unlockedLabels.length) hud.banner("New building!", `${[...new Set(unlockedLabels)].join(" & ")} unlocked`);
+              if (bl?.requires) hud.banner("COMBO!", `${bl.icon} ${bl.name}`);
+              else if (unlockedLabels.length) hud.banner("New building!", `${[...new Set(unlockedLabels)].join(" & ")} unlocked`);
               else hud.banner("☀ Dawn", "Build and upgrade before nightfall");
               unlockedLabels = [];
               // One-time hint (phones never see the desktop notes): the wave preview is tappable.

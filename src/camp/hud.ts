@@ -2,7 +2,7 @@ import { ENEMIES, enemyTraits, type EnemyId } from "../core/enemies";
 import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
-import { BLESSING_BY_ID } from "./blessings";
+import { BLESSING_BY_ID, comboParts } from "./blessings";
 import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
@@ -381,7 +381,7 @@ export class CampHud {
         el("div", `card-tag${owned ? "" : " new"}`, owned ? `Lv ${owned} → ${owned + 1}` : "New"),
         b.max > 1 ? levelPips(owned, b.max) : el("div", "card-lvl", "Unique"),
       );
-      if (b.requires) card.append(el("div", "card-combo", "COMBO"));
+      if (b.requires) card.insertBefore(el("div", "card-combo", `COMBO ${comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "").join(" + ")}`), card.children[1] ?? null);
       if (pad) card.append(el("div", "card-key", ["◀", "▲", "▶"][i]!));
       else if (FINE_POINTER) card.append(el("div", "card-key", String(i + 1)));
       // Ignore taps right after the screen appears so a walking thumb doesn't pick by accident.

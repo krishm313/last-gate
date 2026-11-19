@@ -7,7 +7,7 @@ Goal: a game that keeps getting better — new features and content first, polis
 
 | # | Phase | Items |
 |---|---|---|
-| 1 | **New features** (more to do every run) | ✅ Royal courier (hall coins fly to the King) · Tower specialisations at Lv 3 (Fire / Frost / Volley) · Spike traps before the gate · Mage Tower · Healer's tent · Blessing combos ("COMBO!") |
+| 1 | **New features** ✅ DONE | ✅ Royal courier · ✅ Tower specialisations · ✅ Spike traps · ✅ Mage Tower · ✅ Healer's tent · ✅ Blessing combos |
 | 2 | **New content** | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
 | 3 | **Reasons to come back** | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
 | 4 | **Optional challenge** | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
@@ -48,7 +48,13 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   0.4/0.7/1.1% of max HP per second (broken ones still need Repair). Striped tent, red-cross banner,
   dashed green radius ring on the ground, green sparkles + "+" on whoever it heals.
 
+- **Blessing combos** — `requires` can list several blessings; 5 new combos: Shatter (Frost + Tower
+  Drills: slowed foes take +35%), Thermal Shock (Fire + Frost: burning 3× on slowed foes), Treasure
+  Trove (Tax + Bounty), Bulwark (Thick Timber + Masons), Deadeye (Sharp + Split). Combo cards show
+  "COMBO ❄️ + 🎯"; picking one fires a "COMBO!" banner, gold/violet shockwave, flash and shake.
+
 ## Shipped (newest first)
+- Blessing combos: 5 new two-part combos, combo badge shows its parts, big COMBO! moment (tests).
 - Healer's Tent: heals the King/soldiers nearby and slowly mends the wall (plot, tent art, aura ring, heal motes, test).
 - Mage Tower: chain lightning that ignores armour (plot, spire + crystal art, purple bolts, tests).
 - Lightning arcs now draw above the night darkness (they were nearly invisible at night).
