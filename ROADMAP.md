@@ -177,3 +177,10 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Found and fixed a hidden trap: per-chapter camp HP table silently defaulted new chapters to ×1
   (ch6 was trivially easy) — now test-guarded. Lesson: when a chapter "feels" off in campsim, diff
   it against a clone of a known chapter with only the id changed.
+- **2026-11-19 11:40** — deploys 88–102 all green. Phases 3, 4 and 5 shipped this hour (quests,
+  Endless milestones, skill trees, history, flair; Hard/Nightmare, elites, boss phases; adaptive
+  music, SFX + haptics). Balance: ch1 100% throughout; ch3 @L3 38% (16 runs) after golem boulders —
+  inside noise vs 42–50%, left as is. Lessons: (1) render effects drawn with "lighter" vanish on
+  bright day grass — use normal-blend tints/shapes for things that must read by day (flair pass 1);
+  (2) the game re-saves on pagehide, so Playwright save edits must go in an init script; (3) audio
+  can't be eyeballed — keep its decision logic in pure tested functions (musicIntensity).
