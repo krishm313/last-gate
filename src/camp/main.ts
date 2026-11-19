@@ -380,6 +380,7 @@ function pauseStatus(c: Camp): string[] {
 function lossTip(c: Camp): string {
   const s = c.runStats;
   const built = (kind: string) => c.plots.some((p) => p.kind === kind && p.level > 0);
+  if ((s.flares ?? 0) >= 2) return "The blood moon flared and the horde ran wild. When the field turns red, fall back near the hall (its archers hit harder) and save your ability for the rush.";
   if ((s.burnTime ?? 0) > 25) return "Fire Imps kept your buildings burning. Walk onto a burning building to stamp the fire out — and shoot imps down early.";
   if ((s.stuns ?? 0) >= 6) return "War Ravens stunned your towers again and again. Upgrade towers so they shoot ravens down first, or build a Mage Tower.";
   if ((s.tunnelers ?? 0) >= 5 && !built("barracks")) return "Tunnelers dug under the wall. A Barracks (and the King) inside the camp catch them as they surface.";

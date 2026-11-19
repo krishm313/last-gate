@@ -437,7 +437,7 @@ export interface Camp {
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
-  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number; casts?: number };
+  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number; casts?: number; flares?: number };
   strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
   owned: Record<string, number>;
   offers: Blessing[];
@@ -1539,6 +1539,7 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     c.events.push({ type: "warcry", x: e.x, y: e.y, r: p2.radius });
   } else if (p2.kind === "bloodmoon") {
     c.bloodmoon = p2.power;
+    c.runStats.flares = (c.runStats.flares ?? 0) + 1;
     c.events.push({ type: "bloodmoon", x: e.x, y: e.y });
   } else if (p2.kind === "tide") {
     // The tide: a band of water across the field, centred between the boss and the hero.
