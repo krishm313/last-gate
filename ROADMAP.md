@@ -322,3 +322,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Arcanum + Field Works, per-chapter fanfare, Best Endless sieges, Hard/Nightmare progress on cards.
   141 tests. Lesson: smaller UI slices ship fast but each must be eyeballed — the duplicate skull and
   a too-tall Armory card were both caught only in screenshots.
+- **2026-11-19 15:40** — deploys 132–144 green except **136 failed** (chapter 8 slice 1): the Pages
+  workflow runs the tests, and the hpMult ordering test failed, so that version never went live; 137
+  (Drowned King + fix) deployed 8 min later. The safety net worked — but the rule stands: rerun
+  `npx vitest run` after every late tweak, before committing. This hour: chapter 8 (data, Drowned
+  King + tide, sunken props), Tidebreaker, Tidal Week, sweep 3 (clean), combo badge fix, hub 🏆
+  count, older-chapter check, skill capstones, new loss tips, 8-chapter balance snapshot. 145 tests.
