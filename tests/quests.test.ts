@@ -172,6 +172,18 @@ describe("endless weekly twists", async () => {
   });
 });
 
+describe("daily heroes", async () => {
+  const { dailyFor } = await import("../src/core/daily");
+  it("keeps the original four heroes until the 21st, then adds the Warden and the Lancer", () => {
+    const iso = (d: number) => new Date(Date.UTC(2026, 10, d)).toISOString().slice(0, 10);
+    for (let d = 1; d <= 20; d++) expect(["ranger", "knight", "pyro", "engineer"]).toContain(dailyFor(iso(d)).hero);
+    expect(dailyFor("2026-11-19").hero).toBe("knight"); // today's challenge is unchanged
+    const later = new Set<string>();
+    for (let d = 21; d <= 120; d++) later.add(dailyFor(iso(d)).hero);
+    expect(later.has("warden") && later.has("lancer")).toBe(true);
+  });
+});
+
 describe("daily variety", async () => {
   const { dailyFor } = await import("../src/core/daily");
   it("keeps past days stable and brings the new twists in from the 20th", () => {

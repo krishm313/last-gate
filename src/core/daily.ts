@@ -40,6 +40,9 @@ export const TWISTS: Twist[] = [
 ];
 
 const HEROES: HeroId[] = ["ranger", "knight", "pyro", "engineer"];
+/** The newer heroes join the daily hero pool from this date (earlier days keep their hero). */
+const HEROES_EXPANDED_FROM = "2026-11-21";
+const NEW_HEROES: HeroId[] = ["warden", "lancer"];
 const BLESSINGS = ["sharp", "quick", "drills", "eagle", "split", "fire", "frost", "masons", "tax", "pockets", "hunter", "vigor"];
 
 function hash(str: string): number {
@@ -94,6 +97,10 @@ export function liveDailyStreak(stats: Record<string, number>, date: string): nu
 const EXPANDED_FROM = "2026-11-20";
 const ORIGINAL_TWISTS = ["gold-rush", "lone-hero", "engineers", "horde", "glass"];
 
+function heroPool(date: string): HeroId[] {
+  return date >= HEROES_EXPANDED_FROM ? [...HEROES, ...NEW_HEROES] : HEROES;
+}
+
 export function dailyFor(date: string): DailyChallenge {
   const h = hash(`lastgate-${date}`);
   const expanded = date >= EXPANDED_FROM;
@@ -103,7 +110,7 @@ export function dailyFor(date: string): DailyChallenge {
     date,
     seed: h,
     chapterId: 1 + (h % 3),
-    hero: HEROES[(h >>> 3) % HEROES.length]!,
+    hero: heroPool(date)[(h >>> 3) % heroPool(date).length]!,
     twist: twists[(h >>> 7) % twists.length]!,
     blessing: blessings[(h >>> 11) % blessings.length]!,
   };
