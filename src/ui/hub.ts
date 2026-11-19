@@ -570,6 +570,17 @@ export class Hub {
         info.append(el("div", "hero-lock", `🔒 ${have} / ${h.starsToUnlock} ★ to unlock`), bar);
       }
       const pts = unlocked ? freePoints(save.heroes[h.id]) : 0;
+      if (unlocked && !selected) {
+        // Skill progress at a glance for the heroes you're not playing.
+        const xp = save.heroes[h.id].xp;
+        const nx = nextSkillThreshold(xp);
+        const prev = [0, 5, 15, 30, 50, 75, 105, 140, 180, 225].filter((t) => t <= xp).pop() ?? 0;
+        const bar = el("div", "lgs-mini");
+        const fill = el("i", "");
+        fill.style.width = nx ? `${((xp - prev) / (nx - prev)) * 100}%` : "100%";
+        bar.append(fill);
+        info.append(el("div", "lgs-mini-label", `${save.heroes[h.id].skills.length} skill${save.heroes[h.id].skills.length === 1 ? "" : "s"} · ${nx ? `${xp}/${nx} nights to the next point` : "tree complete"}`), bar);
+      }
       if (pts > 0) info.append(el("div", "lgs-pts-chip", `★ ${pts} skill point${pts > 1 ? "s" : ""} to spend`));
       card.append(portrait, info);
       if (unlocked && !selected)

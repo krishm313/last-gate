@@ -1133,3 +1133,6 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgm-bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
 .lgm-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd24a, #ff9a3a); border-radius: 4px; }
 .lgm-pct { text-align: right; font-weight: 800; color: #ffd76a; }
+.lgs-mini-label { margin-top: 4px; font-size: 0.7em; opacity: 0.8; }
+.lgs-mini { height: 5px; margin-top: 2px; border-radius: 3px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+.lgs-mini i { display: block; height: 100%; background: linear-gradient(90deg, #6ab0ff, #9ad8ff); }
