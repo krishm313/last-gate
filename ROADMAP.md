@@ -447,3 +447,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   checks (clean), Bestiary slice 1 (tracking + Scholar of War). 162 tests. Lesson: when testing
   quest picks in the browser, reset the stored quest state in the seeded save — quests roll on the
   first load, before the seed applies.
+- **2026-11-19 21:40** — deploys 194–203 all green. This hour: Bestiary UI + toast + info card +
+  coachmark, 7th hero The Cleric (art recoloured from the mage) + two balance passes, Cleric in the
+  daily pool (from 11-24), bot casts Sanctuary on damage. 164 tests. Lesson: check the sim bot
+  actually plays a new ability sensibly before trusting balance numbers — the crowd-trigger rule
+  undersold a heal; and compare a new hero against the whole roster, not just the King (the
+  Engineer at 95% on ch7 is the real outlier).
