@@ -169,6 +169,7 @@ export class Hub {
       tabs.append(t);
     }
     wrap.append(tabs);
+    this.coachmark(wrap, tabs, save, tab);
     const claimedNow = !!this.justClaimed, boughtNow = !!this.justBought;
     // Slide the content in only when the tab actually changes (not on re-renders after a purchase).
     const body = el("div", `hub-body${tab !== this.renderedTab ? " tab-in" : ""}`);
@@ -328,6 +329,45 @@ export class Hub {
       this.cb.onDaily();
     };
     return card;
+  }
+
+  /**
+   * One-time pointers to systems the player hasn't met yet: a bubble under the tab that holds them.
+   * One at a time; it goes away for good once that tab is opened (or the bubble is tapped).
+   */
+  private coachmark(wrap: HTMLElement, tabs: HTMLElement, save: SaveData, tab: Tab): void {
+    const seen = new Set(getJson<string[]>("lastgate.hints", []) ?? []);
+    const mark = (id: string) => {
+      seen.add(id);
+      setItem("lastgate.hints", JSON.stringify([...seen]));
+    };
+    const hints: { id: string; tab: Tab; text: string; when: boolean }[] = [
+      { id: "quests", tab: "trophies", text: "📜 Daily quests! Finish them for gold.", when: questViews(save).length > 0 && (save.stars[1] ?? 0) > 0 },
+      { id: "skills", tab: "heroes", text: "★ Skill point earned — make your hero stronger.", when: HEROES.some((h) => heroUnlocked(save, h.id) && freePoints(save.heroes[h.id]) > 0) },
+      { id: "flair", tab: "heroes", text: "✨ New hero flair unlocked — wear it!", when: FLAIRS.some((f) => f.id !== "none" && f.unlocked(save)) },
+    ];
+    for (const h of hints) if (h.when && h.tab === tab && !seen.has(h.id)) mark(h.id); // opening the tab counts
+    const h = hints.find((x) => x.when && !seen.has(x.id));
+    if (!h) return;
+    const idx = (["battle", "heroes", "armory", "trophies"] as Tab[]).indexOf(h.tab);
+    const bubble = el("button", "lgo-bubble", h.text);
+    bubble.style.setProperty("--col", String(idx));
+    bubble.onclick = () => {
+      mark(h.id);
+      bubble.remove();
+    };
+    tabs.style.position = "relative";
+    tabs.append(bubble);
+    void wrap;
+    // Centre it under its tab once laid out (kept inside the row), with the arrow on the tab.
+    requestAnimationFrame(() => {
+      const t = tabs.children[idx] as HTMLElement | undefined;
+      if (!t) return;
+      const centre = t.offsetLeft + t.offsetWidth / 2;
+      const left = Math.max(0, Math.min(tabs.clientWidth - bubble.offsetWidth, centre - bubble.offsetWidth / 2));
+      bubble.style.left = `${left}px`;
+      bubble.style.setProperty("--ax", `${centre - left - 8}px`);
+    });
   }
 
   /** Daily and weekly quests (top of the Trophies tab). */

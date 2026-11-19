@@ -1116,3 +1116,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .chapter.lgd-shut { filter: grayscale(0.7) brightness(0.75); }
 .lgd-need { font-size: 0.7em; font-weight: 800; color: #ffcf9a; text-align: right; max-width: 90px; }
 .lgd-skulls { font-size: 0.9em; text-align: right; }
+
+/* One-time coachmark bubble under a hub tab. */
+.lgo-bubble { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; top: calc(100% + 10px); z-index: 5; max-width: 62%; padding: 8px 12px; border-radius: 12px; font-weight: 800; font-size: 0.8em; line-height: 1.25; color: #2a1a00; background: #ffd24a; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35); animation: lgo-bob 1.4s ease-in-out infinite; left: 0; }
+.lgo-bubble::before { content: ""; position: absolute; top: -8px; left: var(--ax, 20px); border: 8px solid transparent; border-top: 0; border-bottom-color: #ffd24a; }
+@keyframes lgo-bob { 50% { transform: translateY(3px); } }
