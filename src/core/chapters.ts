@@ -132,7 +132,7 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { knight: 1.5, wraith: 1.5, crossbow: 1.5, brute: 0.8, shaman: 0.8, banner: 0.6 } },
       { mix: { runner: 3, goblin: 3, bat: 2, raven: 1 }, breather: true },
       { mix: { shield: 2, knight: 1.5, wraith: 1.5, crossbow: 1, ram: 0.8, brute: 1, sapper: 1, shaman: 0.8, banner: 0.6, tunneler: 0.6 } },
-      { mix: { footman: 2, shield: 1, knight: 1.2, wraith: 1, crossbow: 1, brute: 0.8, banner: 0.6, raven: 0.6 }, boss: "colossus" },
+      { mix: { footman: 2, shield: 1, knight: 1.2, wraith: 1, crossbow: 1, brute: 0.8, banner: 0.6, raven: 0.6 }, boss: "frostwyrm" },
     ],
   },
 ];

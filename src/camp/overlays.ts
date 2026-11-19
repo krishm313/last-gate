@@ -69,7 +69,7 @@ function drawNightEyes(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, sh: Vec):
   ctx.globalCompositeOperation = "lighter";
   for (const e of c.enemies) {
     const id = e.def.id;
-    if (id === "bat" || id === "ram" || id === "dragon") continue;
+    if (id === "bat" || id === "ram" || id === "dragon" || id === "frostwyrm") continue;
     const d = Math.hypot(e.x - c.hero.x, e.y - c.hero.y);
     if (d < 110) continue;
     const a = Math.min(1, (d - 110) / 120);

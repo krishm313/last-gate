@@ -194,6 +194,7 @@ export class Hub {
         img.src = bossId === "dragon" ? "" : bossId === "hag" ? "./sprites/portraits/elite_mage.png" : "./sprites/portraits/boss.png";
         img.className = "painted";
         if (bossId === "dragon") boss.append(el("span", "ch-boss-emoji", "🐉"));
+        else if (bossId === "frostwyrm") boss.append(el("span", "ch-boss-emoji", "❄️"));
         else boss.append(img);
         boss.append(el("span", "", `Boss: ${ENEMIES[bossId].name}`));
         left.append(boss);

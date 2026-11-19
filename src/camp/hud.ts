@@ -642,8 +642,8 @@ export class CampHud {
       if (boss.def.id !== this.bossId) {
         this.bossId = boss.def.id;
         // The dragon has no unit sprite to crop a portrait from.
-        this.bossImg.style.display = boss.def.id === "dragon" ? "none" : "";
-        if (boss.def.id !== "dragon") this.bossImg.src = portrait(boss.def.id);
+        this.bossImg.style.display = boss.def.id === "dragon" || boss.def.id === "frostwyrm" ? "none" : "";
+        if (boss.def.id !== "dragon" && boss.def.id !== "frostwyrm") this.bossImg.src = portrait(boss.def.id);
       }
     }
     const building = c.phase === "build";

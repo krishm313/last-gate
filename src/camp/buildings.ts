@@ -122,6 +122,8 @@ export interface DrawEnv {
   night: number;
   /** Draws a label now by day, or above the night darkness at night (same transform/alpha). */
   overlay(ctx: CanvasRenderingContext2D, draw: (ctx: CanvasRenderingContext2D) => void): void;
+  /** Towers whose stun is a Frost Wyrm freeze. */
+  towerFrozen: Set<string>;
 }
 
 /** Last left/right facing of each tower archer (render-only memory for the facing dead zone). */
@@ -400,8 +402,39 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
     ctx.fillText(String(p.level), poleX + 7, py2);
   }
   ctx.restore();
-  // Stunned by a War Raven: dizzy stars circle over the archers until it wears off.
-  if (p.stun && p.stun > 0) {
+  // Frozen by the Frost Wyrm: the tower top is encased in ice that thins as the freeze wears off.
+  if (p.stun && p.stun > 0 && env.towerFrozen.has(p.id)) {
+    ctx.save();
+    const a = Math.min(1, p.stun / 0.6);
+    ctx.globalAlpha = 0.75 * a;
+    ctx.fillStyle = "rgba(190,232,255,0.85)";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const top = y - 64, base = y - 8;
+    ctx.moveTo(x - 22, base);
+    ctx.lineTo(x - 26, top + 22);
+    ctx.lineTo(x - 15, top + 4);
+    ctx.lineTo(x - 4, top + 12);
+    ctx.lineTo(x + 6, top);
+    ctx.lineTo(x + 17, top + 10);
+    ctx.lineTo(x + 26, top + 26);
+    ctx.lineTo(x + 22, base);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Glints sliding over the ice.
+    ctx.globalAlpha = 0.9 * a;
+    ctx.strokeStyle = "rgba(255,255,255,0.95)";
+    ctx.lineWidth = 2.5;
+    const g = (env.time * 0.7) % 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 16 + g * 26, top + 18);
+    ctx.lineTo(x - 22 + g * 26, top + 34);
+    ctx.stroke();
+    ctx.restore();
+  } else if (p.stun && p.stun > 0) {
+    // Stunned by a War Raven: dizzy stars circle over the archers until it wears off.
     ctx.save();
     for (let i = 0; i < 3; i++) {
       const a = env.time * 5 + (i * Math.PI * 2) / 3;

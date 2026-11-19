@@ -80,7 +80,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   25% / @L10 33%. Gotcha found: `CAMP_CHAPTER_HP` had no entry for new ids (ch6 was 100%) — a test now
   guards it. Next slices: a new boss with a 2nd phase; snow on trees/props.
 
+- **The Frost Wyrm** (ch6 finale boss) — icy flying boss (dragon rig, recoloured sprite): strafes
+  above the wall dropping frost shards, calls War Ravens (wraiths once enraged). Phase 2 (<50% HP):
+  every 5.5 s a frost nova (big white/blue ring, shake) freezes every archer tower within 340 for
+  3.2 s — towers are encased in ice with a "FROZEN!" pop. Cold halo + rising ice motes around it.
+  Hub shows ❄️ boss. campsim ch6 @L10 75%; ch1 still 100%.
+
 ## Shipped (newest first)
+- The Frost Wyrm: new ch6 boss with a 2nd phase — frost nova freezes towers in ice (sprite, shards, nova fx, test).
 - Chapter 6 "Frostpeak Pass": snowy ground, falling snow, foggy/stormy nights, new achievement (tests).
 - Night weather: Rain / Fog / Storm change tower range, burn and add lightning strikes (visuals, HUD icon, toast, tests).
 - Tunneler enemy: digs under the wall and surfaces inside (dirt mound, dirt bursts), chapter 3 intro, test.

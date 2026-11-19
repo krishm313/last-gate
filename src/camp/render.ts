@@ -349,6 +349,8 @@ export class CampRenderer {
   private spikeHit = { x: 0, t: -9 };
   /** When each tower was last stunned by a War Raven. */
   towerStunAt = new Map<string, number>();
+  /** Towers whose current stun is a Frost Wyrm freeze (drawn iced over, not dizzy). */
+  towerFrozen = new Set<string>();
   /** Tonight's weather (mirrored from the camp each frame) and where a storm bolt is striking. */
   private weatherNow: Weather = "clear";
   private boltTarget: Vec | null = null;
@@ -675,9 +677,22 @@ export class CampRenderer {
           break;
         case "towerStunned":
           this.towerStunAt.set(ev.plot, this.time);
-          fx.burst(ev.x, ev.y, "#2a2438", 14, 150, { max: 0.6, size: 3, gravity: 120, shape: "chunk" });
-          fx.rings.push({ x: ev.x, y: ev.y, r: 34, color: "#c890ff", life: 0.4, max: 0.4, width: 3 });
-          fx.number(ev.x, ev.y - 30, "STUNNED!", "#d8b0ff", 15, 1);
+          if (ev.frozen) {
+            this.towerFrozen.add(ev.plot);
+            fx.burst(ev.x, ev.y, "#d8f4ff", 16, 160, { max: 0.6, size: 3, gravity: 140, shape: "chunk" });
+            fx.number(ev.x, ev.y - 30, "FROZEN!", "#bfe8ff", 15, 1);
+          } else {
+            this.towerFrozen.delete(ev.plot);
+            fx.burst(ev.x, ev.y, "#2a2438", 14, 150, { max: 0.6, size: 3, gravity: 120, shape: "chunk" });
+            fx.rings.push({ x: ev.x, y: ev.y, r: 34, color: "#c890ff", life: 0.4, max: 0.4, width: 3 });
+            fx.number(ev.x, ev.y - 30, "STUNNED!", "#d8b0ff", 15, 1);
+          }
+          break;
+        case "frostNova":
+          fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#bfe8ff", life: 0.7, max: 0.7, width: 6 });
+          fx.rings.push({ x: ev.x, y: ev.y, r: ev.r * 0.6, color: "#ffffff", life: 0.45, max: 0.45, width: 3 });
+          fx.burst(ev.x, ev.y, "#e8f8ff", 26, 320, { max: 0.8, size: 3, shape: "spark" });
+          fx.shake(0.22);
           break;
         case "spikeHit":
           this.spikeHit = { x: ev.x, t: this.time };
@@ -1823,7 +1838,7 @@ fx.shake(0.15);
     return m.b;
   }
 
-  private drawBat3d(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, flash: boolean, kind: "bat" | "dragon" = "bat", bank = 0): boolean {
+  private drawBat3d(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, flash: boolean, kind: "bat" | "dragon" | "frostwyrm" = "bat", bank = 0): boolean {
     if (typeof Image === "undefined") return false;
     let img = this.flyerImgs.get(kind);
     if (!img) {
@@ -3900,7 +3915,7 @@ fx.shake(0.15);
         ctx.fill();
       }
     }
-    else if (id === "dragon") this.drawDragon(ctx, c, e, flash);
+    else if (id === "dragon" || id === "frostwyrm") this.drawDragon(ctx, c, e, flash);
     else {
       // Attackers swing their weapon down at the wall.
       const swing = e.attacking ? -lunge * 1.4 : 0;
@@ -4157,6 +4172,27 @@ fx.shake(0.15);
     return { shown: b.shown, trail: b.trail, hit: this.time - b.hitAt, fade: Math.min(1, (this.time - b.born) / 0.15) };
   }
 
+  private frostBlob(): HTMLCanvasElement {
+    return this.blob("frostbreath", [[0, "rgba(240,252,255,1)"], [0.35, "rgba(140,210,255,0.85)"], [1, "rgba(60,140,255,0)"]]);
+  }
+
+  /** The Frost Wyrm trails ice crystals; once enraged (phase 2) a cold halo pulses around it. */
+  private drawFrostAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, r: number): void {
+    const glow = this.frostBlob();
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    if (e.enraged) {
+      const pulse = 0.5 + 0.5 * Math.sin(c.time * 4);
+      this.drawBlob(ctx, glow, e.x, e.y - 8, r * (2.2 + pulse * 0.4), r * (2.2 + pulse * 0.4), 0.22 + pulse * 0.12);
+    }
+    for (let i = 0; i < 6; i++) {
+      const u = (c.time * 0.9 + i / 6) % 1;
+      const a = i * 2.4 + e.sway * 5;
+      this.drawBlob(ctx, glow, e.x + Math.cos(a) * r * (0.6 + u), e.y - 6 - u * 26 + Math.sin(a) * 6, 3.5 * (1 - u) + 1, 3.5 * (1 - u) + 1, (1 - u) * 0.8);
+    }
+    ctx.restore();
+  }
+
   private drawDragon(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, flash: boolean): void {
     const r = e.def.radius;
     // Ground shadow far below the flyer (soft, swelling as it dips on its bob), then the 3D-rendered
@@ -4173,8 +4209,10 @@ fx.shake(0.15);
     const rear = charge * charge * (3 - 2 * charge);
     const dy = -10 + bob * 4 - rear * 7 + lurch * 9;
     const mouthX = e.x, mouthY = e.y + dy + r * 1.0;
-    if (this.drawBat3d(ctx, e.x, e.y + dy, r, c.time, flash, "dragon", this.bankFor(e.id, e.x, 0.3))) {
-      const flame = this.blob("fireball", [[0, "rgba(255,210,120,1)"], [0.35, "rgba(255,120,30,0.85)"], [1, "rgba(220,50,10,0)"]]);
+    const frost = e.def.id === "frostwyrm";
+    if (frost) this.drawFrostAura(ctx, c, e, r);
+    if (this.drawBat3d(ctx, e.x, e.y + dy, r, c.time, flash, frost ? "frostwyrm" : "dragon", this.bankFor(e.id, e.x, 0.3))) {
+      const flame = frost ? this.frostBlob() : this.blob("fireball", [[0, "rgba(255,210,120,1)"], [0.35, "rgba(255,120,30,0.85)"], [1, "rgba(220,50,10,0)"]]);
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       if (charge > 0.05) {
@@ -4196,7 +4234,9 @@ fx.shake(0.15);
       }
       ctx.restore();
       if (since < 0.5) {
-        const smoke = this.blob("dust", [[0, "rgba(206,190,164,0.9)"], [0.6, "rgba(196,180,150,0.45)"], [1, "rgba(190,172,140,0)"]]);
+        const smoke = frost
+          ? this.blob("frostmist", [[0, "rgba(230,246,255,0.9)"], [0.6, "rgba(200,230,255,0.45)"], [1, "rgba(190,225,255,0)"]])
+          : this.blob("dust", [[0, "rgba(206,190,164,0.9)"], [0.6, "rgba(196,180,150,0.45)"], [1, "rgba(190,172,140,0)"]]);
         const u = since / 0.5;
         for (const sx of [-1, 1]) this.drawBlob(ctx, smoke, mouthX + sx * (4 + u * 10), mouthY - u * 10, 5 + u * 8, 5 + u * 8, (1 - u) * 0.45);
       }
@@ -5346,7 +5386,30 @@ fx.shake(0.15);
       ctx.restore();
     }
     for (const b of c.bolts) {
-      if (b.kind === "fireball") {
+      if (b.kind === "frost") {
+        // A falling ice shard: pale trail of frost mist, glowing blue halo, white crystal core.
+        const glow = this.frostBlob();
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (let i = 5; i >= 1; i--) {
+          const u = i / 5;
+          this.drawBlob(ctx, glow, b.x + Math.sin(this.time * 14 + i) * 1.5 * u, b.y - u * 28, 6 * (1 - u * 0.5), 8 * (1 - u * 0.4), (1 - u) * 0.8);
+        }
+        this.drawBlob(ctx, glow, b.x, b.y, 14, 14, 0.5);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "#eaf8ff";
+        ctx.strokeStyle = "#3a78c8";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y + 9);
+        ctx.lineTo(b.x - 4, b.y - 2);
+        ctx.lineTo(b.x, b.y - 10);
+        ctx.lineTo(b.x + 4, b.y - 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      } else if (b.kind === "fireball") {
         // A tail of fire behind the ball (it falls toward the wall), thinning into smoke; a
         // flickering glow and a white-hot core.
         const flame = this.blob("fireball", [[0, "rgba(255,210,120,1)"], [0.35, "rgba(255,120,30,0.85)"], [1, "rgba(220,50,10,0)"]]);

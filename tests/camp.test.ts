@@ -582,3 +582,28 @@ describe("chapter 6: Frostpeak Pass", () => {
     expect(CAMP_CHAPTER_HP[ENDLESS_ID]).toBeGreaterThan(0);
   });
 });
+
+describe("Frost Wyrm boss", () => {
+  it("in phase 2 its frost nova freezes nearby towers", () => {
+    const c = createCamp(3);
+    const t = c.plots.find((p) => p.kind === "tower")!;
+    t.level = 2;
+    const e = spawnEnemy(c, { at: 0, enemy: "frostwyrm", hpMult: 1, lane: null }, { x: t.x, y: t.y - 200 });
+    c.phase = "wave";
+    c.queue = [];
+    drainEvents(c);
+    // Phase 1: no nova.
+    for (let i = 0; i < 60 * 3; i++) step(c, { move: { x: 0, y: 0 } } as CampInput);
+    expect(drainEvents(c).some((ev) => ev.type === "frostNova")).toBe(false);
+    e.hp = e.maxHp * 0.4;
+    let frozen = false;
+    for (let i = 0; i < 60 * 3 && !frozen; i++) {
+      e.x = t.x;
+      e.y = t.y - 200;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      frozen = drainEvents(c).some((ev) => ev.type === "towerStunned" && ev.frozen);
+    }
+    expect(frozen).toBe(true);
+    expect(t.stun ?? 0).toBeGreaterThan(1.5);
+  });
+});

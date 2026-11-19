@@ -17,6 +17,7 @@ export type EnemyId =
   | "ogre"
   | "troll"
   | "warlord"
+  | "frostwyrm"
   | "hag"
   | "golem"
   | "dragon"
@@ -73,7 +74,7 @@ export interface EnemyDef {
   /** Ranged enemies that strafe side to side once in position. */
   strafe?: number;
   /** Bolt visual for ranged attackers. */
-  boltKind?: "bolt" | "fireball";
+  boltKind?: "bolt" | "fireball" | "frost";
   /** Runs sideways across the field and escapes off the far edge (treasure goblin). */
   crossing?: boolean;
   /** Flying: ignores crowding and sways widely. */
@@ -87,6 +88,8 @@ export interface EnemyDef {
   towerHunter?: number;
   /** At the wall it digs under for this many seconds (can't be hit), then surfaces inside the camp. */
   tunneler?: number;
+  /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
+  frostNova?: { every: number; radius: number; stun: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -129,6 +132,12 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     ...base, id: "colossus", name: "The Iron Colossus", hp: 2600, speed: 12, radius: 38, gateDamage: 60, attackInterval: 2, gold: 220, color: "#4a4e58",
     cost: 0, slowResist: 0.15, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "ram", count: 1, interval: 9, enraged: "sapper" },
   },
+  frostwyrm: {
+    ...base, id: "frostwyrm", name: "The Frost Wyrm", hp: 3200, speed: 28, radius: 32, gateDamage: 24, attackInterval: 2.4, gold: 240, color: "#9ad4ff",
+    cost: 0, slowResist: 0.35, boss: true, flying: true, behavior: "ranged", stopY: 170, strafe: 70, boltKind: "frost",
+    summon: { enemy: "raven", count: 4, interval: 7, enraged: "wraith" },
+    frostNova: { every: 5.5, radius: 340, stun: 3.2 },
+  },
   warlord: {
     ...base, id: "warlord", name: "The Warlord", hp: 1300, speed: 15, radius: 32, gateDamage: 45, attackInterval: 1.6, gold: 60, color: "#5a1a1a",
     cost: 0, slowResist: 0.3, boss: true, behavior: "summoner", summon: { enemy: "footman", count: 3, interval: 5.5, enraged: "runner" },
@@ -145,6 +154,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.aura) t.push("rallies nearby foes");
   if (d.towerHunter) t.push("dives at towers");
   if (d.tunneler) t.push("digs under the wall");
+  if (d.frostNova) t.push("freezes towers when hurt");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");

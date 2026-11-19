@@ -93,6 +93,8 @@ export interface Enemy {
   healTimer: number;
   age: number;
   enraged: boolean;
+  /** Frost Wyrm: seconds until the next frost nova (phase 2). */
+  novaTimer?: number;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
   rallied?: boolean;
   /** Tunneler: seconds left digging under the wall (untargetable), and whether it has dug yet. */
@@ -229,7 +231,7 @@ export interface Bolt {
   y: number;
   vy: number;
   damage: number;
-  kind: "bolt" | "fireball";
+  kind: "bolt" | "fireball" | "frost";
   /** The wall segment it will hit. */
   seg: number;
 }
@@ -274,7 +276,8 @@ export type CampEvent =
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
-  | { type: "towerStunned"; plot: string; x: number; y: number }
+  | { type: "towerStunned"; plot: string; x: number; y: number; frozen?: boolean }
+  | { type: "frostNova"; x: number; y: number; r: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
@@ -1295,6 +1298,20 @@ function enemyAbilities(c: Camp, e: Enemy): void {
       c.events.push({ type: "summon", x: e.x, y: e.y });
     }
   }
+  // Second phase: the Frost Wyrm's nova freezes every archer tower in reach.
+  if (def.frostNova && e.enraged) {
+    e.novaTimer = (e.novaTimer ?? 1.2) - STEP;
+    if (e.novaTimer <= 0) {
+      e.novaTimer += def.frostNova.every;
+      const r2 = def.frostNova.radius ** 2;
+      c.events.push({ type: "frostNova", x: e.x, y: e.y, r: def.frostNova.radius });
+      for (const p of c.plots) {
+        if (p.kind !== "tower" || p.level === 0 || (p.x - e.x) ** 2 + (p.y - 30 - e.y) ** 2 > r2) continue;
+        p.stun = Math.max(p.stun ?? 0, def.frostNova.stun);
+        c.events.push({ type: "towerStunned", plot: p.id, x: p.x, y: p.y - 30, frozen: true });
+      }
+    }
+  }
 }
 
 function attackTick(_c: Camp, e: Enemy, hit: () => void): void {
@@ -1397,7 +1414,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
       if (def.strafe) e.x = Math.max(40, Math.min(MAP_W - 40, MAP_W / 2 + Math.sin(e.age * 0.6 + e.sway) * def.strafe * 3));
       const seg = segmentIndexAt(e.x);
       attackTick(c, e, () => {
-        c.bolts.push({ x: e.x, y: e.y + def.radius, vy: def.boltKind === "fireball" ? 240 : 320, damage: def.gateDamage, kind: def.boltKind ?? "bolt", seg });
+        c.bolts.push({ x: e.x, y: e.y + def.radius, vy: def.boltKind === "fireball" ? 240 : def.boltKind === "frost" ? 270 : 320, damage: def.gateDamage, kind: def.boltKind ?? "bolt", seg });
         c.events.push({ type: "shoot", owner: "enemy", x: e.x, y: e.y });
       });
       return;
