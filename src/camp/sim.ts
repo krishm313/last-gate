@@ -489,7 +489,8 @@ export const BARRACKS = { x: 620, y: 715 };
  */
 export const REVERSE = { push: 45, pushes: 8, startChest: 20, income: 4, cap: 80, wallBounty: 10, unitHp: 1.4 };
 /** War cards: what a card sends, how many, and its cost from the War Chest. */
-export const WAR_CARDS: { id: EnemyId; count: number; cost: number }[] = [
+/** `unlock`: how many sieges must be won (with stars) before the card joins the deck. */
+export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: number }[] = [
   { id: "footman", count: 3, cost: 3 },
   { id: "runner", count: 3, cost: 3 },
   { id: "shield", count: 2, cost: 4 },
@@ -498,7 +499,14 @@ export const WAR_CARDS: { id: EnemyId; count: number; cost: number }[] = [
   { id: "bat", count: 3, cost: 4 },
   { id: "sapper", count: 1, cost: 5 },
   { id: "ram", count: 1, cost: 7 },
+  { id: "raven", count: 3, cost: 3, unlock: 1 },
+  { id: "tunneler", count: 2, cost: 6, unlock: 2 },
+  { id: "imp", count: 3, cost: 5, unlock: 3 },
 ];
+/** Is this war card in the deck, given how many sieges have been won? */
+export function cardOpen(card: { unlock?: number }, won: number): boolean {
+  return (card.unlock ?? 0) <= won;
+}
 /** The three sieges: the defenders' upgrade level and hero rise (campaign bot plays them). */
 export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" }[] = [
   { name: "Raid on the Border Keep", chapter: 1, perm: 0, hero: "ranger" },
@@ -517,13 +525,15 @@ export interface ReverseState {
   result: "win" | "lose" | null;
   deployed: number;
   broken: number;
+  /** Sieges already won (opens the later war cards). */
+  won: number;
 }
 
 /** Siege Lord: send a war card down a lane. Returns false if it can't be afforded or it isn't a push. */
 export function deploy(c: Camp, id: EnemyId, lane: number): boolean {
   const r = c.reverse;
   const card = WAR_CARDS.find((k) => k.id === id);
-  if (!r || !card || c.phase !== "wave" || r.chest < card.cost) return false;
+  if (!r || !card || !cardOpen(card, r.won) || c.phase !== "wave" || r.chest < card.cost) return false;
   r.chest -= card.cost;
   const x = LANES_X[Math.max(0, Math.min(2, Math.floor(lane)))]!;
   for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp, lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
@@ -587,6 +597,8 @@ export interface CampSetup {
   classicBlessings?: boolean;
   /** Siege Lord (reverse mode): the player sends the horde; the defence is played by the bot. */
   reverse?: boolean;
+  /** Siege Lord: sieges already won (opens the later war cards). */
+  siegesWon?: number;
 }
 
 export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, setup: CampSetup = {}): Camp {
@@ -672,7 +684,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     eliteChance: setup.eliteChance ?? 0,
     tideEvery: setup.tideEvery ?? 0,
     classicBlessings: setup.classicBlessings ?? false,
-    reverse: setup.reverse ? { chest: REVERSE.startChest, result: null, deployed: 0, broken: 0 } : null,
+    reverse: setup.reverse ? { chest: REVERSE.startChest, result: null, deployed: 0, broken: 0, won: setup.siegesWon ?? 0 } : null,
     tideTimer: setup.tideEvery ?? 0,
     heroLevel: 1,
     heroXp: 0,

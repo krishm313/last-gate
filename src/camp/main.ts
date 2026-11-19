@@ -409,7 +409,8 @@ function startSiege(i: number) {
   // The defenders: a castle with this siege's upgrades and hero, played by the bot.
   const def = newSave();
   for (const p of PERMS) if (!p.capstone) def.perms[p.id] = Math.min(p.max, s.perm);
-  const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true };
+  const won = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
+  const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true, siegesWon: won };
   const chapter = CHAPTER_BY_ID[s.chapter]!;
   camp = createCamp((Date.now() >>> 0) ^ 0x5e9e, chapter, setup);
   renderer.setGround(chapter.ground, chapter.id);
@@ -422,6 +423,7 @@ function startSiege(i: number) {
   hud.hideOverlay();
   hub.hide();
   hud.setVisible(false);
+  siegeBar.setWon(won);
   siegeBar.show(true);
   music.start();
   window.setTimeout(() => hud.toast("⚔️ Tap a unit card, then a lane to send them in. Take the hall!"), 600);

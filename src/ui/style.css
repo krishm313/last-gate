@@ -1233,6 +1233,13 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-card { background: linear-gradient(#3a2e52, #231a38); border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(3 * var(--u)) calc(2 * var(--u)) calc(4 * var(--u)); color: #fff; box-shadow: 0 calc(3 * var(--u)) 0 #1d1208; }
 .lgs2-card.on { background: linear-gradient(#6a4a2a, #3a2410); box-shadow: 0 0 0 calc(2.5 * var(--u)) #ffd84a, 0 calc(3 * var(--u)) 0 #1d1208; transform: translateY(calc(-3 * var(--u))); }
 .lgs2-card.poor { filter: grayscale(0.7) brightness(0.7); }
+.lgs2-deck.wide { grid-template-columns: repeat(6, 1fr); gap: calc(3 * var(--u)); }
+.lgs2-deck.wide .lgs2-card { padding: calc(2 * var(--u)) 0 calc(3 * var(--u)); border-radius: calc(8 * var(--u)); }
+.lgs2-deck.wide .lgs2-art { height: calc(24 * var(--u)); font-size: calc(17 * var(--tu)); }
+.lgs2-deck.wide .lgs2-name { font-size: calc(8 * var(--tu)); }
+.lgs2-deck.wide .lgs2-cost { font-size: calc(8.5 * var(--tu)); }
+.lgs2-card.locked { filter: grayscale(1) brightness(0.55); }
+.lgs2-card.locked .lgs2-cost { color: #ddd; }
 .lgs2-art { height: calc(30 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(20 * var(--tu)); }
 .lgs2-art img { height: 100%; width: auto; }
 .lgs2-name { font-weight: 900; font-size: calc(9.5 * var(--tu)); line-height: 1.1; white-space: nowrap; }

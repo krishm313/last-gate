@@ -11,6 +11,17 @@ function toFirstPush(seed = 5) {
 }
 
 describe("Siege Lord (reverse mode)", () => {
+  it("opens the later war cards as sieges are won", () => {
+    const c = toFirstPush();
+    c.reverse!.chest = 50;
+    expect(deploy(c, "raven", 0)).toBe(false); // locked until a siege is won
+    const d = createCamp(5, undefined, { reverse: true, siegesWon: 3 });
+    for (let i = 0; i < 60 * 60 && d.phase !== "wave"; i++) campBotStep(d);
+    d.reverse!.chest = 50;
+    for (const id of ["raven", "tunneler", "imp"] as const) expect(deploy(d, id, 1)).toBe(true);
+    expect(d.enemies.some((e) => e.def.id === "tunneler")).toBe(true);
+  });
+
   it("sends nobody on its own: pushes start empty and the War Chest pays for cards", () => {
     const c = toFirstPush();
     expect(c.phase).toBe("wave");

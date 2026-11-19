@@ -1,5 +1,5 @@
 import { ENEMIES } from "../core/enemies";
-import { REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
+import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
 
 /**
  * Siege Lord controls: the top strip (the castle's hall, the push counter and timer) and the bottom
@@ -9,8 +9,8 @@ import { REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
 const CARD_ART: Record<string, string> = {
   footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper",
 };
-const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵" };
-const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram" };
+const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
+const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps" };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const n = document.createElement(tag);
@@ -31,6 +31,7 @@ export class SiegeBar {
   private lanes = el("div", "lgs2-lanes");
   private cards = new Map<string, HTMLButtonElement>();
   private picked: string | null = null;
+  private won = 0;
 
   constructor(host: HTMLElement, private onDeploy: (id: string, lane: number) => void, private onPause: () => void) {
     const hall = el("div", "lgs2-hall");
@@ -63,6 +64,7 @@ export class SiegeBar {
       } else art.textContent = CARD_EMOJI[card.id] ?? "👹";
       b.append(art, el("div", "lgs2-name", `${CARD_NAME[card.id] ?? ENEMIES[card.id].name}${card.count > 1 ? ` ×${card.count}` : ""}`), el("div", "lgs2-cost", `💰${card.cost}`));
       b.onclick = () => {
+        if (!cardOpen(card, this.won)) return;
         this.picked = this.picked === card.id ? null : card.id;
         this.refreshPick();
       };
@@ -80,6 +82,18 @@ export class SiegeBar {
   private refreshPick(): void {
     for (const [id, b] of this.cards) b.classList.toggle("on", id === this.picked);
     this.lanes.classList.toggle("show", !!this.picked);
+  }
+
+  /** Which war cards are in the deck (later ones open as sieges are won). */
+  setWon(won: number): void {
+    this.won = won;
+    for (const card of WAR_CARDS) {
+      const b = this.cards.get(card.id)!;
+      const open = cardOpen(card, won);
+      b.classList.toggle("locked", !open);
+      b.querySelector(".lgs2-cost")!.textContent = open ? `💰${card.cost}` : `🔒 Win ${card.unlock}`;
+    }
+    this.deck.classList.toggle("wide", WAR_CARDS.length > 8);
   }
 
   show(v: boolean): void {
