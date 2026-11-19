@@ -582,7 +582,7 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 3 sieges, new cards as you win",
-          "🎯 Archery Range & 🛒 Supply Run: new mini-games on the map, with stars and gold",
+          "🎯 Archery Range, 🛒 Supply Run & 🛡️ Wall Watch: new mini-games on the map, with stars and gold",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
         ]
       : seen.startsWith("2026-11-19")
