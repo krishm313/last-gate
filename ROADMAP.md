@@ -74,3 +74,12 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).
+
+## Self-reviews
+- **2026-11-19 10:15** — 11 deploys since 09:06, all green. Shipped: courier, tower specs (3 slices),
+  spikes, Mage Tower, Healer's Tent, blessing combos, Banner-bearer, War Raven. Balance (campsim,
+  12 runs each, before enemies vs now): ch2 @perm L1 58% → 67%, ch3 @perm L3 50% → 42% — inside
+  run-to-run noise; no rebalance needed. Lessons: (1) anything drawn in the world must be checked at
+  night (lightning was invisible until moved above the darkness); (2) cards clip their edges — badges
+  go inside; (3) the auto-player buys the cheapest plot, so pricey new buildings (Mage) rarely get
+  measured — fine while they're optional extras.
