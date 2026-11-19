@@ -54,3 +54,15 @@ export function historySummary(list: RunRecord[]): { runs: number; wins: number;
     bestNights: list.reduce((a, r) => Math.max(a, r.nights), 0),
   };
 }
+
+/** This week's runs (Monday–Sunday) from the stored history. */
+export function weekSummary(list: RunRecord[], today: string, weekOf: (date: string) => number): { runs: number; wins: number; nights: number; bestEndless: number } {
+  const w = weekOf(today);
+  const mine = list.filter((r) => r.date && weekOf(r.date) === w);
+  return {
+    runs: mine.length,
+    wins: mine.filter((r) => r.won).length,
+    nights: mine.reduce((a, r) => a + r.nights, 0),
+    bestEndless: mine.filter((r) => r.chapter === 99).reduce((a, r) => Math.max(a, r.nights), 0),
+  };
+}

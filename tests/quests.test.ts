@@ -160,3 +160,13 @@ describe("daily variety", async () => {
     expect([...before].every((id) => ["gold-rush", "lone-hero", "engineers", "horde", "glass"].includes(id))).toBe(true);
   });
 });
+
+describe("week summary", async () => {
+  const { weekSummary } = await import("../src/core/history");
+  const { weekNumber } = await import("../src/core/quests");
+  it("counts only this week's runs", () => {
+    const r = (date: string, won: boolean, nights: number, chapter = 2) => ({ date, chapter, hero: "ranger" as const, won, nights, kills: 1, gold: 1, minutes: 1 });
+    const s = weekSummary([r("2026-11-19", true, 10), r("2026-11-17", false, 4, 99), r("2026-11-15", true, 10)], "2026-11-19", weekNumber);
+    expect(s).toEqual({ runs: 2, wins: 1, nights: 14, bestEndless: 4 });
+  });
+});

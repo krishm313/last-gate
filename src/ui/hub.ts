@@ -8,7 +8,8 @@ import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
-import { historySummary } from "../core/history";
+import { historySummary, weekSummary } from "../core/history";
+import { weekNumber } from "../core/quests";
 import { endlessTwistFor } from "../core/endlessMods";
 import { activeFlair, FLAIRS } from "../core/flair";
 import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
@@ -526,6 +527,13 @@ export class Hub {
     const head = el("div", "hub-hint lgq-head");
     head.append(el("span", "", "Recent runs"), el("span", "lgq-reset", `${sum.wins} won of the last ${sum.runs} · ${Math.round((sum.wins / sum.runs) * 100)}%`));
     body.append(head);
+    const wk = weekSummary(list, todayString(), weekNumber);
+    if (wk.runs) {
+      const strip = el("div", "lgh-week");
+      strip.append(el("span", "lgh-week-t", "This week"), el("span", "", `⚔️ ${wk.runs} run${wk.runs === 1 ? "" : "s"}`), el("span", "", `🏆 ${wk.wins} won`), el("span", "", `🌙 ${wk.nights} nights`));
+      if (wk.bestEndless) strip.append(el("span", "", `♾️ best ${wk.bestEndless}`));
+      body.append(strip);
+    }
     const box = el("div", "lgh-list");
     for (const r of list) {
       const row = el("div", `lgh-row${r.won ? " won" : ""}`);

@@ -197,6 +197,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   last one in the renderer) swapped for a cached glow blob.
 
 ## Shipped (newest first)
+- "This week" strip above Recent runs on Trophies: runs, wins, nights held and best Endless night since Monday (test).
 - Pause menu status strip adds difficulty (💀 Hard / ☠️ Nightmare), tonight's weather and this week's Endless twist.
 - End screen "Earned this run": chips for each trophy unlocked and quest completed during the run.
 - Hawkeye (legendary combo: Eagle Towers + a built Watchtower): towers in the Watchtower's reach deal +10% and crit 15% of the time — the first way towers can crit (test).
