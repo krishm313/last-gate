@@ -287,6 +287,7 @@ function startDaily() {
   if (d.twist.wallHp) setup.mods!.wallHp *= d.twist.wallHp;
   if (d.twist.tideEvery) setup.tideEvery = d.twist.tideEvery;
   setup.startBlessings = [d.blessing];
+  setup.classicBlessings = true;
   newRun(d.chapterId, setup, d.seed, "normal", d.twist.weatherOdds);
   dailyRun = d;
   // Remind the player what makes today's run different.

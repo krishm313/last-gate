@@ -433,6 +433,7 @@ export interface Camp {
   /** Share of fresh spawns that become elites (difficulty). */
   eliteChance: number;
   tideEvery: number;
+  classicBlessings: boolean;
   tideTimer: number;
   heroLevel: number;
   heroXp: number;
@@ -527,6 +528,8 @@ export interface CampSetup {
   tideEvery?: number;
   /** Blessings granted at the start of the run. */
   startBlessings?: string[];
+  /** Daily runs: offer only the classic blessing pool (keeps a day's offers the same for everyone). */
+  classicBlessings?: boolean;
 }
 
 export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, setup: CampSetup = {}): Camp {
@@ -611,6 +614,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     enemyHpMult: setup.enemyHpMult ?? 1,
     eliteChance: setup.eliteChance ?? 0,
     tideEvery: setup.tideEvery ?? 0,
+    classicBlessings: setup.classicBlessings ?? false,
     tideTimer: setup.tideEvery ?? 0,
     heroLevel: 1,
     heroXp: 0,
@@ -2184,7 +2188,7 @@ export function step(c: Camp, input: CampInput): void {
         c.events.push({ type: "plotUnlocked", label: p.label, x: p.x, y: p.y });
       }
     }
-    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c));
+    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings);
     if (c.offers.length) {
       c.phase = "pick";
       c.events.push({ type: "offers" });
@@ -2209,7 +2213,7 @@ export function rerollsLeft(c: Camp): number {
 export function rerollBlessings(c: Camp): boolean {
   if (c.phase !== "pick" || rerollsLeft(c) <= 0) return false;
   c.rerollsUsed += 1;
-  c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c));
+  c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings);
   c.events.push({ type: "offers" });
   return true;
 }

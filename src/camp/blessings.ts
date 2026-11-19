@@ -70,6 +70,8 @@ export interface Blessing {
   /** Only offered once this building exists in the camp. */
   needsBuilding?: string;
   apply: (m: CampMods) => void;
+  /** Newer blessings stay out of daily runs, so a day's challenge plays the same for everyone. */
+  newer?: boolean;
 }
 
 export const BLESSINGS: Blessing[] = [
@@ -93,6 +95,8 @@ export const BLESSINGS: Blessing[] = [
   { id: "arcane", name: "Arcane Focus", desc: "Mage Tower +30% damage, lightning hops to 1 more foe", icon: "🔮", rarity: "rare", max: 2, needsBuilding: "mage", apply: (m) => { m.mageDamage *= 1.3; m.mageChains += 1; } },
   { id: "medic", name: "Field Medic", desc: "Healer's Tent reaches 30% farther and heals 40% more", icon: "💚", rarity: "common", max: 2, needsBuilding: "healer", apply: (m) => { m.healerPower *= 1.3; } },
   { id: "stakes", name: "Cruel Stakes", desc: "Spike trap deals 60% more damage", icon: "🪤", rarity: "common", max: 2, needsBuilding: "spikes", apply: (m) => { m.spikeDamage *= 1.6; } },
+  { id: "kingslayer", name: "Kingslayer", desc: "+20% damage to bosses", icon: "⚔️", rarity: "rare", max: 2, newer: true, apply: (m) => { m.bossDamage *= 1.2; } },
+  { id: "stonehall", name: "Stone Hall", desc: "The hall takes 15% less damage", icon: "🏯", rarity: "rare", max: 2, newer: true, apply: (m) => { m.hallArmor *= 0.85; } },
   { id: "hawkeye", name: "Hawkeye", desc: "Towers the Watchtower watches over: +10% damage and 15% critical hits", icon: "👁️", rarity: "legendary", max: 1, requires: "eagle", needsBuilding: "watch", apply: (m) => { m.hawkeye = 0.15; } },
   { id: "hunter", name: "Bounty Hunter", desc: "Bosses and elites drop double coins", icon: "🏹", rarity: "rare", max: 1, apply: (m) => { m.bigGold *= 2; } },
   { id: "smith", name: "Master Smith", desc: "The forge works twice as fast", icon: "⚒️", rarity: "common", max: 1, needsBuilding: "forge", apply: (m) => { m.forgeSpeed *= 2; } },
@@ -115,9 +119,9 @@ export function comboParts(b: Blessing): string[] {
 
 export const BLESSING_BY_ID: Record<string, Blessing> = Object.fromEntries(BLESSINGS.map((b) => [b.id, b]));
 
-export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set()): Blessing[] {
+export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false): Blessing[] {
   const pool = BLESSINGS.filter(
-    (b) => (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding)),
+    (b) => !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding)),
   );
   const w: Record<Rarity, number> = { common: Math.max(30, 64 - wave * 3), rare: 26 + wave, epic: 8 + wave * 1.5, legendary: 8 + wave };
   const out: Blessing[] = [];

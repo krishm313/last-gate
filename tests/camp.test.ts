@@ -928,3 +928,17 @@ describe("Tidal Week", () => {
     expect(tides).toBe(2);
   });
 });
+
+describe("newer blessings", () => {
+  it("are offered in regular runs but never in daily (classic-pool) runs", () => {
+    const rng = createRng(77);
+    const seenRegular = new Set<string>();
+    const seenClassic = new Set<string>();
+    for (let i = 0; i < 400; i++) {
+      for (const b of rollBlessings(rng, 3, {}, 3)) seenRegular.add(b.id);
+      for (const b of rollBlessings(rng, 3, {}, 3, new Set(), true)) seenClassic.add(b.id);
+    }
+    expect(seenRegular.has("kingslayer") && seenRegular.has("stonehall")).toBe(true);
+    expect(seenClassic.has("kingslayer") || seenClassic.has("stonehall")).toBe(false);
+  });
+});
