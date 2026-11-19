@@ -437,6 +437,7 @@ export class Hub {
       { id: "quests", tab: "trophies", text: "📜 Daily quests! Finish them for gold.", when: questViews(save).length > 0 && (save.stars[1] ?? 0) > 0 },
       { id: "skills", tab: "heroes", text: "★ Skill point earned — make your hero stronger.", when: HEROES.some((h) => heroUnlocked(save, h.id) && freePoints(save.heroes[h.id]) > 0) },
       { id: "flair", tab: "heroes", text: "✨ New hero flair unlocked — wear it!", when: FLAIRS.some((f) => f.id !== "none" && f.unlocked(save)) },
+      { id: "bestiary", tab: "trophies", text: "📖 New foes in your Bestiary!", when: foesMet(save) >= 5 },
     ];
     for (const h of hints) if (h.when && h.tab === tab && !seen.has(h.id)) mark(h.id); // opening the tab counts
     const h = hints.find((x) => x.when && !seen.has(x.id));
