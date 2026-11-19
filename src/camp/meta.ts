@@ -13,7 +13,7 @@ export const LOOT_TO_GOLD = 0.3;
 
 /** Camp-mode effect of each hero (passive + look). */
 export const CAMP_HEROES: Record<HeroId, { look: string; passive: string; apply: (s: CampSetup) => void }> = {
-  ranger: { look: "hero", passive: "Fires 15% faster.", apply: (s) => { s.mods!.heroRate *= 1.15; } },
+  ranger: { look: "hero", passive: "Fires 25% faster.", apply: (s) => { s.mods!.heroRate *= 1.25; } },
   knight: { look: "hero_knight", passive: "+60% HP, +25% damage, walls +15%.", apply: (s) => { s.mods!.heroHp *= 1.6; s.mods!.heroDamage *= 1.25; s.mods!.wallHp *= 1.15; } },
   pyro: { look: "hero_pyro", passive: "Every arrow burns.", apply: (s) => { s.mods!.burn += 0.5; } },
   cleric: { look: "hero_cleric", passive: "The hall's archers hit 15% harder.", apply: (s) => { s.mods!.hallDamage *= 1.15; } },

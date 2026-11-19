@@ -260,6 +260,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- The King's passive: fires 25% faster (was 15%). campsim L10, 20 runs: ch7 45→55%, ch9 40→45%; ch1 L0 still 100%, ch3 L0 0% before and after (unchanged early curve).
 - Bot: casts the Cleric's Sanctuary when the hall (<85%) or a wall section (<60%) is hurt instead of on crowds, so hero sims reflect real use. Sanctuary trimmed to 5% hall / 12% walls. Hero spread at ch7 L10 (20 runs each): King 45 · Lancer 50 · Warden 60 · Knight 65 · Cleric 80–85 · Engineer 95 — the Cleric sits inside the range; the Engineer is the outlier (to review later, carefully: players may rely on him).
 - Daily challenge: the Cleric joins the hero pool from 2026-11-24 (days up to the 23rd diffed unchanged; test). Flair checked on the Cleric sprite.
 - Cleric balance: first version won ch7 L10 75% vs the King's 45% (20 runs). Toned down to Sanctuary 7% hall / 15% walls, 30 s recharge, hall archers +15% → ch7 60%, ch9 30% (King 40%): on par within noise.
