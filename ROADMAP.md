@@ -487,3 +487,10 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   actually plays a new ability sensibly before trusting balance numbers — the crowd-trigger rule
   undersold a heal; and compare a new hero against the whole roster, not just the King (the
   Engineer at 95% on ch7 is the real outlier).
+- **2026-11-19 22:40** — deploys 204–214: all green except **210 failed** (Siege Lord sim): a test
+  written for the push-by-push design broke when the siege became continuous, and my chained
+  commit used a bare `grep` on the vitest output, which succeeds even on failure — so it committed
+  and pushed. The Pages gate kept that build off the site; 211 (test fixed) deployed 8 min later.
+  Rule now: gate commits on `grep -q "N passed"`. This hour, from the owner's requests: auto-update
+  (the phone was stuck on a pre-chapter-6 build), the campaign map, Siege Lord (sim → playable →
+  polish), Archery Range (logic → playable). 175 tests.
