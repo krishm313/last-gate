@@ -231,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Balance check, King vs Lancer (campsim, 10 runs each, win %): L5 ch1–8 King 100/100/100/60/10/20/0/0 · Lancer 100/100/90/70/20/40/0/20; L10 King 100/100/100/100/100/70/40/40 · Lancer 100/100/100/100/70/70/40/70. On par within noise — no change.
 - New loss tip for every hero: if you used your ability fewer times than nights survived (from night 3), the end screen names it — "Piercing Lance recharges fast — tap it whenever foes bunch up. You used it 1 time in 5 nights." Casts are tracked in runStats.
 - What's-new card refreshed: players who dismissed the first card get a short one (the Lancer, weekly quests from Monday, chapter confetti, replay tutorial); anyone who never saw it gets the full update list, now naming both new heroes.
 - Lancer: with no foe in reach the lance keeps its charge and says "Out of reach!" instead of flying at empty grass (test). Checked: the Battle tab names the hero in one line, so 6 heroes don't crowd the SE layout.
