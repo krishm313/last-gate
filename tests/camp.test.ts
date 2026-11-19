@@ -759,3 +759,29 @@ describe("watchtower", () => {
     expect(watchBoost(c, near).range).toBeCloseTo(1.4);
   });
 });
+
+describe("Magma Titan", () => {
+  it("erupts in phase 2: lava pools burn the hero and foes alike", () => {
+    const c = createCamp(8);
+    c.phase = "wave";
+    c.queue = [];
+    const b = spawnEnemy(c, { at: 0, enemy: "magma", hpMult: 1, lane: null }, { x: c.hero.x, y: c.hero.y - 150 });
+    b.hp = b.maxHp * 0.45;
+    const hx = c.hero.x, hy = c.hero.y;
+    drainEvents(c);
+    let erupted = false;
+    for (let i = 0; i < 60 * 3 && !erupted; i++) {
+      b.x = hx; b.y = hy - 150;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      erupted = drainEvents(c).some((e) => e.type === "eruption");
+    }
+    expect(erupted).toBe(true);
+    expect(c.pools.length).toBe(3);
+    const far = c.pools.reduce((a, p) => ((p.x - hx) ** 2 + (p.y - hy) ** 2 > (a.x - hx) ** 2 + (a.y - hy) ** 2 ? p : a));
+    const f = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 1, lane: null }, { x: far.x, y: far.y });
+    const hp0 = c.hero.hp, fhp0 = f.hp;
+    for (let i = 0; i < 30; i++) { c.hero.x = hx; c.hero.y = hy; f.x = far.x; f.y = far.y; f.stunTime = 1; b.x = hx; b.y = hy - 150; step(c, { move: { x: 0, y: 0 } } as CampInput); }
+    expect(c.hero.hp).toBeLessThan(hp0);
+    expect(f.hp).toBeLessThan(fhp0);
+  });
+});

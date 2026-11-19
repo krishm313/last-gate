@@ -167,7 +167,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   every enemy type in the mix; Bone Dragon mid-boss, Colossus finale for now. CAMP_CHAPTER_HP 7: 2.5
   → campsim ch7 @L7 33%, @L10 75% (ch6 @L10 58–75%). Next: Magma Titan boss, charred "ash" props.
 
+- **The Magma Titan** (ch7 finale) — armoured walker boss (3000 HP, 25% armour) that calls brutes
+  (sappers once enraged). Phase 2: every 6 s an ERUPTION drops 3 lava pools (one under the hero if
+  close, two just inside the wall ahead) for 5 s: 16 dps to the hero and soldiers — and 24 dps to
+  walkers crossing them, so luring the horde through is a play. Molten halo + embers on the boss,
+  bubbling pools with scorched rims that cool and crust, ERUPTION! pop, rumble SFX, 🌋 on the hub.
+  campsim ch7: @L7 17%, @L10 75% (hardest chapter, as the finale should be).
+
 ## Shipped (newest first)
+- The Magma Titan: ch7 boss whose phase-2 eruptions leave lava pools that burn the hero AND the horde (fx, SFX, test).
 - Chapter 7 "Ashen Caldera": volcanic ground, heat haze, embers and ash, smoky nights, achievement (balance-tuned).
 - Endless weekly twists: 6 rotating rules (Iron Horde, Gold Rush, Storm Season, Glass Walls, Elite Week, Hero's Week) on the Endless card (tests).
 - Cheaper Mage Tower / Healer's Tent / Watchtower (stronger Watchtower) after A/B balance runs showed they were overpriced.

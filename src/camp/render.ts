@@ -951,6 +951,13 @@ fx.shake(0.15);
           fx.burst(ev.x, ev.y, "#7ad84a", 30, 260, { max: 0.9, size: 3, gravity: -40, shape: "spark" });
           fx.number(ev.x, ev.y - 56, "CURSE! Foes healed", "#aaff7a", 15, 1);
           break;
+        case "eruption":
+          fx.rings.push({ x: ev.x, y: ev.y, r: 90, color: "#ff7a2a", life: 0.6, max: 0.6, width: 6 });
+          fx.burst(ev.x, ev.y - 20, "#ff8a3a", 26, 260, { max: 0.8, size: 3.4, gravity: 200, shape: "chunk" });
+          for (const q of ev.pools) fx.burst(q.x, q.y, "#ffb040", 12, 160, { max: 0.6, size: 3, gravity: 220, shape: "chunk" });
+          fx.number(ev.x, ev.y - 60, "ERUPTION!", "#ffa060", 16, 1);
+          fx.shake(0.4);
+          break;
         case "boulderThrow":
           this.boulders.push({ x: ev.x, y: ev.y, tx: ev.tx, ty: ev.ty, t0: this.time, dur: ev.dur });
           break;
@@ -1235,6 +1242,7 @@ fx.shake(0.15);
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
+    for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
       items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
@@ -3884,6 +3892,7 @@ fx.shake(0.15);
     if (this.brokeCover.size > 300) { const live = new Set(c.enemies.map((q) => q.id)); for (const id of this.brokeCover) if (!live.has(id)) this.brokeCover.delete(id); }
     // Fresh spawns fade in out of the dark of the woods rather than popping into existence.
     if (e.elite) this.drawEliteRing(ctx, c, e);
+    if (e.def.id === "magma") this.drawMagmaAura(ctx, c, e);
     if (e.age < 0.5 && !e.def.boss) {
       ctx.save();
       ctx.globalAlpha *= e.age / 0.5;
@@ -3891,6 +3900,48 @@ fx.shake(0.15);
       ctx.restore();
     } else this.drawEnemyInner(ctx, c, e);
     if (e.elite) this.drawEliteMarks(ctx, c, e);
+  }
+
+  /** A lava pool from the Magma Titan: swells in, glows and bubbles, then crusts over and cools. */
+  private drawLavaPool(ctx: CanvasRenderingContext2D, l: { x: number; y: number; r: number; t: number; dur: number }): void {
+    const grow = Math.min(1, l.t / 0.35);
+    const cool = Math.max(0, Math.min(1, (l.dur - l.t) / 1.2));
+    const r = l.r * (0.6 + 0.4 * grow);
+    ctx.save();
+    // Scorched rim, then the molten pool (normal blend so it reads on bright ground).
+    ctx.fillStyle = `rgba(40,16,10,${0.75 * grow})`;
+    ctx.beginPath(); ctx.ellipse(l.x, l.y, r * 1.12, r * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createRadialGradient(l.x, l.y, 2, l.x, l.y, r);
+    g.addColorStop(0, `rgba(255,${Math.round(200 * cool + 90)},${Math.round(80 * cool)},${0.95 * grow})`);
+    g.addColorStop(0.6, `rgba(230,${Math.round(90 * cool + 40)},20,${0.85 * grow})`);
+    g.addColorStop(1, `rgba(120,30,10,${0.5 * grow})`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(l.x, l.y, r, r * 0.44, 0, 0, Math.PI * 2); ctx.fill();
+    // Bubbles popping on the surface.
+    ctx.fillStyle = `rgba(255,230,150,${0.8 * cool * grow})`;
+    for (let k = 0; k < 4; k++) {
+      const ph = (this.time * 1.7 + k * 0.29 + l.x * 0.01) % 1;
+      const a = k * 2.1 + l.y;
+      ctx.beginPath(); ctx.arc(l.x + Math.cos(a) * r * 0.55, l.y + Math.sin(a) * r * 0.2, 1.5 + ph * 3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    // Glow (above the night darkness via the light pass isn't available here, so a bright additive halo).
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), l.x, l.y, r * 1.5, r * 0.8, 0.35 * cool * grow + this.night * 0.3 * cool);
+    ctx.restore();
+    if (cool > 0.5 && Math.floor(this.time * 8 + l.x) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(l.x + Math.sin(this.time * 13 + l.y) * r * 0.5, l.y, "#ffa040", 1, 30, { max: 0.6, size: 2.4, gravity: -70, shape: "dot" });
+  }
+
+  /** The Magma Titan glows from within: a molten halo and embers shed as it walks; brighter once it erupts. */
+  private drawMagmaAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 3 + e.id);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), e.x, e.y - r * 0.5, r * (2 + pulse * 0.3), r * (1.6 + pulse * 0.2), (e.enraged ? 0.55 : 0.35) + this.night * 0.25);
+    ctx.restore();
+    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ffb040" : "#ff5a1a", 1, 40, { max: 0.7, size: 2.6, gravity: -80, shape: "dot" });
   }
 
   /** Elite: a pulsing ring in the modifier's colour on the ground. */

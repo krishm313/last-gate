@@ -48,6 +48,7 @@ export const LOOKS: Record<string, UnitLook> = {
   warlord: { body: "#7a1a1a", trim: "#ffd84a", skin: "#e8b890", head: "crown", helm: "#9aa0a8", weapon: "axe" },
   hag: { body: "#4a5a2a", trim: "#2a3a10", skin: "#a8c088", head: "hood", helm: "#3a4a1a", weapon: "staff" },
   golem: { body: "#7a7468", trim: "#4a463e", skin: "#9a9488", head: "bare", weapon: "none" },
+  magma: { body: "#3a2420", trim: "#ff6a1a", skin: "#5a2a1a", head: "bare", weapon: "none" },
   colossus: { body: "#4a4e58", trim: "#ffd84a", skin: "#6a707c", head: "crown", helm: "#8a90a0", weapon: "club" },
 };
 

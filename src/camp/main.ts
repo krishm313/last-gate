@@ -614,6 +614,7 @@ function playSfx(ev: CampEvent, c: Camp) {
   // Newer event types: synthesised in sfx.event (rate-limited there), plus a buzz for the big hits.
   switch (ev.type) {
     case "frostNova":
+    case "eruption":
     case "bossSlam":
       sfx.event(ev.type);
       buzz(settings, 60);

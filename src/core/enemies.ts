@@ -18,6 +18,7 @@ export type EnemyId =
   | "troll"
   | "warlord"
   | "frostwyrm"
+  | "magma"
   | "hag"
   | "golem"
   | "dragon"
@@ -91,7 +92,7 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
-  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse"; every: number; radius: number; power: number };
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -140,6 +141,11 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     summon: { enemy: "raven", count: 4, interval: 7, enraged: "wraith" },
     frostNova: { every: 5.5, radius: 340, stun: 3.2 },
   },
+  magma: {
+    ...base, id: "magma", name: "The Magma Titan", hp: 3000, speed: 13, radius: 38, gateDamage: 70, attackInterval: 2, gold: 260, color: "#c84a1a",
+    cost: 0, slowResist: 0.2, boss: true, armor: 0.25, behavior: "summoner", summon: { enemy: "brute", count: 1, interval: 10, enraged: "sapper" },
+    phase2: { kind: "eruption", every: 6, radius: 300, power: 16 },
+  },
   warlord: {
     ...base, id: "warlord", name: "The Warlord", hp: 1300, speed: 15, radius: 32, gateDamage: 45, attackInterval: 1.6, gold: 60, color: "#5a1a1a",
     cost: 0, slowResist: 0.3, boss: true, behavior: "summoner", summon: { enemy: "footman", count: 3, interval: 5.5, enraged: "runner" }, phase2: { kind: "warcry", every: 10, radius: 260, power: 6 },
@@ -157,6 +163,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.towerHunter) t.push("dives at towers");
   if (d.tunneler) t.push("digs under the wall");
   if (d.frostNova) t.push("freezes towers when hurt");
+  if (d.phase2?.kind === "eruption") t.push("erupts lava when hurt");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");

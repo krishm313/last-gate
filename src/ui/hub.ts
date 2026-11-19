@@ -243,6 +243,7 @@ export class Hub {
         img.className = "painted";
         if (bossId === "dragon") boss.append(el("span", "ch-boss-emoji", "🐉"));
         else if (bossId === "frostwyrm") boss.append(el("span", "ch-boss-emoji", "❄️"));
+        else if (bossId === "magma") boss.append(el("span", "ch-boss-emoji", "🌋"));
         else boss.append(img);
         boss.append(el("span", "", `Boss: ${ENEMIES[bossId].name}`));
         left.append(boss);

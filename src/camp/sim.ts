@@ -307,6 +307,7 @@ export type CampEvent =
   | { type: "bossSlam"; x: number; y: number; r: number }
   | { type: "warcry"; x: number; y: number; r: number }
   | { type: "curse"; x: number; y: number; r: number }
+  | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "emerge"; x: number; y: number }
@@ -383,6 +384,8 @@ export interface Camp {
   bolts: Bolt[];
   /** Boulders lobbed by the Siege Golem (phase 2): land on a tower and stun it. */
   lobs: { x: number; y: number; plot: string; t: number; dur: number; stun: number }[];
+  /** Lava pools from the Magma Titan's eruptions: burn whoever stands in them (hero, soldiers, foes). */
+  pools: { x: number; y: number; r: number; t: number; dur: number; dps: number }[];
   incomePile: number;
   incomeTimer: number;
   /** Royal courier: time banked toward the next coin sent from the hall's pile to the King. */
@@ -560,6 +563,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     arrows: [],
     bolts: [],
     lobs: [],
+    pools: [],
     incomePile: 6,
     incomeTimer: 0,
     courierTimer: 0,
@@ -1414,6 +1418,14 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     // War cry: every foe in earshot is rallied (faster, tougher) for a while.
     for (const o of c.enemies) if (o !== e && !o.def.boss && near(o.x, o.y)) o.warcry = p2.power;
     c.events.push({ type: "warcry", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "eruption") {
+    // Eruption: three lava pools — one under the hero if close, the rest just inside the wall ahead.
+    const spots: Vec[] = [];
+    if (c.hero.hp > 0 && (c.hero.x - e.x) ** 2 + (c.hero.y - e.y) ** 2 <= (p2.radius * 1.5) ** 2) spots.push({ x: c.hero.x, y: c.hero.y });
+    while (spots.length < 3) spots.push({ x: Math.max(60, Math.min(MAP_W - 60, e.x + range(c.rng, -p2.radius * 0.7, p2.radius * 0.7))), y: WALL_Y + range(c.rng, 30, 160) });
+    const made = spots.map((q) => ({ x: q.x, y: q.y, r: 48 }));
+    for (const q of made) c.pools.push({ ...q, t: 0, dur: 5, dps: p2.power });
+    c.events.push({ type: "eruption", x: e.x, y: e.y, pools: made });
   } else if (p2.kind === "boulders") {
     // Boulder toss at the nearest archer tower in reach: lands after a short flight and stuns it.
     let t: Plot | null = null, best = Infinity;
@@ -1428,6 +1440,20 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
       c.events.push({ type: "boulderThrow", x: e.x, y: e.y - 20, tx: t.x, ty: t.y - 30, dur });
     }
   }
+}
+
+function updatePools(c: Camp): void {
+  if (!c.pools.length) return;
+  for (const l of c.pools) {
+    l.t += STEP;
+    const r2 = l.r * l.r;
+    const h = c.hero;
+    if (h.hp > 0 && !h.dead && (h.x - l.x) ** 2 + (h.y - l.y) ** 2 <= r2) damageHero(c, l.dps * STEP);
+    for (const a of c.allies) if (a.respawn <= 0 && (a.x - l.x) ** 2 + (a.y - l.y) ** 2 <= r2) damageAlly(c, a, l.dps * STEP);
+    // The lava doesn't care whose side you're on: walkers crossing it burn too (bosses shrug it off).
+    for (const e of c.enemies) if (!e.def.flying && !e.def.boss && (e.x - l.x) ** 2 + (e.y - l.y) ** 2 <= r2) e.hp -= l.dps * 1.5 * STEP;
+  }
+  c.pools = c.pools.filter((l) => l.t < l.dur);
 }
 
 function updateLobs(c: Camp): void {
@@ -1940,6 +1966,7 @@ export function step(c: Camp, input: CampInput): void {
   updateEnemies(c);
   updateBolts(c);
   updateLobs(c);
+  updatePools(c);
   updateArrows(c);
   updateStrikes(c);
   reap(c);
