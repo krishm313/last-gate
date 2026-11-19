@@ -58,6 +58,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "moonbreaker", name: "Moonbreaker", desc: "Defeat the Blood Moon Warlord", icon: "🌕", goal: 1, reward: 500, progress: stat("bloodlord") },
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
   { id: "scholar", name: "Scholar of War", desc: "Slay every kind of foe (see the Bestiary)", icon: "📖", goal: Object.keys(ENEMIES).length, reward: 800, progress: foesMet },
+  { id: "siegelord", name: "Siege Lord", desc: "Take the hall in all three sieges", icon: "⚔️", goal: 3, reward: 500, progress: (s) => [1, 2, 3].filter((i) => (s.mini[`siege${i}`]?.stars ?? 0) > 0).length },
+  { id: "conqueror", name: "Conqueror", desc: "Earn all 9 Siege Lord stars", icon: "🏴", goal: 9, reward: 700, progress: (s) => [1, 2, 3].reduce((a, i) => a + (s.mini[`siege${i}`]?.stars ?? 0), 0) },
   { id: "band", name: "Band of Heroes", desc: "Win a run with every hero", icon: "🤝", goal: HEROES.length, reward: 600, progress: heroesWon },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },

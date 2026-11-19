@@ -101,5 +101,9 @@ export class SiegeBar {
     this.chestFill.style.width = `${(r.chest / REVERSE.cap) * 100}%`;
     this.chestText.textContent = `${Math.floor(r.chest)}`;
     for (const card of WAR_CARDS) this.cards.get(card.id)!.classList.toggle("poor", r.chest < card.cost || c.phase !== "wave");
+    // First steps: until the first group is sent, the deck (then the lanes) pulse to show what to tap.
+    const coach = r.deployed === 0 && c.phase === "wave";
+    this.deck.classList.toggle("coach", coach && !this.picked);
+    this.lanes.classList.toggle("coach", coach && !!this.picked);
   }
 }

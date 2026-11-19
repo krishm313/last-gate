@@ -1238,3 +1238,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-name { font-weight: 900; font-size: calc(9.5 * var(--tu)); line-height: 1.1; white-space: nowrap; }
 .lgs2-cost { font-weight: 800; font-size: calc(9.5 * var(--tu)); color: #ffd84a; }
 @media (prefers-reduced-motion: reduce) { .lgs2-lane { animation: none; } }
+.lgs2-deck.coach .lgs2-card:not(.poor) { animation: lgs2-coach 1s ease-in-out infinite; }
+.lgs2-lanes.coach .lgs2-lane { animation: lgs2-coach 0.8s ease-in-out infinite; }
+@keyframes lgs2-coach { 50% { box-shadow: 0 0 0 calc(3 * var(--u)) #ffd84a, 0 0 calc(18 * var(--u)) #ffd84a; } }
+@media (prefers-reduced-motion: reduce) { .lgs2-deck.coach .lgs2-card, .lgs2-lanes.coach .lgs2-lane { animation: none; box-shadow: 0 0 0 calc(3 * var(--u)) #ffd84a; } }

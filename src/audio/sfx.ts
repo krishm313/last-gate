@@ -286,6 +286,13 @@ export class Sfx {
     for (let i = 0; i < 5; i++) this.tone("sine", 1800 + i * 220, 2200 + i * 220, 0.08, 0.05, i * 0.06);
   }
 
+  /** Siege Lord: the horde is sent in — two war-drum hits and a horn blast. */
+  warDrums(): void {
+    if (!this.ok("warDrums", 0.25)) return;
+    for (const t of [0, 0.16]) { this.tone("sine", 95, 45, 0.22, 0.32, t); this.noise(0.1, 0.18, "lowpass", 260, 1, t); }
+    this.tone("sawtooth", 196, 220, 0.35, 0.05, 0.3);
+  }
+
   /** Allied soldier falls. */
   grunt(): void {
     if (!this.ok("grunt", 0.2)) return;

@@ -349,7 +349,7 @@ function showMenuSettings() {
 const siegeBar = new SiegeBar(
   uiRoot,
   (id, lane) => {
-    if (camp?.reverse && deploy(camp, id as never, lane)) sfx.play({ type: "upgrade", id: "x" } as never);
+    if (camp?.reverse && deploy(camp, id as never, lane)) sfx.warDrums();
   },
   () => setPaused(true),
 );
