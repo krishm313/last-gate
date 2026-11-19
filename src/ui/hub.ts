@@ -83,6 +83,8 @@ export interface HubCallbacks {
   onWatch?: () => void;
   /** Open the Catapult Toss side stop. */
   onCatapult?: () => void;
+  /** Open the Dragon Dodge side stop. */
+  onDragon?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -393,6 +395,7 @@ export class Hub {
       { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
+      { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
     ];
     const fair = fairPick(todayString(), openMinis(save.stars));
     for (const sd of sides) {
@@ -558,7 +561,7 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 4 sieges, new cards as you win",
-          "🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch & 🪨 Catapult Toss: new mini-games on the map, with stars and gold",
+          "🎪 5 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
         ]
       : seen.startsWith("2026-11-19")

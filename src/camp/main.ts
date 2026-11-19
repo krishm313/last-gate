@@ -10,6 +10,8 @@ import { WallWatchView } from "../mini/wallwatchView";
 import { watchReward } from "../mini/wallwatch";
 import { CatapultView } from "../mini/catapultView";
 import { catReward } from "../mini/catapult";
+import { DragonView } from "../mini/dragonView";
+import { dragonReward } from "../mini/dragon";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
 import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
@@ -121,6 +123,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     catapult.open((Date.now() >>> 0) ^ 0xca7);
+  },
+  onDragon: () => {
+    hub.hide();
+    sfx.unlock();
+    dragonDodge.open((Date.now() >>> 0) ^ 0xd1a);
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -449,6 +456,25 @@ const catapult = new CatapultView(
     save.mini.catapult = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
     const fair = isFair("catapult");
     if (fair) r.gold += catReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
+  },
+  () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
+);
+
+// ---- Dragon Dodge (side stop on the map). ----
+const dragonDodge = new DragonView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.dragon ?? { best: 0, stars: 0 };
+    const r = dragonReward(score, prev.stars);
+    save.mini.dragon = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    const fair = isFair("dragon");
+    if (fair) r.gold += dragonReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
@@ -1186,6 +1212,7 @@ Object.assign(window, {
   __supply: () => supply,
   __watch: () => wallWatch,
   __catapult: () => catapult,
+  __dragon: () => dragonDodge,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

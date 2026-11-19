@@ -1242,6 +1242,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-card.locked .lgs2-cost { color: #ddd; }
 .lgs2-art { height: calc(30 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(20 * var(--tu)); }
 .lgs2-art img { height: 100%; width: auto; }
+.lgs2-art canvas.wide { height: 100%; width: auto; }
 .lgs2-art img.wide { height: auto; width: 100%; max-height: 100%; object-fit: contain; }
 .lgs2-name { font-weight: 900; font-size: calc(9.5 * var(--tu)); line-height: 1.1; white-space: nowrap; }
 .lgs2-cost { font-weight: 800; font-size: calc(9.5 * var(--tu)); color: #ffd84a; }
@@ -1267,6 +1268,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 #ui .lgc, #ui .lgc * { pointer-events: auto; }
 .lgc-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
 .lgc-end { position: relative; z-index: 1; display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
+.lgd2 { position: absolute; inset: 0; z-index: 6; background: #1e1814; display: flex; align-items: center; justify-content: center; }
+#ui .lgd2, #ui .lgd2 * { pointer-events: auto; }
+.lgd2-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.lgx-end { position: relative; z-index: 1; display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
 /* Mini-game end panel: stars (new ones pop in), gold line. */
 .lgx-stars { display: flex; justify-content: center; gap: calc(6 * var(--u)); font-size: calc(34 * var(--tu)); line-height: 1; color: #5a6078; text-shadow: 0 calc(2 * var(--u)) 0 #1d1208; }
 .lgx-star.on { color: #ffd84a; }

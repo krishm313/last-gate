@@ -1,4 +1,5 @@
 import { ENEMIES } from "../core/enemies";
+import { drawFlyer } from "../mini/flyer";
 import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
 
 /**
@@ -59,10 +60,19 @@ export class SiegeBar {
       const art = el("div", "lgs2-art");
       const pic = CARD_ART[card.id];
       const sprite = CARD_SPRITE[card.id];
-      if (pic || sprite) {
+      if (sprite) {
+        // Winged flyers come as an atlas (body + one wing): assemble them on a small canvas.
+        const cv = document.createElement("canvas");
+        cv.width = 120;
+        cv.height = 72;
+        cv.className = "wide";
+        const img = new Image();
+        img.onload = () => drawFlyer(cv.getContext("2d")!, img, card.id === "imp" ? "imp" : "bat", 60, 38, 50, 0.4);
+        img.src = sprite;
+        art.append(cv);
+      } else if (pic) {
         const img = document.createElement("img");
-        img.src = sprite ?? `./sprites/portraits/${pic}.png`;
-        if (sprite) img.className = "wide";
+        img.src = `./sprites/portraits/${pic}.png`;
         img.alt = "";
         art.append(img);
       } else art.textContent = CARD_EMOJI[card.id] ?? "👹";

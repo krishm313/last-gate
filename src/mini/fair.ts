@@ -2,7 +2,7 @@
  * Fair day: each day one of the open mini-games pays double gold. Picked from the date (the same
  * all day, a different one tomorrow) among the side stops the player has opened.
  */
-export const FAIR_ORDER = ["archery", "supply", "watch", "catapult"] as const;
+export const FAIR_ORDER = ["archery", "supply", "watch", "catapult", "dragon"] as const;
 
 function hash(s: string): number {
   let h = 2166136261;
@@ -18,7 +18,7 @@ export function fairPick(date: string, open: readonly string[]): string | null {
 }
 
 /** The chapter that opens each side stop. */
-export const FAIR_OPENS: Record<string, number> = { archery: 1, supply: 2, watch: 4, catapult: 6 };
+export const FAIR_OPENS: Record<string, number> = { archery: 1, supply: 2, watch: 4, catapult: 6, dragon: 8 };
 
 export function openMinis(stars: Record<number, number>): string[] {
   return FAIR_ORDER.filter((k) => (stars[FAIR_OPENS[k]!] ?? 0) > 0);
