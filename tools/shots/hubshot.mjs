@@ -1,0 +1,11 @@
+import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
+const require = createRequire(execSync("npm root -g").toString().trim() + "/");
+const { chromium, devices } = require("playwright");
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ ...devices["iPhone 13"], deviceScaleFactor: 2 })).newPage();
+await page.goto("http://localhost:5180/"); await page.waitForTimeout(2500);
+await page.waitForTimeout(2500); await page.screenshot({ path: "hub0.png" });
+await page.mouse.click(195, 600); await page.waitForTimeout(1500);
+await page.screenshot({ path: "hub1.png" });
+await browser.close();

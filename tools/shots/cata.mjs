@@ -1,0 +1,14 @@
+import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
+const require = createRequire(execSync("npm root -g").toString().trim() + "/");
+const { chromium, devices } = require("playwright");
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ ...devices["iPhone 13"], deviceScaleFactor: 2 })).newPage();
+const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+await page.addInitScript(() => { localStorage.setItem("lastgate.seenTitle", "1"); localStorage.setItem("lastgate.tutorial", "done"); localStorage.setItem("lastgate.tipPreview", "1"); });
+await page.goto("http://localhost:5180/"); await page.waitForTimeout(1500);
+await page.click(".chapter:not(.daily)", { force: true }); await page.waitForTimeout(1200);
+await page.evaluate(() => { const c = __camp(); for (const p of c.plots) { p.locked = false; if (p.kind === "tower") p.level = 2; if (["lumber","forge","barracks","catapult"].includes(p.kind)) p.level = 1; } c.hero.coins = 40; c.hero.x = 360; c.hero.y = 820; });
+await page.waitForTimeout(2500);
+await page.getByRole("button", { name: /Start the night/ }).click({ force: true }); await page.waitForTimeout(1500); await page.evaluate(() => { const c = __camp(); c.hero.x = 360; c.hero.y = 560; for (let i = 0; i < 6; i++) __spawn("brute", 200 + i * 60, 330); }); for (let i = 0; i < 8; i++) { await page.waitForTimeout(220); await page.screenshot({ path: `cp${i}.png`, clip: { x: 0, y: 60, width: 390, height: 420 } }); }
+console.log({ errors }); await browser.close();

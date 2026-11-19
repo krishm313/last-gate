@@ -1,0 +1,11 @@
+import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
+const require = createRequire(execSync("npm root -g").toString().trim() + "/");
+const { chromium, devices } = require("playwright");
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ ...devices["iPhone 13"], deviceScaleFactor: 2 })).newPage();
+const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+await page.addInitScript(() => { localStorage.setItem("lastgate.seenTitle", "1"); localStorage.setItem("lastgate.tutorial", "done"); });
+await page.goto("http://localhost:5180/"); await page.waitForTimeout(2500);
+await page.screenshot({ path: "chl.png" });
+console.log({ errors }); await browser.close();

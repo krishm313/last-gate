@@ -1,0 +1,12 @@
+import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
+const require = createRequire(execSync("npm root -g").toString().trim() + "/");
+const { chromium, devices } = require("playwright");
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ ...devices["iPhone 13"], deviceScaleFactor: 2 })).newPage();
+const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+await page.goto("http://localhost:5180/"); await page.waitForTimeout(2500);
+await page.getByRole("button", { name: /Defend the camp/ }).click({ force: true }); await page.waitForTimeout(2000);
+await page.screenshot({ path: "fr0.png", clip: { x: 40, y: 530, width: 310, height: 70 } }); console.log(await page.evaluate(() => document.querySelector(".tip")?.innerHTML));
+await page.waitForTimeout(700); await page.screenshot({ path: "fr1.png", clip: { x: 40, y: 530, width: 310, height: 70 } });
+console.log({ errors }); await browser.close();

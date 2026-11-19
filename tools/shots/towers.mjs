@@ -1,0 +1,14 @@
+import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
+const require = createRequire(execSync("npm root -g").toString().trim() + "/");
+const { chromium, devices } = require("playwright");
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ ...devices["iPhone 13"], deviceScaleFactor: 3 })).newPage();
+const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+await page.addInitScript(() => { localStorage.setItem("lastgate.seenTitle", "1"); localStorage.setItem("lastgate.tutorial", "done"); localStorage.setItem("lastgate.tipPreview", "1"); });
+await page.goto("http://localhost:5180/"); await page.waitForTimeout(1500);
+await page.click(".chapter:not(.daily)", { force: true }); await page.waitForTimeout(1200);
+await page.evaluate(() => { const c = __camp(); for (const p of c.plots) { p.locked = false; if (p.kind === "tower") p.level = p.x < 200 ? 1 : p.x < 330 ? 2 : p.x < 500 ? 3 : 4; if (["lumber","forge","barracks","catapult"].includes(p.kind)) p.level = 1; } c.hero.coins = 40; c.hero.x = 560; c.hero.y = 700; });
+await page.waitForTimeout(2500);
+await page.screenshot({ path: "tw.png", clip: { x: 0, y: 70, width: 390, height: 200 } }); console.log(await page.evaluate(() => __camp().plots.filter(p => p.kind==="tower").map(p => [p.x, p.level, p.maxLevel ?? p.costs?.length])));
+console.log({ errors }); await browser.close();
