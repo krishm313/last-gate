@@ -93,6 +93,8 @@ export interface Enemy {
   healTimer: number;
   age: number;
   enraged: boolean;
+  /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
+  rallied?: boolean;
   /** What it is currently hitting, for rendering lunges. */
   attacking: boolean;
   inside: boolean;
@@ -142,6 +144,8 @@ export const MAGE_LEVELS = [
   { damage: 48, range: 340, every: 1.7, chains: 4 },
 ];
 export const MAGE = { hop: 110, falloff: 0.8 };
+/** Banner-bearer aura (kept in one place so the sim and the renderer agree). */
+export const RALLY = { radius: 120, speed: 0.3, armor: 0.25 };
 /** Healer's tent: heals the King and soldiers within its radius, and slowly mends the whole wall. */
 export const HEALER_LEVELS = [
   { radius: 200, heal: 6, wall: 0.004 },
@@ -1103,6 +1107,7 @@ function updateArrows(c: Camp): void {
 /** Current damage reduction from armour and armour cycles (1 = immune). */
 export function reduction(e: Enemy): number {
   let r = e.def.armor ?? 0;
+  if (e.rallied) r = 1 - (1 - r) * (1 - RALLY.armor);
   const cyc = e.def.armorCycle;
   if (cyc && e.age % (cyc.on + cyc.off) >= cyc.off) r = 1 - (1 - r) * (1 - cyc.reduction);
   return r;
@@ -1140,7 +1145,7 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
 function enemySpeed(c: Camp, e: Enemy): number {
   if (e.stunTime > 0) return 0;
   const slow = e.slowTime > 0 ? e.slowPct * (e.def.slowResist ?? 1) : 0;
-  return e.def.speed * c.chapter.speedMult * (1 - slow) * (e.enraged ? 1.5 : 1);
+  return e.def.speed * c.chapter.speedMult * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
 }
 
 function moveToward(c: Camp, e: Enemy, tx: number, ty: number): number {
@@ -1349,7 +1354,20 @@ function updateEnemy(c: Camp, e: Enemy): void {
   } else attackTick(c, e, () => damageHall(c, def.gateDamage, e.x, e.y));
 }
 
+function updateRally(c: Camp): void {
+  const bearers = c.enemies.filter((e) => e.def.aura && e.hp > 0);
+  for (const e of c.enemies) {
+    e.rallied = false;
+    if (!bearers.length || e.def.boss) continue;
+    for (const b of bearers) {
+      if (b === e) continue;
+      if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 <= b.def.aura!.radius ** 2) { e.rallied = true; break; }
+    }
+  }
+}
+
 function updateEnemies(c: Camp): void {
+  updateRally(c);
   for (const e of c.enemies) {
     e.age += STEP;
     e.flash = Math.max(0, e.flash - STEP);

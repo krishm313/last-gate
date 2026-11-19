@@ -53,7 +53,12 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Trove (Tax + Bounty), Bulwark (Thick Timber + Masons), Deadeye (Sharp + Split). Combo cards show
   "COMBO ❄️ + 🎯"; picking one fires a "COMBO!" banner, gold/violet shockwave, flash and shake.
 
+- **Banner-bearer** (Phase 2 enemy 1) — rallies foes within 120: +30% speed, +25% damage reduction
+  (bosses excepted). Footman body + tall red war banner, dashed red rally ring. Introduced in
+  chapter 2 night 7 (scout card says "rallies nearby foes"). Kill him first.
+
 ## Shipped (newest first)
+- Banner-bearer enemy: rally aura (faster + tougher foes nearby), banner art + rally ring, chapter 2 intro, test.
 - Blessing combos: 5 new two-part combos, combo badge shows its parts, big COMBO! moment (tests).
 - Healer's Tent: heals the King/soldiers nearby and slowly mends the wall (plot, tent art, aura ring, heal motes, test).
 - Mage Tower: chain lightning that ignores armour (plot, spire + crystal art, purple bolts, tests).

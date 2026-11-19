@@ -29,6 +29,7 @@ export const LOOKS: Record<string, UnitLook> = {
   ally: { body: "#3d6aa8", trim: "#2a4a7a", skin: "#f2c9a0", head: "helmet", helm: "#c8ccd8", weapon: "sword", shield: "#e8c070" },
   worker: { body: "#8a6a4a", trim: "#5a4030", skin: "#f2c9a0", head: "cap", helm: "#c8a060", weapon: "axe" },
   footman: { body: "#c8443a", trim: "#7a2018", skin: "#f2c9a0", head: "helmet", helm: "#9aa0a8", weapon: "sword" },
+  banner: { body: "#c8443a", trim: "#7a2018", skin: "#f2c9a0", head: "helmet", helm: "#c8a040", weapon: "sword" },
   runner: { body: "#e07a3a", trim: "#8a4018", skin: "#f2c9a0", head: "bare", weapon: "dagger" },
   shield: { body: "#c8443a", trim: "#7a2018", skin: "#f2c9a0", head: "helmet", helm: "#9aa0a8", weapon: "sword", shield: "#b8c0cc" },
   brute: { body: "#8a3a5a", trim: "#4a1a30", skin: "#d8a888", head: "horned", helm: "#6a5a4a", weapon: "club", bulk: 1.05 },

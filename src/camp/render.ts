@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { HEALER_LEVELS, SPIKES } from "./sim";
+import { HEALER_LEVELS, RALLY, SPIKES } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -216,6 +216,31 @@ export class CampRenderer {
     ctx.setLineDash([10, 8]);
     ctx.lineDashOffset = -this.time * 8;
     ctx.beginPath(); ctx.ellipse(p.x, p.y + 10, r, r * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Banner-bearer: a tall pole with a red war banner over his shoulder, and his rally ring on the ground. */
+  private drawBanner(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, x: number, y: number, r: number): void {
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 3 + e.id);
+    ctx.save();
+    ctx.strokeStyle = `rgba(255,90,60,${(0.25 + pulse * 0.2).toFixed(3)})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.lineDashOffset = -c.time * 14;
+    ctx.beginPath(); ctx.ellipse(x, y + r * 0.6, RALLY.radius, RALLY.radius * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    // Pole and flag (flutters; leans with the march).
+    const px = x + r * 0.7, top = y - r * 3.6;
+    ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(px, y + r * 0.4); ctx.lineTo(px, top); ctx.stroke();
+    ctx.strokeStyle = "#a8743e"; ctx.lineWidth = 1.4; ctx.stroke();
+    const fl = Math.sin(c.time * 6 + e.id) * 2.5;
+    ctx.fillStyle = "#c8302a"; ctx.strokeStyle = INK; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(px, top); ctx.lineTo(px + 16, top + 2 + fl); ctx.lineTo(px + 12, top + 9 + fl * 0.7); ctx.lineTo(px + 16, top + 16 + fl); ctx.lineTo(px, top + 15);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#ffd84a";
+    ctx.beginPath(); ctx.arc(px + 7, top + 8 + fl * 0.5, 2.6, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -3994,6 +4019,7 @@ fx.shake(0.15);
         ctx.stroke();
       }
     }
+    if (e.def.aura) this.drawBanner(ctx, c, e, x, y, r);
     if (e.burnTime > 0) {
       for (let i = 0; i < 2; i++) {
         ctx.fillStyle = i ? "rgba(255,210,80,0.85)" : "rgba(255,110,30,0.8)";

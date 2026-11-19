@@ -54,6 +54,7 @@ function flashOf(e: Entry): HTMLCanvasElement {
 /** Enemy id → sprite and on-screen height in multiples of the enemy's radius. */
 export const ENEMY_SPRITES: Record<string, { name: SpriteName; h: number }> = {
   footman: { name: "horde_sword", h: 3.3 },
+  banner: { name: "horde_sword", h: 3.3 },
   runner: { name: "horde_sword", h: 3.2 },
   shield: { name: "elite_shield", h: 3.1 },
   brute: { name: "horde_brute", h: 3.0 },
@@ -495,6 +496,7 @@ export function drawAnim(
 /** Enemy id → animated character + cell height in multiples of the enemy radius. */
 export const ENEMY_ANIMS: Record<string, { name: AnimChar; h: number }> = {
   footman: { name: "horde_horned", h: 4.0 },
+  banner: { name: "horde_horned", h: 4.0 },
   runner: { name: "horde_horned", h: 3.8 },
   brute: { name: "brute", h: 3.5 },
   crossbow: { name: "horde_archer", h: 4.2 },

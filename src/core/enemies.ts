@@ -20,7 +20,8 @@ export type EnemyId =
   | "hag"
   | "golem"
   | "dragon"
-  | "colossus";
+  | "colossus"
+  | "banner";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -78,11 +79,14 @@ export interface EnemyDef {
   /** Explodes against the gate on arrival, dealing gateDamage once. */
   kamikaze?: boolean;
   boss?: boolean;
+  /** Rallying aura: other foes within `radius` move `speed` faster and gain `armor` reduction. */
+  aura?: { radius: number; speed: number; armor: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
+  banner: { ...base, id: "banner", name: "Banner-bearer", hp: 40, speed: 38, radius: 12, gateDamage: 4, gold: 3, color: "#c83a3a", cost: 3, aura: { radius: 120, speed: 0.3, armor: 0.25 } },
   footman: { ...base, id: "footman", name: "Footman", hp: 22, speed: 46, radius: 11, gateDamage: 5, gold: 1, color: "#b8423a", cost: 1 },
   runner: { ...base, id: "runner", name: "Runner", hp: 12, speed: 96, radius: 9, gateDamage: 3, attackInterval: 0.6, gold: 1, color: "#e0803a", cost: 1 },
   shield: { ...base, id: "shield", name: "Shieldbearer", hp: 42, speed: 36, radius: 13, gateDamage: 6, gold: 2, color: "#7d8899", cost: 2, shield: true },
@@ -130,6 +134,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.flying) t.push("flies over the wall");
   if (d.behavior === "ranged") t.push("shoots from range");
   if (d.behavior === "healer") t.push("heals allies");
+  if (d.aura) t.push("rallies nearby foes");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");

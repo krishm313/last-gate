@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, RALLY, reduction, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 import { rollBlessings } from "../src/camp/blessings";
 import { createRng } from "../src/core/rng";
@@ -449,5 +449,24 @@ describe("blessing combos", () => {
     const [ha, hb] = [a.hp, b.hp];
     step(c, still);
     expect((hb - b.hp) / (ha - a.hp)).toBeCloseTo(3, 1);
+  });
+});
+
+describe("banner-bearer", () => {
+  it("rallies foes near him: faster and tougher; foes far away are unaffected", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    spawnEnemy(c, { at: 0, enemy: "banner", hpMult: 1, lane: 0.5 }, { x: 200, y: 200 });
+    const near = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: 0.5 }, { x: 240, y: 210 });
+    const far = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: 0.5 }, { x: 600, y: 210 });
+    step(c, still);
+    expect(near.rallied).toBe(true);
+    expect(far.rallied).toBe(false);
+    expect(reduction(near)).toBeCloseTo(RALLY.armor, 5);
+    expect(reduction(far)).toBe(0);
   });
 });
