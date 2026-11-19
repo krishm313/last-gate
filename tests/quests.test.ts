@@ -148,3 +148,15 @@ describe("endless weekly twists", async () => {
     expect(applyEndlessTwist(storm, { mods: baseMods() }, {} as { weatherOdds?: { rain: number; fog: number; storm: number } }).weatherOdds?.storm).toBeGreaterThan(0.5);
   });
 });
+
+describe("daily variety", async () => {
+  const { dailyFor } = await import("../src/core/daily");
+  it("keeps past days stable and brings the new twists in from the 20th", () => {
+    const seen = new Set<string>();
+    for (let d = 1; d <= 60; d++) seen.add(dailyFor(new Date(Date.UTC(2026, 10, 20 + d)).toISOString().slice(0, 10)).twist.id);
+    expect(seen.has("elite-rush") || seen.has("fog-war") || seen.has("storm-day") || seen.has("iron-walls")).toBe(true);
+    const before = new Set<string>();
+    for (let d = 1; d <= 60; d++) before.add(dailyFor(new Date(Date.UTC(2026, 8, d)).toISOString().slice(0, 10)).twist.id);
+    expect([...before].every((id) => ["gold-rush", "lone-hero", "engineers", "horde", "glass"].includes(id))).toBe(true);
+  });
+});

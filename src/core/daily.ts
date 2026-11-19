@@ -19,6 +19,12 @@ export interface Twist {
   drops: number;
   heroDamage: number;
   towerDamage: number;
+  /** Share of spawns that are elites (newer twists). */
+  eliteChance?: number;
+  /** Forced weather odds for the day's nights. */
+  weatherOdds?: { rain: number; fog: number; storm: number };
+  /** Wall HP multiplier. */
+  wallHp?: number;
 }
 
 export const TWISTS: Twist[] = [
@@ -26,11 +32,15 @@ export const TWISTS: Twist[] = [
   { id: "lone-hero", name: "Lone Hero", desc: "Your hero hits twice as hard; towers deal half damage", enemyHp: 1, drops: 1, heroDamage: 2, towerDamage: 0.5 },
   { id: "engineers", name: "Engineers' Day", desc: "Towers +60% damage; your hero −40%", enemyHp: 1, drops: 1, heroDamage: 0.6, towerDamage: 1.6 },
   { id: "horde", name: "The Horde", desc: "Enemies 20% weaker but you earn 30% less", enemyHp: 0.8, drops: 0.7, heroDamage: 1, towerDamage: 1 },
+  { id: "elite-rush", name: "Elite Rush", desc: "Elite foes everywhere (15%) — and they pay triple", enemyHp: 1, drops: 1.2, heroDamage: 1, towerDamage: 1, eliteChance: 0.15 },
+  { id: "fog-war", name: "Fog of War", desc: "Every night from the 3rd is foggy; towers +20% damage to make up", enemyHp: 1, drops: 1.1, heroDamage: 1, towerDamage: 1.2, weatherOdds: { rain: 0, fog: 1, storm: 0 } },
+  { id: "storm-day", name: "Storm Day", desc: "Lightning every night from the 3rd; foes +25% HP", enemyHp: 1.25, drops: 1.1, heroDamage: 1, towerDamage: 1, weatherOdds: { rain: 0, fog: 0, storm: 1 } },
+  { id: "iron-walls", name: "Iron Walls", desc: "Walls +60% HP; your hero −25%", enemyHp: 1, drops: 1, heroDamage: 0.75, towerDamage: 1, wallHp: 1.6 },
   { id: "glass", name: "Glass Cannon", desc: "Everything you have hits 50% harder; enemies +50% HP", enemyHp: 1.5, drops: 1.2, heroDamage: 1.5, towerDamage: 1.5 },
 ];
 
 const HEROES: HeroId[] = ["ranger", "knight", "pyro", "engineer"];
-const BLESSINGS = ["sharp", "quick", "drills", "eagle", "split", "fire", "frost", "masons", "tax", "pockets"];
+const BLESSINGS = ["sharp", "quick", "drills", "eagle", "split", "fire", "frost", "masons", "tax", "pockets", "hunter", "vigor"];
 
 function hash(str: string): number {
   let h = 2166136261;
@@ -80,15 +90,22 @@ export function liveDailyStreak(stats: Record<string, number>, date: string): nu
   return dayNumber(date) - last <= 1 ? stats.dailyStreak ?? 0 : 0;
 }
 
+/** The newer twists and blessings join the rotation from this date (so days already played keep theirs). */
+const EXPANDED_FROM = "2026-11-20";
+const ORIGINAL_TWISTS = ["gold-rush", "lone-hero", "engineers", "horde", "glass"];
+
 export function dailyFor(date: string): DailyChallenge {
   const h = hash(`lastgate-${date}`);
+  const expanded = date >= EXPANDED_FROM;
+  const twists = expanded ? TWISTS : TWISTS.filter((t) => ORIGINAL_TWISTS.includes(t.id));
+  const blessings = expanded ? BLESSINGS : BLESSINGS.slice(0, 10);
   return {
     date,
     seed: h,
     chapterId: 1 + (h % 3),
     hero: HEROES[(h >>> 3) % HEROES.length]!,
-    twist: TWISTS[(h >>> 7) % TWISTS.length]!,
-    blessing: BLESSINGS[(h >>> 11) % BLESSINGS.length]!,
+    twist: twists[(h >>> 7) % twists.length]!,
+    blessing: blessings[(h >>> 11) % blessings.length]!,
   };
 }
 

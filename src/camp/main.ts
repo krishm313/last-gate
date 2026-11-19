@@ -231,7 +231,7 @@ function moveInput(): Vec {
   return d > 1 ? { x: x / d, y: y / d } : { x, y };
 }
 
-function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty) {
+function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty, weatherOdds?: { rain: number; fog: number; storm: number }) {
   sfx.unlock();
   dailyRun = null;
   chapterId = id;
@@ -248,6 +248,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
     played = applyEndlessTwist(twist, setup, played);
     window.setTimeout(() => hud.toast(`${twist.icon} This week: ${twist.name} — ${twist.desc}`), 500);
   }
+  if (weatherOdds) played = { ...played, weatherOdds };
   camp = createCamp(seed, played, setup);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
   renderer.setGround(chapter.ground, chapter.id);
@@ -280,8 +281,10 @@ function startDaily() {
   setup.mods!.heroDamage *= d.twist.heroDamage;
   setup.mods!.towerDamage *= d.twist.towerDamage;
   setup.enemyHpMult = d.twist.enemyHp;
+  if (d.twist.eliteChance) setup.eliteChance = d.twist.eliteChance;
+  if (d.twist.wallHp) setup.mods!.wallHp *= d.twist.wallHp;
   setup.startBlessings = [d.blessing];
-  newRun(d.chapterId, setup, d.seed, "normal");
+  newRun(d.chapterId, setup, d.seed, "normal", d.twist.weatherOdds);
   dailyRun = d;
   // Remind the player what makes today's run different.
   hud.banner(`Daily: ${d.twist.name}`, d.twist.desc);
