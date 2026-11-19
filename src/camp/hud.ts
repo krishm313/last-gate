@@ -5,6 +5,9 @@ import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
 import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
+/** Icons for buildings named in blessing requirements. */
+const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️" };
+
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
   const next = plotMaxed(p) ? null : p.level + 1;
@@ -393,7 +396,12 @@ export class CampHud {
         el("div", `card-tag${owned ? "" : " new"}`, owned ? `Lv ${owned} → ${owned + 1}` : "New"),
         b.max > 1 ? levelPips(owned, b.max) : el("div", "card-lvl", "Unique"),
       );
-      if (b.requires) card.insertBefore(el("div", "card-combo", `COMBO ${comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "").join(" + ")}`), card.children[1] ?? null);
+      if (b.requires) {
+        // Parts: the blessings it combines, plus the building it needs (if any).
+        const parts = comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "");
+        if (b.needsBuilding) parts.push(BUILDING_ICON[b.needsBuilding] ?? "🏗️");
+        card.insertBefore(el("div", "card-combo", `COMBO ${parts.join(" + ")}`), card.children[1] ?? null);
+      }
       if (pad) card.append(el("div", "card-key", ["◀", "▲", "▶"][i]!));
       else if (FINE_POINTER) card.append(el("div", "card-key", String(i + 1)));
       // Ignore taps right after the screen appears so a walking thumb doesn't pick by accident.
