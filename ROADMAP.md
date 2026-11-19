@@ -106,6 +106,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   already survived credit the current hero. campsim ch1 100% (bot has no skills).
 
 ## Shipped (newest first)
+- Run history: last 20 runs (chapter/daily/endless, hero, nights, kills, gold) with win rate, under Records on Trophies (test).
 - Hero skill trees: XP from nights survived, 3 branches × 3 skills per hero, Heroes tab panel, end-screen notice (tests).
 - Endless milestones: one-time gold for every 5 nights held, next-target line on the Endless card (test).
 - Quests slice 2: "📜 Quest complete" toast mid-run; end screen says how many quests are ready to claim.

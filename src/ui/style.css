@@ -1083,3 +1083,14 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs-node.just { animation: lgs-pop 0.45s ease-out; }
 @keyframes lgs-pop { 0% { transform: scale(0.85); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
 .lgs-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.75em; color: #a8b0cc; }
+
+/* Recent runs (Trophies tab). */
+.lgh-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.lgh-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14, 22, 48, 0.8); border-left: 4px solid #c85a5a; }
+.lgh-row.won { border-left-color: #6ad46a; }
+.lgh-where { font-weight: 800; font-size: 0.86em; color: #fff; }
+.lgh-sub { font-size: 0.72em; color: #a8b0cc; }
+.lgh-right { text-align: right; flex-shrink: 0; }
+.lgh-result { font-weight: 800; font-size: 0.8em; color: #ff9a9a; }
+.lgh-row.won .lgh-result { color: #8aef8a; }
+.lgh-gold { font-size: 0.75em; color: #ffd76a; font-weight: 700; }

@@ -1,5 +1,6 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
+import { sanitizeHistory, type RunRecord } from "./history";
 import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
 import { newHeroProgress, sanitizeHeroProgress, skillPoints, type HeroProgress } from "./skills";
 
@@ -63,10 +64,12 @@ export interface SaveData {
   quests: QuestState;
   /** Per-hero XP (nights survived) and learned skills. */
   heroes: Record<HeroId, HeroProgress>;
+  /** Recent runs, newest first (see history.ts). */
+  history: RunRecord[];
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress() };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [] };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -94,6 +97,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stats))) d.stats[k] = Math.max(0, Math.floor(num(v, 0)));
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
+  d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
   d.heroes = sanitizeHeroProgress(rawHeroes);
   // Saves from before skill trees: the nights already survived count for the current hero.

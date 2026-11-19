@@ -17,6 +17,7 @@ import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
 import { campBotInput, campBotPick, campBotStep } from "./bot";
 import { HERO_BY_ID } from "../core/heroes";
 import { learnSkill, resetSkills } from "../core/skills";
+import { pushHistory, type RunRecord } from "../core/history";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
@@ -351,13 +352,15 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   // Nights held go to the hero as skill-tree XP.
   const heroId = dailyRun ? dailyRun.hero : save.hero;
   const pts = grantHeroXp(save, heroId, nightsThisRun);
+  const rec = { date: todayString(), hero: heroId, won, nights: nightsThisRun, kills: c.kills, minutes: Math.round((c.time / 60) * 10) / 10 };
   newSkillPoints = pts > 0 ? { hero: HERO_BY_ID[heroId].name, n: pts } : null;
   nightsThisRun = 0;
-  if (dailyRun) return finishDaily(c, won, abandoned, dailyRun);
+  if (dailyRun) return finishDaily(c, won, abandoned, dailyRun, rec);
   const prevBest = save.best[c.chapter.id] ?? 0;
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
   const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD) });
+  pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
   writeSave(save);
   if (abandoned) {
     goHub("battle");
@@ -382,7 +385,7 @@ function nextChapter(won: boolean, id: number): { name: string; go: () => void }
   return { name: nxt.name, go: () => newRun(nxt.id) };
 }
 /** Daily runs pay gold (plus a once-a-day victory bonus) but don't touch campaign stars or records. */
-function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChallenge) {
+function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChallenge, rec: Omit<RunRecord, "chapter" | "gold">) {
   // A run started on yesterday's daily that ends after midnight still pays, but can't touch today's record.
   const stale = save.daily.date > d.date;
   if (!stale && save.daily.date !== d.date) save.daily = { date: d.date, best: 0, won: false };
@@ -399,6 +402,7 @@ function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChalleng
   const reward = { gold: loot + waveBonus + winBonus, waveBonus, winBonus, stars: 0, newStars: 0, firstClear: false, unlockedHeroes: [] };
   save.gold += reward.gold;
   save.stats.goldEarned = (save.stats.goldEarned ?? 0) + reward.gold;
+  pushHistory(save.history, { ...rec, chapter: d.chapterId, gold: reward.gold, daily: true });
   save.runs += 1;
   if (won) save.wins += 1;
   writeSave(save);

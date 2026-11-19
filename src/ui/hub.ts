@@ -7,6 +7,7 @@ import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
+import { historySummary } from "../core/history";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
 import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
@@ -404,6 +405,30 @@ export class Hub {
       grid.append(cell);
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
+    this.historySection(body, save);
+  }
+
+  /** The last few runs, newest first, with a win-rate line. */
+  private historySection(body: HTMLElement, save: SaveData): void {
+    const list = save.history;
+    if (!list.length) return;
+    const sum = historySummary(list);
+    const head = el("div", "hub-hint lgq-head");
+    head.append(el("span", "", "Recent runs"), el("span", "lgq-reset", `${sum.wins} won of the last ${sum.runs} · ${Math.round((sum.wins / sum.runs) * 100)}%`));
+    body.append(head);
+    const box = el("div", "lgh-list");
+    for (const r of list) {
+      const row = el("div", `lgh-row${r.won ? " won" : ""}`);
+      const ch = CHAPTER_BY_ID[r.chapter];
+      const where = r.daily ? `📅 Daily · ${ch?.name ?? "?"}` : r.chapter === ENDLESS.id ? "♾️ Endless" : `Ch ${r.chapter} · ${ch?.name ?? "?"}`;
+      const left = el("div", "lgh-left");
+      left.append(el("div", "lgh-where", where), el("div", "lgh-sub", `${HERO_BY_ID[r.hero].name} · ${r.nights} night${r.nights === 1 ? "" : "s"} · ${r.kills.toLocaleString()} slain`));
+      const right = el("div", "lgh-right");
+      right.append(el("div", "lgh-result", r.won ? "✔ Won" : r.chapter === ENDLESS.id ? `Night ${r.nights}` : "✖ Fell"), el("div", "lgh-gold", `+${r.gold.toLocaleString()} ●`));
+      row.append(left, right);
+      box.append(row);
+    }
+    body.append(box);
   }
 
   private heroesTab(body: HTMLElement, save: SaveData): void {

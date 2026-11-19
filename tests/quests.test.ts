@@ -78,3 +78,17 @@ describe("endless milestones", async () => {
     expect(applyRun(s, { chapter: 2, won: true, wave: 10, gateFrac: 1, goldFromKills: 0 }).milestoneBonus).toBe(0);
   });
 });
+
+describe("run history", async () => {
+  const { pushHistory, sanitizeHistory, HISTORY_MAX } = await import("../src/core/history");
+  it("keeps the newest runs, capped, and sanitizes", () => {
+    const list: import("../src/core/history").RunRecord[] = [];
+    for (let i = 0; i < 25; i++) pushHistory(list, { date: "2026-11-19", chapter: 1, hero: "ranger", won: i % 2 === 0, nights: i, kills: 10, gold: 5, minutes: 3 });
+    expect(list.length).toBe(HISTORY_MAX);
+    expect(list[0]!.nights).toBe(24);
+    const clean = sanitizeHistory([...list, { hero: "nobody", chapter: 1 }, null, { hero: "pyro", chapter: 2, kills: -5, gold: "x" }]);
+    expect(clean.length).toBe(HISTORY_MAX);
+    expect(sanitizeHistory([{ hero: "pyro", chapter: 2, kills: -5, gold: "x", daily: true }])[0]).toMatchObject({ kills: 0, gold: 0, daily: true, won: false });
+    expect(sanitizeHistory("junk")).toEqual([]);
+  });
+});
