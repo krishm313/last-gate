@@ -86,7 +86,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   3.2 s — towers are encased in ice with a "FROZEN!" pop. Cold halo + rising ice motes around it.
   Hub shows ❄️ boss. campsim ch6 @L10 75%; ch1 still 100%.
 
+- **Quests** (Phase 3, slice 1) — 3 daily quests (rotate at local midnight) + 1 weekly (Mondays),
+  picked from the date so every device agrees. Each tracks a lifetime stat from the moment it's
+  handed out (kills, nights, bosses, towers, logs, bows, flawless nights, gold earned, wins);
+  rewards 50–100 / 400–500 gold, +25% per chapter cleared. Shown at the top of Trophies (blue edge
+  daily, gold edge weekly, reset timer), claim with the usual coin burst; counted in the tab badge.
+  Next slices: quest progress on the end-of-run screen; "quest done!" toast in a run.
+
 ## Shipped (newest first)
+- Daily & weekly quests on the Trophies tab (rotate by date, claim for gold; save migration + tests).
 - Frostpeak scenery: snow-laden pines, frosted round trees, snowy rocks/bushes (winter prop atlas), bare winter trees, no butterflies in the snow.
 - The Frost Wyrm: new ch6 boss with a 2nd phase — frost nova freezes towers in ice (sprite, shards, nova fx, test).
 - Chapter 6 "Frostpeak Pass": snowy ground, falling snow, foggy/stormy nights, new achievement (tests).
@@ -112,3 +120,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   night (lightning was invisible until moved above the darkness); (2) cards clip their edges — badges
   go inside; (3) the auto-player buys the cheapest plot, so pricey new buildings (Mage) rarely get
   measured — fine while they're optional extras.
+- **2026-11-19 10:37** — deploys 86–90 green (chapter 6, Frost Wyrm, scenery). Phase 2 complete.
+  Found and fixed a hidden trap: per-chapter camp HP table silently defaulted new chapters to ×1
+  (ch6 was trivially easy) — now test-guarded. Lesson: when a chapter "feels" off in campsim, diff
+  it against a clone of a known chapter with only the id changed.

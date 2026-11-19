@@ -6,6 +6,7 @@ import { DAILY_BONUS, dailyFor, liveDailyStreak, timeToNextDaily, todayString } 
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
+import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
 import { canBuy, chapterUnlocked, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
 import { CAMP_HEROES } from "../camp/meta";
@@ -33,6 +34,10 @@ export interface HubCallbacks {
   onBuy: (permId: string) => void;
   onReset: () => void;
   onClaim: (id: string) => void;
+  /** Claimed a finished daily / weekly quest. */
+  onClaimQuest: (id: string) => void;
+  /** New quests were handed out (the save should be written). */
+  onQuestsChanged?: () => void;
   onSettings: () => void;
   /** Tapped something locked or unaffordable (plays a soft "nope"). */
   onDenied?: () => void;
@@ -121,6 +126,7 @@ export class Hub {
 
   showHub(save: SaveData, tab: Tab = this.tab): void {
     this.tab = tab;
+    if (refreshQuests(save)) this.cb.onQuestsChanged?.();
     const wrap = el("div", "hub");
     const head = el("div", "hub-head");
     const titleRow = el("div", "hub-title-row");
@@ -131,7 +137,7 @@ export class Hub {
     head.append(res);
     wrap.append(head);
     const tabs = el("div", "tabs");
-    const ready = claimable(save).length;
+    const ready = claimable(save).length + questsReady(save);
     for (const [id, label] of [["battle", "⚔️"], ["heroes", "🛡️"], ["armory", "🔨"], ["trophies", "🏆"]] as const) {
       const names = { battle: "Battle", heroes: "Heroes", armory: "Armory", trophies: "Trophies" };
       const t = this.button(`${label} ${names[id]}`, `tab${id === tab ? " active" : ""}`, () => this.showHub(save, id));
@@ -284,6 +290,40 @@ export class Hub {
     return card;
   }
 
+  /** Daily and weekly quests (top of the Trophies tab). */
+  private questsSection(body: HTMLElement, save: SaveData): void {
+    const views = questViews(save);
+    if (!views.length) return;
+    const head = el("div", "hub-hint lgq-head");
+    head.append(el("span", "", "Quests"), el("span", "lgq-reset", `New daily quests in ${timeToNextDaily()}`));
+    body.append(head);
+    for (const v of views) {
+      const row = el("div", `trophy lgq${v.weekly ? " lgq-weekly" : ""}${v.slot.claimed ? " claimed" : v.done ? " ready" : ""}`);
+      const info = el("div", "trophy-info");
+      const bar = el("div", "trophy-bar");
+      const fill = el("div", "trophy-fill");
+      fill.style.width = `${(v.progress / v.def.goal) * 100}%`;
+      bar.append(fill, el("div", "trophy-num", `${v.progress.toLocaleString()} / ${v.def.goal.toLocaleString()}`));
+      info.append(el("div", "trophy-name", v.weekly ? "Weekly quest" : "Daily quest"), el("div", "trophy-desc", v.def.desc), bar);
+      const right = el("div", "trophy-right");
+      if (v.slot.claimed) right.append(el("div", "trophy-done", "✔"));
+      else if (v.done)
+        right.append(
+          this.button(`● ${v.reward}`, "btn btn-claim", () => {
+            this.justClaimed = { id: `q:${v.slot.id}`, reward: v.reward };
+            this.cb.onClaimQuest(v.slot.id);
+          }),
+        );
+      else right.append(el("div", "trophy-reward", `● ${v.reward}`));
+      if (this.justClaimed?.id === `q:${v.slot.id}`) {
+        row.classList.add("just");
+        row.append(el("div", "trophy-gain", `+${this.justClaimed.reward}`));
+      }
+      row.append(el("div", "trophy-icon", v.def.icon), info, right);
+      body.append(row);
+    }
+  }
+
   private trophiesTab(body: HTMLElement, save: SaveData): void {
     const earned = save.claimed.length;
     const summary = el("div", "trophy-summary");
@@ -292,7 +332,9 @@ export class Hub {
     fill.style.width = `${(earned / ACHIEVEMENTS.length) * 100}%`;
     bar.append(fill, el("div", "trophy-num", `${earned} / ${ACHIEVEMENTS.length} earned`));
     summary.append(el("div", "trophy-summary-icon", "🏆"), bar);
-    body.append(summary, el("div", "hub-hint", "Achievements — claim them for gold."));
+    body.append(summary);
+    this.questsSection(body, save);
+    body.append(el("div", "hub-hint", "Achievements — claim them for gold."));
     const rank = (a: (typeof ACHIEVEMENTS)[number]) => {
       const f = Math.min(1, a.progress(save) / a.goal);
       // The row just claimed stays at the top for this render so the celebration is visible.

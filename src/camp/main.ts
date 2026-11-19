@@ -15,6 +15,7 @@ import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
 import { campBotInput, campBotPick, campBotStep } from "./bot";
+import { claimQuest } from "../core/quests";
 import { claim, claimable } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
 import { buzz, loadSettings, saveSettings } from "../ui/settings";
@@ -99,6 +100,14 @@ const hub = new Hub(uiRoot, {
     }
     hub.showHub(save, "trophies");
   },
+  onClaimQuest: (id) => {
+    if (claimQuest(save, id) > 0) {
+      writeSave(save);
+      sfx.built();
+    }
+    hub.showHub(save, "trophies");
+  },
+  onQuestsChanged: () => writeSave(save),
   onSettings: () => showMenuSettings(),
   onReset: () => {
     save = resetSave();
@@ -367,7 +376,9 @@ function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChalleng
   const loot = Math.round(c.goldEarned * LOOT_TO_GOLD);
   const reward = { gold: loot + waveBonus + winBonus, waveBonus, winBonus, stars: 0, newStars: 0, firstClear: false, unlockedHeroes: [] };
   save.gold += reward.gold;
+  save.stats.goldEarned = (save.stats.goldEarned ?? 0) + reward.gold;
   save.runs += 1;
+  if (won) save.wins += 1;
   writeSave(save);
   dailyRun = null;
   if (abandoned) {

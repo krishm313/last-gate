@@ -12,6 +12,7 @@ const callbacks = (over: Partial<HubCallbacks> = {}): HubCallbacks => ({
   onBuy: noop,
   onReset: noop,
   onClaim: noop,
+  onClaimQuest: noop,
   onSettings: noop,
   ...over,
 });

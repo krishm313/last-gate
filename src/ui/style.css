@@ -1049,3 +1049,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 }
 @keyframes combo-pulse { 50% { box-shadow: 0 0 calc(14 * var(--u)) #ffd84a; } }
 @media (prefers-reduced-motion: reduce) { .card .card-combo { animation: none; } }
+
+/* Daily / weekly quests (Trophies tab). */
+.lgq-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lgq-reset { font-size: 0.78em; opacity: 0.75; font-weight: 600; }
+.trophy.lgq { border-left: 4px solid #6ab0ff; }
+.trophy.lgq-weekly { border-left-color: #ffc93a; }
+.trophy.lgq-weekly .trophy-name { color: #ffd76a; opacity: 1; }
+.trophy.lgq .trophy-name { font-size: 0.72em; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+.trophy.lgq .trophy-desc { font-size: 1.02em; font-weight: 700; opacity: 1; }

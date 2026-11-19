@@ -1,5 +1,6 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
+import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
 
 /** Permanent upgrades bought with gold between runs. */
 export interface PermDef {
@@ -57,10 +58,12 @@ export interface SaveData {
   stats: Record<string, number>;
   /** Achievement ids already claimed. */
   claimed: string[];
+  /** Daily / weekly quests handed out (see quests.ts). */
+  quests: QuestState;
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [] };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState() };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -88,6 +91,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stats))) d.stats[k] = Math.max(0, Math.floor(num(v, 0)));
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
+  d.quests = sanitizeQuests((r as { quests?: unknown }).quests);
   if (dl && typeof dl.date === "string") d.daily = { date: dl.date, best: Math.max(0, Math.floor(num(dl.best, 0))), won: dl.won === true };
   return d;
 }
@@ -158,6 +162,7 @@ export function applyRun(s: SaveData, r: RunResult): RunReward {
   s.best[r.chapter] = Math.max(s.best[r.chapter] ?? 0, r.wave);
   const gold = r.goldFromKills + waveBonus + winBonus;
   s.gold += gold;
+  s.stats.goldEarned = (s.stats.goldEarned ?? 0) + gold;
   s.runs += 1;
   if (r.won) s.wins += 1;
   s.lastChapter = r.chapter;
