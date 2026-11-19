@@ -251,6 +251,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Bestiary: tap a slain foe for its card — portrait, traits, health / speed / hit / coins, and the chapters it marches in; Back returns to the grid. Checked on SE.
 - In-run: the first kill of each foe kind shows "📖 New in the Bestiary: <name>" (bosses keep their own defeat banner), tying the Bestiary to play.
 - Bestiary slice 2: "📖 Bestiary · N / 29" in the Trophies tab — painted portraits (emoji for flyers and bosses), names and up to two traits; foes not yet slain are "???" tiles; bosses get a red tile. Checked on SE, normal + Large text.
 - Bestiary slice 1: each foe kind's first kill is tracked (met_<id>; the 4 late bosses also count from their older kill stats) and a 📖 "Scholar of War" trophy (slay every kind of foe, 29) shows progress (test). UI next.

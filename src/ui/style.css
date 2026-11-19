@@ -1171,3 +1171,14 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgb-art img { height: 100%; width: auto; image-rendering: auto; filter: drop-shadow(0 calc(2 * var(--u)) 0 #1d1208); }
 .lgb-name { font-weight: 900; font-size: calc(11 * var(--tu)); line-height: 1.15; margin-top: calc(3 * var(--u)); }
 .lgb-traits { font-size: calc(8.5 * var(--tu)); opacity: 0.75; line-height: 1.2; margin-top: calc(2 * var(--u)); }
+.lgb-tile.lgb-tap { cursor: pointer; }
+.lgb-tile.lgb-tap:active { transform: scale(0.96); }
+.lgb-sheet { max-width: calc(330 * var(--u)); }
+.lgb-sheet-art { height: calc(84 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(52 * var(--tu)); }
+.lgb-sheet-art img { height: 100%; width: auto; filter: drop-shadow(0 calc(3 * var(--u)) 0 #1d1208); }
+.lgb-sheet-name { font-size: calc(26 * var(--tu)); }
+.lgb-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(5 * var(--u)); margin: calc(6 * var(--u)) 0; }
+.lgb-stat { background: #00000033; border-radius: calc(10 * var(--u)); padding: calc(5 * var(--u)) calc(2 * var(--u)); }
+.lgb-stat-v { font-weight: 900; font-size: calc(13 * var(--tu)); }
+.lgb-stat-l { font-size: calc(9 * var(--tu)); opacity: 0.75; }
+.lgb-where { font-size: calc(12 * var(--tu)); }

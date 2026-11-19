@@ -567,6 +567,38 @@ export class Hub {
     this.endlessTopSection(body, save);
   }
 
+  /** A slain foe's full entry: stats, traits and where it marches. */
+  private foeSheet(save: SaveData, id: keyof typeof ENEMIES): void {
+    const d = ENEMIES[id];
+    const box = el("div", "panel pop-in lgb-sheet");
+    const art = el("div", "lgb-sheet-art");
+    const pic = FOE_PORTRAIT[id];
+    if (pic) {
+      const img = document.createElement("img");
+      img.src = `./sprites/portraits/${pic}.png`;
+      img.alt = "";
+      art.append(img);
+    } else art.textContent = FOE_EMOJI[id] ?? "👹";
+    box.append(art, el("h1", "title lgb-sheet-name", d.name));
+    const traits = enemyTraits(d);
+    if (traits.length) box.append(el("p", "sub", traits.join(" · ")));
+    const stats = el("div", "lgb-stats");
+    for (const [icon, label, v] of [["❤️", "Health", String(d.hp)], ["👣", "Speed", String(d.speed)], ["💥", "Hits for", String(d.gateDamage)], ["🪙", "Coins", String(d.gold)]] as const) {
+      const c = el("div", "lgb-stat");
+      c.append(el("div", "lgb-stat-v", `${icon} ${v}`), el("div", "lgb-stat-l", label));
+      stats.append(c);
+    }
+    box.append(stats);
+    const where = CHAPTERS.filter((ch) => ch.waves.some((w) => (w.mix as Record<string, number>)[id] || w.boss === id || w.intro === id)).map((ch) => ch.name);
+    box.append(el("p", "sub lgb-where", where.length ? `Marches in: ${where.join(", ")}` : "Turns up anywhere"));
+    const back = this.button("Back", "btn", () => {
+      this.showHub(save, "trophies");
+      this.overlay.querySelector(".lgb-grid")?.scrollIntoView({ block: "center" });
+    });
+    box.append(back);
+    this.show(box);
+  }
+
   /** Bestiary: every kind of foe, revealed once you've slain one. */
   private bestiarySection(body: HTMLElement, save: SaveData): void {
     const ids = Object.keys(ENEMIES) as (keyof typeof ENEMIES)[];
@@ -585,7 +617,14 @@ export class Hub {
         art.append(img);
       } else art.textContent = met ? FOE_EMOJI[id] ?? "👹" : "❔";
       tile.append(art, el("div", "lgb-name", met ? d.name.replace(/^The /, "") : "???"));
-      if (met) tile.append(el("div", "lgb-traits", enemyTraits(d).slice(0, 2).join(" · ")));
+      if (met) {
+        tile.append(el("div", "lgb-traits", enemyTraits(d).slice(0, 2).join(" · ")));
+        tile.classList.add("lgb-tap");
+        tile.onclick = () => {
+          this.cb.onClick();
+          this.foeSheet(save, id);
+        };
+      }
       grid.append(tile);
     }
     body.append(grid);
