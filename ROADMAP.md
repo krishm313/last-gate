@@ -210,6 +210,16 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   increase — a test caught it after I'd pushed 3.8: always rerun tests after a late balance tweak).
   campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
 
+- **Balance snapshot** (campsim, 10 runs each, classic+explorer bot mix):
+
+  | Chapter | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+  |---|---|---|---|---|---|---|---|---|
+  | perms L5 | 100% | 100% | 100% | 60% | 0% | 20% | 0% | 0% |
+  | perms L10 | 100% | 100% | 100% | 100% | 70% | 70% | 40% | 40% |
+
+  A clean staircase: early chapters are learnable, 5+ need upgrades, 7–8 are the endgame. ch5 @L5 dips
+  below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
+
 ## Shipped (newest first)
 - Loss tips cover the newer threats: buildings left burning (Fire Imps), towers stunned often (War Ravens), Tunnelers surfacing with no Barracks — from new run counters.
 - Hero skill capstones: 3 more skill points (280 / 340 / 400 nights) and a tier-4 skill per branch — Executioner (+20% vs bosses), Bulwark (hall takes −15%), Midas (+15% coins) (test).
