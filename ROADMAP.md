@@ -402,3 +402,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Bloodmoon Moors slices 1–2 (map, mood, balance L10 42%, moor props). 154 tests. Lessons: blend hues
   the short way round the wheel (the first ground recolour went green); chapter affix text must only
   promise what's built (caught "more elites" before shipping).
+- **2026-11-19 19:41** — deploys 174–183 all green. This hour: Blood Moon Warlord (first try 0% at
+  L10 → bossHpMult 0.7 → 50%), fanfare for ch8/9, blood-moon loss tip, How to play line, ch9 Hard +
+  pause + SE list checks, Seafoam / Blood Moon flairs, Kingslayer / Stone Hall / Last Bastion
+  (kept out of dailies), What's-new 19c. 156 tests. Lessons: re-run campsim after swapping a
+  placeholder boss — boss HP stacks with the chapter's HP scale; screenshot hacks that replace UI
+  state after it renders don't work — drive the real flow (rerolls) instead.
