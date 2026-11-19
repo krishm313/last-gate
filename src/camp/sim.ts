@@ -1,5 +1,5 @@
 import { CHAPTERS } from "../core/chapters";
-import { ENEMIES, type EnemyDef } from "../core/enemies";
+import { ENEMIES, type EnemyDef, type EnemyId } from "../core/enemies";
 import { chance, createRng, range, type Rng } from "../core/rng";
 import { enemyHp, planWave, type ChapterDef, type Spawn } from "../core/waves";
 import type { AbilityId } from "../core/heroes";
@@ -355,6 +355,7 @@ export type CampEvent =
   | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
   | { type: "lance"; x: number; y: number; x2: number; y2: number; n: number }
   | { type: "noTarget"; x: number; y: number; text?: string }
+  | { type: "deploy"; id: EnemyId; lane: number; count: number }
   | { type: "sanctuary"; x: number; y: number; healed: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
@@ -435,6 +436,8 @@ export interface Camp {
   eliteChance: number;
   tideEvery: number;
   classicBlessings: boolean;
+  /** Siege Lord state (null in a normal run). */
+  reverse: ReverseState | null;
   tideTimer: number;
   heroLevel: number;
   heroXp: number;
@@ -480,6 +483,55 @@ export interface Ally {
 }
 
 export const BARRACKS = { x: 620, y: 715 };
+/**
+ * Siege Lord (reverse mode): the player commands the horde. Each "push" lasts REVERSE.push seconds;
+ * between pushes the defenders get their usual build phase. Take the hall within REVERSE.pushes.
+ */
+export const REVERSE = { push: 45, pushes: 8, startChest: 20, income: 4, cap: 80, wallBounty: 10, unitHp: 1.4 };
+/** War cards: what a card sends, how many, and its cost from the War Chest. */
+export const WAR_CARDS: { id: EnemyId; count: number; cost: number }[] = [
+  { id: "footman", count: 3, cost: 3 },
+  { id: "runner", count: 3, cost: 3 },
+  { id: "shield", count: 2, cost: 4 },
+  { id: "crossbow", count: 2, cost: 4 },
+  { id: "brute", count: 1, cost: 4 },
+  { id: "bat", count: 3, cost: 4 },
+  { id: "sapper", count: 1, cost: 5 },
+  { id: "ram", count: 1, cost: 7 },
+];
+/** The three sieges: the defenders' upgrade level and hero rise (campaign bot plays them). */
+export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" }[] = [
+  { name: "Raid on the Border Keep", chapter: 1, perm: 0, hero: "ranger" },
+  { name: "The Keep Stands Ready", chapter: 1, perm: 2, hero: "ranger" },
+  { name: "The Captain's Last Stand", chapter: 1, perm: 3, hero: "knight" },
+];
+/** Stars for a taken hall: by push 8 / 6 / 4. */
+export function siegeStars(push: number): number {
+  return push <= 4 ? 3 : push <= 6 ? 2 : push <= REVERSE.pushes ? 1 : 0;
+}
+/** Lane x positions where the horde can be sent in (left, middle, right). */
+export const LANES_X = [MAP_W * 0.2, MAP_W * 0.5, MAP_W * 0.8];
+export interface ReverseState {
+  chest: number;
+  /** Set when the siege ends: the player took the hall ("win") or ran out of pushes ("lose"). */
+  result: "win" | "lose" | null;
+  deployed: number;
+  broken: number;
+}
+
+/** Siege Lord: send a war card down a lane. Returns false if it can't be afforded or it isn't a push. */
+export function deploy(c: Camp, id: EnemyId, lane: number): boolean {
+  const r = c.reverse;
+  const card = WAR_CARDS.find((k) => k.id === id);
+  if (!r || !card || c.phase !== "wave" || r.chest < card.cost) return false;
+  r.chest -= card.cost;
+  const x = LANES_X[Math.max(0, Math.min(2, Math.floor(lane)))]!;
+  for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp, lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
+  r.deployed += card.count;
+  c.events.push({ type: "deploy", id, lane, count: card.count });
+  return true;
+}
+
 /** The Cleric's Sanctuary: share of max HP restored to the hall and to each standing wall section. */
 export const SANCTUARY = { hall: 0.05, wall: 0.12 };
 /** The Lancer's Piercing Lance: a line this long and this wide (plus the foe's radius). */
@@ -533,6 +585,8 @@ export interface CampSetup {
   startBlessings?: string[];
   /** Daily runs: offer only the classic blessing pool (keeps a day's offers the same for everyone). */
   classicBlessings?: boolean;
+  /** Siege Lord (reverse mode): the player sends the horde; the defence is played by the bot. */
+  reverse?: boolean;
 }
 
 export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, setup: CampSetup = {}): Camp {
@@ -618,6 +672,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     eliteChance: setup.eliteChance ?? 0,
     tideEvery: setup.tideEvery ?? 0,
     classicBlessings: setup.classicBlessings ?? false,
+    reverse: setup.reverse ? { chest: REVERSE.startChest, result: null, deployed: 0, broken: 0 } : null,
     tideTimer: setup.tideEvery ?? 0,
     heroLevel: 1,
     heroXp: 0,
@@ -1443,6 +1498,7 @@ function damageWall(c: Camp, seg: number, raw: number): void {
   if (s.hp <= 0) {
     c.runStats.breaches += 1;
     c.events.push({ type: "wallBreak", seg, x, y: WALL_Y });
+    if (c.reverse) { c.reverse.chest = Math.min(REVERSE.cap, c.reverse.chest + REVERSE.wallBounty); c.reverse.broken += 1; }
   }
 }
 
@@ -2121,7 +2177,7 @@ function startWave(c: Camp): void {
   c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather, c.chapter.weatherOdds);
   c.stormTimer = WEATHER.storm.every;
   const plan = planWave(c.chapter, c.wave, c.seed);
-  c.queue = plan.spawns.slice();
+  c.queue = c.reverse ? [] : plan.spawns.slice();
   c.waveTime = 0;
   c.phase = "wave";
   c.events.push({
@@ -2147,7 +2203,8 @@ export function step(c: Camp, input: CampInput): void {
   } else {
     c.waveTime += STEP;
     while (c.queue.length && c.queue[0]!.at <= c.waveTime) spawnEnemy(c, c.queue.shift()!);
-    if (c.waveTime >= 6 && c.waveTime - STEP < 6) maybeSpawnThief(c);
+    if (c.reverse) c.reverse.chest = Math.min(REVERSE.cap, c.reverse.chest + REVERSE.income * STEP);
+    else if (c.waveTime >= 6 && c.waveTime - STEP < 6) maybeSpawnThief(c);
     if (c.abilityCharge < 1) {
       c.abilityCharge = Math.min(1, c.abilityCharge + STEP / c.abilityCooldown);
       if (c.abilityCharge >= 1) c.events.push({ type: "abilityReady" });
@@ -2182,7 +2239,31 @@ export function step(c: Camp, input: CampInput): void {
   if (c.hallHp <= 0) {
     c.hallHp = 0;
     c.phase = "lost";
+    if (c.reverse) c.reverse.result = "win"; // Siege Lord: the hall fell — the horde wins
     c.events.push({ type: "lost" });
+    return;
+  }
+  // Siege Lord: one continuous siege. Every REVERSE.push seconds the next push begins (your horde
+  // stays on the field; the defenders' buildings unlock as usual); after the last push, the defenders win.
+  if (c.reverse) {
+    if (c.phase === "wave" && c.waveTime >= REVERSE.push) {
+      if (c.wave >= REVERSE.pushes) {
+        c.phase = "won";
+        c.reverse.result = "lose";
+        c.events.push({ type: "won" });
+        return;
+      }
+      c.wave += 1;
+      c.waveTime = 0;
+      c.incomePile += 4 + c.wave; // the defenders' between-push income
+      for (const p of c.plots) {
+        if (p.locked && p.unlockWave && c.wave >= p.unlockWave) {
+          p.locked = false;
+          c.events.push({ type: "plotUnlocked", label: p.label, x: p.x, y: p.y });
+        }
+      }
+      c.events.push({ type: "waveStart", wave: c.wave, breather: false, weather: c.weather, boss: null, intro: null });
+    }
     return;
   }
   if (c.phase === "wave" && c.queue.length === 0 && c.enemies.length === 0) {
