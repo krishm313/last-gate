@@ -929,7 +929,7 @@ export class Hub {
     // Let the final moment (fireworks on a win) play before the panel covers it.
     setTimeout(() => {
       this.show(box);
-      if (r.won || (r.endless && r.record)) this.overlay.append(confetti());
+      if (r.won || (r.endless && r.record)) this.overlay.append(confetti(r.chapterId));
     }, r.won ? 2000 : 900);
   }
 
@@ -1126,9 +1126,22 @@ export function upgradeText(now: string, next: string): string {
 }
 
 /** A one-shot confetti shower behind the victory panel (CSS-only; hidden under reduced motion). */
-function confetti(): HTMLElement {
+/** Confetti colours per chapter, so each victory feels like that land (gold + white in every mix). */
+const CONFETTI_COLORS: Record<number, string[]> = {
+  1: ["#ffd84a", "#5ec43a", "#9be36a", "#4a9cff", "#ff7a2a", "#ffffff"], // Border Keep: meadow
+  2: ["#ffd84a", "#7bbf3a", "#3f9a6a", "#b8d86a", "#c9a24a", "#ffffff"], // Goblin Marsh: bog greens
+  3: ["#ffd84a", "#c0c6cf", "#8a96a6", "#ff7a2a", "#5a7cb8", "#ffffff"], // Iron Road: steel + sparks
+  4: ["#ffd84a", "#9a6cff", "#5a4ab8", "#ff5a8a", "#6ad0ff", "#ffffff"], // Hollow Night: violet
+  5: ["#ffd84a", "#ff4a3a", "#ffb02a", "#c9a24a", "#ff7a2a", "#ffffff"], // The Last Gate: royal fire
+  6: ["#ffd84a", "#bfe8ff", "#6ad0ff", "#4a9cff", "#e8f6ff", "#ffffff"], // Frostpeak: ice
+  7: ["#ffd84a", "#ff5a2a", "#ff9a2a", "#ffcf4a", "#b03a2a", "#ffffff"], // Ashen Caldera: embers
+  8: ["#ffd84a", "#3ac9b8", "#2a8ac9", "#7be3d0", "#5a6cff", "#ffffff"], // Sunken Citadel: tide
+};
+const CONFETTI_DEFAULT = ["#ffd84a", "#ff7a2a", "#5ec43a", "#4a9cff", "#ff5a8a", "#ffffff"];
+
+function confetti(chapterId = 0): HTMLElement {
   const layer = el("div", "confetti");
-  const colors = ["#ffd84a", "#ff7a2a", "#5ec43a", "#4a9cff", "#ff5a8a", "#ffffff"];
+  const colors = CONFETTI_COLORS[chapterId] ?? CONFETTI_DEFAULT;
   for (let i = 0; i < 42; i++) {
     // Golden-ratio spread: even coverage without randomness.
     const f = (i * 0.618034) % 1;

@@ -221,6 +221,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Victory confetti is tinted per chapter (meadow greens, bog, steel sparks, violet, royal fire, ice, embers, tide); Endless keeps the rainbow mix.
 - Settings: "↺ Replay tutorial & hints" brings the tutorial and coachmark bubbles back; Reset progress now also clears the hint and seen-heroes flags.
 - Endless: this week's twist icon on the in-run night label ("NIGHT 1 · ENDLESS 👑").
 - One-time "What's new" card on the Battle tab for returning players (chapters 6–8, the Warden, skill trees & flair, Hard/Nightmare, quests & Endless twists, new buildings); "Let's go!" dismisses it for good.
