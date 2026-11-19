@@ -96,6 +96,10 @@ export interface Enemy {
   /** Elite modifier (if any) and the Shielded elite's remaining shield. */
   elite?: EliteMod;
   shield?: number;
+  /** Rallied by a Warlord's war cry for this many more seconds. */
+  warcry?: number;
+  /** Seconds until the boss's next phase-2 move. */
+  phaseTimer?: number;
   /** Frost Wyrm: seconds until the next frost nova (phase 2). */
   novaTimer?: number;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
@@ -300,6 +304,10 @@ export type CampEvent =
   | { type: "frostNova"; x: number; y: number; r: number }
   | { type: "eliteSpawn"; x: number; y: number; mod: EliteMod; name: string }
   | { type: "shieldBreak"; x: number; y: number }
+  | { type: "bossSlam"; x: number; y: number; r: number }
+  | { type: "warcry"; x: number; y: number; r: number }
+  | { type: "curse"; x: number; y: number; r: number }
+  | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
@@ -373,6 +381,8 @@ export interface Camp {
   coins: Coin[];
   arrows: Arrow[];
   bolts: Bolt[];
+  /** Boulders lobbed by the Siege Golem (phase 2): land on a tower and stun it. */
+  lobs: { x: number; y: number; plot: string; t: number; dur: number; stun: number }[];
   incomePile: number;
   incomeTimer: number;
   /** Royal courier: time banked toward the next coin sent from the hall's pile to the King. */
@@ -534,6 +544,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     coins: [],
     arrows: [],
     bolts: [],
+    lobs: [],
     incomePile: 6,
     incomeTimer: 0,
     courierTimer: 0,
@@ -1317,6 +1328,12 @@ function enemyAbilities(c: Camp, e: Enemy): void {
   if (def.boss && !e.enraged && e.hp < e.maxHp * 0.5) {
     e.enraged = true;
     c.events.push({ type: "enrage", x: e.x, y: e.y, name: def.name });
+    if (def.phase2?.kind === "curse") {
+      // The Hag's curse: every foe near her is mended at once as she turns.
+      const p2 = def.phase2;
+      for (const o of c.enemies) if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 <= p2.radius ** 2) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * p2.power);
+      c.events.push({ type: "curse", x: e.x, y: e.y, r: p2.radius });
+    }
   }
   if (def.regen) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * def.regen * STEP);
   if (e.y < 0 || e.stunTime > 0) return;
@@ -1345,6 +1362,15 @@ function enemyAbilities(c: Camp, e: Enemy): void {
       c.events.push({ type: "summon", x: e.x, y: e.y });
     }
   }
+  // Second phase moves of the original bosses.
+  const p2 = def.phase2;
+  if (p2 && e.enraged && p2.every > 0) {
+    e.phaseTimer = (e.phaseTimer ?? 1.5) - STEP;
+    if (e.phaseTimer <= 0) {
+      e.phaseTimer += p2.every;
+      bossPhaseMove(c, e, p2);
+    }
+  }
   // Second phase: the Frost Wyrm's nova freezes every archer tower in reach.
   if (def.frostNova && e.enraged) {
     e.novaTimer = (e.novaTimer ?? 1.2) - STEP;
@@ -1359,6 +1385,46 @@ function enemyAbilities(c: Camp, e: Enemy): void {
       }
     }
   }
+}
+
+function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): void {
+  const near = (x: number, y: number) => (x - e.x) ** 2 + (y - e.y) ** 2 <= p2.radius ** 2;
+  if (p2.kind === "slam") {
+    // Ground slam: hurts the hero and soldiers close by.
+    if (near(c.hero.x, c.hero.y) && c.hero.hp > 0) damageHero(c, p2.power);
+    for (const a of c.allies) if (a.respawn <= 0 && near(a.x, a.y)) damageAlly(c, a, p2.power);
+    c.events.push({ type: "bossSlam", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "warcry") {
+    // War cry: every foe in earshot is rallied (faster, tougher) for a while.
+    for (const o of c.enemies) if (o !== e && !o.def.boss && near(o.x, o.y)) o.warcry = p2.power;
+    c.events.push({ type: "warcry", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "boulders") {
+    // Boulder toss at the nearest archer tower in reach: lands after a short flight and stuns it.
+    let t: Plot | null = null, best = Infinity;
+    for (const p of c.plots) {
+      if (p.kind !== "tower" || p.level === 0) continue;
+      const d = (p.x - e.x) ** 2 + (p.y - e.y) ** 2;
+      if (d <= p2.radius ** 2 && d < best) { best = d; t = p; }
+    }
+    if (t) {
+      const dur = 0.9;
+      c.lobs.push({ x: e.x, y: e.y - 20, plot: t.id, t: 0, dur, stun: p2.power });
+      c.events.push({ type: "boulderThrow", x: e.x, y: e.y - 20, tx: t.x, ty: t.y - 30, dur });
+    }
+  }
+}
+
+function updateLobs(c: Camp): void {
+  for (const l of c.lobs) {
+    l.t += STEP;
+    if (l.t < l.dur) continue;
+    const p = c.plots.find((q) => q.id === l.plot);
+    if (p && p.level > 0) {
+      p.stun = Math.max(p.stun ?? 0, l.stun);
+      c.events.push({ type: "towerStunned", plot: p.id, x: p.x, y: p.y - 30 });
+    }
+  }
+  c.lobs = c.lobs.filter((l) => l.t < l.dur);
 }
 
 function attackTick(_c: Camp, e: Enemy, hit: () => void): void {
@@ -1511,6 +1577,11 @@ function updateRally(c: Camp): void {
   const bearers = c.enemies.filter((e) => e.def.aura && e.hp > 0);
   for (const e of c.enemies) {
     e.rallied = false;
+    if (e.warcry && e.warcry > 0) {
+      e.warcry -= STEP;
+      e.rallied = true;
+      continue;
+    }
     if (!bearers.length || e.def.boss) continue;
     for (const b of bearers) {
       if (b === e) continue;
@@ -1849,6 +1920,7 @@ export function step(c: Camp, input: CampInput): void {
   updateHallDefense(c);
   updateEnemies(c);
   updateBolts(c);
+  updateLobs(c);
   updateArrows(c);
   updateStrikes(c);
   reap(c);

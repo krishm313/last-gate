@@ -90,6 +90,8 @@ export interface EnemyDef {
   tunneler?: number;
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
+  /** Distinct second-phase move once enraged (below half HP). */
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -112,16 +114,16 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   thief: { ...base, id: "thief", name: "Treasure Goblin", hp: 60, speed: 95, radius: 10, gateDamage: 0, gold: 12, color: "#d8b030", cost: 0, crossing: true },
   knight: { ...base, id: "knight", name: "Black Knight", hp: 70, speed: 34, radius: 14, gateDamage: 12, attackInterval: 1.2, gold: 4, color: "#2e3440", cost: 4, armor: 0.4 },
   wraith: { ...base, id: "wraith", name: "Wraith", hp: 30, speed: 52, radius: 11, gateDamage: 7, gold: 3, color: "#8a9ac0", cost: 2.5, armorCycle: { on: 1.4, off: 1.8, reduction: 1 } },
-  ogre: { ...base, id: "ogre", name: "Ogre Champion", hp: 600, speed: 20, radius: 28, gateDamage: 30, attackInterval: 1.5, gold: 25, color: "#6a7a3a", cost: 0, slowResist: 0.4, boss: true },
+  ogre: { ...base, id: "ogre", name: "Ogre Champion", hp: 600, speed: 20, radius: 28, gateDamage: 30, attackInterval: 1.5, gold: 25, color: "#6a7a3a", cost: 0, slowResist: 0.4, boss: true, phase2: { kind: "slam", every: 5, radius: 130, power: 18 } },
   troll: { ...base, id: "troll", name: "Marsh Troll", hp: 700, speed: 22, radius: 26, gateDamage: 30, attackInterval: 1.4, gold: 30, color: "#4a7a5a", cost: 0, slowResist: 0.5, boss: true, regen: 0.015 },
   hag: {
     ...base, id: "hag", name: "The Swamp Hag", hp: 1600, speed: 16, radius: 26, gateDamage: 35, attackInterval: 1.4, gold: 80, color: "#4a5a2a",
-    cost: 0, slowResist: 0.4, boss: true, behavior: "summoner", heal: { frac: 0.08, range: 150, interval: 3 },
+    cost: 0, slowResist: 0.4, boss: true, behavior: "summoner", heal: { frac: 0.08, range: 150, interval: 3 }, phase2: { kind: "curse", every: 0, radius: 320, power: 0.15 },
     summon: { enemy: "bat", count: 5, interval: 5.5, enraged: "goblin" },
   },
   golem: {
     ...base, id: "golem", name: "The Siege Golem", hp: 1800, speed: 14, radius: 34, gateDamage: 60, attackInterval: 1.8, gold: 110, color: "#7a7468",
-    cost: 0, slowResist: 0.2, boss: true, armorCycle: { on: 2.6, off: 3.6, reduction: 0.7 },
+    cost: 0, slowResist: 0.2, boss: true, armorCycle: { on: 2.6, off: 3.6, reduction: 0.7 }, phase2: { kind: "boulders", every: 6, radius: 420, power: 1.8 },
   },
   dragon: {
     ...base, id: "dragon", name: "The Bone Dragon", hp: 1400, speed: 30, radius: 30, gateDamage: 14, attackInterval: 3, gold: 140, color: "#d8d0b8",
@@ -140,7 +142,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   },
   warlord: {
     ...base, id: "warlord", name: "The Warlord", hp: 1300, speed: 15, radius: 32, gateDamage: 45, attackInterval: 1.6, gold: 60, color: "#5a1a1a",
-    cost: 0, slowResist: 0.3, boss: true, behavior: "summoner", summon: { enemy: "footman", count: 3, interval: 5.5, enraged: "runner" },
+    cost: 0, slowResist: 0.3, boss: true, behavior: "summoner", summon: { enemy: "footman", count: 3, interval: 5.5, enraged: "runner" }, phase2: { kind: "warcry", every: 10, radius: 260, power: 6 },
   },
 };
 

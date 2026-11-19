@@ -9,8 +9,8 @@ Goal: a game that keeps getting better — new features and content first, polis
 |---|---|---|
 | 1 | **New features** ✅ DONE | ✅ Royal courier · ✅ Tower specialisations · ✅ Spike traps · ✅ Mage Tower · ✅ Healer's tent · ✅ Blessing combos |
 | 2 | **New content** ✅ DONE | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
-| 3 | **Reasons to come back** | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
-| 4 | **Optional challenge** | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
+| 3 | **Reasons to come back** ✅ DONE | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
+| 4 | **Optional challenge** ✅ DONE | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
 | 5 | **Sound & feel** | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
 
 Polish between features: anything chunky, unreadable at night, overlapping, or not visible when it fires.
@@ -124,7 +124,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Dashed coloured ground ring, badge over the head (above the night darkness), shield bubble,
   "Swift!" pop on spawn, shard burst when a shield breaks. Normal campaign untouched (RNG unchanged).
 
+- **Boss second phases** (Phase 4, slice 3) — below half HP, on top of enraging: Ogre — SLAM every
+  5 s (hurts hero/soldiers within 130, dust shockwave); Warlord — WAR CRY every 10 s (foes within
+  260 rallied 6 s: faster + tougher, red rings); Siege Golem — lobs a boulder at the nearest tower
+  every 6 s (0.9 s arc with shadow, lands → stun 1.8 s); Swamp Hag — CURSE once as she turns
+  (foes within 320 healed 15%). Frost Wyrm already has its nova. campsim ch1 100%.
+
 ## Shipped (newest first)
+- Boss second phases: Ogre slam, Warlord war cry, Golem boulder toss, Hag curse (fx at night, tests).
 - Elite enemies: 5 modifiers on Hard/Nightmare and deep Endless (rings, badges, shield bubble; tests).
 - Difficulty modes: Hard & Nightmare per chapter (more HP/speed/gate damage, ×1.5 / ×2.2 gold), skull badges (tests).
 - Hero flair: 5 unlockable cosmetic trails/halos (ember, frost, petals, shadow wisps, golden halo), picker on Heroes tab (test).

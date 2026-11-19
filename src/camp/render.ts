@@ -351,6 +351,8 @@ export class CampRenderer {
   towerStunAt = new Map<string, number>();
   /** Towers whose current stun is a Frost Wyrm freeze (drawn iced over, not dizzy). */
   towerFrozen = new Set<string>();
+  /** Siege Golem boulders in flight (render copies of the sim's lobs, for the arc). */
+  boulders: { x: number; y: number; tx: number; ty: number; t0: number; dur: number; landed?: boolean }[] = [];
   /** Tonight's weather (mirrored from the camp each frame) and where a storm bolt is striking. */
   private weatherNow: Weather = "clear";
   private boltTarget: Vec | null = null;
@@ -863,6 +865,26 @@ fx.shake(0.15);
           fx.rings.push({ x: ev.x, y: ev.y, r: 60, color: "#ff5040", life: 0.45, max: 0.45, width: 4 });
           this.castAt.push({ x: ev.x, y: ev.y, t: this.time, color: "summon" });
           fx.burst(ev.x, ev.y - 20, "#ff9a80", 10, 90, { max: 0.6, size: 2.4, gravity: -40, shape: "spark" });
+          break;
+        case "bossSlam":
+          fx.rings.push({ x: ev.x, y: ev.y + 10, r: ev.r, color: "#e8c890", life: 0.55, max: 0.55, width: 7 });
+          fx.rings.push({ x: ev.x, y: ev.y + 10, r: ev.r * 0.6, color: "#ffffff", life: 0.35, max: 0.35, width: 3 });
+          fx.burst(ev.x, ev.y + 14, "#a8885a", 22, 220, { max: 0.6, size: 3.4, gravity: 260, shape: "chunk" });
+          fx.number(ev.x, ev.y - 50, "SLAM!", "#ffd890", 16, 1);
+          fx.shake(0.45);
+          break;
+        case "warcry":
+          for (let k = 0; k < 3; k++) fx.rings.push({ x: ev.x, y: ev.y, r: ev.r * (0.5 + k * 0.25), color: "#ff3a2a", life: 0.5 + k * 0.15, max: 0.5 + k * 0.15, width: 4 });
+          fx.number(ev.x, ev.y - 56, "WAR CRY!", "#ff6a4a", 16, 1);
+          fx.shake(0.25);
+          break;
+        case "curse":
+          fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#9aff6a", life: 0.9, max: 0.9, width: 6 });
+          fx.burst(ev.x, ev.y, "#7ad84a", 30, 260, { max: 0.9, size: 3, gravity: -40, shape: "spark" });
+          fx.number(ev.x, ev.y - 56, "CURSE! Foes healed", "#aaff7a", 15, 1);
+          break;
+        case "boulderThrow":
+          this.boulders.push({ x: ev.x, y: ev.y, tx: ev.tx, ty: ev.ty, t0: this.time, dur: ev.dur });
           break;
         case "enrage":
           fx.rings.push({ x: ev.x, y: ev.y, r: 120, color: "#ff2020", life: 0.8, max: 0.8, width: 6 });
@@ -5506,6 +5528,35 @@ fx.shake(0.15);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
+    }
+    // Golem boulders: a tumbling rock on a high arc, its shadow sliding along the ground.
+    this.boulders = this.boulders.filter((b) => this.time - b.t0 < b.dur);
+    for (const b of this.boulders) {
+      const u = (this.time - b.t0) / b.dur;
+      const gx = b.x + (b.tx - b.x) * u, gy = b.y + (b.ty - b.y) * u;
+      const lift = Math.sin(u * Math.PI) * 120;
+      softShadow(ctx, gx, gy + 30, 10 + u * 4, 4, 0.3);
+      ctx.save();
+      ctx.translate(gx, gy - lift);
+      ctx.rotate(u * 9);
+      ctx.fillStyle = "#8a8070";
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2, rr = 10 + (k % 3) * 2; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#a89a84";
+      ctx.beginPath();
+      ctx.arc(-3, -3, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      if (u > 0.94 && !b.landed) {
+        b.landed = true;
+        this.fx.burst(b.tx, b.ty + 10, "#8a8070", 14, 200, { max: 0.5, size: 3.2, gravity: 300, shape: "chunk" });
+        this.fx.shake(0.2);
+      }
     }
     for (const b of c.bolts) {
       if (b.kind === "frost") {

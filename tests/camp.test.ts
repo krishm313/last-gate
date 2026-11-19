@@ -653,3 +653,61 @@ describe("elite enemies", () => {
     expect(kids[0]!.maxHp).toBeCloseTo(e.maxHp * 0.3);
   });
 });
+
+describe("boss second phases", () => {
+  const setup = (boss: import("../src/core/enemies").EnemyId) => {
+    const c = createCamp(5);
+    c.phase = "wave";
+    c.queue = [];
+    const b = spawnEnemy(c, { at: 0, enemy: boss, hpMult: 1, lane: null }, { x: 360, y: 300 });
+    b.hp = b.maxHp * 0.45;
+    b.stunTime = 999; // hold still (abilities still tick only when not stunned → unstun below)
+    b.stunTime = 0;
+    drainEvents(c);
+    return { c, b };
+  };
+  const run = (c: Camp, s: number, each?: () => void) => {
+    const ev: string[] = [];
+    for (let i = 0; i < 60 * s; i++) {
+      each?.();
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      for (const e of drainEvents(c)) ev.push(e.type);
+    }
+    return ev;
+  };
+  it("the Warlord's war cry rallies nearby foes", () => {
+    const { c, b } = setup("warlord");
+    const f = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: null }, { x: 380, y: 300 });
+    const ev = run(c, 2.5, () => { b.x = 360; b.y = 300; f.x = 380; f.y = 300; });
+    expect(ev).toContain("warcry");
+    expect(f.rallied).toBe(true);
+  });
+  it("the Ogre's slam hurts the hero close by", () => {
+    const { c, b } = setup("ogre");
+    const hp0 = c.hero.hp;
+    const ev = run(c, 2.5, () => { b.x = c.hero.x; b.y = c.hero.y - 60; });
+    expect(ev).toContain("bossSlam");
+    expect(c.hero.hp).toBeLessThan(hp0);
+  });
+  it("the Golem's boulder lands on a tower and stuns it", () => {
+    const { c, b } = setup("golem");
+    const t = c.plots.find((p) => p.kind === "tower")!;
+    t.level = 1;
+    const ev = run(c, 3.5, () => { b.x = t.x; b.y = t.y - 200; });
+    expect(ev).toContain("boulderThrow");
+    expect(ev).toContain("towerStunned");
+  });
+  it("the Hag's curse mends her minions when she turns", () => {
+    const c = createCamp(5);
+    c.phase = "wave";
+    c.queue = [];
+    const hag = spawnEnemy(c, { at: 0, enemy: "hag", hpMult: 1, lane: null }, { x: 360, y: 300 });
+    const f = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: null }, { x: 400, y: 300 });
+    f.hp = f.maxHp * 0.5;
+    hag.hp = hag.maxHp * 0.45;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 } } as CampInput);
+    expect(drainEvents(c).some((e) => e.type === "curse")).toBe(true);
+    expect(f.hp).toBeGreaterThan(f.maxHp * 0.6);
+  });
+});
