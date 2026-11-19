@@ -304,3 +304,17 @@ describe("Band of Heroes", async () => {
     expect(heroesWon(s)).toBe(3);
   });
 });
+
+describe("Bestiary", async () => {
+  const { foeMet, foesMet } = await import("../src/core/achievements");
+  it("counts foe kinds slain, including late bosses from their older kill stats", () => {
+    const s = newSave();
+    expect(foesMet(s)).toBe(0);
+    s.stats.met_footman = 1;
+    s.stats.met_runner = 1;
+    s.stats.drowned = 2; // killed before met_ tracking existed
+    expect(foeMet(s, "drowned")).toBe(true);
+    expect(foeMet(s, "ogre")).toBe(false);
+    expect(foesMet(s)).toBe(3);
+  });
+});

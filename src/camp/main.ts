@@ -634,6 +634,7 @@ function trackStats(ev: CampEvent) {
   else if (ev.type === "forged") add("bows");
   else if (ev.type === "kill") {
     add("kills");
+    save.stats[`met_${ev.enemy.id}`] = 1; // Bestiary: this kind of foe has been slain at least once
     if (ev.enemy.boss) add("bosses");
     if (ev.elite) add("elites");
     if (ev.enemy.id === "frostwyrm") add("frostwyrm");

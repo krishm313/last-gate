@@ -30,6 +30,13 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **Bestiary** (Trophies tab, below Records) — every foe type (29) as a small tile: art (unit sprite
+  where one exists, emoji otherwise), name, and its traits from `enemyTraits()`; foes you've never
+  slain show a dark silhouette "???". Header "Bestiary · 12 / 29". Tracking: a `met_<id>` stat set on
+  the first kill of each type (kills of bosses already counted for 4 of them backfill too). Trophy
+  "Scholar of War": slay every kind of foe. Slices: (1) tracking + data helper + trophy + test,
+  (2) UI tiles + SE / Large-text screenshots.
+
 - **Chapter 9: Bloodmoon Moors** — ✅ SHIPPED (slices 1–3). The finale after the Sunken Citadel. Purple-red heath under a
   huge blood moon: heather-and-bracken ground (recolour of ground_5 toward plum/crimson, like ch6–8
   were made), "moor" prop atlas (summer atlas recoloured: wine-red pines, rust bracken bushes, dark
@@ -244,6 +251,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Bestiary slice 1: each foe kind's first kill is tracked (met_<id>; the 4 late bosses also count from their older kill stats) and a 📖 "Scholar of War" trophy (slay every kind of foe, 29) shows progress (test). UI next.
 - Checked: Endless HUD on SE — "BEST 25" while tying the record, "🏆 NEW RECORD" past it, twist + weather icons fit the label (night 31 with rain).
 - Checked with Large text on iPhone SE: Armory (incl. Royal Legacy), Heroes tab Won chips, What's-new card — all fit, nothing clipped. Decision: quest rewards keep their +25%/cleared-chapter scaling (a 650 weekly pays ~2.1k at 9 chapters) now that Royal Legacy gives late gold somewhere to go.
 - Armory capstone 👑 **Royal Legacy** (late-game gold sink): unlocks once every other upgrade is maxed (~25.6k gold); 10 levels, +3% hero & tower damage and wall HP each, ~20k gold total. Balance sims skip capstones, so the L5/L10 tables keep their meaning (test). Locked + open states checked on SE.
