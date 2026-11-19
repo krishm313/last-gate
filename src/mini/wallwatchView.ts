@@ -262,7 +262,9 @@ export class WallWatchView {
     const x = WATCH_GAME.ladders[k.ladder]!;
     // Knocked off: tumble away and fade.
     let y = k.y;
-    let rot = 0;
+    // Climbing: a little hop on each rung, leaning side to side.
+    let rot = k.fall < 0 ? Math.sin(k.y / 7) * 0.08 : 0;
+    if (k.fall < 0) y -= Math.abs(Math.sin(k.y / 11)) * 3;
     if (k.fall >= 0) {
       y += k.fall * 120 + k.fall * k.fall * 600;
       rot = k.fall * 9 * (k.id % 2 ? 1 : -1);

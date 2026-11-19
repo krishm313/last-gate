@@ -175,6 +175,18 @@ export class SupplyView {
     }
     // Things on the road.
     for (const t of s.things) this.drawThing(t);
+    // Dust kicked up behind the wheels (drifts down the screen with the road, fading).
+    for (let i = 0; i < 6; i++) {
+      const age = ((s.dist / 40 + i / 6) % 1);
+      for (const side of [-1, 1]) {
+        const px = s.x + side * 20 + Math.sin(i * 2.1 + side) * 4 * age;
+        const py = ROAD.wagonY + 34 + age * 70;
+        c.fillStyle = `rgba(222, 196, 150, ${0.45 * (1 - age)})`;
+        c.beginPath();
+        c.arc(px, py, 4 + age * 9, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
     // The wagon (flashes after a hit).
     if (!(s.hurt > 0 && Math.floor(s.hurt * 12) % 2 === 0)) this.wagon(s.x, ROAD.wagonY, s.time);
     // Popups.
@@ -276,6 +288,10 @@ export class SupplyView {
     // Wheels.
     c.fillStyle = "#2a1a0e";
     for (const sx of [-1, 1]) for (const wy of [-2, 22]) c.fillRect(x + sx * 20 - 3, y + wy - 7, 6, 14);
+    // Treads rolling on the wheels.
+    c.fillStyle = "#6a4a2a";
+    const roll = (this.s.dist / 6) % 6;
+    for (const sx of [-1, 1]) for (const wy of [-2, 22]) for (let k = -1; k < 2; k++) c.fillRect(x + sx * 20 - 3, y + wy - 7 + ((roll + k * 6 + 6) % 14), 6, 2);
     // Cart bed with a canvas cover and supplies.
     c.fillStyle = "#8a5a2e";
     c.strokeStyle = "#1d1208";

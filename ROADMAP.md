@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Mini-game polish: Supply Run wagon kicks up dust trails and its wheel treads roll; Wall Watch climbers hop and lean as they climb.
 - Mini-game achievements: Marksman / Quartermaster / Sentinel (3★ in Archery / Supply Run / Wall Watch, 250 gold each) and Champion of the Fair (all 9 mini-game stars, 500). Map side stops show your best score; the three side-stop blocks in hub.ts are now one table-driven loop.
 - Wall Watch (mini-game #3): 🛡️ side stop beside chapters 4–5 (opens after chapter 4). Goblins climb 5 ladders up the castle wall — tap them off (brutes take 2 taps; higher knock-offs and 4-in-a-row combos score more). Don't tap the builders in yellow hats (−5; they repair for +3 if they reach the top). 3 goblins over = lost; 60 s. Stars 120/220/300, gold = score/3 + first-time star bonuses (save.mini.watch). src/mini/wallwatch.ts + view + tests/wallwatch.test.ts + scripts/watchsim.ts (perfect bot ~310, slow 0.7 s bot loses).
 - Siege Lord flyers: war cards can carry an HP boost — Bats 2.2× (were 0% in pair tests, now viable; ×4 overshot to 100%), Ravens 2× (so more reach their tower to stun it). Full-deck siegesim: siege 1 100% · siege 2 100% · siege 3 58% (was 42%).
