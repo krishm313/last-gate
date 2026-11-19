@@ -34,6 +34,7 @@ export class ArcheryView {
     /** Called once when a round ends; returns the reward to show. */
     private onFinish: (score: number) => RangeResult,
     private onExit: () => void,
+    private onSound?: (kind: "twang" | "thunk" | "bull") => void,
   ) {
     this.root.className = "lga";
     this.canvas.className = "lga-canvas";
@@ -94,7 +95,7 @@ export class ArcheryView {
   }
   private up(): void {
     if (!this.drag) return;
-    shoot(this.s, this.drag.cx - this.drag.x, this.drag.cy - this.drag.y);
+    if (shoot(this.s, this.drag.cx - this.drag.x, this.drag.cy - this.drag.y)) this.onSound?.("twang");
     this.drag = null;
   }
 
@@ -103,7 +104,9 @@ export class ArcheryView {
     this.last = now;
     this.acc += dt;
     while (this.acc >= STEP) {
+      const fx = this.s.fx.length;
       stepRange(this.s, STEP);
+      if (this.s.fx.length > fx) this.onSound?.(this.s.fx[this.s.fx.length - 1]!.bull ? "bull" : "thunk");
       this.acc -= STEP;
     }
     this.draw();
@@ -195,6 +198,7 @@ export class ArcheryView {
       const w = (this.king.naturalWidth / this.king.naturalHeight) * h;
       c.drawImage(this.king, RANGE.bowX - w / 2, RANGE.bowY - h + 30, w, h);
     }
+    this.drawBow();
     // Aim line while drawing the bow: the path the arrow will take for its first moments.
     if (this.drag) {
       const dx = this.drag.cx - this.drag.x, dy = this.drag.cy - this.drag.y;
@@ -256,6 +260,70 @@ export class ArcheryView {
       c.strokeText("Drag back and let go to shoot!", RANGE.w / 2, RANGE.bowY - 90);
       c.fillText("Drag back and let go to shoot!", RANGE.w / 2, RANGE.bowY - 90);
     }
+  }
+
+  /** The King's longbow, turned toward the aim; the string pulls back with the draw. */
+  private drawBow(): void {
+    const c = this.ctx;
+    let ang = -Math.PI / 2;
+    let power = 0;
+    if (this.drag) {
+      const dx = this.drag.cx - this.drag.x, dy = this.drag.cy - this.drag.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 12) {
+        ang = Math.atan2(-dy, -dx);
+        power = Math.min(1, len / RANGE.fullDraw);
+      }
+    }
+    c.save();
+    // Held at chest height in front of the King (the arrow's start point is just below).
+    c.translate(RANGE.bowX + 6, RANGE.bowY - 22);
+    c.rotate(ang);
+    const R = 36;
+    const tipA = 1.05;
+    const tip = (sgn: number) => [Math.cos(sgn * tipA) * R - R * 0.6, Math.sin(sgn * tipA) * R] as const;
+    const [tx, ty] = tip(1);
+    const pull = -R * 0.6 + Math.cos(tipA) * R - 4 - power * 16;
+    // String.
+    c.strokeStyle = "#f4ead0";
+    c.lineWidth = 1.8;
+    c.beginPath();
+    c.moveTo(tx, -ty);
+    c.lineTo(pull, 0);
+    c.lineTo(tx, ty);
+    c.stroke();
+    // Limbs.
+    c.strokeStyle = "#1d1208";
+    c.lineWidth = 7;
+    c.beginPath();
+    c.arc(-R * 0.6, 0, R, -tipA, tipA);
+    c.stroke();
+    c.strokeStyle = "#b8763a";
+    c.lineWidth = 4.5;
+    c.beginPath();
+    c.arc(-R * 0.6, 0, R, -tipA, tipA);
+    c.stroke();
+    c.fillStyle = "#5a3a1e";
+    c.fillRect(R * 0.4 - 3, -4, 5, 8);
+    // A nocked arrow once the bow is ready again.
+    if (this.s.reload <= 0 && !this.s.over) {
+      c.strokeStyle = "#5a3a1e";
+      c.lineWidth = 2.5;
+      c.beginPath();
+      c.moveTo(pull, 0);
+      c.lineTo(R * 0.4 + 10, 0);
+      c.stroke();
+      c.fillStyle = "#e8eef4";
+      c.beginPath();
+      c.moveTo(R * 0.4 + 15, 0);
+      c.lineTo(R * 0.4 + 6, -3.5);
+      c.lineTo(R * 0.4 + 6, 3.5);
+      c.closePath();
+      c.fill();
+      c.fillStyle = "#d84a3a";
+      c.fillRect(pull - 2, -3, 5, 6);
+    }
+    c.restore();
   }
 
   private drawTarget(kind: string, x: number, y: number, r: number): void {

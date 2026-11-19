@@ -38,7 +38,7 @@ export class SupplyView {
     /** Called once when a run ends; returns the reward to show. */
     private onFinish: (score: number) => SupplyResult,
     private onExit: () => void,
-    private onHit?: () => void,
+    private onSound?: (kind: "crash" | "pickup") => void,
   ) {
     this.root.className = "lgr";
     this.canvas.className = "lgr-canvas";
@@ -100,9 +100,10 @@ export class SupplyView {
     this.last = now;
     this.acc += dt;
     while (this.acc >= STEP) {
-      const hp = this.s.hp;
+      const hp = this.s.hp, fx = this.s.fx.length;
       stepRun(this.s, STEP);
-      if (this.s.hp < hp) this.onHit?.();
+      if (this.s.hp < hp) this.onSound?.("crash");
+      else if (this.s.fx.length > fx) this.onSound?.("pickup");
       this.acc -= STEP;
     }
     this.draw();

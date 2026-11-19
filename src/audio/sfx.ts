@@ -452,6 +452,28 @@ export class Sfx {
     this.tone("triangle", 1480, 1480, 0.2, 0.07, 0.09);
   }
 
+  /** Side games: bow twang, target thunk, bullseye ding, wagon crash, pickup. */
+  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup"): void {
+    if (!this.ok(`mini_${kind}`, 0.05)) return;
+    if (kind === "twang") {
+      this.tone("triangle", 330, 180, 0.12, 0.07);
+      this.noise(0.05, 0.06, "highpass", 2500);
+    } else if (kind === "thunk") {
+      this.tone("sine", 220, 90, 0.1, 0.18);
+      this.noise(0.06, 0.12, "lowpass", 900);
+    } else if (kind === "bull") {
+      this.tone("sine", 220, 90, 0.1, 0.16);
+      this.tone("triangle", 1568, 1568, 0.25, 0.06, 0.04);
+      this.tone("triangle", 2093, 2093, 0.3, 0.05, 0.1);
+    } else if (kind === "crash") {
+      this.noise(0.25, 0.3, "lowpass", 700);
+      this.tone("sawtooth", 140, 60, 0.2, 0.08);
+    } else {
+      this.tone("sine", 1320, 1360, 0.08, 0.06);
+      this.tone("sine", 1760, 1800, 0.1, 0.05, 0.05);
+    }
+  }
+
   /** UI click. */
   click(): void {
     if (this.ok("click", 0.03)) this.tone("triangle", 700, 500, 0.05, 0.08);

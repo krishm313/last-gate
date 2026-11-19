@@ -371,6 +371,7 @@ const archery = new ArcheryView(
     return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
   },
   () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
 );
 
 // ---- Supply Run (side stop on the map). ----
@@ -386,7 +387,7 @@ const supply = new SupplyView(
     return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
   },
   () => hub.showHub(save, "battle"),
-  () => sfx.grunt(),
+  (kind) => sfx.mini(kind),
 );
 
 // ---- Siege Lord (reverse mode): the player sends the horde; the campaign bot defends the castle. ----
