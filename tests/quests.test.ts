@@ -196,3 +196,14 @@ describe("best night per difficulty", async () => {
     expect(clean({ diffBest: { "2:3": 5, "x": 1, "77:1": 2 } }).diffBest).toEqual({});
   });
 });
+
+describe("quest pool expansion", () => {
+  it("keeps past days' picks and adds new-content quests from the 20th", async () => {
+    const { dailyPicks } = await import("../src/core/quests");
+    const fresh = ["d-elites", "d-fires", "d-hard"];
+    for (let d = 1; d <= 19; d++) expect(dailyPicks(`2026-11-${String(d).padStart(2, "0")}`).some((id) => fresh.includes(id))).toBe(false);
+    const later = new Set<string>();
+    for (let d = 20; d <= 30; d++) for (const id of dailyPicks(`2026-11-${d}`)) later.add(id);
+    expect(fresh.some((id) => later.has(id))).toBe(true);
+  });
+});

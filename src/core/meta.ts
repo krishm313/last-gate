@@ -253,6 +253,7 @@ function applyHardRun(s: SaveData, r: RunResult, rank: number, goldMult: number)
   const winBonus = r.won ? Math.round(40 * r.chapter * (firstClear ? 2 : 1) * goldMult) : 0;
   const loot = Math.round(r.goldFromKills * goldMult);
   if (r.won) s.diffCleared[r.chapter] = Math.max(s.diffCleared[r.chapter] ?? 0, rank);
+  if (r.won) s.stats.hardWins = (s.stats.hardWins ?? 0) + 1;
   const key = `${r.chapter}:${rank}`;
   s.diffBest[key] = Math.max(s.diffBest[key] ?? 0, r.wave);
   const gold = loot + waveBonus + winBonus;

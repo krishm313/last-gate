@@ -27,7 +27,14 @@ export const DAILY_QUESTS: QuestDef[] = [
   { id: "d-flawless", icon: "✨", desc: "Hold 2 nights without a hit", stat: "flawlessWaves", goal: 2, reward: 80 },
   { id: "d-gold", icon: "💰", desc: "Earn 250 gold from runs", stat: "goldEarned", goal: 250, reward: 60 },
   { id: "d-win", icon: "🏆", desc: "Win a run", stat: "wins", goal: 1, reward: 100 },
+  // Newer content (from 2026-11-20).
+  { id: "d-elites", icon: "🎖️", desc: "Defeat 5 elite foes", stat: "elites", goal: 5, reward: 80 },
+  { id: "d-fires", icon: "🧯", desc: "Stamp out 3 fires", stat: "firesOut", goal: 3, reward: 70 },
+  { id: "d-hard", icon: "💀", desc: "Win a run on Hard or Nightmare", stat: "hardWins", goal: 1, reward: 150 },
 ];
+/** Daily quests in the rotation before the newer ones joined (keeps days already played stable). */
+const ORIGINAL_DAILY = 9;
+const QUESTS_EXPANDED_FROM = "2026-11-20";
 
 export const WEEKLY_QUESTS: QuestDef[] = [
   { id: "w-kills", icon: "💀", desc: "Slay 1,500 foes this week", stat: "kills", goal: 1500, reward: 400 },
@@ -77,7 +84,7 @@ function hash(n: number): number {
 
 /** The three daily quest ids for a date (distinct, deterministic). */
 export function dailyPicks(date: string): string[] {
-  const pool = DAILY_QUESTS.map((q) => q.id);
+  const pool = (date >= QUESTS_EXPANDED_FROM ? DAILY_QUESTS : DAILY_QUESTS.slice(0, ORIGINAL_DAILY)).map((q) => q.id);
   const out: string[] = [];
   let seed = dayNumber(date);
   while (out.length < 3) {
