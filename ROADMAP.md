@@ -424,3 +424,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   (kept out of dailies), What's-new 19c. 156 tests. Lessons: re-run campsim after swapping a
   placeholder boss — boss HP stacks with the chapter's HP scale; screenshot hacks that replace UI
   state after it renders don't work — drive the real flow (rerolls) instead.
+- **2026-11-19 20:40** — deploys 184–193 all green. This hour: 9-chapter balance snapshot, Endless
+  night-55 test, ch2 fresh-player sweep (clean), Band of Heroes + Won chips, weekly ch7+ quest (from
+  11-30), Royal Legacy capstone (late gold sink; sims skip capstones), Large-text + Endless HUD
+  checks (clean), Bestiary slice 1 (tracking + Scholar of War). 162 tests. Lesson: when testing
+  quest picks in the browser, reset the stored quest state in the seeded save — quests roll on the
+  first load, before the seed applies.
