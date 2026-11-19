@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, plotMaxed, rerollsLeft, TOWER_LEVELS, xpToNext, type Camp, type Plot } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, plotMaxed, rerollsLeft, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -418,6 +418,31 @@ export class CampHud {
       this.lastKey = "";
       this.previewKey = "";
     }
+  }
+
+  /** A tower reached level 3: pick its specialisation (the game waits). */
+  showSpecChoice(onChoose: (spec: TowerSpec) => void): void {
+    const wrap = el("div", "pick spec-pick");
+    wrap.append(el("h2", "pick-title", "Specialise your tower"), el("p", "pick-sub", "Your archers master a new art — choose one"));
+    const cards = el("div", "cards");
+    const armedAt = performance.now() + 450;
+    (Object.keys(TOWER_SPECS) as TowerSpec[]).forEach((id, i) => {
+      const sp = TOWER_SPECS[id];
+      const card = el("button", `card spec-card spec-${id}`);
+      card.style.animationDelay = `${i * 0.08}s`;
+      card.append(el("div", "card-rarity", "Tower"), el("div", "card-icon", sp.icon), el("div", "card-name", sp.name), el("div", "card-desc", sp.desc));
+      card.onclick = () => {
+        if (performance.now() < armedAt || wrap.classList.contains("chosen-one")) return;
+        wrap.classList.add("chosen-one");
+        card.classList.add("chosen");
+        for (const other of cards.querySelectorAll(".card")) if (other !== card) other.classList.add("passed");
+        window.setTimeout(() => onChoose(id), CHOOSE_BEAT_MS);
+      };
+      cards.append(card);
+    });
+    wrap.append(cards);
+    this.overlay.replaceChildren(wrap);
+    this.overlay.style.display = "flex";
   }
 
   hideOverlay(): void {

@@ -1034,3 +1034,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 @keyframes leg-spin { to { --leg-a: 360deg; } }
 .card.r-legendary .card-rarity { text-shadow: 0 0 calc(8 * var(--u)) #ffe066; }
 @media (prefers-reduced-motion: reduce) { .card.r-legendary::before { animation: none; } }
+
+/* Tower specialisation cards: element-coloured like blessing rarities. */
+.spec-fire { --rc: #ff7a3a; --rg: #ff7a3a88; }
+.spec-frost { --rc: #7ad8ff; --rg: #7ad8ff88; }
+.spec-volley { --rc: #ffd84a; --rg: #ffd84a88; }
+.spec-card .card-rarity { background: var(--rc); color: #1d1208 !important; }

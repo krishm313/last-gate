@@ -1,7 +1,7 @@
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { Sfx } from "../audio/sfx";
-import { chooseBlessing, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
@@ -42,6 +42,8 @@ let callWave = false;
 let waveStartTally = { kills: 0, gold: 0, hits: 0 };
 /** Waves held without a wall/hall hit this run (end-screen stat). */
 let flawlessWaves = 0;
+/** A tower specialisation choice is on screen: the game waits for it. */
+let specChoosing = false;
 let lastCourierSfx = 0;
 /** Set by finishRun: this run's best kill streak is a new lifetime record. */
 let streakIsBest = false;
@@ -197,6 +199,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
   knownTrophies = new Set(claimable(save).map((a) => a.id));
   flawlessWaves = 0;
+  specChoosing = false;
   unlockedLabels = [];
   accumulator = 0;
   paused = false;
@@ -282,7 +285,7 @@ function goHub(tab: "battle" | "armory" = "battle") {
 }
 
 function setPaused(p: boolean) {
-  if (!camp || camp.phase === "won" || camp.phase === "lost" || camp.phase === "pick") return;
+  if (!camp || camp.phase === "won" || camp.phase === "lost" || camp.phase === "pick" || specChoosing) return;
   paused = p;
   if (p)
     hub.showPause(() => setPaused(false), () => finishRun(camp!, false, true), {
@@ -626,7 +629,7 @@ function frame(now: number) {
   if (document.visibilityState === "visible" && !paused) renderer.perfSample(realDt);
   const dt = (renderer.fx.slowmo > 0 ? realDt * 0.3 : realDt) * gameSpeed;
   const c = camp;
-  if (c && !paused) {
+  if (c && !paused && !specChoosing) {
     accumulator += dt;
     // Debug autoplay (window.__autoplay = true): the bot drives the hero, for visual QA runs.
     const auto = (window as unknown as { __autoplay?: boolean }).__autoplay;
@@ -682,6 +685,17 @@ function frame(now: number) {
       if (ev.type === "waveClear" && waveStartTally.hits === 0) {
         flawlessWaves += 1;
         save.stats.flawlessWaves = (save.stats.flawlessWaves ?? 0) + 1;
+      }
+      if (ev.type === "specChoice" && !specChoosing) {
+        specChoosing = true;
+        const plotId = ev.plot;
+        hud.showSpecChoice((spec) => {
+          if (camp === c) chooseTowerSpec(c, plotId, spec);
+          hud.hideOverlay();
+          specChoosing = false;
+          accumulator = 0;
+          last = performance.now();
+        });
       }
       if (ev.type === "offers")
         hud.showOffers(

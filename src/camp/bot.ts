@@ -1,4 +1,4 @@
-import { carryCap, chooseBlessing, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
+import { carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
 import { GATE_SEGMENTS, INCOME_PILE, SEGMENT_W, WALL_Y } from "./world";
 
 const GATE_X = ((GATE_SEGMENTS[0]! + GATE_SEGMENTS[GATE_SEGMENTS.length - 1]! + 1) / 2) * SEGMENT_W;
@@ -81,6 +81,9 @@ export function campBotPick(c: Camp): string {
 /** One sim step driven by the bot, including blessing picks. */
 export function campBotStep(c: Camp): void {
   if (c.phase === "pick") chooseBlessing(c, campBotPick(c));
+  // Specialise towers in rotation (frost by the gate, fire and volley on the flanks).
+  const ROT: TowerSpec[] = ["fire", "frost", "volley"];
+  for (const p of towersAwaitingSpec(c)) chooseTowerSpec(c, p.id, ROT[c.plots.indexOf(p) % 3]!);
   const input = campBotInput(c);
   // Use the ability when there's a crowd nearby.
   input.ability = c.abilityCharge >= 1 && c.enemies.filter((e) => Math.hypot(e.x - c.hero.x, e.y - c.hero.y) < 220).length >= 4;

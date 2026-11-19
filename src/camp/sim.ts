@@ -128,7 +128,20 @@ export interface Plot {
   locked: boolean;
   /** Becomes available after this many waves have been held. */
   unlockWave?: number;
+  /** Archer towers: specialisation chosen on reaching level 3 (unset until chosen). */
+  spec?: TowerSpec;
 }
+
+/** Tower specialisations, offered when a tower reaches level 3. */
+export type TowerSpec = "fire" | "frost" | "volley";
+export const TOWER_SPEC_LEVEL = 3;
+export const TOWER_SPECS: Record<TowerSpec, { name: string; icon: string; desc: string }> = {
+  fire: { name: "Fire Archers", icon: "🔥", desc: "Arrows set foes ablaze: burning damage over time." },
+  frost: { name: "Frost Archers", icon: "❄️", desc: "Arrows chill foes: they move 40% slower." },
+  volley: { name: "Volley Archers", icon: "🏹", desc: "Each shot also hits 2 more foes nearby." },
+};
+/** Tuning for the specialisations. */
+export const SPEC = { fireBurn: 0.45, fireTime: 3, frostSlow: 0.4, frostTime: 1.6, frostDmg: 0.9, volleyExtra: 2, volleyDmg: 0.55 };
 
 export interface Coin {
   id: number;
@@ -152,6 +165,8 @@ export interface Arrow {
   owner: "hero" | "tower";
   life: number;
   angle: number;
+  /** Fired by a specialised tower: applies its effect on hit. */
+  spec?: TowerSpec;
 }
 
 export interface Bolt {
@@ -200,6 +215,9 @@ export type CampEvent =
   | { type: "forged"; x: number; y: number }
   | { type: "bowDeliver"; from: Vec; to: Vec }
   | { type: "build"; plot: string; kind: PlotKind; level: number; x: number; y: number }
+  /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
+  | { type: "specChoice"; plot: string }
+  | { type: "specChosen"; plot: string; spec: TowerSpec; x: number; y: number }
   | { type: "wallHit"; seg: number; x: number; y: number; damage: number }
   | { type: "wallBreak"; seg: number; x: number; y: number }
   | { type: "hallHit"; x: number; y: number; damage: number }
@@ -708,6 +726,21 @@ function completePlot(c: Camp, p: Plot): void {
     c.workers.push({ id: c.nextId++, x: p.x, y: p.y, state: "toTree", t: 0, tree: c.workers.length % GROVE.length, carrying: false });
   }
   c.events.push({ type: "build", plot: p.id, kind: p.kind, level: p.level, x: p.x, y: p.y });
+  if (p.kind === "tower" && p.level === TOWER_SPEC_LEVEL && !p.spec) c.events.push({ type: "specChoice", plot: p.id });
+}
+
+/** Give a tower its specialisation (once; it can't be changed). Returns false if not allowed. */
+export function chooseTowerSpec(c: Camp, plotId: string, spec: TowerSpec): boolean {
+  const p = c.plots.find((q) => q.id === plotId);
+  if (!p || p.kind !== "tower" || p.level < TOWER_SPEC_LEVEL || p.spec) return false;
+  p.spec = spec;
+  c.events.push({ type: "specChosen", plot: p.id, spec, x: p.x, y: p.y });
+  return true;
+}
+
+/** Towers at the specialisation level that haven't picked one yet. */
+export function towersAwaitingSpec(c: Camp): Plot[] {
+  return c.plots.filter((p) => p.kind === "tower" && p.level >= TOWER_SPEC_LEVEL && !p.spec);
 }
 
 function updateAllies(c: Camp): void {
@@ -812,8 +845,8 @@ function updateWorkers(c: Camp): void {
 // ---------------------------------------------------------------------------------------------
 // Towers & arrows
 
-function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower"): void {
-  c.arrows.push({ id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x) });
+function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec): void {
+  c.arrows.push({ id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec });
   c.events.push({ type: "shoot", owner, x: from.x, y: from.y });
 }
 
@@ -844,7 +877,17 @@ function updateTowers(c: Camp): void {
     p.facing = Math.atan2(best.y - p.y, best.x - p.x);
     p.cooldown += 1 / st.rate;
     p.fired = 0;
-    fireArrow(c, { x: p.x, y: p.y - 18 }, best, st.damage * c.mods.towerDamage * towerScale(c) * (1 + BOW_DAMAGE * p.bows), "tower");
+    const dmg = st.damage * c.mods.towerDamage * towerScale(c) * (1 + BOW_DAMAGE * p.bows);
+    const from = { x: p.x, y: p.y - 18 };
+    fireArrow(c, from, best, p.spec === "frost" ? dmg * SPEC.frostDmg : dmg, "tower", p.spec);
+    if (p.spec === "volley") {
+      // Volley: the same shot also looses arrows at the nearest other foes in range.
+      const others = c.enemies
+        .filter((e) => e !== best && e.y >= SPAWN_Y + 10 && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 <= range ** 2)
+        .sort((a, b) => (a.x - best!.x) ** 2 + (a.y - best!.y) ** 2 - ((b.x - best!.x) ** 2 + (b.y - best!.y) ** 2))
+        .slice(0, SPEC.volleyExtra);
+      for (const o of others) fireArrow(c, from, o, dmg * SPEC.volleyDmg, "tower", "volley");
+    }
   }
 }
 
@@ -1009,6 +1052,13 @@ function updateArrows(c: Camp): void {
       if (c.mods.slow > 0) {
         t.slowPct = c.mods.slow;
         t.slowTime = 1.5;
+      }
+      if (a.spec === "fire") {
+        t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn);
+        t.burnTime = Math.max(t.burnTime, SPEC.fireTime);
+      } else if (a.spec === "frost") {
+        t.slowPct = Math.max(t.slowTime > 0 ? t.slowPct : 0, SPEC.frostSlow);
+        t.slowTime = Math.max(t.slowTime, SPEC.frostTime);
       }
       a.life = 0;
     }

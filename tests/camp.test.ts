@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, createCamp, drainEvents, plotCost, step, type Camp } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, spawnEnemy, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 
-const still = { move: { x: 0, y: 0 } };
+const still: CampInput = { move: { x: 0, y: 0 } };
 function run(c: Camp, seconds: number, input = still) {
   for (let i = 0; i < seconds / STEP; i++) step(c, input);
 }
@@ -291,5 +291,47 @@ describe("royal courier", () => {
     run(c, 2);
     expect(c.hero.coins).toBe(carryCap(c));
     expect(c.incomePile).toBe(5);
+  });
+});
+
+describe("tower specialisations", () => {
+  const tower = (c: Camp) => c.plots.find((p) => p.kind === "tower")!;
+  it("offers a choice when a tower reaches level 3, once, and locks it in", () => {
+    const c = createCamp(1);
+    const t = tower(c);
+    t.level = 2;
+    t.paid = 0;
+    c.hero.x = t.x; c.hero.y = t.y; c.hero.coins = 200; c.hero.logs = 30;
+    run(c, 6);
+    expect(t.level).toBeGreaterThanOrEqual(3);
+    expect(drainEvents(c).some((e) => e.type === "specChoice" && e.plot === t.id)).toBe(true);
+    expect(chooseTowerSpec(c, t.id, "frost")).toBe(true);
+    expect(t.spec).toBe("frost");
+    expect(chooseTowerSpec(c, t.id, "fire")).toBe(false);
+    expect(t.spec).toBe("frost");
+  });
+  it("can't specialise a tower below level 3", () => {
+    const c = createCamp(1);
+    const t = tower(c);
+    t.level = 2;
+    expect(chooseTowerSpec(c, t.id, "fire")).toBe(false);
+  });
+  it("fire arrows burn, frost arrows slow, volley shoots extra foes", () => {
+    for (const spec of ["fire", "frost", "volley"] as const) {
+      const c = createCamp(1);
+      run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+      expect(c.phase).toBe("wave");
+      c.queue.length = 0;
+      c.enemies.length = 0;
+      const t = tower(c);
+      t.level = 3; t.spec = spec; t.cooldown = 0;
+      c.hero.x = 360; c.hero.y = 1150;
+      for (let i = 0; i < 3; i++) spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 3, lane: 0.5 }, { x: t.x + i * 30, y: t.y - 160 });
+      run(c, 1.5);
+      const hit = c.enemies;
+      if (spec === "fire") expect(hit.some((e) => e.burnTime > 0)).toBe(true);
+      if (spec === "frost") expect(hit.some((e) => e.slowTime > 0 && e.slowPct >= 0.4)).toBe(true);
+      if (spec === "volley") expect(hit.filter((e) => e.hp < e.maxHp).length).toBeGreaterThanOrEqual(3);
+    }
   });
 });
