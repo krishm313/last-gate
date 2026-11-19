@@ -98,6 +98,8 @@ export interface RunSummary {
   questsReady?: number;
   /** Damage dealt per source this run (towers, hero, mage…) for the breakdown. */
   dmg?: Record<string, number>;
+  /** Trophies unlocked / quests completed during the run. */
+  earned?: string[];
   /** Skill points the run's hero just earned. */
   skillPoints?: { hero: string; n: number };
   /** Hall HP left at the end, 0..100 (for the "next star" hint). */
@@ -847,6 +849,15 @@ export class Hub {
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
     if (r.skillPoints) box.append(el("div", "end-unlock end-record", `⭐ ${r.skillPoints.hero}: +${r.skillPoints.n} skill point${r.skillPoints.n > 1 ? "s" : ""} — spend it in Heroes`));
+    if (r.earned?.length) {
+      const chips = el("div", "lge-earned");
+      chips.append(el("div", "lgm-title", "Earned this run"));
+      const row = el("div", "lge-chips");
+      for (const t of r.earned.slice(0, 6)) row.append(el("span", "lge-chip", t));
+      if (r.earned.length > 6) row.append(el("span", "lge-chip", `+${r.earned.length - 6} more`));
+      chips.append(row);
+      box.append(chips);
+    }
     if (r.questsReady) box.append(el("div", "end-unlock lgq-end", `📜 ${r.questsReady} quest${r.questsReady === 1 ? "" : "s"} ready to claim in Trophies`));
     box.querySelectorAll<HTMLElement>(".end-unlock").forEach((u, i) => u.style.setProperty("--d", `${0.45 + nRows * 0.07 + i * 0.15}s`));
     const btns = el("div", "btn-col");

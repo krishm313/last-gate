@@ -257,6 +257,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   knownTrophies = new Set(claimable(save).map((a) => a.id));
   refreshQuests(save);
   nightsThisRun = 0;
+  earnedThisRun = [];
   knownQuests = new Set(questViews(save).filter((v) => v.done).map((v) => v.slot.id));
   flawlessWaves = 0;
   specChoosing = false;
@@ -406,7 +407,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, earned: earnedThisRun.slice(), upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
     reward,
     () => newRun(chapterId),
     () => goHub("armory"),
@@ -451,7 +452,7 @@ function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChalleng
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, earned: earnedThisRun.slice(), questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
     reward,
     () => startDaily(),
     () => goHub("battle"),
@@ -583,16 +584,20 @@ let runDifficulty: DifficultyId = "normal";
 let newSkillPoints: { hero: string; n: number } | null = null;
 /** Quests already finished when we last looked (a newly finished one gets a toast mid-run). */
 let knownQuests = new Set<string>();
+/** Trophies and quests finished during this run (listed on the end screen). */
+let earnedThisRun: string[] = [];
 function announceTrophies(): void {
   for (const v of questViews(save)) {
     if (!v.done || knownQuests.has(v.slot.id)) continue;
     knownQuests.add(v.slot.id);
+    earnedThisRun.push(`📜 ${v.def.desc}`);
     hud.toast(`📜 Quest complete: ${v.def.desc}`);
     sfx.unlockChime();
   }
   for (const a of claimable(save)) {
     if (knownTrophies.has(a.id)) continue;
     knownTrophies.add(a.id);
+    earnedThisRun.push(`🏆 ${a.name}`);
     hud.toast(`🏆 Trophy unlocked: ${a.name}`);
     sfx.unlockChime();
   }

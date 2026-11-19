@@ -1142,3 +1142,6 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .title-screen.lg-guide .logo { font-size: calc(40 * var(--tu)); margin-top: calc(6 * var(--u)); }
 .title-screen.lg-guide .how { margin-bottom: calc(12 * var(--u)); padding: calc(8 * var(--u)) calc(10 * var(--u)); }
 .title-screen.lg-guide .how-row { font-size: calc(12.5 * var(--tu)); padding: calc(2.5 * var(--u)) 0; }
+.lge-earned { margin: 4px 0; animation: lgm-in 0.4s 1.1s both; }
+.lge-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.lge-chip { font-size: 0.74em; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(255, 210, 74, 0.18); border: 1px solid rgba(255, 210, 74, 0.6); color: #ffe7a0; }
