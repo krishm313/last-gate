@@ -7,7 +7,7 @@ import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
-import { ACHIEVEMENTS, claimable } from "../core/achievements";
+import { ACHIEVEMENTS, claimable, heroHasWon } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
 import { weekNumber } from "../core/quests";
@@ -632,7 +632,10 @@ export class Hub {
       img.alt = h.name;
       portrait.append(img);
       const info = el("div", "hero-info");
-      info.append(el("div", "hero-name", `${h.name}${selected ? " ✓" : ""}`), el("div", "hero-title", h.title), el("div", "hero-line", CAMP_HEROES[h.id].passive), el("div", "hero-line ability-line", `${ABILITY_ICON[h.ability] ?? "✦"} ${h.abilityName}: ${h.abilityDesc}`));
+      const name = el("div", "hero-name", `${h.name}${selected ? " ✓" : ""}`);
+      // Band of Heroes progress: heroes that have won a run wear a small trophy chip.
+      if (unlocked && heroHasWon(save, h.id)) name.append(el("span", "lgw-won", "🏆 Won"));
+      info.append(name, el("div", "hero-title", h.title), el("div", "hero-line", CAMP_HEROES[h.id].passive), el("div", "hero-line ability-line", `${ABILITY_ICON[h.ability] ?? "✦"} ${h.abilityName}: ${h.abilityDesc}`));
       if (!unlocked) {
         const have = totalStars(save);
         const bar = el("div", "hero-lock-bar");

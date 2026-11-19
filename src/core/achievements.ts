@@ -15,7 +15,10 @@ export interface Achievement {
 const stat = (k: string) => (s: SaveData) => s.stats[k] ?? 0;
 /** Heroes that have won a run (tracked per hero; older wins still in the history count too). */
 export function heroesWon(s: SaveData): number {
-  return HEROES.filter((h) => (s.stats[`won_${h.id}`] ?? 0) > 0 || s.history.some((r) => r.won && r.hero === h.id)).length;
+  return HEROES.filter((h) => heroHasWon(s, h.id)).length;
+}
+export function heroHasWon(s: SaveData, hero: string): boolean {
+  return (s.stats[`won_${hero}`] ?? 0) > 0 || s.history.some((r) => r.won && r.hero === hero);
 }
 
 export const ACHIEVEMENTS: Achievement[] = [

@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Heroes tab: a "🏆 Won" chip on every hero that has won a run, so Band of Heroes progress is visible where you pick heroes.
 - New trophy 🤝 **Band of Heroes** — win a run with every hero (600 gold). Wins are tracked per hero in stats (won_<hero>); older wins still in the run history count too (test).
 - Test: the Blood Moon Warlord closes the first Endless boss cycle at night 55 and his blood-moon flare works in Endless too.
 - Balance snapshot, all 9 chapters (campsim, King, 10 runs, win %): L5 100/100/90/90/0/30/10/0/0 · L10 100/100/100/100/90/70/20/30/40. Chapters 7–9 sit within noise of each other at L10 (earlier 12-run checks: 40/42/50) — no change.
