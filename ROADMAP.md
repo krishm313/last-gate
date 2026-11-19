@@ -284,3 +284,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   mechanic the bot can't answer (fires) skews balance — teach the bot the counter before tuning;
   (2) adding content to a date-seeded rotation reshuffles today's — gate it from tomorrow;
   (3) when a guide grows, re-check it fits the smallest phone.
+- **2026-11-19 14:41** — deploys 121–134 all green. This hour: how-to-play rewrite, 2 trophies, Fire
+  Imps in Endless, sweep 2 (clean), Phase 6 row, campgold payout check (no change), Hawkeye combo,
+  "Earned this run", pause status, mood perf check (no cost) + halo glow, "This week" strip, Armory
+  Arcanum + Field Works, per-chapter fanfare, Best Endless sieges, Hard/Nightmare progress on cards.
+  141 tests. Lesson: smaller UI slices ship fast but each must be eyeballed — the duplicate skull and
+  a too-tall Armory card were both caught only in screenshots.
