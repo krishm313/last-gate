@@ -18,7 +18,7 @@ import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
 import { campBotInput, campBotPick, campBotStep } from "./bot";
 import { HERO_BY_ID } from "../core/heroes";
 import { learnSkill, resetSkills } from "../core/skills";
-import { pushHistory, type RunRecord } from "../core/history";
+import { pushEndlessTop, pushHistory, type RunRecord } from "../core/history";
 import { applyEndlessTwist, endlessTwistFor } from "../core/endlessMods";
 import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
@@ -403,6 +403,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
   const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD), difficulty: runDifficulty });
   pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
+  if (c.chapter.endless) pushEndlessTop(save.endlessTop, { nights: rec.nights, hero: rec.hero, date: rec.date });
   writeSave(save);
   if (abandoned) {
     goHub("battle");

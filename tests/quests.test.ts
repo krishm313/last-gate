@@ -170,3 +170,15 @@ describe("week summary", async () => {
     expect(s).toEqual({ runs: 2, wins: 1, nights: 14, bestEndless: 4 });
   });
 });
+
+describe("endless top sieges", async () => {
+  const { pushEndlessTop, sanitizeEndlessTop } = await import("../src/core/history");
+  it("keeps the five best, ranked", () => {
+    const list: import("../src/core/history").EndlessBest[] = [];
+    for (const n of [5, 12, 3, 20, 8, 9, 1]) pushEndlessTop(list, { nights: n, hero: "ranger", date: "2026-11-19" });
+    expect(list.map((r) => r.nights)).toEqual([20, 12, 9, 8, 5]);
+    expect(pushEndlessTop(list, { nights: 15, hero: "knight", date: "" })).toBe(2);
+    expect(pushEndlessTop(list, { nights: 2, hero: "knight", date: "" })).toBe(0);
+    expect(sanitizeEndlessTop([{ nights: "x" }, { nights: 4, hero: "pyro" }, { nights: 9, hero: "bad" }])).toEqual([{ nights: 4, hero: "pyro", date: "" }]);
+  });
+});

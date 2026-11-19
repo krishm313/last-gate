@@ -1,7 +1,7 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
-import { sanitizeHistory, type RunRecord } from "./history";
+import { sanitizeEndlessTop, sanitizeHistory, type EndlessBest, type RunRecord } from "./history";
 import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
 import { newHeroProgress, sanitizeHeroProgress, skillPoints, type HeroProgress } from "./skills";
 
@@ -71,6 +71,8 @@ export interface SaveData {
   heroes: Record<HeroId, HeroProgress>;
   /** Recent runs, newest first (see history.ts). */
   history: RunRecord[];
+  /** Top Endless sieges (nights held). */
+  endlessTop: EndlessBest[];
   /** Chosen cosmetic hero flair (see flair.ts). */
   flair: string;
   /** Selected campaign difficulty, and per chapter the highest difficulty rank cleared (1 hard, 2 nightmare). */
@@ -79,7 +81,7 @@ export interface SaveData {
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], flair: "none", difficulty: "normal", diffCleared: {} };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {} };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -110,6 +112,9 @@ export function sanitizeSave(raw: unknown): SaveData {
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
   d.difficulty = isDifficulty((r as { difficulty?: unknown }).difficulty) ? (r as { difficulty: DifficultyId }).difficulty : "normal";
   for (const [k, v] of Object.entries(rec((r as { diffCleared?: unknown }).diffCleared))) if (chapterIds.has(Number(k))) d.diffCleared[Number(k)] = Math.max(0, Math.min(2, Math.floor(num(v, 0))));
+  d.endlessTop = sanitizeEndlessTop((r as { endlessTop?: unknown }).endlessTop);
+  // Saves from before the board: the Endless record so far becomes its first entry.
+  if ((r as { endlessTop?: unknown }).endlessTop === undefined && (d.best[ENDLESS_ID] ?? 0) > 0) d.endlessTop = [{ nights: Math.max(0, d.best[ENDLESS_ID]! - 1), hero: d.hero, date: "" }];
   d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
   d.heroes = sanitizeHeroProgress(rawHeroes);

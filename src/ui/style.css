@@ -1147,3 +1147,5 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lge-chip { font-size: 0.74em; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(255, 210, 74, 0.18); border: 1px solid rgba(255, 210, 74, 0.6); color: #ffe7a0; }
 .lgh-week { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; align-items: center; margin: 0 0 8px; padding: 6px 10px; border-radius: 10px; background: rgba(14, 22, 48, 0.88); border: 1px solid rgba(255, 210, 74, 0.55); font-size: 0.8em; font-weight: 700; }
 .lgh-week-t { color: #ffd76a; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85em; }
+.lgh-row.lgt-row { border-left-color: #b070ff; }
+.lgh-row.lgt-first { border-left-color: #ffd24a; background: rgba(40, 30, 10, 0.85); }

@@ -517,6 +517,22 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     this.historySection(body, save);
+    this.endlessTopSection(body, save);
+  }
+
+  /** Best Endless sieges ever. */
+  private endlessTopSection(body: HTMLElement, save: SaveData): void {
+    if (!save.endlessTop.length) return;
+    body.append(el("div", "hub-hint records-title", "♾️ Best Endless sieges"));
+    const box = el("div", "lgh-list");
+    save.endlessTop.forEach((r, i) => {
+      const row = el("div", `lgh-row lgt-row${i === 0 ? " lgt-first" : ""}`);
+      const left = el("div", "lgh-left");
+      left.append(el("div", "lgh-where", `${["🥇", "🥈", "🥉", "4.", "5."][i]} Night ${r.nights}`), el("div", "lgh-sub", `${HERO_BY_ID[r.hero].name}${r.date ? ` · ${r.date}` : ""}`));
+      row.append(left);
+      box.append(row);
+    });
+    body.append(box);
   }
 
   /** The last few runs, newest first, with a win-rate line. */
