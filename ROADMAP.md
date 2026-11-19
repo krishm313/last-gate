@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Two new hero flairs: 🫧 Seafoam Trail (clear chapter 8: teal pool, foam bubbles while walking) and 🌕 Blood Moon Halo (clear chapter 9: crimson halo, red pool and motes). Flair picker on SE checked (test).
 - Checked (no change needed): chapter 9 on Hard — "Clear on Normal first" until cleared, then 💀 PLAY; pause menu during a chapter 9 night on iPhone SE fits and reads cleanly.
 - How to play: checked every line is still accurate; added "👑 Bosses enrage at half health and gain a new move" (still fits one iPhone SE screen).
 - Loss tip for the blood moon: after 2+ flares, the end screen says to fall back near the hall during a flare (its archers hit harder) and save the ability for the rush. Flares counted in runStats.

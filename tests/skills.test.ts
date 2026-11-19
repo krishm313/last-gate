@@ -69,6 +69,16 @@ describe("hero flair", async () => {
     expect(activeFlair(s)).toBe("ember");
     expect(campSetupFromSave(s).heroFlair).toBe("ember");
     expect(sanitizeSave({ flair: 42 }).flair).toBe("none");
+    // The newest flairs come from clearing chapters 8 and 9.
+    const late = newSave();
+    late.flair = "bloodmoon";
+    expect(activeFlair(late)).toBe("none");
+    late.stars[9] = 1;
+    expect(activeFlair(late)).toBe("bloodmoon");
+    late.flair = "seafoam";
+    expect(activeFlair(late)).toBe("none");
+    late.stars[8] = 2;
+    expect(activeFlair(late)).toBe("seafoam");
   });
 });
 

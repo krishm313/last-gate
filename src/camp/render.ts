@@ -4628,16 +4628,18 @@ fx.shake(0.15);
       const g = this.blob(`flair-${col}`, [[0, col], [0.6, col.replace(/[\d.]+\)$/, "0.35)")], [1, "rgba(0,0,0,0)"]]);
       this.drawBlob(ctx, g, x, y + 12, 30, 12, a);
     };
-    if (f === "gold") {
-      tint("rgba(255,214,90,0.8)", 0.7);
+    if (f === "gold" || f === "bloodmoon") {
+      // Golden Halo, or the crimson Blood Moon Halo (same shape, blood-red light and motes).
+      const blood = f === "bloodmoon";
+      tint(blood ? "rgba(220,40,60,0.8)" : "rgba(255,214,90,0.8)", 0.7);
       // A floating golden halo ring above the head and sparkles circling it.
       ctx.save();
       const hy = y - 40 + Math.sin(this.time * 2.4) * 2;
       // Soft glow from a cached blob (no shadowBlur: it's slow on phones), then the crisp ring.
       ctx.globalCompositeOperation = "lighter";
-      this.drawBlob(ctx, this.blob("flair-halo", [[0, "rgba(255,214,90,0.9)"], [1, "rgba(255,180,40,0)"]]), x, hy, 20, 10, 0.7);
+      this.drawBlob(ctx, blood ? this.blob("flair-halo-blood", [[0, "rgba(255,70,80,0.9)"], [1, "rgba(180,20,40,0)"]]) : this.blob("flair-halo", [[0, "rgba(255,214,90,0.9)"], [1, "rgba(255,180,40,0)"]]), x, hy, 20, 10, 0.7);
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = "rgba(255,226,120,0.95)";
+      ctx.strokeStyle = blood ? "rgba(255,90,100,0.95)" : "rgba(255,226,120,0.95)";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.ellipse(x, hy, 11, 4, 0, 0, Math.PI * 2);
@@ -4654,7 +4656,7 @@ fx.shake(0.15);
       if (moving) this.flairAcc += dt;
       while (this.flairAcc > 0.08) {
         this.flairAcc -= 0.08;
-        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, "#ffe27a", 1, 20, { max: 0.7, size: 3, gravity: -30, drag: 2, shape: "spark" });
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, blood ? "#ff5a6a" : "#ffe27a", 1, 20, { max: 0.7, size: 3, gravity: -30, drag: 2, shape: "spark" });
       }
       return;
     }
@@ -4662,6 +4664,7 @@ fx.shake(0.15);
     if (f === "frost") tint("rgba(160,220,255,0.8)", 0.6);
     if (f === "shadow") tint("rgba(90,40,160,0.8)", 0.6);
     if (f === "petal") tint("rgba(255,160,200,0.7)", 0.5);
+    if (f === "seafoam") tint("rgba(80,210,200,0.75)", 0.55);
     // Trails: shed motes while walking (and a few while standing for the wisps).
     this.flairAcc += dt * (moving ? 1 : f === "shadow" ? 0.5 : 0.15);
     const every = 0.035;
@@ -4673,6 +4676,7 @@ fx.shake(0.15);
       else if (f === "frost") this.fx.burst(x + jx, y + 10 + jy, alt ? "#ffffff" : "#8ad0ff", 1, 22, { max: 1.1, size: 3.2, gravity: 14, drag: 3, shape: "chunk" });
       else if (f === "petal") this.fx.burst(x + jx, y + 2 + jy, alt ? "#ffb0d0" : "#ff6aa8", 1, 26, { max: 1.3, size: 3.6, gravity: 36, drag: 2.5, shape: "chunk" });
       else if (f === "shadow") this.fx.burst(x + jx * 1.4, y + 8 + jy, alt ? "#5a2a98" : "#2a1448", 1, 16, { max: 1.1, size: 4.6, gravity: -46, drag: 2, shape: "dot" });
+      else if (f === "seafoam") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8fffc" : "#6ad8d0", 1, 18, { max: 1.0, size: alt ? 2.6 : 3.8, gravity: -36, drag: 2.4, shape: "dot" });
     }
     if (this.flairAcc > 1) this.flairAcc = 0;
   }
