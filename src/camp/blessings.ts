@@ -32,13 +32,22 @@ export interface CampMods {
   slowedBonus: number;
   /** Thermal Shock: burning ticks this much harder on slowed foes. */
   thermal: number;
+  /** Arcane Focus: Mage Tower damage multiplier and extra chain hops. */
+  mageDamage: number;
+  mageChains: number;
+  /** Field Medic: Healer's Tent radius and heal multiplier. */
+  healerPower: number;
+  /** Cruel Stakes: spike trap damage multiplier. */
+  spikeDamage: number;
+  /** Bounty Hunter: coin multiplier for elites and bosses. */
+  bigGold: number;
 }
 
 export function baseMods(): CampMods {
   return {
     heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, carry: 0, towerDamage: 1, towerRate: 1,
     towerRange: 1, wallHp: 1, income: 1, drops: 1, burn: 0, burnMult: 1, slow: 0, hallDamage: 1, repairAfterWave: 0, magnet: 1, rerolls: 1,
-    allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1,
+    allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1,
   };
 }
 
@@ -74,6 +83,10 @@ export const BLESSINGS: Blessing[] = [
   { id: "soldiers", name: "Hardy Soldiers", desc: "Barracks soldiers +60% HP and damage", icon: "⛑️", rarity: "rare", max: 2, needsBuilding: "barracks", apply: (m) => { m.allyPower *= 1.6; } },
   { id: "boulders", name: "Heavy Boulders", desc: "Catapults +40% damage, bigger splash", icon: "🪨", rarity: "rare", max: 2, needsBuilding: "catapult", apply: (m) => { m.catapultDamage *= 1.4; } },
   { id: "woodsmen", name: "Woodsmen", desc: "Woodcutters bring 2 more logs per trip", icon: "🪓", rarity: "common", max: 2, needsBuilding: "lumber", apply: (m) => { m.logsPerTrip += 2; } },
+  { id: "arcane", name: "Arcane Focus", desc: "Mage Tower +30% damage, lightning hops to 1 more foe", icon: "🔮", rarity: "rare", max: 2, needsBuilding: "mage", apply: (m) => { m.mageDamage *= 1.3; m.mageChains += 1; } },
+  { id: "medic", name: "Field Medic", desc: "Healer's Tent reaches 30% farther and heals 40% more", icon: "💚", rarity: "common", max: 2, needsBuilding: "healer", apply: (m) => { m.healerPower *= 1.3; } },
+  { id: "stakes", name: "Cruel Stakes", desc: "Spike trap deals 60% more damage", icon: "🪤", rarity: "common", max: 2, needsBuilding: "spikes", apply: (m) => { m.spikeDamage *= 1.6; } },
+  { id: "hunter", name: "Bounty Hunter", desc: "Bosses and elites drop double coins", icon: "🏹", rarity: "rare", max: 1, apply: (m) => { m.bigGold *= 2; } },
   { id: "smith", name: "Master Smith", desc: "The forge works twice as fast", icon: "⚒️", rarity: "common", max: 1, needsBuilding: "forge", apply: (m) => { m.forgeSpeed *= 2; } },
   { id: "fire", name: "Fire Arrows", desc: "All arrows set enemies ablaze", icon: "🔥", rarity: "epic", max: 2, apply: (m) => { m.burn += 0.5; } },
   { id: "frost", name: "Frost Arrows", desc: "All arrows slow enemies by 35%", icon: "❄️", rarity: "epic", max: 1, apply: (m) => { m.slow = 0.35; } },

@@ -1717,8 +1717,8 @@ function updateMage(c: Camp): void {
     p.fired = 0;
     const struck = new Set<Enemy>();
     const points: Vec[] = [from];
-    let dmg = st.damage * towerScale(c);
-    for (let i = 0; i <= st.chains && cur; i++) {
+    let dmg = st.damage * towerScale(c) * c.mods.mageDamage;
+    for (let i = 0; i <= st.chains + c.mods.mageChains && cur; i++) {
       struck.add(cur);
       points.push({ x: cur.x, y: cur.y - cur.def.radius * 0.6 });
       // Arcane: armour doesn't help.
@@ -1741,7 +1741,10 @@ function updateMage(c: Camp): void {
 function updateHealer(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "healer");
   if (!p || p.level === 0) return;
-  const st = HEALER_LEVELS[p.level - 1]!;
+  const base = HEALER_LEVELS[p.level - 1]!;
+  const k = c.mods.healerPower;
+  // Field Medic: farther reach (×k) and stronger heals (×(1 + (k−1)·1.33)).
+  const st = { ...base, radius: base.radius * k, heal: base.heal * (1 + (k - 1) * 1.33) };
   const r2 = st.radius ** 2;
   const healed: Vec[] = [];
   const h = c.hero;
@@ -1782,7 +1785,7 @@ function updateSpikes(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "spikes");
   if (!p || p.level === 0) return;
   const lv = p.level - 1;
-  const dps = SPIKES.dps[lv]! * towerScale(c);
+  const dps = SPIKES.dps[lv]! * towerScale(c) * c.mods.spikeDamage;
   c.spikeFx -= STEP;
   let fxAt: Enemy | null = null;
   for (const e of c.enemies) {
@@ -1828,7 +1831,7 @@ function reap(c: Camp): void {
       // Enemies that removed themselves (a sapper blowing up on the wall/hall, an escaped treasure goblin)
       // were not killed by the player: no kill, XP, coins, streak or kill event.
       if (e.exploded) continue;
-      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops * (e.elite ? ELITE.gold : 1)));
+      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops * (e.elite ? ELITE.gold : 1) * (e.elite || e.def.boss ? c.mods.bigGold : 1)));
       c.kills += 1;
       c.goldEarned += gold;
       gainXp(c, e.def.boss ? 15 : Math.max(1, Math.round(e.def.cost)));

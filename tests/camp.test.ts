@@ -711,3 +711,35 @@ describe("boss second phases", () => {
     expect(f.hp).toBeGreaterThan(f.maxHp * 0.6);
   });
 });
+
+describe("building blessings", () => {
+  it("Cruel Stakes, Arcane Focus and Bounty Hunter change their systems", async () => {
+    const { BLESSING_BY_ID, baseMods, rollBlessings } = await import("../src/camp/blessings");
+    const m = baseMods();
+    BLESSING_BY_ID.stakes!.apply(m);
+    BLESSING_BY_ID.arcane!.apply(m);
+    BLESSING_BY_ID.hunter!.apply(m);
+    expect(m.spikeDamage).toBeCloseTo(1.6);
+    expect(m.mageChains).toBe(1);
+    expect(m.bigGold).toBe(2);
+    // Building blessings only appear once the building stands.
+    const { createRng } = await import("../src/core/rng");
+    const ids = new Set<string>();
+    for (let i = 0; i < 200; i++) for (const b of rollBlessings(createRng(i), 5, {}, 3, new Set())) ids.add(b.id);
+    expect(ids.has("arcane") || ids.has("medic") || ids.has("stakes")).toBe(false);
+    expect(ids.has("hunter")).toBe(true);
+  });
+  it("Bounty Hunter doubles a boss's coins", () => {
+    const run = (big: number) => {
+      const c = createCamp(2);
+      c.mods.bigGold = big;
+      c.phase = "wave";
+      c.queue = [];
+      const b = spawnEnemy(c, { at: 0, enemy: "ogre", hpMult: 1, lane: null }, { x: 360, y: 300 });
+      b.hp = 0;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      return c.goldEarned;
+    };
+    expect(run(2)).toBeCloseTo(run(1) * 2, -1);
+  });
+});

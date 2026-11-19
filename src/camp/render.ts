@@ -207,8 +207,8 @@ export class CampRenderer {
   }
 
   /** The healer's heal radius on the ground (drawn under everything that stands), breathing gently. */
-  private drawHealerAura(ctx: CanvasRenderingContext2D, p: Plot): void {
-    const r = HEALER_LEVELS[p.level - 1]!.radius;
+  private drawHealerAura(ctx: CanvasRenderingContext2D, p: Plot, k = 1): void {
+    const r = HEALER_LEVELS[p.level - 1]!.radius * k;
     const br = 0.5 + 0.5 * Math.sin(this.time * 1.6);
     ctx.save();
     ctx.strokeStyle = `rgba(210,255,190,${(0.38 + br * 0.2).toFixed(3)})`;
@@ -1165,7 +1165,7 @@ fx.shake(0.15);
     const spikePlot = c.plots.find((q) => q.kind === "spikes");
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
-    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p) });
+    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });

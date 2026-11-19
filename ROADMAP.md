@@ -137,6 +137,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   toward the target (~2 s) so layers swell instead of switching.
 
 ## Shipped (newest first)
+- 4 new blessings: Arcane Focus (Mage +30% dmg, +1 hop), Field Medic (Healer reach +30%, heals +40%), Cruel Stakes (spikes +60%), Bounty Hunter (bosses & elites drop double coins) — building ones only offered once built (tests).
 - Onboarding coachmarks: one-time bubbles under the tab that holds a new system (quests, skill points, hero flair); gone once the tab is opened. Bug sweep (autoplay ch1, ch3, ch6 Hard): no errors.
 - SFX for the new content: frost nova shimmer, frozen-tower crack, boss slam boom, war horn, curse, boulder whoosh, elite sting, shield shatter, mage zap, storm thunder, spike ticks, digging, spec chord; haptic buzz on slams/novas/stuns (all rate-limited).
 - Adaptive music: calm by day, drums at nightfall, builds through the night and in danger, boss brass layer (test).
