@@ -336,3 +336,8 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   `npx vitest run` after every late tweak, before committing. This hour: chapter 8 (data, Drowned
   King + tide, sunken props), Tidebreaker, Tidal Week, sweep 3 (clean), combo badge fix, hub 🏆
   count, older-chapter check, skill capstones, new loss tips, 8-chapter balance snapshot. 145 tests.
+- **2026-11-19 16:40** — deploys 145–153 all green. This hour: 3 new daily quests (from 11-20) +
+  eligibility fix, ch5 Golem softened, "What's new" card, Endless twist icon on the night label, SE
+  label overflow check (fits), Settings replay tutorial & hints, per-chapter confetti, weekly quest
+  expansion (from 11-23). 148 tests. Lesson: date-faked browser checks keep catching things the unit
+  tests can't (unfair quests, a wrapping weekly card) — keep doing one per rotation change.
