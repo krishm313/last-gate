@@ -992,15 +992,16 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 }
 @media (prefers-reduced-motion: reduce) { .ability.ready::before { animation: none; } }
 
-/* Coin counter at the carry cap: a small FULL badge pulses on the pill (matches the stack tag). */
+/* Coin counter at the carry cap: a small FULL badge pulses under the pill (matches the stack tag). */
 .coin-pill { position: relative; }
 .coin-pill.full::after {
-  content: "FULL"; position: absolute; right: calc(-14 * var(--u)); top: calc(-9 * var(--u)); z-index: 1;
+  /* Hangs under the pill's bottom edge so it never covers the count or the next pill. */
+  content: "FULL"; position: absolute; left: 50%; bottom: calc(-10 * var(--u)); z-index: 1; transform: translateX(-50%);
   font-size: calc(8.5 * var(--tu)); font-weight: 900; letter-spacing: 0.04em; color: #fff;
   background: linear-gradient(#ff7a4a, #d0381e); border: calc(1.5 * var(--u)) solid #1d1208; border-radius: calc(6 * var(--u));
   padding: 0 calc(4 * var(--u)); line-height: calc(13 * var(--u)); animation: full-pulse 1s ease-in-out infinite;
 }
-@keyframes full-pulse { 50% { transform: scale(1.12); } }
+@keyframes full-pulse { 50% { transform: translateX(-50%) scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .coin-pill.full::after { animation: none; } }
 
 /* Defeat tip: slides in after the stats, then the bulb flicks on and glows softly. */
