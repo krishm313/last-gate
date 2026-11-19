@@ -182,7 +182,7 @@ describe("the Cleric", async () => {
     s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 1 }; // 22 stars
     const setup = campSetupFromSave(s, "cleric");
     expect(setup.ability).toBe("sanctuary");
-    expect(setup.mods!.hallDamage).toBeCloseTo(campSetupFromSave(s, "ranger").mods!.hallDamage * 1.3);
+    expect(setup.mods!.hallDamage).toBeCloseTo(campSetupFromSave(s, "ranger").mods!.hallDamage * 1.15);
     const c = createCamp(3, undefined, setup);
     c.phase = "wave";
     c.queue = [];
@@ -200,8 +200,8 @@ describe("the Cleric", async () => {
     c.hero.hp = c.hero.maxHp * 0.3;
     step(c, { move: { x: 0, y: 0 }, ability: true } as never);
     expect(drainEvents(c).some((e) => e.type === "sanctuary")).toBe(true);
-    expect(c.hallHp).toBeCloseTo(c.hallMaxHp * 0.6, 0);
-    expect(c.segments[0]!.hp).toBeCloseTo(c.segments[0]!.maxHp * 0.7, 0);
+    expect(c.hallHp).toBeCloseTo(c.hallMaxHp * 0.57, 0);
+    expect(c.segments[0]!.hp).toBeCloseTo(c.segments[0]!.maxHp * 0.65, 0);
     expect(c.hero.hp).toBeCloseTo(c.hero.maxHp, 0);
   });
 });

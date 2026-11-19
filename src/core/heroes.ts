@@ -50,7 +50,7 @@ export const HEROES: HeroDef[] = [
   {
     id: "cleric", name: "The Cleric", title: "Lantern of the high chapel", color: "#e8d27a",
     ability: "sanctuary", abilityName: "Sanctuary", abilityDesc: "Heal the hall, every wall section, your soldiers and yourself.",
-    cooldown: 22, starsToUnlock: 22,
+    cooldown: 30, starsToUnlock: 22,
   },
 ];
 

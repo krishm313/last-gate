@@ -481,7 +481,7 @@ export interface Ally {
 
 export const BARRACKS = { x: 620, y: 715 };
 /** The Cleric's Sanctuary: share of max HP restored to the hall and to each standing wall section. */
-export const SANCTUARY = { hall: 0.1, wall: 0.2 };
+export const SANCTUARY = { hall: 0.07, wall: 0.15 };
 /** The Lancer's Piercing Lance: a line this long and this wide (plus the foe's radius). */
 export const LANCE = { length: 420, width: 26, damage: 3.5, push: 60 };
 /** The Warden's Snare Field. */

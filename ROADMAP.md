@@ -260,7 +260,8 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
-- New hero **The Cleric** (22★): the hall's archers hit 30% harder; Sanctuary (22 s) heals the hall 10%, every standing wall section 20%, the hero to full and all soldiers (keeps its charge when all is well). White-and-gold recolour of the mage art + portrait, ✨ icon, golden ring fx, "Light of the Gate" trophy (heal 5,000). Test included.
+- Cleric balance: first version won ch7 L10 75% vs the King's 45% (20 runs). Toned down to Sanctuary 7% hall / 15% walls, 30 s recharge, hall archers +15% → ch7 60%, ch9 30% (King 40%): on par within noise.
+- New hero **The Cleric** (22★): the hall's archers hit 15% harder; Sanctuary (30 s) heals the hall 7%, every standing wall section 15%, the hero to full and all soldiers (keeps its charge when all is well). White-and-gold recolour of the mage art + portrait, ✨ icon, golden ring fx, "Light of the Gate" trophy (heal 5,000). Test included.
 - One-time hint bubble under Trophies once 5 foe kinds are slain: "📖 New foes in your Bestiary!" (same coachmark system as quests / skills / flair).
 - Bestiary: tap a slain foe for its card — portrait, traits, health / speed / hit / coins, and the chapters it marches in; Back returns to the grid. Checked on SE.
 - In-run: the first kill of each foe kind shows "📖 New in the Bestiary: <name>" (bosses keep their own defeat banner), tying the Bestiary to play.
