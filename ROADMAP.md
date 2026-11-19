@@ -197,6 +197,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   last one in the renderer) swapped for a cached glow blob.
 
 ## Shipped (newest first)
+- Per-chapter victory fanfare: own key per chapter, minor for Hollow Night / Caldera, glassy bells for Frostpeak, war drums for the Caldera, a held final chord.
 - Armory: Arcanum (Mage Tower +8%/lvl) and Field Works (spikes +10%, Healer reach +5% /lvl), 5 levels each (test).
 - "This week" strip above Recent runs on Trophies: runs, wins, nights held and best Endless night since Monday (test).
 - Pause menu status strip adds difficulty (💀 Hard / ☠️ Nightmare), tonight's weather and this week's Endless twist.

@@ -742,7 +742,8 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "waveStart":
     case "won":
     case "lost":
-      sfx.play(ev as unknown as GameEvent);
+      if (ev.type === "won") sfx.fanfare(c.chapter.id);
+      else sfx.play(ev as unknown as GameEvent);
       if (ev.type === "bossSpawn") buzz(settings, 80);
       if (ev.type === "won") buzz(settings, 150);
       break;

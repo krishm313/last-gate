@@ -380,6 +380,24 @@ export class Sfx {
     }
   }
 
+  /**
+   * Victory fanfare, flavoured per chapter: a different key and voice for each land (bright brass
+   * for the Border Keep, eerie for Hollow Night, glassy bells for Frostpeak, war drums for the Caldera).
+   */
+  fanfare(chapter: number): void {
+    const KEY = [0, 0, 2, -2, -5, 3, 5, -3]; // semitones per chapter id (index = id)
+    const k = 2 ** ((KEY[chapter] ?? 0) / 12);
+    const minor = chapter === 4 || chapter === 7;
+    const notes = (minor ? [392, 466, 587, 698, 932] : [392, 523, 659, 784, 1047]).map((f) => f * k);
+    const voice: OscillatorType = chapter === 6 ? "triangle" : chapter === 4 ? "square" : "sawtooth";
+    for (const [i, f] of notes.entries()) this.tone(voice, f, f, 0.5, chapter === 6 ? 0.07 : 0.08, i * 0.14);
+    // Final chord, held.
+    for (const f of [notes[0]! * 2, notes[2]! * 2, notes[4]!]) this.tone("triangle", f, f, 1.4, 0.04, 0.75);
+    if (chapter === 6) for (let i = 0; i < 6; i++) this.tone("sine", 2093 * k + i * 260, 2093 * k + i * 260, 0.25, 0.025, 0.8 + i * 0.07);
+    if (chapter === 7) for (let i = 0; i < 4; i++) { this.tone("sine", 90, 40, 0.25, 0.35, i * 0.18); this.noise(0.15, 0.2, "lowpass", 300, 1, i * 0.18); }
+    if (chapter === 99) this.noise(0.8, 0.12, "bandpass", 1200, 2, 0.7, 4000);
+  }
+
   /** New building unlocked. */
   unlockChime(): void {
     this.noise(0.4, 0.15, "bandpass", 800, 2, 0, 3000);
