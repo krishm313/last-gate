@@ -430,7 +430,7 @@ export interface Camp {
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
-  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number> };
+  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number };
   strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
   owned: Record<string, number>;
   offers: Blessing[];
@@ -781,6 +781,7 @@ function updateFires(c: Camp): void {
   for (const p of c.plots) {
     if (!p.fire || p.fire <= 0) continue;
     p.fire -= STEP;
+    c.runStats.burnTime = (c.runStats.burnTime ?? 0) + STEP;
     if (!c.hero.dead && Math.abs(c.hero.x - p.x) < CAMP.plotHalf && Math.abs(c.hero.y - p.y) < CAMP.plotHalf) {
       p.fire = 0;
       c.events.push({ type: "fireOut", x: p.x, y: p.y - 10 });
@@ -1583,6 +1584,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
     if (e.burrow <= 0) {
       e.y = endY;
       c.events.push({ type: "emerge", x: e.x, y: e.y });
+      c.runStats.tunnelers = (c.runStats.tunnelers ?? 0) + 1;
     }
     return;
   }
@@ -1623,6 +1625,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
         e.hp = 0;
         e.exploded = true;
         c.events.push({ type: "ablaze", plot: t.id, x: t.x, y: t.y - 20 });
+        c.runStats.fires = (c.runStats.fires ?? 0) + 1;
       }
       return;
     }
@@ -1641,6 +1644,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
         e.hp = 0;
         e.exploded = true;
         c.events.push({ type: "towerStunned", plot: t.id, x: t.x, y: t.y - 30 });
+        c.runStats.stuns = (c.runStats.stuns ?? 0) + 1;
       }
       return;
     }

@@ -378,6 +378,9 @@ function pauseStatus(c: Camp): string[] {
 function lossTip(c: Camp): string {
   const s = c.runStats;
   const built = (kind: string) => c.plots.some((p) => p.kind === kind && p.level > 0);
+  if ((s.burnTime ?? 0) > 25) return "Fire Imps kept your buildings burning. Walk onto a burning building to stamp the fire out — and shoot imps down early.";
+  if ((s.stuns ?? 0) >= 6) return "War Ravens stunned your towers again and again. Upgrade towers so they shoot ravens down first, or build a Mage Tower.";
+  if ((s.tunnelers ?? 0) >= 5 && !built("barracks")) return "Tunnelers dug under the wall. A Barracks (and the King) inside the camp catch them as they surface.";
   if (s.flyerHallDamage > c.hallMaxHp * 0.3) return "Bats fly over the wall. Upgrade the Hall (stronger hall archers) and fight near it when flyers come.";
   if (s.breaches >= 3 && !built("fortify")) return "The wall kept breaking. Fortify it into stone, and stand on Repair Wall during the day.";
   if (s.breaches >= 3 && !built("barracks")) return "Build a Barracks — its soldiers hold breaches while you repair.";

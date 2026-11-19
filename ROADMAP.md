@@ -211,6 +211,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
 
 ## Shipped (newest first)
+- Loss tips cover the newer threats: buildings left burning (Fire Imps), towers stunned often (War Ravens), Tunnelers surfacing with no Barracks — from new run counters.
 - Hero skill capstones: 3 more skill points (280 / 340 / 400 nights) and a tier-4 skill per branch — Executioner (+20% vs bosses), Bulwark (hall takes −15%), Midas (+15% coins) (test).
 - Hub header shows trophies claimed (🏆 x/N) beside stars. Checked chapters 2–5 by day and night against the newer polish: consistent (ch4's drifting grave mist is intended).
 - Blessing cards: combo badges also show the building a blessing needs ("COMBO 🦅 + 🗼"); Hawkeye gets its own 👁️ icon (it shared Eagle Towers' 🦅). Checked the new blessing cards on the pick screen.
