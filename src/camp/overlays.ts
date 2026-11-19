@@ -140,6 +140,32 @@ export function drawMood(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, mood: n
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     drawEmbers(ctx, time);
+  } else if (mood === 8) {
+    // Sunken Citadel: a cold sea-green wash, low sea mist drifting through, and a fine drizzle.
+    ctx.fillStyle = "rgba(30,90,100,0.14)";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    for (let i = 0; i < 4; i++) {
+      const x = ((time * 10 + i * 170) % (VIEW_W + 300)) - 150;
+      const y = 160 + i * 170 + Math.sin(time * 0.4 + i) * 24;
+      const g = ctx.createRadialGradient(x, y, 10, x, y, 160);
+      g.addColorStop(0, "rgba(200,230,230,0.2)");
+      g.addColorStop(1, "rgba(200,230,230,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(x - 160, y - 160, 320, 320);
+    }
+    ctx.save();
+    ctx.strokeStyle = "rgba(200,225,235,0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < 40; i++) {
+      const seed = (i * 73) % 997;
+      const x = ((seed * 6.7 - time * 40) % VIEW_W + VIEW_W) % VIEW_W;
+      const y = ((seed * 3.1 + time * 380) % (VIEW_H + 20)) - 10;
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 2, y + 9);
+    }
+    ctx.stroke();
+    ctx.restore();
   } else if (mood === 99) {
     ctx.fillStyle = "rgba(90,40,120,0.12)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);

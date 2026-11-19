@@ -196,7 +196,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   ch7 (embers + haze) 4.9 — the new overlays cost nothing measurable. Golden Halo's shadowBlur (the
   last one in the renderer) swapped for a cached glow blob.
 
+- **Chapter 8: Sunken Citadel** (slice 1) — unlocked after chapter 7. Mossy camp island amid flooded
+  outskirts (ground_8 recoloured from ground_1 with puddles + glints), mood 8 = sea-green wash,
+  drifting sea mist and fine drizzle; marsh props + ponds; rain 50% / fog 20% of nights; every foe incl.
+  imps; Swamp Hag mid-boss (×0.5), Colossus finale for now. CAMP_CHAPTER_HP 8: 2.2 → campsim @L7 33%,
+  @L10 58%. Next: Drowned King boss (tide), sunken props.
+
 ## Shipped (newest first)
+- Chapter 8 "Sunken Citadel": drowned-ruins map, sea mist and drizzle, rainy nights, achievement (balance-tuned).
 - Chapter cards on Hard / Nightmare show that difficulty's progress ("💀 Best: night 6" / "💀 Cleared"); best night per chapter+difficulty saved (test).
 - "Best Endless sieges" board on Trophies: top 5 Endless runs ever (nights, hero, date), kept apart from the 20-run history; existing records seed it (test).
 - Per-chapter victory fanfare: own key per chapter, minor for Hollow Night / Caldera, glassy bells for Frostpeak, war drums for the Caldera, a held final chord.

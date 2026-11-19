@@ -1485,7 +1485,7 @@ fx.shake(0.15);
   /** The painted ground for the current chapter, or null while it loads (rebuilds when ready). */
   private paintedGround(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
-    const id = [1, 2, 3, 4, 5, 6, 7, 99].includes(this.mood) ? this.mood : 1;
+    const id = [1, 2, 3, 4, 5, 6, 7, 8, 99].includes(this.mood) ? this.mood : 1;
     let img = this.groundImgs.get(id);
     if (!img) {
       img = new Image();
@@ -1759,6 +1759,7 @@ fx.shake(0.15);
       5: [["burntstump1", 12], ["deadtree1", 3]],
       6: [["deadtree1", 7]],
       7: [["burntstump1", 10], ["deadtree1", 5]],
+      8: [["pond1", 10], ["deadtree1", 4]],
       99: [["crystal1", 14]],
     };
     const set = SETS[this.mood];
@@ -1906,7 +1907,7 @@ fx.shake(0.15);
   private propImgs = new Map<string, HTMLImageElement>();
   private propCache = new Map<string, HTMLCanvasElement>();
   private propTint(): string {
-    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash" } as Record<number, string>)[this.mood] ?? "summer";
+    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "marsh" } as Record<number, string>)[this.mood] ?? "summer";
   }
   private propAtlas(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
@@ -3270,7 +3271,7 @@ fx.shake(0.15);
       return [cx + Math.sin(tt * 0.37 + i * 1.7) * 60 + Math.sin(tt * 1.1 + i) * 12,
         cy + Math.cos(tt * 0.29 + i * 2.3) * 40 + Math.sin(tt * 2.3 + i) * 6];
     };
-    for (let i = 0; i < (this.mood === 6 || this.mood === 7 ? 0 : 6); i++) {
+    for (let i = 0; i < (this.mood === 6 || this.mood === 7 || this.mood === 8 ? 0 : 6); i++) {
       const [wx, wy] = bfPos(i, t);
       const [nx, ny] = bfPos(i, t + 0.15);
       const x = wx - o.x + sh.x, y = wy - o.y + sh.y;
@@ -3903,7 +3904,7 @@ fx.shake(0.15);
     // dust where they break cover.
     if (!e.def.flying && e.y > FOREST_Y - 6 && e.y < FOREST_Y + 40 && !this.brokeCover.has(e.id)) {
       this.brokeCover.add(e.id);
-      const leaf = this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : this.mood === 4 ? "#4a5a48" : "#4e8a3a";
+      const leaf = this.mood === 8 ? "#4a8a7a" : this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : this.mood === 4 ? "#4a5a48" : "#4e8a3a";
       this.fx.burst(e.x, e.y - r * 0.6, leaf, 5, 60, { max: 0.8, size: 2.6, gravity: 90, drag: 2 });
       this.fx.burst(e.x, e.y + r * 0.8, "rgba(160,150,120,0.6)", 3, 30, { max: 0.4, size: 3, gravity: -10, drag: 4 });
     }

@@ -158,6 +158,29 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 2, shield: 1, knight: 1.4, wraith: 1.2, crossbow: 1, brute: 1, banner: 0.8, raven: 0.8 }, boss: "magma" },
     ],
   },
+  {
+    id: 8,
+    name: "Sunken Citadel",
+    blurb: "An old fortress the sea took back. Something rules the drowned halls.",
+    hpMult: 3.8,
+    speedMult: 1.14,
+    gateDamageMult: 1.35,
+    affixes: ["Tidewater: rain falls most nights", "Drowned walls: the horde hits the gate 35% harder"],
+    ground: ["#1f4a52", "#2a5a62"],
+    weatherOdds: { rain: 0.5, fog: 0.2, storm: 0.05 },
+    waves: [
+      { mix: { footman: 2, runner: 2, shield: 1.2, brute: 0.6, banner: 0.5 } },
+      { mix: { knight: 1.2, wraith: 1.2, crossbow: 1, bat: 2, raven: 0.8 } },
+      { mix: { shield: 2, brute: 1, ram: 0.8, sapper: 1.2, tunneler: 0.8, shaman: 0.8, imp: 0.6 } },
+      { mix: { runner: 3, bat: 2, raven: 1.2, goblin: 1 }, breather: true },
+      { mix: { knight: 1.5, wraith: 1.6, brute: 1, crossbow: 1.2, banner: 0.8 }, boss: "hag", bossHpMult: 0.5 },
+      { mix: { footman: 2, shield: 2, brute: 1.2, ram: 0.8, sapper: 1.2, tunneler: 1, raven: 0.8, imp: 0.8 } },
+      { mix: { knight: 1.7, wraith: 1.7, crossbow: 1.5, brute: 1.2, shaman: 1, banner: 0.8 } },
+      { mix: { runner: 3, goblin: 3, bat: 2, raven: 1.2, imp: 1 }, breather: true },
+      { mix: { shield: 2, knight: 1.7, wraith: 1.7, crossbow: 1.2, ram: 1, brute: 1.2, sapper: 1, shaman: 0.8, banner: 0.8, tunneler: 0.8, imp: 0.8 } },
+      { mix: { footman: 2, shield: 1.2, knight: 1.5, wraith: 1.2, crossbow: 1, brute: 1, banner: 0.8, raven: 0.8, imp: 0.6 }, boss: "colossus" },
+    ],
+  },
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */
