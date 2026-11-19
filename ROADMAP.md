@@ -32,9 +32,10 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - **Tower specialisations** — at Lv 3 each archer tower picks a path (game waits on a 3-card choice,
   like blessings): Fire (burn 45% of hit dmg over 3 s), Frost (40% slow 1.6 s, 0.9× dmg),
   Volley (+2 arrows at nearby foes, 0.55× dmg). Permanent per tower. Bot rotates paths for campsim.
-  Slices: (1) sim + tests + choice screen ✅ (2) in-world look: tinted arrows, tower banner colour/icon,
+  Slices: (1) sim + tests + choice screen ✅ (2) in-world look ✅: tinted arrows, tower banner colour,
   hit effects (3) info card shows the path.
 
 ## Shipped (newest first)
+- Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).

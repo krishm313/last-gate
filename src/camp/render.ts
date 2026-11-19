@@ -463,6 +463,13 @@ export class CampRenderer {
           }
           break;
         }
+        case "specHit":
+          if (ev.spec === "fire") fx.burst(ev.x, ev.y, "#ff9a3a", 5, 90, { max: 0.35, size: 2.6, gravity: -60, shape: "spark" });
+          else if (ev.spec === "frost") {
+            fx.burst(ev.x, ev.y, "#c8f0ff", 6, 110, { max: 0.4, size: 2.4, gravity: 120, shape: "chunk" });
+            fx.rings.push({ x: ev.x, y: ev.y, r: 16, color: "#9ae6ff", life: 0.25, max: 0.25, width: 2 });
+          } else fx.burst(ev.x, ev.y, "#ffe08a", 3, 80, { max: 0.2, size: 2, shape: "spark" });
+          break;
         case "courier":
           // A coin arcs from the hall's pile to the King, homing on him as he moves.
           this.pickupBatch += 1;
@@ -5015,14 +5022,26 @@ fx.shake(0.15);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      // Fletching.
-      ctx.fillStyle = hero ? "#ffd84a" : "#f4f0e6";
+      // Fletching (dyed in the tower's specialisation colour).
+      const specCol = a.spec === "fire" ? "#ff8a3a" : a.spec === "frost" ? "#8ae0ff" : a.spec === "volley" ? "#ffd84a" : null;
+      ctx.fillStyle = hero ? "#ffd84a" : specCol ?? "#f4f0e6";
       ctx.beginPath();
       ctx.moveTo(tx + cs * 4, ty + sn * 4);
       ctx.lineTo(tx - cs * 2 - sn * 3.5, ty - sn * 2 + cs * 3.5);
       ctx.lineTo(tx - cs * 2 + sn * 3.5, ty - sn * 2 - cs * 3.5);
       ctx.closePath();
       ctx.fill();
+      // Specialised arrows glow: a burning or frosty head and a coloured trail.
+      if (a.spec === "fire" || a.spec === "frost") {
+        ctx.globalCompositeOperation = "lighter";
+        const blob = a.spec === "fire"
+          ? this.blob("specfire", [[0, "rgba(255,200,90,1)"], [0.4, "rgba(255,110,30,0.8)"], [1, "rgba(255,60,10,0)"]])
+          : this.blob("specfrost", [[0, "rgba(230,250,255,1)"], [0.4, "rgba(120,210,255,0.8)"], [1, "rgba(60,150,255,0)"]]);
+        const fl = 1 + Math.sin(this.time * 31 + a.id) * 0.15;
+        this.drawBlob(ctx, blob, a.x, a.y, 8 * fl, 8 * fl, 0.95);
+        for (let i = 1; i <= 3; i++) this.drawBlob(ctx, blob, a.x - cs * i * 6, a.y - sn * i * 6, 6 - i, 6 - i, 0.5 - i * 0.12);
+        ctx.globalCompositeOperation = "source-over";
+      }
       ctx.restore();
     }
     if (this.arrowFrom.size > 300) for (const id of [...this.arrowFrom.keys()]) if (!c.arrows.some((a) => a.id === id)) this.arrowFrom.delete(id);

@@ -344,7 +344,9 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   ctx.closePath();
   // A fully upgraded tower flies a gold pennant with a star (instead of a number).
   const maxed = p.level >= p.maxLevel;
-  ctx.fillStyle = maxed ? "#e0a82a" : "#3d6aa8";
+  // A specialised tower flies its path's colour (fire red, frost ice blue, volley gold).
+  const specCloth = p.spec === "fire" ? "#d8482a" : p.spec === "frost" ? "#3aa8d8" : p.spec === "volley" ? "#e0a82a" : null;
+  ctx.fillStyle = specCloth ?? (maxed ? "#e0a82a" : "#3d6aa8");
   ctx.fill();
   // Fold shading: bands lit where the cloth turns toward the light, shaded where it turns away.
   ctx.save();

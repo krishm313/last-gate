@@ -217,6 +217,7 @@ export type CampEvent =
   | { type: "build"; plot: string; kind: PlotKind; level: number; x: number; y: number }
   /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
   | { type: "specChoice"; plot: string }
+  | { type: "specHit"; spec: TowerSpec; x: number; y: number }
   | { type: "specChosen"; plot: string; spec: TowerSpec; x: number; y: number }
   | { type: "wallHit"; seg: number; x: number; y: number; damage: number }
   | { type: "wallBreak"; seg: number; x: number; y: number }
@@ -1053,6 +1054,7 @@ function updateArrows(c: Camp): void {
         t.slowPct = c.mods.slow;
         t.slowTime = 1.5;
       }
+      if (a.spec) c.events.push({ type: "specHit", spec: a.spec, x: t.x, y: t.y - t.def.radius * 0.6 });
       if (a.spec === "fire") {
         t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn);
         t.burnTime = Math.max(t.burnTime, SPEC.fireTime);
