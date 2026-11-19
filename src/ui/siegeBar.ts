@@ -1,0 +1,105 @@
+import { ENEMIES } from "../core/enemies";
+import { REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
+
+/**
+ * Siege Lord controls: the top strip (the castle's hall, the push counter and timer) and the bottom
+ * deck — unit cards paid from the War Chest. Tap a card, then a lane (left / middle / right) to send
+ * them in. A card stays selected so a lane can be tapped again for the next group.
+ */
+const CARD_ART: Record<string, string> = {
+  footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper",
+};
+const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵" };
+const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram" };
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
+  const n = document.createElement(tag);
+  n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+export class SiegeBar {
+  readonly root = el("div", "lgs2");
+  private top = el("div", "lgs2-top");
+  private hallFill = el("i", "");
+  private hallText = el("span", "lgs2-hall-t");
+  private pushText = el("div", "lgs2-push");
+  private deck = el("div", "lgs2-deck");
+  private chestFill = el("i", "");
+  private chestText = el("span", "lgs2-chest-t");
+  private lanes = el("div", "lgs2-lanes");
+  private cards = new Map<string, HTMLButtonElement>();
+  private picked: string | null = null;
+
+  constructor(host: HTMLElement, private onDeploy: (id: string, lane: number) => void, private onPause: () => void) {
+    const hall = el("div", "lgs2-hall");
+    const bar = el("div", "lgs2-bar");
+    bar.append(this.hallFill);
+    hall.append(el("span", "lgs2-hall-i", "🏰"), bar, this.hallText);
+    const pause = el("button", "lgs2-pause", "II");
+    pause.onclick = () => this.onPause();
+    this.top.append(hall, this.pushText, pause);
+    const chest = el("div", "lgs2-chest");
+    const cbar = el("div", "lgs2-bar gold");
+    cbar.append(this.chestFill);
+    chest.append(el("span", "lgs2-chest-i", "💰"), cbar, this.chestText);
+    for (const [i, label] of ["◀ Left", "Middle", "Right ▶"].entries()) {
+      const b = el("button", "lgs2-lane", label);
+      b.onclick = () => {
+        if (this.picked) this.onDeploy(this.picked, i);
+      };
+      this.lanes.append(b);
+    }
+    for (const card of WAR_CARDS) {
+      const b = el("button", "lgs2-card");
+      const art = el("div", "lgs2-art");
+      const pic = CARD_ART[card.id];
+      if (pic) {
+        const img = document.createElement("img");
+        img.src = `./sprites/portraits/${pic}.png`;
+        img.alt = "";
+        art.append(img);
+      } else art.textContent = CARD_EMOJI[card.id] ?? "👹";
+      b.append(art, el("div", "lgs2-name", `${CARD_NAME[card.id] ?? ENEMIES[card.id].name}${card.count > 1 ? ` ×${card.count}` : ""}`), el("div", "lgs2-cost", `💰${card.cost}`));
+      b.onclick = () => {
+        this.picked = this.picked === card.id ? null : card.id;
+        this.refreshPick();
+      };
+      this.cards.set(card.id, b);
+      this.deck.append(b);
+    }
+    const bottom = el("div", "lgs2-bottom");
+    bottom.append(this.lanes, chest, this.deck);
+    this.root.append(this.top, bottom);
+    this.root.style.display = "none";
+    host.append(this.root);
+    this.refreshPick();
+  }
+
+  private refreshPick(): void {
+    for (const [id, b] of this.cards) b.classList.toggle("on", id === this.picked);
+    this.lanes.classList.toggle("show", !!this.picked);
+  }
+
+  show(v: boolean): void {
+    this.root.style.display = v ? "flex" : "none";
+    if (!v) {
+      this.picked = null;
+      this.refreshPick();
+    }
+  }
+
+  update(c: Camp): void {
+    const r = c.reverse;
+    if (!r) return;
+    const hall = Math.max(0, c.hallHp / c.hallMaxHp);
+    this.hallFill.style.width = `${hall * 100}%`;
+    this.hallText.textContent = `${Math.ceil(c.hallHp)}`;
+    const left = c.phase === "wave" ? Math.max(0, Math.ceil(REVERSE.push - c.waveTime)) : 0;
+    this.pushText.textContent = c.phase === "wave" ? `PUSH ${c.wave}/${REVERSE.pushes} · ${left}s` : "The castle prepares…";
+    this.chestFill.style.width = `${(r.chest / REVERSE.cap) * 100}%`;
+    this.chestText.textContent = `${Math.floor(r.chest)}`;
+    for (const card of WAR_CARDS) this.cards.get(card.id)!.classList.toggle("poor", r.chest < card.cost || c.phase !== "wave");
+  }
+}

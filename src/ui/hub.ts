@@ -7,6 +7,7 @@ import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES, enemyTraits } from "../core/enemies";
+import { SIEGES } from "../camp/sim";
 import { ACHIEVEMENTS, claimable, foeMet, foesMet, heroHasWon } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
@@ -73,6 +74,8 @@ function settingLabels(): Record<string, string> {
 export interface HubCallbacks {
   onClick: () => void;
   onDaily: () => void;
+  /** Siege Lord: start siege i (0-based). */
+  onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
   onSelectHero: (id: HeroId) => void;
   onBuy: (permId: string) => void;
@@ -294,6 +297,7 @@ export class Hub {
     else card.onclick = () => this.denied(card);
     // Endless sits above the map, which reads bottom → top with the final boss farthest away.
     body.insertBefore(card, map);
+    body.insertBefore(this.siegeCard(save), card);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
   }
 
@@ -379,6 +383,55 @@ export class Hub {
     const target = current ?? map.querySelector<HTMLElement>(".lgm-stop.done:last-of-type");
     if (target) requestAnimationFrame(() => (target as HTMLElement).scrollIntoView({ block: "center" }));
     return map;
+  }
+
+  /** Siege Lord (reverse mode): lead the horde against the castle. Opens after chapter 1. */
+  private siegeCard(save: SaveData): HTMLElement {
+    const open = (save.stars[1] ?? 0) > 0;
+    const card = el("button", `chapter lgsl-card${open ? "" : " locked"}`);
+    card.style.setProperty("--g1", "#6a1a1a");
+    card.style.setProperty("--g2", "#3a0e10");
+    const left = el("div", "ch-left");
+    const total = SIEGES.reduce((a, _, i) => a + (save.mini[`siege${i + 1}`]?.stars ?? 0), 0);
+    left.append(el("div", "ch-num", "New mode"), el("div", "ch-name", "⚔️ Siege Lord"), el("div", "ch-blurb", open ? "Turn the tables: lead the horde and take the castle's hall." : "Clear chapter 1 to unlock"));
+    if (open) left.append(el("div", "ch-affix", "Send units from your War Chest down three lanes · the castle fights back"));
+    const right = el("div", "ch-right");
+    right.append(el("div", "ch-stars", open ? `★ ${total}/${SIEGES.length * 3}` : "🔒"));
+    if (open) right.append(el("div", "ch-play", "PLAY ▶"));
+    card.append(left, right);
+    card.onclick = () => {
+      if (!open) return this.denied(card);
+      this.cb.onClick();
+      this.siegeSheet(save);
+    };
+    return card;
+  }
+
+  private siegeSheet(save: SaveData): void {
+    const box = el("div", "panel pop-in lgm-sheet");
+    box.append(el("h1", "title", "⚔️ Siege Lord"), el("p", "sub", "Tap a card, then a lane, to send your horde. Break the walls, take the hall — before the castle holds 8 pushes."));
+    SIEGES.forEach((s, i) => {
+      const rec = save.mini[`siege${i + 1}`];
+      const open = i === 0 || (save.mini[`siege${i}`]?.stars ?? 0) > 0;
+      const row = el("button", `chapter lgsl-row${open ? "" : " locked"}`);
+      row.style.setProperty("--g1", ["#7a3a1a", "#6a2a2a", "#5a1a3a"][i]!);
+      row.style.setProperty("--g2", "#2a1010");
+      const left = el("div", "ch-left");
+      left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain"][i]}` : "Take the previous siege first"));
+      const right = el("div", "ch-right");
+      const st = rec?.stars ?? 0;
+      right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));
+      if (open) right.append(el("div", "ch-play", "ATTACK ▶"));
+      row.append(left, right);
+      row.onclick = () => {
+        if (!open) return this.denied(row);
+        this.cb.onClick();
+        this.cb.onSiege?.(i);
+      };
+      box.append(row);
+    });
+    box.append(this.button("Back", "btn btn-ghost", () => this.showHub(save, "battle")));
+    this.show(box);
   }
 
   /** A chapter's details, opened from the map. */

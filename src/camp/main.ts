@@ -2,6 +2,8 @@ import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { musicIntensity } from "../audio/intensity";
 import { Sfx } from "../audio/sfx";
+import { SiegeBar } from "../ui/siegeBar";
+import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
@@ -11,7 +13,7 @@ import { RenderInterp } from "./interp";
 import { crispCache, crispStats } from "./sprites";
 import type { GameEvent } from "../core/events";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, nextEndlessMilestone, PERMS } from "../core/meta";
+import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -90,6 +92,7 @@ const hub = new Hub(uiRoot, {
   onClick: () => sfx.click(),
   onDenied: () => sfx.denied(),
   onDaily: () => startDaily(),
+  onSiege: (i) => startSiege(i),
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
     if (!heroUnlocked(save, id)) return;
@@ -342,7 +345,72 @@ function showMenuSettings() {
   );
 }
 
+// ---- Siege Lord (reverse mode): the player sends the horde; the campaign bot defends the castle. ----
+const siegeBar = new SiegeBar(
+  uiRoot,
+  (id, lane) => {
+    if (camp?.reverse && deploy(camp, id as never, lane)) sfx.play({ type: "upgrade", id: "x" } as never);
+  },
+  () => setPaused(true),
+);
+let siegeIdx = 0;
+
+function startSiege(i: number) {
+  const s = SIEGES[i];
+  if (!s) return;
+  sfx.unlock();
+  dailyRun = null;
+  siegeIdx = i;
+  // The defenders: a castle with this siege's upgrades and hero, played by the bot.
+  const def = newSave();
+  for (const p of PERMS) if (!p.capstone) def.perms[p.id] = Math.min(p.max, s.perm);
+  const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true };
+  const chapter = CHAPTER_BY_ID[s.chapter]!;
+  camp = createCamp((Date.now() >>> 0) ^ 0x5e9e, chapter, setup);
+  renderer.setGround(chapter.ground, chapter.id);
+  lastMood = chapter.id;
+  accumulator = 0;
+  paused = false;
+  specChoosing = false;
+  gameSpeed = 1;
+  hud.setSpeed(1);
+  hud.hideOverlay();
+  hub.hide();
+  hud.setVisible(false);
+  siegeBar.show(true);
+  music.start();
+  window.setTimeout(() => hud.toast("⚔️ Tap a unit card, then a lane to send them in. Take the hall!"), 600);
+}
+
+function finishSiege(c: Camp, retreat = false) {
+  const r = c.reverse!;
+  const won = !retreat && r.result === "win";
+  const stars = won ? siegeStars(c.wave) : 0;
+  const key = `siege${siegeIdx + 1}`;
+  const prev = save.mini[key] ?? { best: 0, stars: 0 };
+  const bonus = [0, 60, 120, 200].slice(prev.stars + 1, stars + 1).reduce((a, b) => a + b, 0);
+  const gold = (won ? 100 * (siegeIdx + 1) : 20) + r.broken * 5 + bonus;
+  save.mini[key] = { best: Math.max(prev.best, stars), stars: Math.max(prev.stars, stars) };
+  save.gold = Math.min(MAX_GOLD, save.gold + gold);
+  save.stats.goldEarned = (save.stats.goldEarned ?? 0) + gold;
+  writeSave(save);
+  camp = null;
+  paused = false;
+  siegeBar.show(false);
+  hud.showMessage(
+    won ? `🏴 The hall has fallen!` : retreat ? "You withdrew" : "The castle held",
+    won ? `Taken on push ${c.wave} · ${"★".repeat(stars)}${"☆".repeat(3 - stars)} · +${gold} gold` : `${r.broken} wall section${r.broken === 1 ? "" : "s"} broken · +${gold} gold`,
+    "Back to the map",
+    () => {
+      hud.hideOverlay();
+      goHub();
+    },
+    won ? "title" : "title",
+  );
+}
+
 function goHub(tab: "battle" | "armory" = "battle") {
+  siegeBar.show(false);
   camp = null;
   hud.setTip(null);
   paused = false;
@@ -355,7 +423,7 @@ function setPaused(p: boolean) {
   if (!camp || camp.phase === "won" || camp.phase === "lost" || camp.phase === "pick" || specChoosing) return;
   paused = p;
   if (p)
-    hub.showPause(() => setPaused(false), () => finishRun(camp!, false, true), {
+    hub.showPause(() => setPaused(false), () => (camp!.reverse ? finishSiege(camp!, true) : finishRun(camp!, false, true)), {
       values: settings as unknown as Record<string, boolean>,
       onToggle: toggleSetting,
     }, buildStrip(camp!.owned), dailyRun ? `🎯 Daily: ${dailyRun.twist.name} — ${dailyRun.twist.desc}` : undefined, pauseStatus(camp!));
@@ -796,7 +864,8 @@ function frame(now: number) {
     }
     while (accumulator >= STEP) {
       interp.snapshot(c);
-      step(c, { move, callWave, ability: abilityQueued });
+      if (c.reverse) campBotStep(c);
+      else step(c, { move, callWave, ability: abilityQueued });
       callWave = false;
       abilityQueued = false;
       accumulator -= STEP;
@@ -807,6 +876,13 @@ function frame(now: number) {
     renderer.consume(events);
     for (const ev of events) {
       playSfx(ev, c);
+      // Siege Lord: the defenders' kills are of your own horde — no stats, quests or campaign banners.
+      if (c.reverse) {
+        if (ev.type === "won" || ev.type === "lost") finishSiege(c);
+        if (ev.type === "waveStart" && ev.wave > 1) hud.banner(`⚔️ Push ${ev.wave}`, "The castle grows stronger");
+        if (ev.type === "wallBreak") hud.toast("🧱 Wall breached! +10 gold to the War Chest");
+        continue;
+      }
       // First kill of a foe kind: it joins the Bestiary (bosses get their own banner already).
       const newFoe = ev.type === "kill" && !ev.enemy.boss && !foeMet(save, ev.enemy.id) ? ev.enemy.name : null;
       trackStats(ev);
@@ -898,8 +974,9 @@ function frame(now: number) {
         );
       if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
       if (ev.type === "heroDown") hud.banner("You fell!", "You'll rise again at the hall…", "red"); // (the corner chip counts the seconds)
-      if (ev.type === "won") finishRun(c, true);
-      if (ev.type === "lost") finishRun(c, false);
+      if ((ev.type === "won" || ev.type === "lost") && c.reverse) finishSiege(c);
+      else if (ev.type === "won") finishRun(c, true);
+      else if (ev.type === "lost") finishRun(c, false);
     }
     music.intensity = musicIntensity({
       phase: c.phase, wave: c.wave, waves: c.chapter.endless ? 20 : c.chapter.waves.length,
@@ -916,7 +993,8 @@ function frame(now: number) {
     }
     renderer.joystick = joyId !== null ? { origin: joyOrigin, knob: { x: joyOrigin.x + joyVec.x * JOY_R, y: joyOrigin.y + joyVec.y * JOY_R } } : null;
     hud.noStars = !!dailyRun;
-    hud.update(c);
+    if (c.reverse) siegeBar.update(c);
+    else hud.update(c);
     heartbeatTick(c, realDt);
     hud.setTip(c.phase === "build" || c.phase === "wave" ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
     renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;

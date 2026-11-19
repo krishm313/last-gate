@@ -1171,6 +1171,12 @@ fx.shake(0.15);
     // On death the camera lingers on the fallen King for a beat before returning to the hall.
     const fell = this.heroFell && this.time - this.heroFell.t < 1.4 ? this.heroFell : null;
     let target = c.hero.dead ? (fell ? { x: fell.x, y: fell.y - 60 } : { x: HALL.x, y: HALL.y - 120 }) : { x: c.hero.x, y: c.hero.y - 60 };
+    // Siege Lord: the camera rides with your horde's front line (the wall when nobody is out).
+    if (c.reverse) {
+      let front: Enemy | null = null;
+      for (const e of c.enemies) if (!e.def.flying && (!front || e.y > front.y)) front = e;
+      target = front ? { x: front.x, y: Math.max(WALL_Y - 120, front.y - 40) } : { x: MAP_W / 2, y: WALL_Y - 60 };
+    }
     if (this.focus) {
       this.focus.t -= dt;
       if (this.focus.t <= 0) this.focus = null;

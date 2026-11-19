@@ -30,7 +30,7 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
-- **Reverse mode: "Siege Lord"** (owner: "the reverse mode sounds soo tuff and fire" — TOP PRIORITY,
+- **Reverse mode: "Siege Lord"** — ✅ PLAYABLE (slices 1–3; polish next) (owner: "the reverse mode sounds soo tuff and fire" — TOP PRIORITY,
   ahead of the Archery Range screen) — you command the horde against a human castle. Built on the
   existing camp sim, flipped: the defence (King, towers, walls, hall) is played by the campaign bot
   (`campBotStep`, which already builds, upgrades, repairs and fights); the player controls the
@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- **Siege Lord is playable** (slices 2–3): a ⚔️ Siege Lord card on the Battle tab (after chapter 1) opens 3 sieges (each unlocks after the one before). In a siege the campaign bot defends; the screen shows the castle hall bar, PUSH n/8 + timer, a War Chest meter, 8 unit cards (portraits) and Left / Middle / Right lane buttons; the camera rides the horde's front line. Win = "The hall has fallen!" with stars by push + gold (100/200/300 + 5 per wall broken + first-time star bonuses); stars saved in save.mini.siegeN. The horde's kills don't touch campaign stats. Checked on SE + iPhone 13.
 - Siege Lord slice 1 (not visible yet): reverse-mode sim — `reverse` camp flag (no wave queue / thief), `deploy(c, unit, lane)` from a War Chest (start 20, +4/s during pushes, cap 80, +10 per broken wall section), 8 cards (footman ×3 … ram), units at 1.4× HP; one continuous siege of 8 × 45 s pushes (survivors stay, the defenders' plots unlock and income arrives per push); hall falls = win, last push ends = loss; SIEGES ladder (Border Keep defenders L0 / L2 / L3 + Knight) and stars by push 8/6/4. scripts/siegesim.ts (a saving-then-massing attacker): L0 100% (push 2–3), L2 83% (push 4), L3 83%, L4 0%. Lesson: clearing survivors at each push made the siege unwinnable — the horde has to accumulate. Tests included.
 - Archery Range slice 1 (not visible yet): pure, seeded game logic in src/mini/archery.ts — drag-to-aim shots with gravity, sliding boards/dummies on 4 lanes, diving ravens from 18 s, bullseye 3 / ring 1 / raven 5 × combo (up to 3×), 60 s round, stars at 30/60/100, gold = score + one-time star bonuses; save.mini records (sanitized). Tests for scoring, hits (swept per frame), reload, misses, determinism.
 - **Campaign map** (owner request): the Battle tab's chapter list is now a winding road from chapter 1 to the final citadel; cleared stops = 🚩 + stars, the next stop glows (NEXT / NEW!), chapters beyond are fogged "???" with no details, the last stop is a fogged 🏯 until reached. Tap a stop → its full card + Play. Endless + Daily above. Hub test updated; checked on SE.

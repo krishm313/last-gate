@@ -1211,3 +1211,30 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgm-progress { position: absolute; left: calc(8 * var(--u)); top: calc(8 * var(--u)); z-index: 2; font-size: calc(10.5 * var(--tu)); font-weight: 800; color: #fff; background: #0008; border-radius: calc(8 * var(--u)); padding: 0 calc(8 * var(--u)); white-space: nowrap; }
 .lgm-sheet { width: min(100%, calc(360 * var(--u))); gap: calc(10 * var(--u)); display: flex; flex-direction: column; }
 @media (prefers-reduced-motion: reduce) { .lgm-stop.next .lgm-pin { animation: none; } }
+/* ---- Siege Lord controls (reverse mode) ---- */
+.lgs2 { position: absolute; inset: 0; z-index: 4; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: calc(10 * var(--u)) calc(8 * var(--u)) calc(10 * var(--u) + env(safe-area-inset-bottom)); font-family: inherit; color: #fff; }
+#ui .lgs2 button { pointer-events: auto; }
+.lgs2-top { display: flex; align-items: center; gap: calc(8 * var(--u)); padding-top: env(safe-area-inset-top); }
+.lgs2-hall, .lgs2-chest { display: flex; align-items: center; gap: calc(6 * var(--u)); background: #120c09d9; border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(12 * var(--u)); padding: calc(4 * var(--u)) calc(8 * var(--u)); box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd84a55; }
+.lgs2-hall { flex: 1; }
+.lgs2-bar { flex: 1; height: calc(12 * var(--u)); background: #00000088; border-radius: calc(6 * var(--u)); overflow: hidden; }
+.lgs2-bar i { display: block; height: 100%; background: linear-gradient(#ff7a6a, #c8302a); transition: width 0.2s; }
+.lgs2-bar.gold i { background: linear-gradient(#ffe27a, #e09a2a); }
+.lgs2-hall-t, .lgs2-chest-t { font-weight: 900; font-size: calc(13 * var(--tu)); min-width: calc(30 * var(--u)); text-align: right; }
+.lgs2-push { font-weight: 900; font-size: calc(12 * var(--tu)); background: #120c09d9; border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(12 * var(--u)); padding: calc(5 * var(--u)) calc(8 * var(--u)); white-space: nowrap; color: #ffd84a; }
+.lgs2-pause { width: calc(38 * var(--u)); height: calc(38 * var(--u)); border-radius: 50%; border: calc(2.5 * var(--u)) solid #1d1208; background: radial-gradient(circle at 35% 30%, #5a86d0, #234a8a); color: #fff; font-weight: 900; font-size: calc(15 * var(--tu)); }
+.lgs2-bottom { display: flex; flex-direction: column; gap: calc(6 * var(--u)); }
+.lgs2-lanes { display: none; gap: calc(6 * var(--u)); }
+.lgs2-lanes.show { display: flex; }
+.lgs2-lane { flex: 1; padding: calc(9 * var(--u)) 0; border-radius: calc(12 * var(--u)); border: calc(2.5 * var(--u)) solid #1d1208; background: linear-gradient(#ff8a5a, #c8402a); color: #fff; font-weight: 900; font-size: calc(14 * var(--tu)); text-shadow: 0 calc(1.5 * var(--u)) 0 #1d1208; box-shadow: 0 calc(3 * var(--u)) 0 #1d1208; animation: lgs2-pulse 1.2s ease-in-out infinite; }
+.lgs2-lane:active { transform: translateY(calc(2 * var(--u))); box-shadow: 0 calc(1 * var(--u)) 0 #1d1208; }
+@keyframes lgs2-pulse { 50% { filter: brightness(1.15); } }
+.lgs2-deck { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(5 * var(--u)); }
+.lgs2-card { background: linear-gradient(#3a2e52, #231a38); border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(3 * var(--u)) calc(2 * var(--u)) calc(4 * var(--u)); color: #fff; box-shadow: 0 calc(3 * var(--u)) 0 #1d1208; }
+.lgs2-card.on { background: linear-gradient(#6a4a2a, #3a2410); box-shadow: 0 0 0 calc(2.5 * var(--u)) #ffd84a, 0 calc(3 * var(--u)) 0 #1d1208; transform: translateY(calc(-3 * var(--u))); }
+.lgs2-card.poor { filter: grayscale(0.7) brightness(0.7); }
+.lgs2-art { height: calc(30 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(20 * var(--tu)); }
+.lgs2-art img { height: 100%; width: auto; }
+.lgs2-name { font-weight: 900; font-size: calc(9.5 * var(--tu)); line-height: 1.1; white-space: nowrap; }
+.lgs2-cost { font-weight: 800; font-size: calc(9.5 * var(--tu)); color: #ffd84a; }
+@media (prefers-reduced-motion: reduce) { .lgs2-lane { animation: none; } }
