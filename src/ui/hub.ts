@@ -356,18 +356,28 @@ export class Hub {
 
   /** One-time "What's new" card after a big update (returning players only; dismissed for good). */
   private newsCard(save: SaveData): HTMLElement | null {
-    const NEWS = "2026-11-19";
-    if (save.runs === 0 || getJson<string>("lastgate.seenNews", "") === NEWS) return null;
+    const NEWS = "2026-11-19b";
+    const seen = getJson<string>("lastgate.seenNews", "");
+    if (save.runs === 0 || seen === NEWS) return null;
     const card = el("div", "lgn-card");
     card.append(el("div", "lgn-title", "✨ What's new"));
     const list = el("ul", "lgn-list");
-    for (const t of [
-      "🗺️ Three new chapters: Frostpeak Pass, Ashen Caldera, Sunken Citadel — with new bosses",
-      "🏹 The Warden (new hero) · skill trees for every hero · hero flair",
-      "💀 Hard & Nightmare modes · elite foes · bosses with a second phase",
-      "📜 Daily & weekly quests · Endless milestones and weekly twists",
-      "🔮 New buildings: Mage Tower, Healer's Tent, Spike Trap, Watchtower",
-    ]) list.append(el("li", "", t));
+    // Saw the first card already: just the newer bits. Otherwise the whole update, Lancer included.
+    const lines = seen === "2026-11-19"
+      ? [
+          "🔱 The Lancer (new hero, 18★): shoots farther, hurls a lance through a whole line of foes",
+          "📜 Three new weekly quests join from Monday",
+          "🎉 Victory confetti in each chapter's colours",
+          "↺ Settings: replay the tutorial & hints",
+        ]
+      : [
+          "🗺️ Three new chapters: Frostpeak Pass, Ashen Caldera, Sunken Citadel — with new bosses",
+          "🏹 New heroes: The Warden and The Lancer · skill trees for every hero · hero flair",
+          "💀 Hard & Nightmare modes · elite foes · bosses with a second phase",
+          "📜 Daily & weekly quests · Endless milestones and weekly twists",
+          "🔮 New buildings: Mage Tower, Healer's Tent, Spike Trap, Watchtower",
+        ];
+    for (const t of lines) list.append(el("li", "", t));
     card.append(list);
     const ok = this.button("Let's go!", "btn btn-mini lgn-ok", () => {
       setItem("lastgate.seenNews", JSON.stringify(NEWS));

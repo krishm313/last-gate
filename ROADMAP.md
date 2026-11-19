@@ -231,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- What's-new card refreshed: players who dismissed the first card get a short one (the Lancer, weekly quests from Monday, chapter confetti, replay tutorial); anyone who never saw it gets the full update list, now naming both new heroes.
 - Lancer: with no foe in reach the lance keeps its charge and says "Out of reach!" instead of flying at empty grass (test). Checked: the Battle tab names the hero in one line, so 6 heroes don't crowd the SE layout.
 - New hero **The Lancer** (18★): shoots 30% farther; Piercing Lance (16 s) hurls a lance through the best-lined-up foes in reach (420 px line), 3.5× hero damage + knockback (not bosses), "SKEWERED ×n" with a hot streak. Painted spearman art + portrait, 🔱 icon, achievement "Unstoppable" (300 skewered). campsim ch5 L5: King 17% · Warden 17% · Lancer 25% (12 runs each; `campsim` now takes a hero arg). Test included.
 - Victory confetti falls in front of the end panel (it ignores taps and fades in ~3 s) — on a phone the panel used to hide almost all of it.
