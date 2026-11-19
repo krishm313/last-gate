@@ -73,7 +73,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Shown as an icon next to "NIGHT n" and a toast at nightfall. Rain streaks / drifting fog banks /
   forked sky bolts that hit the struck foe. campsim ch1 still 100%.
 
+- **Chapter 6: Frostpeak Pass** — unlocked by clearing chapter 5. Snow-covered ground (painted
+  ground_1 recoloured), cold blue wash + three layers of falling snow, white snow puffs where foes
+  leave the treeline. Fog 40% / storm 8% of nights (per-chapter `weatherOdds`). Waves mix the three
+  new enemies into the ch5 roster; Golem mid-boss, Colossus finale. campsim: ch5 @L7 ~20–25%, ch6 @L7
+  25% / @L10 33%. Gotcha found: `CAMP_CHAPTER_HP` had no entry for new ids (ch6 was 100%) — a test now
+  guards it. Next slices: a new boss with a 2nd phase; snow on trees/props.
+
 ## Shipped (newest first)
+- Chapter 6 "Frostpeak Pass": snowy ground, falling snow, foggy/stormy nights, new achievement (tests).
 - Night weather: Rain / Fog / Storm change tower range, burn and add lightning strikes (visuals, HUD icon, toast, tests).
 - Tunneler enemy: digs under the wall and surfaces inside (dirt mound, dirt bursts), chapter 3 intro, test.
 - War Raven enemy: dives at towers and stuns them (stun stars, STUNNED!), chapter 3 intro, test.

@@ -24,6 +24,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "perfect", name: "Flawless", desc: "Earn 3 stars on any chapter", icon: "⭐", goal: 1, reward: 100, progress: (s) => (Object.values(s.stars).some((v) => v >= 3) ? 1 : 0) },
   { id: "endless15", name: "Unbreakable", desc: "Reach night 15 in Endless Siege", icon: "♾️", goal: 15, reward: 300, progress: (s) => s.best[99] ?? 0 },
   { id: "champion", name: "Champion of the Realm", desc: "Clear chapter 5", icon: "🏆", goal: 1, reward: 500, progress: (s) => ((s.stars[5] ?? 0) > 0 ? 1 : 0) },
+  { id: "frostpeak", name: "King of the Mountain", desc: "Clear chapter 6, Frostpeak Pass", icon: "🏔️", goal: 1, reward: 700, progress: (s) => ((s.stars[6] ?? 0) > 0 ? 1 : 0) },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
 ];

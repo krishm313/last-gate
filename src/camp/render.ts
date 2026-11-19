@@ -1340,7 +1340,7 @@ fx.shake(0.15);
   /** The painted ground for the current chapter, or null while it loads (rebuilds when ready). */
   private paintedGround(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
-    const id = [1, 2, 3, 4, 5, 99].includes(this.mood) ? this.mood : 1;
+    const id = [1, 2, 3, 4, 5, 6, 99].includes(this.mood) ? this.mood : 1;
     let img = this.groundImgs.get(id);
     if (!img) {
       img = new Image();
@@ -3756,7 +3756,7 @@ fx.shake(0.15);
     // dust where they break cover.
     if (!e.def.flying && e.y > FOREST_Y - 6 && e.y < FOREST_Y + 40 && !this.brokeCover.has(e.id)) {
       this.brokeCover.add(e.id);
-      const leaf = this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : this.mood === 4 ? "#4a5a48" : "#4e8a3a";
+      const leaf = this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : this.mood === 4 ? "#4a5a48" : "#4e8a3a";
       this.fx.burst(e.x, e.y - r * 0.6, leaf, 5, 60, { max: 0.8, size: 2.6, gravity: 90, drag: 2 });
       this.fx.burst(e.x, e.y + r * 0.8, "rgba(160,150,120,0.6)", 3, 30, { max: 0.4, size: 3, gravity: -10, drag: 4 });
     }

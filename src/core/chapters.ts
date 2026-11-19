@@ -112,6 +112,29 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 2, shield: 1, knight: 1, wraith: 1, crossbow: 1, sapper: 0.6, shaman: 0.6 }, boss: "colossus" },
     ],
   },
+  {
+    id: 6,
+    name: "Frostpeak Pass",
+    blurb: "Beyond the realm, the mountain clans march through the snow.",
+    hpMult: 3.6,
+    speedMult: 1.12,
+    gateDamageMult: 1.3,
+    affixes: ["Blizzard: thick fog rolls in on most nights", "Frozen ground: the horde hits the gate 30% harder"],
+    ground: ["#3e5468", "#557089"],
+    weatherOdds: { rain: 0.05, fog: 0.4, storm: 0.08 },
+    waves: [
+      { mix: { footman: 2, runner: 2, shield: 1, brute: 0.4, banner: 0.4 } },
+      { mix: { knight: 1, wraith: 1, crossbow: 1, bat: 2, raven: 0.6 } },
+      { mix: { shield: 2, brute: 0.8, ram: 0.6, sapper: 1, tunneler: 0.6, shaman: 0.6 } },
+      { mix: { runner: 3, bat: 2, raven: 1 }, breather: true },
+      { mix: { knight: 1.2, wraith: 1.5, brute: 0.8, crossbow: 1, banner: 0.5 }, boss: "golem", bossHpMult: 0.7 },
+      { mix: { footman: 2, shield: 2, brute: 0.8, ram: 0.8, sapper: 1, tunneler: 0.6, raven: 0.6 } },
+      { mix: { knight: 1.5, wraith: 1.5, crossbow: 1.5, brute: 0.8, shaman: 0.8, banner: 0.6 } },
+      { mix: { runner: 3, goblin: 3, bat: 2, raven: 1 }, breather: true },
+      { mix: { shield: 2, knight: 1.5, wraith: 1.5, crossbow: 1, ram: 0.8, brute: 1, sapper: 1, shaman: 0.8, banner: 0.6, tunneler: 0.6 } },
+      { mix: { footman: 2, shield: 1, knight: 1.2, wraith: 1, crossbow: 1, brute: 0.8, banner: 0.6, raven: 0.6 }, boss: "colossus" },
+    ],
+  },
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */

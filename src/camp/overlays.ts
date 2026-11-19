@@ -127,8 +127,38 @@ export function drawMood(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, mood: n
     g.addColorStop(1, "rgba(120,30,40,0.10)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+  } else if (mood === 6) {
+    // Frostpeak: a cold blue-white wash and snow drifting down on the wind.
+    ctx.fillStyle = "rgba(150,185,230,0.14)";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    drawSnow(ctx, time);
   } else if (mood === 99) {
     ctx.fillStyle = "rgba(90,40,120,0.12)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   }
+}
+
+/** Falling snow for the winter chapter: three depth layers, deterministic from time. */
+function drawSnow(ctx: CanvasRenderingContext2D, time: number): void {
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+  const layers = [
+    { n: 26, speed: 26, size: 1.3, alpha: 0.5, drift: 14 },
+    { n: 18, speed: 44, size: 2, alpha: 0.7, drift: 22 },
+    { n: 10, speed: 70, size: 2.8, alpha: 0.85, drift: 30 },
+  ];
+  for (let l = 0; l < layers.length; l++) {
+    const L = layers[l]!;
+    ctx.globalAlpha = L.alpha;
+    for (let i = 0; i < L.n; i++) {
+      const seed = (i * 97 + l * 389) % 1000;
+      const baseX = (seed * 7.31) % VIEW_W;
+      const y = ((seed * 3.7 + time * L.speed) % (VIEW_H + 20)) - 10;
+      const x = (baseX + Math.sin(time * 0.8 + seed) * L.drift + time * 10 + VIEW_W) % VIEW_W;
+      ctx.beginPath();
+      ctx.arc(x, y, L.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 }

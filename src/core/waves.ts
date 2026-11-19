@@ -38,6 +38,8 @@ export interface ChapterDef {
   /** Battlefield palette. */
   ground: [string, string];
   /** Endless: waves cycle forever with a rotating boss every 5 waves; there is no victory. */
+  /** Night weather odds for this chapter (defaults to the global odds). */
+  weatherOdds?: { rain: number; fog: number; storm: number };
   endless?: boolean;
   waves: WaveDef[];
 }

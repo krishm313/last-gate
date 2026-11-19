@@ -555,3 +555,30 @@ describe("weather", () => {
     expect(f.hp).toBeLessThan(hp);
   });
 });
+
+describe("chapter 6: Frostpeak Pass", () => {
+  it("unlocks after chapter 5 and rolls fog/storm more often", async () => {
+    const { CHAPTER_BY_ID } = await import("../src/core/chapters");
+    const { chapterUnlocked, newSave: defaultSave } = await import("../src/core/meta");
+    const ch6 = CHAPTER_BY_ID[6]!;
+    expect(ch6.name).toBe("Frostpeak Pass");
+    const s = defaultSave();
+    expect(chapterUnlocked(s, 6)).toBe(false);
+    s.stars[5] = 1;
+    expect(chapterUnlocked(s, 6)).toBe(true);
+    let harsh = 0, harshBase = 0;
+    for (let seed = 1; seed <= 400; seed++) {
+      const w = rollWeather(seed, 5, false, ch6.weatherOdds);
+      if (w === "fog" || w === "storm") harsh++;
+      const b = rollWeather(seed, 5, false);
+      if (b === "fog" || b === "storm") harshBase++;
+    }
+    expect(harsh).toBeGreaterThan(harshBase * 1.4);
+  });
+  it("every chapter has a camp HP scale", async () => {
+    const { CHAPTERS, ENDLESS_ID } = await import("../src/core/chapters");
+    const { CAMP_CHAPTER_HP } = await import("../src/camp/sim");
+    for (const ch of CHAPTERS) expect(CAMP_CHAPTER_HP[ch.id], `chapter ${ch.id}`).toBeGreaterThan(0);
+    expect(CAMP_CHAPTER_HP[ENDLESS_ID]).toBeGreaterThan(0);
+  });
+});

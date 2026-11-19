@@ -60,7 +60,7 @@ export const CAMP = {
 };
 
 /** Camp-mode per-chapter enemy HP tuning (the chapter tables are shared with the old gate mode). */
-export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 99: 1 };
+export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 99: 1 };
 
 export const TOWER_LEVELS = [
   // level 1..4
@@ -173,13 +173,13 @@ export const WEATHER_INFO: Record<Weather, { name: string; icon: string; desc: s
   fog: { name: "Fog", icon: "🌫️", desc: "Towers −25% range · the King sees less" },
   storm: { name: "Storm", icon: "⛈️", desc: "Lightning strikes your foes!" },
 };
-export function rollWeather(seed: number, wave: number, breather: boolean): Weather {
+export function rollWeather(seed: number, wave: number, breather: boolean, odds: { rain: number; fog: number; storm: number } = WEATHER.odds): Weather {
   if (wave < 3 || breather) return "clear";
   // Hash (seed, wave) to [0,1) without touching the run's RNG stream.
   let h = (seed * 374761393 + wave * 668265263) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   const u = ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-  const o = WEATHER.odds;
+  const o = odds;
   return u < o.rain ? "rain" : u < o.rain + o.fog ? "fog" : u < o.rain + o.fog + o.storm ? "storm" : "clear";
 }
 /** Multiplier on tower / mage range from tonight's weather. */
@@ -1726,7 +1726,7 @@ export function spawnThief(c: Camp): void {
 
 function startWave(c: Camp): void {
   c.wave += 1;
-  c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather);
+  c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather, c.chapter.weatherOdds);
   c.stormTimer = WEATHER.storm.every;
   const plan = planWave(c.chapter, c.wave, c.seed);
   c.queue = plan.spawns.slice();
