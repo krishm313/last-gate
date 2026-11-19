@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Legendary combo blessing ⚜️ **Last Bastion** (Kingslayer + Stone Hall): bosses take +25% damage, the hall 20% less, hero HP +25%; not in dailies (test). Card checked on SE with the combo badge.
 - What's-new card "2026-11-19c": anyone who saw an earlier card today gets the newest bits (chapter 9 + Blood Moon Warlord, the Lancer, flairs, blessings, streak bonus); first-time viewers get the full list (now four new chapters).
 - Two new blessings: ⚔️ Kingslayer (+20% damage to bosses, rare, ×2) and 🏯 Stone Hall (hall takes 15% less damage, rare, ×2). Marked `newer` and kept out of daily runs (classicBlessings), so a day's offers stay the same for everyone (test). Card checked on SE.
 - Two new hero flairs: 🫧 Seafoam Trail (clear chapter 8: teal pool, foam bubbles while walking) and 🌕 Blood Moon Halo (clear chapter 9: crimson halo, red pool and motes). Flair picker on SE checked (test).

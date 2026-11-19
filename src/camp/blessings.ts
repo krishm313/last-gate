@@ -97,6 +97,7 @@ export const BLESSINGS: Blessing[] = [
   { id: "stakes", name: "Cruel Stakes", desc: "Spike trap deals 60% more damage", icon: "🪤", rarity: "common", max: 2, needsBuilding: "spikes", apply: (m) => { m.spikeDamage *= 1.6; } },
   { id: "kingslayer", name: "Kingslayer", desc: "+20% damage to bosses", icon: "⚔️", rarity: "rare", max: 2, newer: true, apply: (m) => { m.bossDamage *= 1.2; } },
   { id: "stonehall", name: "Stone Hall", desc: "The hall takes 15% less damage", icon: "🏯", rarity: "rare", max: 2, newer: true, apply: (m) => { m.hallArmor *= 0.85; } },
+  { id: "bastion", name: "Last Bastion", desc: "Bosses take +25% damage, the hall 20% less; hero HP +25%", icon: "⚜️", rarity: "legendary", max: 1, requires: ["kingslayer", "stonehall"], newer: true, apply: (m) => { m.bossDamage *= 1.25; m.hallArmor *= 0.8; m.heroHp *= 1.25; } },
   { id: "hawkeye", name: "Hawkeye", desc: "Towers the Watchtower watches over: +10% damage and 15% critical hits", icon: "👁️", rarity: "legendary", max: 1, requires: "eagle", needsBuilding: "watch", apply: (m) => { m.hawkeye = 0.15; } },
   { id: "hunter", name: "Bounty Hunter", desc: "Bosses and elites drop double coins", icon: "🏹", rarity: "rare", max: 1, apply: (m) => { m.bigGold *= 2; } },
   { id: "smith", name: "Master Smith", desc: "The forge works twice as fast", icon: "⚒️", rarity: "common", max: 1, needsBuilding: "forge", apply: (m) => { m.forgeSpeed *= 2; } },

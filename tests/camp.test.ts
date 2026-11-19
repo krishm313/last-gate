@@ -940,5 +940,10 @@ describe("newer blessings", () => {
     }
     expect(seenRegular.has("kingslayer") && seenRegular.has("stonehall")).toBe(true);
     expect(seenClassic.has("kingslayer") || seenClassic.has("stonehall")).toBe(false);
+    // Last Bastion (combo) needs both of the new blessings.
+    let bastion = false;
+    for (let i = 0; i < 400 && !bastion; i++) bastion = rollBlessings(rng, 8, { kingslayer: 1, stonehall: 1 }, 3).some((b) => b.id === "bastion");
+    expect(bastion).toBe(true);
+    for (let i = 0; i < 200; i++) expect(rollBlessings(rng, 8, { kingslayer: 1 }, 3).some((b) => b.id === "bastion")).toBe(false);
   });
 });
