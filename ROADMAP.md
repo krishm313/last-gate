@@ -149,7 +149,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   (brighter at night) and a pennant; standing on it shows its reach and highlights boosted towers.
   Placement matters: from its corner it covers the right-hand towers first.
 
+- **Balance coverage for new buildings** — the campsim bot now has an "explorer" style on odd seeds
+  that favours Mage / Healer / Watchtower from night 5 (cheapest-first never reached them).
+  `scripts/campsplit.ts` compares the two: before, explorer lost ground (ch3 @L3 1/8 vs 3/8, ch2 @L2
+  6/8 vs 7/8) → the new buildings were overpriced. Now Mage 50/85/140, Healer 40/75/120, Watchtower
+  60/110 with +25/40% range, +15/25% rate → explorer 5/8 vs 3/8 (ch3), 7/8 vs 7/8 (ch2).
+
 ## Shipped (newest first)
+- Cheaper Mage Tower / Healer's Tent / Watchtower (stronger Watchtower) after A/B balance runs showed they were overpriced.
 - Watchtower: new building that extends and speeds up nearby archer towers and cuts through fog (art, reach ring, info card, test).
 - Accessibility: "Reduced motion" (no shake, flashes or slow-mo; on by default if the OS asks) and "Large text" (+15% fonts via a text-only CSS unit, layout unchanged); Vibration row hidden where unsupported (iPhone Safari can't vibrate).
 - Performance: unit shadows use one cached sprite instead of a new gradient each (−160 gradients/frame in big fights).

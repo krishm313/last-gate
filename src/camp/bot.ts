@@ -47,7 +47,13 @@ export function campBotInput(c: Camp): CampInput {
   let target: Plot | undefined;
   const breached = c.segments.some((sg) => sg.hp <= 0);
   if (repair && (wallFrac < 0.6 || breached) && h.coins >= plotCost(repair) - repair.paid) target = repair;
-  else target = candidates.sort((a, b) => plotCost(a) - a.paid - (plotCost(b) - b.paid))[0];
+  else {
+    // Half the bot's runs (by seed) also favour the newer buildings from night 5, so balance runs
+    // measure them too (they're pricey and the cheapest-first rule would never reach them).
+    const explorer = c.seed % 2 === 1 && c.wave >= 5;
+    const price = (p: Plot) => (plotCost(p) - p.paid) * (explorer && p.level === 0 && (p.kind === "mage" || p.kind === "healer" || p.kind === "watch") ? 0.35 : 1);
+    target = candidates.sort((a, b) => price(a) - price(b))[0];
+  }
   if (target) {
     const needLogs = plotLogCost(target) - target.paidLogs;
     if (needLogs > h.logs && c.lumberPile > 0 && h.logs < 20) return go(LUMBER_PILE);

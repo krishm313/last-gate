@@ -458,8 +458,8 @@ export const BARRACKS = { x: 620, y: 715 };
 /** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
 export const WATCH = { x: 480, y: 935 };
 export const WATCH_LEVELS = [
-  { radius: 340, range: 0.2, rate: 0.1 },
-  { radius: 420, range: 0.35, rate: 0.2 },
+  { radius: 340, range: 0.25, rate: 0.15 },
+  { radius: 420, range: 0.4, rate: 0.25 },
 ];
 /** The Watchtower's boost for an archer tower (none if it isn't built or the tower is out of reach). */
 export function watchBoost(c: Camp, t: Plot): { range: number; rate: number; clear: boolean } {
@@ -523,9 +523,9 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     makePlot("repair", "repair", "Repair Wall", 310, WALL_Y + 158, [15], 999),
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
-    { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [60, 100, 160], 3), locked: true, unlockWave: 4 },
-    { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [50, 90, 140], 3), locked: true, unlockWave: 5 },
-    { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [70, 120], 2, [6, 12]), locked: true, unlockWave: 5 },
+    { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140], 3), locked: true, unlockWave: 4 },
+    { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120], 3), locked: true, unlockWave: 5 },
+    { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110], 2, [6, 12]), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);

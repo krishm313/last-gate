@@ -753,9 +753,9 @@ describe("watchtower", () => {
     const far = c.plots.find((p) => p.id === "tower-1")!;
     expect(watchBoost(c, near).range).toBe(1); // not built yet
     w.level = 1;
-    expect(watchBoost(c, near)).toEqual({ range: 1.2, rate: 1.1, clear: true });
+    expect(watchBoost(c, near)).toEqual({ range: 1.25, rate: 1.15, clear: true });
     expect(watchBoost(c, far).range).toBe(1);
     w.level = 2;
-    expect(watchBoost(c, near).range).toBeCloseTo(1.35);
+    expect(watchBoost(c, near).range).toBeCloseTo(1.4);
   });
 });
