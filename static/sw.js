@@ -74,6 +74,8 @@ function store(req, res) {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  // The update check must always ask the network (a cached answer would hide new deploys).
+  if (new URL(req.url).pathname.endsWith("/version.json")) return;
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req)

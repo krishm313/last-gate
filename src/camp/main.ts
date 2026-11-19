@@ -966,6 +966,26 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => void navigator.serviceWorker.register("./sw.js"));
 }
 
+// A home-screen app can stay open (suspended) for days, so a new deploy never reached it. When the app
+// comes back to the front — or every few minutes while it sits on the menu — check for a newer build
+// and reload into it, but only from the menu, never in the middle of a run.
+async function checkForUpdate(): Promise<void> {
+  if (!import.meta.env.PROD || camp || document.visibilityState !== "visible" || !navigator.onLine) return;
+  try {
+    const r = await fetch("./version.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const { id } = (await r.json()) as { id?: string };
+    if (!id || id === __BUILD_ID__ || camp) return;
+    writeSave(save);
+    await navigator.serviceWorker?.getRegistration().then((reg) => reg?.update()).catch(() => {});
+    location.reload();
+  } catch {
+    /* offline or blocked: try again later */
+  }
+}
+document.addEventListener("visibilitychange", () => void checkForUpdate());
+window.setInterval(() => void checkForUpdate(), 5 * 60 * 1000);
+
 Object.assign(window, {
   __camp: () => camp,
   __renderer: renderer,

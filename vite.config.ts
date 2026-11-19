@@ -21,7 +21,7 @@ function precacheManifest(): Plugin {
           if (statSync(p).isDirectory()) walk(p);
           else {
             const u = relative(out, p).split("\\").join("/");
-            if (u === "sw.js" || u === "precache.json" || u.endsWith(".map")) continue;
+            if (u === "sw.js" || u === "precache.json" || u === "version.json" || u.endsWith(".map")) continue;
             files.push({ u, h: createHash("sha1").update(readFileSync(p)).digest("hex").slice(0, 12) });
           }
         }
@@ -30,6 +30,7 @@ function precacheManifest(): Plugin {
       files.sort((a, b) => a.u.localeCompare(b.u));
       const json = JSON.stringify({ files });
       writeFileSync(join(out, "precache.json"), json);
+      writeFileSync(join(out, "version.json"), JSON.stringify({ id: BUILD_ID }));
       // Stamp the service worker with the build's version: browsers only re-install a worker whose
       // bytes changed, so this makes every deploy (even an image-only one) reach installed phones.
       const sw = join(out, "sw.js");
@@ -39,8 +40,12 @@ function precacheManifest(): Plugin {
   };
 }
 
+/** Build id baked into the bundle and written to version.json, so an open app can spot a newer deploy. */
+const BUILD_ID = Date.now().toString(36);
+
 export default defineConfig({
   base: "./",
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   // The repo-wide .gitignore ignores public/, so static files live in static/.
   publicDir: "static",
   plugins: [precacheManifest()],
