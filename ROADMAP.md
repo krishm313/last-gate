@@ -360,3 +360,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   label overflow check (fits), Settings replay tutorial & hints, per-chapter confetti, weekly quest
   expansion (from 11-23). 148 tests. Lesson: date-faked browser checks keep catching things the unit
   tests can't (unfair quests, a wrapping weekly card) — keep doing one per rotation change.
+- **2026-11-19 17:40** — deploys 154–164 all green. This hour: browser playthrough polish (FULL badge
+  over the coin count, King's speech bubble vs coin tag, confetti hidden behind the end panel), then
+  polish ran dry → 6th hero **The Lancer** (Piercing Lance; dash idea dropped because the hero can't
+  cross the wall) + out-of-reach charge keep, What's-new refresh, ability-unused loss tip, King vs
+  Lancer sweep (on par), Lancer body size fix found by the flair check. 150 tests. Lesson: a design
+  note's mechanic should be sanity-checked against the map rules before building (the dash).
