@@ -223,3 +223,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   bright day grass — use normal-blend tints/shapes for things that must read by day (flair pass 1);
   (2) the game re-saves on pagehide, so Playwright save edits must go in an init script; (3) audio
   can't be eyeballed — keep its decision logic in pure tested functions (musicIntensity).
+- **2026-11-19 12:38** — deploys 100–111 all green. This hour (Phase 6): autoplay bug sweep (clean),
+  coachmarks, 4 blessings, cached unit shadows (−160 gradients/frame), Reduced motion + Large text,
+  Watchtower, explorer-bot A/B → cheaper Mage/Healer/Watchtower, Endless weekly twists, chapter 7.
+  Lessons: (1) a cheapest-first bot never measures pricey buildings — A/B bot styles (campsplit.ts)
+  found they were overpriced; (2) weather that damages foes (storms) makes a chapter EASIER — use fog
+  for "harsh" chapters; (3) iPhone Safari can't vibrate — I'd claimed haptics on iPhone, corrected.
