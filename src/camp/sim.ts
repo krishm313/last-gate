@@ -490,16 +490,16 @@ export const BARRACKS = { x: 620, y: 715 };
 export const REVERSE = { push: 45, pushes: 8, startChest: 20, income: 4, cap: 80, wallBounty: 10, unitHp: 1.4 };
 /** War cards: what a card sends, how many, and its cost from the War Chest. */
 /** `unlock`: how many sieges must be won (with stars) before the card joins the deck. */
-export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: number }[] = [
+export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: number; hp?: number }[] = [
   { id: "footman", count: 3, cost: 3 },
   { id: "runner", count: 3, cost: 3 },
   { id: "shield", count: 2, cost: 4 },
   { id: "crossbow", count: 2, cost: 4 },
   { id: "brute", count: 1, cost: 4 },
-  { id: "bat", count: 3, cost: 4 },
+  { id: "bat", count: 3, cost: 4, hp: 2.2 },
   { id: "sapper", count: 1, cost: 5 },
   { id: "ram", count: 1, cost: 7 },
-  { id: "raven", count: 3, cost: 3, unlock: 1 },
+  { id: "raven", count: 3, cost: 3, unlock: 1, hp: 2 },
   { id: "tunneler", count: 2, cost: 6, unlock: 2 },
   { id: "imp", count: 3, cost: 5, unlock: 3 },
 ];
@@ -536,7 +536,7 @@ export function deploy(c: Camp, id: EnemyId, lane: number): boolean {
   if (!r || !card || !cardOpen(card, r.won) || c.phase !== "wave" || r.chest < card.cost) return false;
   r.chest -= card.cost;
   const x = LANES_X[Math.max(0, Math.min(2, Math.floor(lane)))]!;
-  for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp, lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
+  for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp * (card.hp ?? 1), lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
   r.deployed += card.count;
   c.events.push({ type: "deploy", id, lane, count: card.count });
   return true;

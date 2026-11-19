@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord flyers: war cards can carry an HP boost — Bats 2.2× (were 0% in pair tests, now viable; ×4 overshot to 100%), Ravens 2× (so more reach their tower to stun it). Full-deck siegesim: siege 1 100% · siege 2 100% · siege 3 58% (was 42%).
 - Hero balance (campsim ch7 L10, 20 runs): Lancer buffed — Piercing Lance longer (420→480), wider (26→30), harder (3.5→4.5×): 50%→65%. Engineer trimmed — Overclock 6s→5s: 95%→85%. (King 50%, Knight 70%, Cleric 90%, Warden 50%.)
 - What's-new card for 2026-11-20 (shows from 00:00 UTC that day, once): campaign map, Siege Lord, Archery Range & Supply Run, the Cleric and the Bestiary.
 - Siege Lord: 3 new war cards that open as you win sieges — War Ravens ×3 (💰3, tower hunters; win 1 siege), Diggers ×2 (💰6, tunnel under the wall; win 2), Fire Imps ×3 (💰5, flying arsonists; win 3). Deck grows to a 6-wide grid; locked cards show "🔒 Win N". siegesim takes a 5th arg (sieges won). Pair tests (with footmen, defenders L3): diggers 90%, imps 50%, ravens 0% alone (utility), brute/ram 100%, bats 0%.
