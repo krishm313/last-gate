@@ -47,6 +47,8 @@ export interface RunSummary {
   won: boolean;
   /** Armory upgrades affordable right after this run (badge on the Upgrades button). */
   upgradesReady?: number;
+  /** Finished quests waiting on the Trophies tab. */
+  questsReady?: number;
   /** Hall HP left at the end, 0..100 (for the "next star" hint). */
   hallPct?: number;
   chapterName: string;
@@ -609,6 +611,7 @@ export class Hub {
     if (r.dailyStreak && r.dailyStreak >= 2) box.append(el("div", "end-unlock end-record", `🔥 ${r.dailyStreak}-day streak!`));
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
+    if (r.questsReady) box.append(el("div", "end-unlock lgq-end", `📜 ${r.questsReady} quest${r.questsReady === 1 ? "" : "s"} ready to claim in Trophies`));
     box.querySelectorAll<HTMLElement>(".end-unlock").forEach((u, i) => u.style.setProperty("--d", `${0.45 + nRows * 0.07 + i * 0.15}s`));
     const btns = el("div", "btn-col");
     const upLabel = "Upgrades & map";

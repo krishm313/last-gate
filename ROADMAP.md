@@ -94,6 +94,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Next slices: quest progress on the end-of-run screen; "quest done!" toast in a run.
 
 ## Shipped (newest first)
+- Quests slice 2: "📜 Quest complete" toast mid-run; end screen says how many quests are ready to claim.
 - Daily & weekly quests on the Trophies tab (rotate by date, claim for gold; save migration + tests).
 - Frostpeak scenery: snow-laden pines, frosted round trees, snowy rocks/bushes (winter prop atlas), bare winter trees, no butterflies in the snow.
 - The Frost Wyrm: new ch6 boss with a 2nd phase — frost nova freezes towers in ice (sprite, shards, nova fx, test).
