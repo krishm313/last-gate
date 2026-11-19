@@ -1,5 +1,6 @@
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
+import { musicIntensity } from "../audio/intensity";
 import { Sfx } from "../audio/sfx";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -810,7 +811,11 @@ function frame(now: number) {
       if (ev.type === "won") finishRun(c, true);
       if (ev.type === "lost") finishRun(c, false);
     }
-    music.intensity = Math.min(1, c.wave / c.chapter.waves.length);
+    music.intensity = musicIntensity({
+      phase: c.phase, wave: c.wave, waves: c.chapter.endless ? 20 : c.chapter.waves.length,
+      nightProgress: c.phase === "wave" ? (c.queue.length === 0 ? 1 : Math.min(1, c.waveTime / 60)) : 0,
+      hallFrac: c.hallHp / c.hallMaxHp,
+    });
     music.boss = c.enemies.some((e) => e.def.boss);
     if (events.length) announceTrophies();
     if (renderer.takeFlawless()) sfx.unlockChime();

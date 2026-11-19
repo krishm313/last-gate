@@ -130,7 +130,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   every 6 s (0.9 s arc with shadow, lands → stun 1.8 s); Swamp Hag — CURSE once as she turns
   (foes within 320 healed 15%). Frost Wyrm already has its nova. campsim ch1 100%.
 
+- **Adaptive music** (Phase 5, slice 1) — `musicIntensity()` (pure, tested) drives the procedural
+  score: day = calm pads (Am–F–C–G) + sparse plucks, no drums; nightfall = march drums; intensity
+  rises with campaign progress, through each night, and sharply when the hall drops under 50% (tom
+  fills, faster tempo 96→130 bpm); boss alive = darker progression + low filtered brass. Level eases
+  toward the target (~2 s) so layers swell instead of switching.
+
 ## Shipped (newest first)
+- Adaptive music: calm by day, drums at nightfall, builds through the night and in danger, boss brass layer (test).
 - Boss second phases: Ogre slam, Warlord war cry, Golem boulder toss, Hag curse (fx at night, tests).
 - Elite enemies: 5 modifiers on Hard/Nightmare and deep Endless (rings, badges, shield bubble; tests).
 - Difficulty modes: Hard & Nightmare per chapter (more HP/speed/gate damage, ×1.5 / ×2.2 gold), skull badges (tests).
