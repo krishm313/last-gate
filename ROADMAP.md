@@ -11,6 +11,7 @@ Goal: a game that keeps getting better — new features and content first, polis
 | 2 | **New content** ✅ DONE | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
 | 3 | **Reasons to come back** ✅ DONE | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
 | 4 | **Optional challenge** ✅ DONE | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
+| 6 | **Polish & new ideas** (ongoing) | ✅ bug sweeps · ✅ coachmarks · ✅ perf · ✅ accessibility · ✅ Watchtower · ✅ The Warden · ✅ chapter 7 + Magma Titan + Fire Imp · ✅ Endless twists · ✅ daily twists · ✅ damage breakdown · ✅ A/B balance bot |
 | 5 | **Sound & feel** ✅ DONE | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
 
 Polish between features: anything chunky, unreadable at night, overlapping, or not visible when it fires.
@@ -259,3 +260,10 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Lessons: (1) a cheapest-first bot never measures pricey buildings — A/B bot styles (campsplit.ts)
   found they were overpriced; (2) weather that damages foes (storms) makes a chapter EASIER — use fog
   for "harsh" chapters; (3) iPhone Safari can't vibrate — I'd claimed haptics on iPhone, corrected.
+- **2026-11-19 13:37** — deploys 109–123 green (120 cancelled: superseded by 121 a minute later —
+  Pages' concurrency, harmless). This hour: chapter 7 slices 2–3 (Magma Titan, ash props), 7 trophies,
+  Endless roster, damage breakdown, daily twists, SE layout check (clean), The Warden, Fire Imp, bot
+  stamps fires, hero XP bars, how-to-play rewrite, 2nd bug sweep (clean). Lessons: (1) a new enemy
+  mechanic the bot can't answer (fires) skews balance — teach the bot the counter before tuning;
+  (2) adding content to a date-seeded rotation reshuffles today's — gate it from tomorrow;
+  (3) when a guide grows, re-check it fits the smallest phone.
