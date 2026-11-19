@@ -148,6 +148,8 @@ export interface Plot {
   spec?: TowerSpec;
   /** Seconds left of a War Raven's stun (the tower doesn't shoot). */
   stun?: number;
+  /** Set ablaze by a Fire Imp: the building stops working until it burns out or the hero stamps it out. */
+  fire?: number;
 }
 
 /** Spike trap: a strip of stakes in front of the gate that wounds and slows foes walking through. */
@@ -304,6 +306,8 @@ export type CampEvent =
   | { type: "spikeHit"; x: number; y: number }
   | { type: "towerStunned"; plot: string; x: number; y: number; frozen?: boolean }
   | { type: "frostNova"; x: number; y: number; r: number }
+  | { type: "ablaze"; plot: string; x: number; y: number }
+  | { type: "fireOut"; x: number; y: number }
   | { type: "eliteSpawn"; x: number; y: number; mod: EliteMod; name: string }
   | { type: "shieldBreak"; x: number; y: number }
   | { type: "bossSlam"; x: number; y: number; r: number }
@@ -471,7 +475,7 @@ export const WATCH_LEVELS = [
 /** The Watchtower's boost for an archer tower (none if it isn't built or the tower is out of reach). */
 export function watchBoost(c: Camp, t: Plot): { range: number; rate: number; clear: boolean } {
   const w = c.plots.find((q) => q.kind === "watch");
-  if (!w || w.level === 0) return { range: 1, rate: 1, clear: false };
+  if (!w || w.level === 0 || onFire(w)) return { range: 1, rate: 1, clear: false };
   const st = WATCH_LEVELS[w.level - 1]!;
   if ((t.x - w.x) ** 2 + (t.y - w.y) ** 2 > st.radius ** 2) return { range: 1, rate: 1, clear: false };
   return { range: 1 + st.range, rate: 1 + st.rate, clear: true };
@@ -755,6 +759,24 @@ function updateHero(c: Camp, input: CampInput): void {
   updatePaying(c);
 }
 
+/** Buildings a Fire Imp goes for, and whether a building is on fire (out of action). */
+export const ARSON_TARGETS: PlotKind[] = ["catapult", "mage", "healer", "spikes", "watch", "forge"];
+export function onFire(p: Plot | undefined): boolean {
+  return !!p && (p.fire ?? 0) > 0;
+}
+/** Burning buildings tick down; the hero standing on one stamps the fire out. */
+function updateFires(c: Camp): void {
+  for (const p of c.plots) {
+    if (!p.fire || p.fire <= 0) continue;
+    p.fire -= STEP;
+    if (!c.hero.dead && Math.abs(c.hero.x - p.x) < CAMP.plotHalf && Math.abs(c.hero.y - p.y) < CAMP.plotHalf) {
+      p.fire = 0;
+      c.events.push({ type: "fireOut", x: p.x, y: p.y - 10 });
+    }
+    if (p.fire < 0) p.fire = 0;
+  }
+}
+
 function forgeLevel(c: Camp): number {
   return c.plots.find((p) => p.kind === "forge")?.level ?? 0;
 }
@@ -790,7 +812,7 @@ function updateForgeHauling(c: Camp): void {
 
 function updateForge(c: Camp): void {
   const lvl = forgeLevel(c);
-  if (lvl === 0 || c.forgeLogs <= 0 || c.forgeBows >= 15) return;
+  if (lvl === 0 || c.forgeLogs <= 0 || c.forgeBows >= 15 || onFire(c.plots.find((p) => p.kind === "forge"))) return;
   c.forgeTimer += STEP * c.mods.forgeSpeed;
   const every = lvl >= 2 ? 1.8 : 3;
   if (c.forgeTimer >= every) {
@@ -1140,7 +1162,7 @@ export const CATAPULT_LEVELS = [
 /** Catapults lob boulders at the densest enemy cluster outside the wall. */
 function updateCatapults(c: Camp): void {
   for (const p of c.plots) {
-    if (p.kind !== "catapult" || p.level === 0) continue;
+    if (p.kind !== "catapult" || p.level === 0 || onFire(p)) continue;
     const st = CATAPULT_LEVELS[p.level - 1]!;
     p.fired += STEP;
     p.cooldown -= STEP * c.mods.towerRate * (c.overclock > 0 ? 2.5 : 1);
@@ -1540,6 +1562,24 @@ function updateEnemy(c: Camp, e: Enemy): void {
     }
   }
 
+  // Fire Imps dive at the nearest support building and set it ablaze (spent on impact).
+  if (def.arsonist) {
+    let t: Plot | null = null, best = Infinity;
+    for (const p of c.plots) {
+      if (!ARSON_TARGETS.includes(p.kind) || p.level === 0 || (p.fire ?? 0) > 0) continue;
+      const d = (p.x - e.x) ** 2 + (p.y - e.y) ** 2;
+      if (d < best) { best = d; t = p; }
+    }
+    if (t) {
+      if (moveToward(c, e, t.x, t.y - 20) < def.radius + 8) {
+        t.fire = def.arsonist;
+        e.hp = 0;
+        e.exploded = true;
+        c.events.push({ type: "ablaze", plot: t.id, x: t.x, y: t.y - 20 });
+      }
+      return;
+    }
+  }
   // War Ravens dive at the nearest archer tower and stun it (spent on impact).
   if (def.towerHunter) {
     let t: Plot | null = null, best = Infinity;
@@ -1762,7 +1802,7 @@ function updateCoins(c: Camp): void {
 
 function updateMage(c: Camp): void {
   for (const p of c.plots) {
-    if (p.kind !== "mage" || p.level === 0) continue;
+    if (p.kind !== "mage" || p.level === 0 || onFire(p)) continue;
     const st = MAGE_LEVELS[p.level - 1]!;
     p.fired += STEP;
     p.cooldown -= STEP * (c.overclock > 0 ? 2.5 : 1);
@@ -1806,7 +1846,7 @@ function updateMage(c: Camp): void {
 
 function updateHealer(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "healer");
-  if (!p || p.level === 0) return;
+  if (!p || p.level === 0 || onFire(p)) return;
   const base = HEALER_LEVELS[p.level - 1]!;
   const k = c.mods.healerPower;
   // Field Medic: farther reach (×k) and stronger heals (×(1 + (k−1)·1.33)).
@@ -1850,7 +1890,7 @@ function updateStorm(c: Camp): void {
 
 function updateSpikes(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "spikes");
-  if (!p || p.level === 0) return;
+  if (!p || p.level === 0 || onFire(p)) return;
   const lv = p.level - 1;
   const dps = SPIKES.dps[lv]! * towerScale(c) * c.mods.spikeDamage;
   c.spikeFx -= STEP;
@@ -1986,6 +2026,7 @@ export function step(c: Camp, input: CampInput): void {
   updateAllies(c);
   updateForge(c);
   updateHero(c, input);
+  updateFires(c);
   updateTowers(c);
   updateMage(c);
   updateCatapults(c);

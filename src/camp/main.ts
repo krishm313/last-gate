@@ -640,6 +640,8 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "burrow":
     case "emerge":
     case "specChosen":
+    case "ablaze":
+    case "fireOut":
       sfx.event(ev.type);
       return;
   }

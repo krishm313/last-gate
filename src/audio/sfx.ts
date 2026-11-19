@@ -311,6 +311,13 @@ export class Sfx {
         this.tone("triangle", 220, 70, 0.2, 0.28);
         this.noise(0.15, 0.25, "lowpass", 700);
         break;
+      case "ablaze":
+        if (!this.ok("ablaze", 0.3)) return;
+        this.noise(0.5, 0.3, "bandpass", 900, 1, 0, 2500);
+        break;
+      case "fireOut":
+        this.noise(0.35, 0.25, "highpass", 2500, 1, 0, 800);
+        break;
       case "eruption":
         if (!this.ok("erupt", 0.6)) return;
         this.tone("sine", 70, 28, 0.9, 0.6);

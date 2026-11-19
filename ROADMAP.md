@@ -180,7 +180,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   and lava. Green rings + "SNARED!" + vines coiling at the feet of rooted foes. Has its own skill tree
   progress like every hero.
 
+- **Fire Imp** (ch7 enemy, intro night 3) — quick flyer (18 HP) that dives at the nearest support
+  building (catapult, Mage, Healer, spikes, Watchtower, forge) and sets it ablaze for 5 s: it stops
+  working. The King standing on it stamps the fire out at once ("Fire out!"). Orange recoloured bat
+  rig with a flame glow and sparks; flames, smoke and a "🔥 Stamp it out!" hint on the burning
+  building; crackle / hiss SFX.
+
 ## Shipped (newest first)
+- Fire Imp: ch7 flyer that sets support buildings ablaze until the King stamps the fire out (art, fx, SFX, test).
 - New hero: The Warden — extra-target shots and Snare Field (roots foes, +30% damage taken); 14★ to unlock (test).
 - Daily variety: 4 new twists using the newer systems (Elite Rush, Fog of War, Storm Day, Iron Walls) + Bounty Hunter / Vigor as starting blessings — from 2026-11-20 so days already played keep their daily (test).
 - End screen "Damage dealt": top 3 sources with share bars (towers, hero, catapults, soldiers, Mage, burning, spikes, lightning, lava) — sim credits every damage source in runStats.dmg (test).

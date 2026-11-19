@@ -796,3 +796,32 @@ describe("damage breakdown", () => {
     for (const v of Object.values(d)) expect(v).toBeGreaterThan(0);
   });
 });
+
+describe("Fire Imp", () => {
+  it("sets a support building ablaze; the hero stamps it out", () => {
+    const c = createCamp(6);
+    c.phase = "wave";
+    c.queue = [];
+    const cat = c.plots.find((p) => p.kind === "catapult")!;
+    cat.level = 1;
+    cat.locked = false;
+    c.hero.x = 360; c.hero.y = 1000; // far from the catapult
+    const imp = spawnEnemy(c, { at: 0, enemy: "imp", hpMult: 1, lane: null }, { x: cat.x, y: cat.y - 140 });
+    const keep = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 9, lane: null }, { x: 40, y: 80 }); // keeps the night going
+    keep.stunTime = 1e9;
+    drainEvents(c);
+    let ablaze = false;
+    for (let i = 0; i < 60 * 4 && !ablaze; i++) {
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      ablaze = drainEvents(c).some((e) => e.type === "ablaze");
+    }
+    expect(ablaze).toBe(true);
+    expect(imp.hp).toBeLessThanOrEqual(0);
+    expect(cat.fire).toBeGreaterThan(4);
+    // Hero walks onto it: fire out.
+    c.hero.x = cat.x; c.hero.y = cat.y;
+    step(c, { move: { x: 0, y: 0 } } as CampInput);
+    expect(cat.fire).toBe(0);
+    expect(drainEvents(c).some((e) => e.type === "fireOut")).toBe(true);
+  });
+});

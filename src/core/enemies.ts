@@ -25,6 +25,7 @@ export type EnemyId =
   | "colossus"
   | "banner"
   | "raven"
+  | "imp"
   | "tunneler";
 
 export type Behavior =
@@ -87,6 +88,8 @@ export interface EnemyDef {
   aura?: { radius: number; speed: number; armor: number };
   /** Dives at the nearest archer tower and stuns it for this many seconds (then is spent). */
   towerHunter?: number;
+  /** Dives at a support building (catapult, mage, healer, spikes, watchtower, forge) and sets it ablaze for this many seconds. */
+  arsonist?: number;
   /** At the wall it digs under for this many seconds (can't be hit), then surfaces inside the camp. */
   tunneler?: number;
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
@@ -99,6 +102,7 @@ const base = { behavior: "melee" as Behavior, attackInterval: 1 };
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
   tunneler: { ...base, id: "tunneler", name: "Tunneler", hp: 34, speed: 40, radius: 11, gateDamage: 6, gold: 3, color: "#6a4a2a", cost: 3, tunneler: 3 },
+  imp: { ...base, id: "imp", name: "Fire Imp", hp: 18, speed: 96, radius: 9, gateDamage: 3, gold: 2, color: "#ff6a1a", cost: 2, flying: true, arsonist: 5 },
   raven: { ...base, id: "raven", name: "War Raven", hp: 20, speed: 88, radius: 9, gateDamage: 3, gold: 2, color: "#2a2438", cost: 2, flying: true, towerHunter: 3.5 },
   banner: { ...base, id: "banner", name: "Banner-bearer", hp: 40, speed: 38, radius: 12, gateDamage: 4, gold: 3, color: "#c83a3a", cost: 3, aura: { radius: 120, speed: 0.3, armor: 0.25 } },
   footman: { ...base, id: "footman", name: "Footman", hp: 22, speed: 46, radius: 11, gateDamage: 5, gold: 1, color: "#b8423a", cost: 1 },
@@ -162,6 +166,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.aura) t.push("rallies nearby foes");
   if (d.towerHunter) t.push("dives at towers");
   if (d.tunneler) t.push("digs under the wall");
+  if (d.arsonist) t.push("sets buildings ablaze");
   if (d.frostNova) t.push("freezes towers when hurt");
   if (d.phase2?.kind === "eruption") t.push("erupts lava when hurt");
   if (d.behavior === "summoner") t.push("summons minions");

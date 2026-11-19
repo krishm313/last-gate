@@ -959,6 +959,15 @@ fx.shake(0.15);
           fx.burst(ev.x, ev.y, "#7ad84a", 30, 260, { max: 0.9, size: 3, gravity: -40, shape: "spark" });
           fx.number(ev.x, ev.y - 56, "CURSE! Foes healed", "#aaff7a", 15, 1);
           break;
+        case "ablaze":
+          fx.burst(ev.x, ev.y, "#ff8a2a", 18, 180, { max: 0.6, size: 3, gravity: -40, shape: "spark" });
+          fx.rings.push({ x: ev.x, y: ev.y, r: 36, color: "#ff7a2a", life: 0.4, max: 0.4, width: 4 });
+          fx.number(ev.x, ev.y - 30, "ABLAZE!", "#ffa060", 15, 1);
+          break;
+        case "fireOut":
+          fx.burst(ev.x, ev.y, "rgba(220,220,230,0.8)", 16, 120, { max: 0.8, size: 4, gravity: -60, drag: 2 });
+          fx.number(ev.x, ev.y - 30, "Fire out!", "#cfe8ff", 14, 1);
+          break;
         case "eruption":
           fx.rings.push({ x: ev.x, y: ev.y, r: 90, color: "#ff7a2a", life: 0.6, max: 0.6, width: 6 });
           fx.burst(ev.x, ev.y - 20, "#ff8a3a", 26, 260, { max: 0.8, size: 3.4, gravity: 200, shape: "chunk" });
@@ -1251,6 +1260,7 @@ fx.shake(0.15);
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
+    for (const p of c.plots) if ((p.fire ?? 0) > 0) items.push({ y: p.y + 40, draw: () => this.drawBurning(ctx, p) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
       items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
@@ -1960,7 +1970,7 @@ fx.shake(0.15);
     return m.b;
   }
 
-  private drawBat3d(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, flash: boolean, kind: "bat" | "dragon" | "frostwyrm" = "bat", bank = 0): boolean {
+  private drawBat3d(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, flash: boolean, kind: "bat" | "dragon" | "frostwyrm" | "imp" = "bat", bank = 0): boolean {
     if (typeof Image === "undefined") return false;
     let img = this.flyerImgs.get(kind);
     if (!img) {
@@ -1969,14 +1979,14 @@ fx.shake(0.15);
       this.flyerImgs.set(kind, img);
     }
     if (!img.complete || img.naturalWidth === 0) return false;
-    const A = kind === "bat" ? BAT_ATLAS : DRAGON_ATLAS;
+    const A = kind === "bat" || kind === "imp" ? BAT_ATLAS : DRAGON_ATLAS;
     const [bsx, bsy, bw, bh] = A.body!;
     const [wsx, wsy, ww, wh, wpx, wpy] = A.wing!;
     const [px, py] = A.pivot!;
-    const k = (r * (kind === "bat" ? 2.6 : 2.4)) / bh!;
+    const k = (r * (kind === "bat" || kind === "imp" ? 2.6 : 2.4)) / bh!;
     // Flap cycle: a quick, powerful downstroke (40%) and a slower recovery upstroke (60%) with the
     // wing partly folded; the body lifts on each downstroke and sinks on the recovery.
-    const ph = ((t * (kind === "bat" ? 16 : 5)) / (Math.PI * 2)) % 1;
+    const ph = ((t * (kind === "bat" || kind === "imp" ? 16 : 5)) / (Math.PI * 2)) % 1;
     const down = ph < 0.4;
     const u = down ? ph / 0.4 : (ph - 0.4) / 0.6;
     const e = u * u * (3 - 2 * u);
@@ -3981,6 +3991,26 @@ fx.shake(0.15);
     if (Math.floor(c.time * 12 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ffb040" : "#ff5a1a", 1, 40, { max: 0.7, size: 2.6, gravity: -80, shape: "dot" });
   }
 
+  /** A building set ablaze by a Fire Imp: licking flames and smoke until it burns out or is stamped out. */
+  private drawBurning(ctx: CanvasRenderingContext2D, p: Plot): void {
+    const k = Math.min(1, (p.fire ?? 0) / 0.6);
+    const flame = this.blob("flame", [[0, "rgba(255,230,140,1)"], [0.4, "rgba(255,130,30,0.9)"], [1, "rgba(220,40,10,0)"]]);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 6; i++) {
+      const ox = (i - 2.5) * 11, ph = this.time * 7 + i * 1.7;
+      const h = 22 + Math.sin(ph) * 7 + (i % 2) * 8;
+      this.drawBlob(ctx, flame, p.x + ox + Math.sin(ph * 1.3) * 2, p.y - 14 - h * 0.5, 9, h * 0.75, 0.85 * k);
+    }
+    ctx.restore();
+    if (Math.floor(this.time * 10 + p.x) % 3 === 0 && this.fx.particles.length < 400) {
+      this.fx.burst(p.x + Math.sin(this.time * 17) * 22, p.y - 40, "rgba(60,50,50,0.6)", 1, 20, { max: 1, size: 5, gravity: -40, drag: 1 });
+      this.fx.burst(p.x + Math.sin(this.time * 23) * 24, p.y - 20, "#ffb040", 1, 40, { max: 0.5, size: 2.2, gravity: -90, shape: "dot" });
+    }
+    // Hint while it burns: the King can stamp it out.
+    this.overlay(ctx, (g) => { g.save(); g.font = "bold 10px system-ui, sans-serif"; g.textAlign = "center"; g.fillStyle = "#ffd27a"; g.strokeStyle = "#2a1408"; g.lineWidth = 3; g.strokeText("🔥 Stamp it out!", p.x, p.y - 62); g.fillText("🔥 Stamp it out!", p.x, p.y - 62); g.restore(); });
+  }
+
   /** Elite: a pulsing ring in the modifier's colour on the ground. */
   private drawEliteRing(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
     const info = ELITE_INFO[e.elite!];
@@ -4092,7 +4122,7 @@ fx.shake(0.15);
     if (e.def.flying) {
       // Flyers cast a smaller, fainter shadow further below them (height cue); it swells and darkens
       // as the flyer dips on its bob and shrinks as it rises.
-      const bob = id === "bat" || id === "raven" ? Math.sin(c.time * 6 + e.sway) : 0;
+      const bob = id === "bat" || id === "raven" || id === "imp" ? Math.sin(c.time * 6 + e.sway) : 0;
       const k = 1 + bob * 0.12;
       softShadow(ctx, e.x, e.y + r * 1.9, r * 0.85 * k, r * 0.32 * k, 0.2 * (1 + bob * 0.25));
     } else {
@@ -4119,6 +4149,22 @@ fx.shake(0.15);
       ctx.strokeStyle = "#d8302a"; ctx.lineWidth = 2; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(x - 5, by - r * 0.85); ctx.lineTo(x, by - r * 1.15); ctx.lineTo(x + 5, by - r * 0.85); ctx.stroke();
       if (Math.floor(c.time * 8 + e.id) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(x, by, "#2a2438", 1, 30, { max: 0.5, size: 2.4, gravity: 40, shape: "chunk" });
+    }
+    else if (id === "imp") {
+      // Fire Imp: a small, quick wing-beast wreathed in flame, shedding sparks as it dives at a building.
+      const by = y - 6 + Math.sin(c.time * 10 + e.sway) * 2;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), x, by, r * 2.4, r * 2.1, 0.55 + this.night * 0.3);
+      ctx.restore();
+      if (!this.drawBat3d(ctx, x, by, r * 1.05, c.time * 1.6 + e.sway, flash, "imp", this.bankFor(e.id, e.x, 0.6))) drawBat(ctx, x, by, r * 1.05, c.time * 1.6 + e.sway, flash);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const eye = this.blob("impeye", [[0, "rgba(255,240,140,1)"], [0.5, "rgba(255,160,40,0.8)"], [1, "rgba(255,80,0,0)"]]);
+      this.drawBlob(ctx, eye, x - 2.6, by - r * 0.35, 4, 4, 1);
+      this.drawBlob(ctx, eye, x + 2.6, by - r * 0.35, 4, 4, 1);
+      ctx.restore();
+      if (Math.floor(c.time * 14 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(x, by + r * 0.4, Math.sin(c.time * 31 + e.id) > 0 ? "#ffb040" : "#ff5a1a", 1, 30, { max: 0.5, size: 2.4, gravity: -50, shape: "dot" });
     }
     else if (id === "bat") {
       const by = y - 6 + Math.sin(c.time * 6 + e.sway) * 3;
