@@ -508,10 +508,12 @@ export function cardOpen(card: { unlock?: number }, won: number): boolean {
   return (card.unlock ?? 0) <= won;
 }
 /** The three sieges: the defenders' upgrade level and hero rise (campaign bot plays them). */
-export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" }[] = [
+export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" | "cleric"; needs?: number }[] = [
   { name: "Raid on the Border Keep", chapter: 1, perm: 0, hero: "ranger" },
   { name: "The Keep Stands Ready", chapter: 1, perm: 2, hero: "ranger" },
   { name: "The Captain's Last Stand", chapter: 1, perm: 3, hero: "knight" },
+  /** On Frostpeak's snow (needs chapter 6 cleared); the chapter's horde strength helps the attacker, so the walls are much stronger. */
+  { name: "The Frost Citadel", chapter: 6, perm: 6, hero: "cleric", needs: 6 },
 ];
 /** Stars for a taken hall: by push 8 / 6 / 4. */
 export function siegeStars(push: number): number {

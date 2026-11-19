@@ -450,12 +450,13 @@ export class Hub {
     box.append(el("h1", "title", "⚔️ Siege Lord"), el("p", "sub", "Tap a card, then a lane, to send your horde. Break the walls, take the hall — before the castle holds 8 pushes."));
     SIEGES.forEach((s, i) => {
       const rec = save.mini[`siege${i + 1}`];
-      const open = i === 0 || (save.mini[`siege${i}`]?.stars ?? 0) > 0;
+      const needCh = s.needs && (save.stars[s.needs] ?? 0) === 0;
+      const open = (i === 0 || (save.mini[`siege${i}`]?.stars ?? 0) > 0) && !needCh;
       const row = el("button", `chapter lgsl-row${open ? "" : " locked"}`);
-      row.style.setProperty("--g1", ["#7a3a1a", "#6a2a2a", "#5a1a3a"][i]!);
+      row.style.setProperty("--g1", ["#7a3a1a", "#6a2a2a", "#5a1a3a", "#2a4a6a"][i] ?? "#5a1a3a");
       row.style.setProperty("--g2", "#2a1010");
       const left = el("div", "ch-left");
-      left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain"][i]}` : "Take the previous siege first"));
+      left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain", "the mountain garrison, blessed by the Cleric"][i] ?? "the castle's best"}` : needCh ? `Clear chapter ${s.needs} first` : "Take the previous siege first"));
       const right = el("div", "ch-right");
       const st = rec?.stars ?? 0;
       right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));
@@ -556,7 +557,7 @@ export class Hub {
     const lines = NEWS === "2026-11-20"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
-          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 3 sieges, new cards as you win",
+          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 4 sieges, new cards as you win",
           "🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch & 🪨 Catapult Toss: new mini-games on the map, with stars and gold",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
         ]

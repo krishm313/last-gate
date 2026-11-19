@@ -89,7 +89,7 @@ export interface SaveData {
 }
 
 /** Known side-stop mini-games (anything else in a stored save is dropped). */
-export const MINI_IDS = ["archery", "supply", "watch", "catapult", "siege1", "siege2", "siege3"];
+export const MINI_IDS = ["archery", "supply", "watch", "catapult", "siege1", "siege2", "siege3", "siege4"];
 
 export function newSave(): SaveData {
   return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {}, diffBest: {}, mini: {} };
