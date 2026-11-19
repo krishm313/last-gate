@@ -30,6 +30,15 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **Campaign map + side stops** (owner request 2026-11-19) — (1) ✅ the chapter list becomes a map: a
+  winding road from chapter 1 (bottom) to the final chapter (top); land bands in each chapter's
+  colours; cleared stops fly a flag with stars/skulls, the next one glows with NEXT/NEW!, everything
+  beyond is under fog as "???" (no names, bosses or details) and the last stop is a fogged citadel;
+  tap a stop for its full card + Play. Daily + Endless stay as cards above. (2) next: side-stop
+  mini-games between chapters for gold and stars — "Archery Range" (drag to aim, flick arrows at
+  moving targets and diving ravens, 60 s score attack, 3 star thresholds), then "Supply Run" (steer
+  a wagon down a road, dodge hazards, grab coins, ~90 s).
+
 - **7th hero: The Cleric** — ✅ SHIPPED (slices 1–2; daily pool later). a support hero (every painted figure is taken, so the art is the mage
   sprite recoloured white-and-gold with PIL, like the moor props; portrait cut from it). Unlocks at
   22★ (of 27). Passive "Blessed hall": the hall's archers hit 30% harder (hallDamage mod). Ability
@@ -260,6 +269,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- **Campaign map** (owner request): the Battle tab's chapter list is now a winding road from chapter 1 to the final citadel; cleared stops = 🚩 + stars, the next stop glows (NEXT / NEW!), chapters beyond are fogged "???" with no details, the last stop is a fogged 🏯 until reached. Tap a stop → its full card + Play. Endless + Daily above. Hub test updated; checked on SE.
 - Auto-update for the home-screen app: the owner's phone was still on a build from before chapter 6 (★ 15/15) because an iOS web app can stay suspended for days. Each build now writes version.json and bakes the id into the bundle; when the app returns to the front (or every 5 min on the menu, never mid-run) it checks and reloads into a newer deploy. The service worker never caches version.json.
 - The King's passive: fires 25% faster (was 15%). campsim L10, 20 runs: ch7 45→55%, ch9 40→45%; ch1 L0 still 100%, ch3 L0 0% before and after (unchanged early curve).
 - Bot: casts the Cleric's Sanctuary when the hall (<85%) or a wall section (<60%) is hurt instead of on crowds, so hero sims reflect real use. Sanctuary trimmed to 5% hall / 12% walls. Hero spread at ch7 L10 (20 runs each): King 45 · Lancer 50 · Warden 60 · Knight 65 · Cleric 80–85 · Engineer 95 — the Cleric sits inside the range; the Engineer is the outlier (to review later, carefully: players may rely on him).

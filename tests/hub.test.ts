@@ -183,16 +183,22 @@ describe("hub battle tab", () => {
     save.stars = { 1: 3 };
     save.best = { 2: 6 };
     hub.showHub(save, "battle");
-    const ch2 = [...root.querySelectorAll<HTMLElement>(".chapter")].find((c) => c.querySelector(".ch-name")?.textContent === "Goblin Marsh")!;
+    // The campaign map: chapter 2 is the frontier stop, newly revealed; chapter 3 is hidden in fog.
+    const stops = [...root.querySelectorAll<HTMLElement>(".lgm-stop")];
+    const ch2 = stops.find((c) => c.querySelector(".lgm-name")?.textContent === "Goblin Marsh")!;
     expect(ch2.classList.contains("fresh")).toBe(true);
-    expect(ch2.querySelector(".ch-fresh")?.textContent).toContain("NEW");
-    expect((ch2.querySelector(".ch-prog i") as HTMLElement).style.width).toBe("60%");
+    expect(ch2.querySelector(".lgm-flag")?.textContent).toBe("NEW!");
+    expect(stops[2]!.classList.contains("locked")).toBe(true);
+    expect(stops[2]!.querySelector(".lgm-name")?.textContent).toBe("???");
     expect(root.querySelector(".cal-day")?.textContent).toBe(String(new Date().getDate()));
-    // Second visit: no reveal, NEXT ribbon instead.
+    // Tapping the stop opens its card, with best-wave progress.
+    ch2.click();
+    expect((root.querySelector(".lgm-sheet .ch-prog i") as HTMLElement).style.width).toBe("60%");
+    // Second visit: no reveal, NEXT flag instead.
     hub.showHub(save, "battle");
-    const again = [...root.querySelectorAll<HTMLElement>(".chapter")].find((c) => c.querySelector(".ch-name")?.textContent === "Goblin Marsh")!;
+    const again = [...root.querySelectorAll<HTMLElement>(".lgm-stop")].find((c) => c.querySelector(".lgm-name")?.textContent === "Goblin Marsh")!;
     expect(again.classList.contains("fresh")).toBe(false);
-    expect(again.querySelector(".ch-next")?.textContent).toBe("NEXT");
+    expect(again.querySelector(".lgm-flag")?.textContent).toBe("NEXT");
   });
 });
 

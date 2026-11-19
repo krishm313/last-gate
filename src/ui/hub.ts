@@ -254,69 +254,9 @@ export class Hub {
     // No record yet (fresh install or an older save): treat what's open now as already seen.
     const stored = getJson<unknown>(seenKey, null);
     const seen = new Set<number>(Array.isArray(stored) ? (stored as number[]) : [...CHAPTERS, ENDLESS].filter((ch) => chapterUnlocked(save, ch.id)).map((ch) => ch.id));
-    const nowOpen: number[] = [];
-    for (const ch of CHAPTERS) {
-      const unlocked = chapterUnlocked(save, ch.id);
-      if (unlocked) nowOpen.push(ch.id);
-      const stars = save.stars[ch.id] ?? 0;
-      const isNext = unlocked && stars === 0 && !CHAPTERS.some((o) => o.id < ch.id && chapterUnlocked(save, o.id) && !(save.stars[o.id] ?? 0));
-      const diffOpen = unlocked && difficultyOpen(diff.id, stars > 0, save.diffCleared[ch.id] ?? 0);
-      const card = el("button", `chapter${unlocked ? "" : " locked"}${isNext && diff.rank === 0 ? " next" : ""}${diff.rank > 0 && unlocked ? ` lgd-card lgd-${diff.id}${diffOpen ? "" : " lgd-shut"}` : ""}`);
-      card.style.setProperty("--i", String(ch.id)); // entrance stagger (daily card is 0)
-      if (unlocked && !seen.has(ch.id)) {
-        card.classList.add("fresh");
-        card.append(el("div", "ch-fresh", "🔓 NEW!"));
-      } else if (isNext && diff.rank === 0) card.append(el("div", "ch-next", "NEXT"));
-      card.style.setProperty("--g1", ch.ground[0]);
-      card.style.setProperty("--g2", ch.ground[1]);
-      const left = el("div", "ch-left");
-      left.append(el("div", "ch-num", `Chapter ${ch.id}`), el("div", "ch-name", ch.name), el("div", "ch-blurb", unlocked ? ch.blurb : `Clear chapter ${ch.id - 1} to unlock`));
-      if (unlocked && ch.affixes.length) left.append(el("div", "ch-affix", ch.affixes.join(" · ")));
-      const bossId = ch.waves[ch.waves.length - 1]!.boss;
-      if (unlocked && bossId) {
-        const boss = el("div", "ch-boss");
-        const img = document.createElement("img");
-        img.src = bossId === "dragon" ? "" : bossId === "hag" ? "./sprites/portraits/elite_mage.png" : "./sprites/portraits/boss.png";
-        img.className = "painted";
-        if (bossId === "dragon") boss.append(el("span", "ch-boss-emoji", "🐉"));
-        else if (bossId === "frostwyrm") boss.append(el("span", "ch-boss-emoji", "❄️"));
-        else if (bossId === "magma") boss.append(el("span", "ch-boss-emoji", "🌋"));
-        else if (bossId === "drowned") boss.append(el("span", "ch-boss-emoji", "🔱"));
-        else if (bossId === "bloodlord") boss.append(el("span", "ch-boss-emoji", "🌕"));
-        else boss.append(img);
-        boss.append(el("span", "", `Boss: ${ENEMIES[bossId].name}`));
-        left.append(boss);
-      }
-      const right = el("div", "ch-right");
-      right.append(el("div", "ch-stars", unlocked ? "★".repeat(stars) + "☆".repeat(3 - stars) : "🔒"));
-      const dBest = diff.rank > 0 ? save.diffBest[`${ch.id}:${diff.rank}`] ?? 0 : 0;
-      if (diff.rank > 0 && diffOpen) {
-        // On Hard / Nightmare, the card speaks for that difficulty.
-        const cleared = (save.diffCleared[ch.id] ?? 0) >= diff.rank;
-        if (cleared || dBest) right.append(el("div", "ch-best", cleared ? `${diff.icon} Cleared` : `${diff.icon} Best: night ${dBest}`));
-      } else if (save.best[ch.id]) right.append(el("div", "ch-best", stars ? "Cleared" : `Best: night ${save.best[ch.id]}`));
-      const dc = save.diffCleared[ch.id] ?? 0;
-      if (dc > 0 && diff.rank === 0) right.append(el("div", "lgd-skulls", dc >= 2 ? "💀 ☠️" : "💀"));
-      if (unlocked && !stars && save.best[ch.id]) {
-        // How close you've come to clearing it.
-        const bar = el("div", "ch-prog");
-        const fill = el("i", "");
-        fill.style.width = `${Math.min(100, (save.best[ch.id]! / ch.waves.length) * 100)}%`;
-        bar.append(fill);
-        right.append(bar);
-      }
-      if (unlocked && diff.rank > 0 && !diffOpen) right.append(el("div", "lgd-need", diff.rank === 1 ? "Clear on Normal first" : "Clear on Hard first"));
-      else if (unlocked) right.append(el("div", "ch-play", diff.rank > 0 ? `${diff.icon} PLAY` : "PLAY ▶"));
-      card.append(left, right);
-      if (unlocked && diff.rank > 0 && !diffOpen) card.onclick = () => this.denied(card);
-      else if (unlocked)
-        card.onclick = () => {
-          this.cb.onClick();
-          this.cb.onPlay(ch.id);
-        };
-      else card.onclick = () => this.denied(card);
-      body.append(card);
-    }
+    const nowOpen: number[] = CHAPTERS.filter((ch) => chapterUnlocked(save, ch.id)).map((ch) => ch.id);
+    const map = this.campaignMap(save, diff, seen);
+    body.append(map);
     // Endless mode card.
     const open = chapterUnlocked(save, ENDLESS.id);
     const card = el("button", `chapter endless${open ? "" : " locked"}`);
@@ -352,8 +292,164 @@ export class Hub {
         this.cb.onPlay(ENDLESS.id);
       };
     else card.onclick = () => this.denied(card);
-    body.append(card);
+    // Endless sits above the map, which reads bottom → top with the final boss farthest away.
+    body.insertBefore(card, map);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
+  }
+
+  /**
+   * Campaign map: a winding road from chapter 1 (bottom) to the final chapter (top). Cleared stops
+   * fly a flag with their stars, the next one glows, and the road beyond lies under fog — names,
+   * bosses and details stay hidden until the chapter before is cleared. Tap a stop for its card.
+   */
+  private campaignMap(save: SaveData, diff: (typeof DIFFICULTIES)[number], seen: Set<number>): HTMLElement {
+    const n = CHAPTERS.length;
+    const map = el("div", "lgm-map");
+    map.style.setProperty("--n", String(n));
+    // Zig-zag stops (x in % of the width), bottom (chapter 1) to top (final chapter).
+    const xs = CHAPTERS.map((_, i) => (i === n - 1 ? 50 : [50, 24, 70, 32, 74, 28, 68, 36, 64][i % 9]!));
+    // Ground bands per chapter, so the land changes as the road climbs.
+    const bands = el("div", "lgm-bands");
+    for (const ch of [...CHAPTERS].reverse()) {
+      const b = el("div", `lgm-band${chapterUnlocked(save, ch.id) ? "" : " fog"}`);
+      b.style.setProperty("--g1", ch.ground[0]);
+      b.style.setProperty("--g2", ch.ground[1]);
+      bands.append(b);
+    }
+    map.append(bands);
+    // The road: a smooth curve through every stop (drawn in a 100 × n*10 box, stretched to fit).
+    const H = n * 10;
+    const pt = (i: number) => [xs[i]!, H - (i * 10 + 5)] as const;
+    let d = `M ${pt(0)[0]} ${H}`;
+    d += ` L ${pt(0)[0]} ${pt(0)[1]}`;
+    for (let i = 1; i < n; i++) {
+      const [x0, y0] = pt(i - 1);
+      const [x1, y1] = pt(i);
+      d += ` C ${x0} ${y0 - 5}, ${x1} ${y1 + 5}, ${x1} ${y1}`;
+    }
+    const cleared = CHAPTERS.filter((ch) => (save.stars[ch.id] ?? 0) > 0).length;
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", `0 0 100 ${H}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.classList.add("lgm-road");
+    for (const cls of ["lgm-road-edge", "lgm-road-fill"]) {
+      const p = document.createElementNS(ns, "path");
+      p.setAttribute("d", d);
+      p.setAttribute("class", cls);
+      p.setAttribute("vector-effect", "non-scaling-stroke");
+      svg.append(p);
+    }
+    const track = el("div", "lgm-track");
+    track.append(svg);
+    map.append(track);
+    let current: HTMLElement | null = null;
+    CHAPTERS.forEach((ch, i) => {
+      const unlocked = chapterUnlocked(save, ch.id);
+      const stars = save.stars[ch.id] ?? 0;
+      const final = i === n - 1;
+      const isNext = unlocked && stars === 0;
+      const diffOpen = unlocked && difficultyOpen(diff.id, stars > 0, save.diffCleared[ch.id] ?? 0);
+      const stop = el("button", `lgm-stop${unlocked ? "" : " locked"}${stars ? " done" : ""}${isNext ? " next" : ""}${final ? " final" : ""}${unlocked && !seen.has(ch.id) ? " fresh" : ""}${diff.rank > 0 && unlocked && !diffOpen ? " shut" : ""}`);
+      stop.style.left = `${xs[i]}%`;
+      stop.style.bottom = `${((i * 10 + 5) / H) * 100}%`;
+      const bossId = ch.waves[ch.waves.length - 1]!.boss;
+      const icon = !unlocked ? (final ? "🏯" : "?") : final ? (BOSS_ICON[bossId ?? ""] ?? "👑") : stars ? "🚩" : String(ch.id);
+      stop.append(el("div", "lgm-pin", icon));
+      const label = el("div", "lgm-label");
+      label.append(el("div", "lgm-name", unlocked ? ch.name : final ? "The last road" : "???"));
+      if (unlocked) {
+        const dc = save.diffCleared[ch.id] ?? 0;
+        label.append(el("div", "lgm-stars", "★".repeat(stars) + "☆".repeat(3 - stars) + (dc >= 2 ? " ☠️" : dc >= 1 ? " 💀" : "")));
+      }
+      stop.append(label);
+      if (isNext) {
+        stop.append(el("div", "lgm-flag", unlocked && !seen.has(ch.id) ? "NEW!" : "NEXT"));
+        current = stop;
+      }
+      stop.onclick = () => {
+        if (!unlocked) return this.denied(stop);
+        this.cb.onClick();
+        this.chapterSheet(save, ch, diff, seen);
+      };
+      track.append(stop);
+    });
+    map.append(el("div", "lgm-progress", `${cleared} / ${n} chapters cleared`));
+    // Bring the current stop into view once the tab is laid out.
+    const target = current ?? map.querySelector<HTMLElement>(".lgm-stop.done:last-of-type");
+    if (target) requestAnimationFrame(() => (target as HTMLElement).scrollIntoView({ block: "center" }));
+    return map;
+  }
+
+  /** A chapter's details, opened from the map. */
+  private chapterSheet(save: SaveData, ch: (typeof CHAPTERS)[number], diff: (typeof DIFFICULTIES)[number], seen: Set<number>): void {
+    const box = el("div", "panel pop-in lgm-sheet");
+    box.append(this.chapterCard(save, ch, diff, seen));
+    box.append(this.button("Back to the map", "btn btn-ghost", () => this.showHub(save, "battle")));
+    this.show(box);
+  }
+
+  /** One chapter's full card (used in the map's detail sheet). */
+  private chapterCard(save: SaveData, ch: (typeof CHAPTERS)[number], diff: (typeof DIFFICULTIES)[number], seen: Set<number>): HTMLButtonElement {
+    const unlocked = chapterUnlocked(save, ch.id);
+    const stars = save.stars[ch.id] ?? 0;
+    const isNext = unlocked && stars === 0 && !CHAPTERS.some((o) => o.id < ch.id && chapterUnlocked(save, o.id) && !(save.stars[o.id] ?? 0));
+    const diffOpen = unlocked && difficultyOpen(diff.id, stars > 0, save.diffCleared[ch.id] ?? 0);
+    const card = el("button", `chapter${unlocked ? "" : " locked"}${isNext && diff.rank === 0 ? " next" : ""}${diff.rank > 0 && unlocked ? ` lgd-card lgd-${diff.id}${diffOpen ? "" : " lgd-shut"}` : ""}`);
+    card.style.setProperty("--i", String(ch.id)); // entrance stagger (daily card is 0)
+    if (unlocked && !seen.has(ch.id)) {
+      card.classList.add("fresh");
+      card.append(el("div", "ch-fresh", "🔓 NEW!"));
+    } else if (isNext && diff.rank === 0) card.append(el("div", "ch-next", "NEXT"));
+    card.style.setProperty("--g1", ch.ground[0]);
+    card.style.setProperty("--g2", ch.ground[1]);
+    const left = el("div", "ch-left");
+    left.append(el("div", "ch-num", `Chapter ${ch.id}`), el("div", "ch-name", ch.name), el("div", "ch-blurb", unlocked ? ch.blurb : `Clear chapter ${ch.id - 1} to unlock`));
+    if (unlocked && ch.affixes.length) left.append(el("div", "ch-affix", ch.affixes.join(" · ")));
+    const bossId = ch.waves[ch.waves.length - 1]!.boss;
+    if (unlocked && bossId) {
+      const boss = el("div", "ch-boss");
+      const img = document.createElement("img");
+      img.src = bossId === "dragon" ? "" : bossId === "hag" ? "./sprites/portraits/elite_mage.png" : "./sprites/portraits/boss.png";
+      img.className = "painted";
+      if (bossId === "dragon") boss.append(el("span", "ch-boss-emoji", "🐉"));
+      else if (bossId === "frostwyrm") boss.append(el("span", "ch-boss-emoji", "❄️"));
+      else if (bossId === "magma") boss.append(el("span", "ch-boss-emoji", "🌋"));
+      else if (bossId === "drowned") boss.append(el("span", "ch-boss-emoji", "🔱"));
+      else if (bossId === "bloodlord") boss.append(el("span", "ch-boss-emoji", "🌕"));
+      else boss.append(img);
+      boss.append(el("span", "", `Boss: ${ENEMIES[bossId].name}`));
+      left.append(boss);
+    }
+    const right = el("div", "ch-right");
+    right.append(el("div", "ch-stars", unlocked ? "★".repeat(stars) + "☆".repeat(3 - stars) : "🔒"));
+    const dBest = diff.rank > 0 ? save.diffBest[`${ch.id}:${diff.rank}`] ?? 0 : 0;
+    if (diff.rank > 0 && diffOpen) {
+      // On Hard / Nightmare, the card speaks for that difficulty.
+      const cleared = (save.diffCleared[ch.id] ?? 0) >= diff.rank;
+      if (cleared || dBest) right.append(el("div", "ch-best", cleared ? `${diff.icon} Cleared` : `${diff.icon} Best: night ${dBest}`));
+    } else if (save.best[ch.id]) right.append(el("div", "ch-best", stars ? "Cleared" : `Best: night ${save.best[ch.id]}`));
+    const dc = save.diffCleared[ch.id] ?? 0;
+    if (dc > 0 && diff.rank === 0) right.append(el("div", "lgd-skulls", dc >= 2 ? "💀 ☠️" : "💀"));
+    if (unlocked && !stars && save.best[ch.id]) {
+      // How close you've come to clearing it.
+      const bar = el("div", "ch-prog");
+      const fill = el("i", "");
+      fill.style.width = `${Math.min(100, (save.best[ch.id]! / ch.waves.length) * 100)}%`;
+      bar.append(fill);
+      right.append(bar);
+    }
+    if (unlocked && diff.rank > 0 && !diffOpen) right.append(el("div", "lgd-need", diff.rank === 1 ? "Clear on Normal first" : "Clear on Hard first"));
+    else if (unlocked) right.append(el("div", "ch-play", diff.rank > 0 ? `${diff.icon} PLAY` : "PLAY ▶"));
+    card.append(left, right);
+    if (unlocked && diff.rank > 0 && !diffOpen) card.onclick = () => this.denied(card);
+    else if (unlocked)
+      card.onclick = () => {
+        this.cb.onClick();
+        this.cb.onPlay(ch.id);
+      };
+    else card.onclick = () => this.denied(card);
+    return card;
   }
 
   /** One-time "What's new" card after a big update (returning players only; dismissed for good). */
@@ -1255,6 +1351,9 @@ export function fmtGold(n: number): string {
   if (n < 1_000_000) return `${Math.floor(n / 1000)}k`;
   return `${(Math.floor(n / 100_000) / 10).toFixed(1)}M`;
 }
+
+/** Final-boss icons for the map's last stop. */
+const BOSS_ICON: Record<string, string> = { warlord: "⚔️", hag: "🧙", golem: "🗿", dragon: "🐉", colossus: "🛡️", frostwyrm: "❄️", magma: "🌋", drowned: "🔱", bloodlord: "🌕" };
 
 /** Bestiary art: painted portraits where they exist, emoji for the rest. */
 const FOE_PORTRAIT: Record<string, string> = {

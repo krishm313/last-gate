@@ -1182,3 +1182,32 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgb-stat-v { font-weight: 900; font-size: calc(13 * var(--tu)); }
 .lgb-stat-l { font-size: calc(9 * var(--tu)); opacity: 0.75; }
 .lgb-where { font-size: calc(12 * var(--tu)); }
+/* ---- Campaign map (Battle tab): a road from chapter 1 at the bottom to the final chapter at the top. ---- */
+.lgm-map { position: relative; height: calc(var(--n) * 104 * var(--u) + 56 * var(--u)); padding-top: calc(60 * var(--u)); box-sizing: content-box; border: calc(3 * var(--u)) solid var(--ink, #1d1208); border-radius: calc(18 * var(--u)); overflow: hidden; box-shadow: inset 0 0 0 calc(2 * var(--u)) var(--gold, #ffd84a), 0 calc(4 * var(--u)) 0 var(--ink, #1d1208); }
+.lgm-bands { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.lgm-bands::before { content: ""; height: calc(60 * var(--u)); background: linear-gradient(#2a1a2a, #3a2438); }
+.lgm-band { flex: 1; background: linear-gradient(var(--g1), var(--g2)); position: relative; }
+.lgm-band + .lgm-band { box-shadow: inset 0 calc(10 * var(--u)) calc(14 * var(--u)) calc(-8 * var(--u)) #0006; }
+/* Fog over land you haven't reached: soft drifting cloud banks. */
+.lgm-band.fog::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 55% at 30% 45%, #cfd6e0cc, transparent 70%), radial-gradient(55% 60% at 75% 60%, #b9c2cfcc, transparent 72%), linear-gradient(#5a6272e6, #3a4150f0); }
+.lgm-track { position: absolute; left: 0; right: 0; bottom: calc(44 * var(--u)); top: calc(60 * var(--u)); }
+.lgm-road { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.lgm-road-edge { fill: none; stroke: #3a2410; stroke-width: calc(14 * var(--u)); stroke-linecap: round; opacity: 0.85; }
+.lgm-road-fill { fill: none; stroke: #e6c98a; stroke-width: calc(8 * var(--u)); stroke-linecap: round; stroke-dasharray: calc(10 * var(--u)) calc(7 * var(--u)); }
+.lgm-stop { position: absolute; transform: translate(-50%, calc(100% - 26 * var(--u))); background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: calc(3 * var(--u)); z-index: 1; }
+.lgm-pin { width: calc(52 * var(--u)); height: calc(52 * var(--u)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: calc(22 * var(--tu)); color: #fff; text-shadow: 0 calc(2 * var(--u)) 0 #1d1208; background: radial-gradient(circle at 35% 30%, #5a86d0, #234a8a); border: calc(3 * var(--u)) solid #1d1208; box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd84a, 0 calc(4 * var(--u)) 0 #1d1208; }
+.lgm-stop.done .lgm-pin { background: radial-gradient(circle at 35% 30%, #6fc05a, #2f7a2a); }
+.lgm-stop.locked .lgm-pin { background: radial-gradient(circle at 35% 30%, #707888, #3e4452); box-shadow: inset 0 0 0 calc(2 * var(--u)) #9aa2b0, 0 calc(4 * var(--u)) 0 #1d1208; color: #e8ecf2; }
+.lgm-stop.final .lgm-pin { width: calc(70 * var(--u)); height: calc(70 * var(--u)); font-size: calc(32 * var(--tu)); background: radial-gradient(circle at 35% 30%, #c04a4a, #6a1a1a); }
+.lgm-stop.final.locked .lgm-pin { background: radial-gradient(circle at 35% 30%, #6a4a5a, #3a2430); }
+.lgm-stop.next .lgm-pin { animation: lgm-glow 1.4s ease-in-out infinite; }
+@keyframes lgm-glow { 50% { box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd84a, 0 calc(4 * var(--u)) 0 #1d1208, 0 0 calc(22 * var(--u)) calc(6 * var(--u)) #ffd84aaa; transform: scale(1.06); } }
+.lgm-stop.shut .lgm-pin { filter: grayscale(0.7) brightness(0.8); }
+.lgm-label { background: #120c09d9; border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(9 * var(--u)); padding: calc(2 * var(--u)) calc(8 * var(--u)); text-align: center; color: #fff; max-width: calc(150 * var(--u)); }
+.lgm-name { font-weight: 900; font-size: calc(11.5 * var(--tu)); line-height: 1.15; white-space: nowrap; }
+.lgm-stars { font-size: calc(11 * var(--tu)); color: #ffd84a; line-height: 1.1; }
+.lgm-stop.locked .lgm-label { color: #c8ced8; }
+.lgm-flag { position: absolute; top: calc(-14 * var(--u)); right: calc(-30 * var(--u)); background: linear-gradient(#ffe27a, #f2a83a); color: #2a1606; font-weight: 900; font-size: calc(10 * var(--tu)); padding: 0 calc(6 * var(--u)); border-radius: calc(7 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; }
+.lgm-progress { position: absolute; left: calc(8 * var(--u)); top: calc(8 * var(--u)); z-index: 2; font-size: calc(10.5 * var(--tu)); font-weight: 800; color: #fff; background: #0008; border-radius: calc(8 * var(--u)); padding: 0 calc(8 * var(--u)); white-space: nowrap; }
+.lgm-sheet { width: min(100%, calc(360 * var(--u))); gap: calc(10 * var(--u)); display: flex; flex-direction: column; }
+@media (prefers-reduced-motion: reduce) { .lgm-stop.next .lgm-pin { animation: none; } }
