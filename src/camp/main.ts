@@ -22,7 +22,7 @@ import { pushEndlessTop, pushHistory, type RunRecord } from "../core/history";
 import { applyEndlessTwist, endlessTwistFor } from "../core/endlessMods";
 import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
-import { claim, claimable } from "../core/achievements";
+import { claim, claimable, foeMet } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
 import { applyDisplaySettings, buzz, loadSettings, saveSettings } from "../ui/settings";
 import { padMove, pollPad } from "./input";
@@ -806,7 +806,10 @@ function frame(now: number) {
     renderer.consume(events);
     for (const ev of events) {
       playSfx(ev, c);
+      // First kill of a foe kind: it joins the Bestiary (bosses get their own banner already).
+      const newFoe = ev.type === "kill" && !ev.enemy.boss && !foeMet(save, ev.enemy.id) ? ev.enemy.name : null;
       trackStats(ev);
+      if (newFoe) hud.toast(`📖 New in the Bestiary: ${newFoe}`);
       if (ev.type === "waveStart") waveStartTally = { kills: c.kills, gold: c.goldEarned, hits: 0 };
       if (ev.type === "wallHit" || ev.type === "hallHit") waveStartTally.hits += 1;
       // Endless: the moment you pass your best wave, celebrate it in-run (once).
