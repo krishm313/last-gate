@@ -30,6 +30,15 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **7th hero: The Cleric** — a support hero (every painted figure is taken, so the art is the mage
+  sprite recoloured white-and-gold with PIL, like the moor props; portrait cut from it). Unlocks at
+  22★ (of 27). Passive "Blessed hall": the hall's archers hit 30% harder (hallDamage mod). Ability
+  **Sanctuary** (cd 22 s): heals the hall 10% of max HP, every standing wall section 20%, the
+  hero to full and all soldiers; a gold ring + "SANCTUARY!" and rising motes. Keeps its charge
+  when nothing is hurt ("All is well"). Achievement "Light of the Gate" (heal 5,000 HP with
+  Sanctuary). Slices: (1) sim + data + test, (2) art + portrait + fx, (3) campsim vs King,
+  daily hero pool from a future date.
+
 - **Bestiary** — ✅ SHIPPED (slices 1–2). (Trophies tab, below Records) — every foe type (29) as a small tile: art (unit sprite
   where one exists, emoji otherwise), name, and its traits from `enemyTraits()`; foes you've never
   slain show a dark silhouette "???". Header "Bestiary · 12 / 29". Tracking: a `met_<id>` stat set on
