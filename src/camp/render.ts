@@ -4501,10 +4501,12 @@ fx.shake(0.15);
       // A floating golden halo ring above the head and sparkles circling it.
       ctx.save();
       const hy = y - 40 + Math.sin(this.time * 2.4) * 2;
+      // Soft glow from a cached blob (no shadowBlur: it's slow on phones), then the crisp ring.
+      ctx.globalCompositeOperation = "lighter";
+      this.drawBlob(ctx, this.blob("flair-halo", [[0, "rgba(255,214,90,0.9)"], [1, "rgba(255,180,40,0)"]]), x, hy, 20, 10, 0.7);
+      ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = "rgba(255,226,120,0.95)";
       ctx.lineWidth = 3;
-      ctx.shadowColor = "rgba(255,210,80,0.9)";
-      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.ellipse(x, hy, 11, 4, 0, 0, Math.PI * 2);
       ctx.stroke();

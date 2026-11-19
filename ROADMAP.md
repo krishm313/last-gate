@@ -192,6 +192,10 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   70 / nightmare 63 at 88/25/0%. Harder pays more only while you can win; Nightmare ch2 out-earns
   Normal ch4 but at a coin-flip — a fair risk premium, not a farm. No change.
 
+- **Perf check, chapter moods** (60 foes at night, dpr 1, headless): ch1 6.1 ms/draw, ch6 (snow) 5.3,
+  ch7 (embers + haze) 4.9 — the new overlays cost nothing measurable. Golden Halo's shadowBlur (the
+  last one in the renderer) swapped for a cached glow blob.
+
 ## Shipped (newest first)
 - Pause menu status strip adds difficulty (💀 Hard / ☠️ Nightmare), tonight's weather and this week's Endless twist.
 - End screen "Earned this run": chips for each trophy unlocked and quest completed during the run.
