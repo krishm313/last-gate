@@ -18,6 +18,7 @@ import { campBotInput, campBotPick, campBotStep } from "./bot";
 import { HERO_BY_ID } from "../core/heroes";
 import { learnSkill, resetSkills } from "../core/skills";
 import { pushHistory, type RunRecord } from "../core/history";
+import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
@@ -118,6 +119,11 @@ const hub = new Hub(uiRoot, {
     }
     hub.showHub(save, "heroes");
   },
+  onDifficulty: (id) => {
+    save.difficulty = id;
+    writeSave(save);
+    hub.showHub(save, "battle");
+  },
   onFlair: (id) => {
     save.flair = id;
     writeSave(save);
@@ -217,12 +223,17 @@ function moveInput(): Vec {
   return d > 1 ? { x: x / d, y: y / d } : { x, y };
 }
 
-function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b) {
+function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty) {
   sfx.unlock();
   dailyRun = null;
   chapterId = id;
   const chapter = CHAPTER_BY_ID[id]!;
-  camp = createCamp(seed, chapter, setup);
+  // Campaign difficulty (Endless and the daily always play Normal; a locked pick falls back too).
+  runDifficulty = !chapter.endless && difficultyOpen(diff, (save.stars[id] ?? 0) > 0, save.diffCleared[id] ?? 0) ? diff : "normal";
+  const dd = DIFF_BY_ID[runDifficulty];
+  if (dd.rank > 0) setup = { ...setup, enemyHpMult: (setup.enemyHpMult ?? 1) * dd.hp };
+  camp = createCamp(seed, chapterOnDifficulty(chapter, runDifficulty), setup);
+  if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
   renderer.setGround(chapter.ground, chapter.id);
   lastMood = chapter.id;
   hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
@@ -254,7 +265,7 @@ function startDaily() {
   setup.mods!.towerDamage *= d.twist.towerDamage;
   setup.enemyHpMult = d.twist.enemyHp;
   setup.startBlessings = [d.blessing];
-  newRun(d.chapterId, setup, d.seed);
+  newRun(d.chapterId, setup, d.seed, "normal");
   dailyRun = d;
   // Remind the player what makes today's run different.
   hud.banner(`Daily: ${d.twist.name}`, d.twist.desc);
@@ -364,7 +375,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   const prevBest = save.best[c.chapter.id] ?? 0;
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
-  const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD) });
+  const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD), difficulty: runDifficulty });
   pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
   writeSave(save);
   if (abandoned) {
@@ -548,6 +559,7 @@ let lastCoinAt = 0;
 let knownTrophies = new Set<string>();
 /** Nights held this run (hero skill XP) and skill points the last run earned (end screen). */
 let nightsThisRun = 0;
+let runDifficulty: DifficultyId = "normal";
 let newSkillPoints: { hero: string; n: number } | null = null;
 /** Quests already finished when we last looked (a newly finished one gets a toast mid-run). */
 let knownQuests = new Set<string>();

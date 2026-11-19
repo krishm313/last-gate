@@ -1,5 +1,6 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
+import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
 import { sanitizeHistory, type RunRecord } from "./history";
 import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
 import { newHeroProgress, sanitizeHeroProgress, skillPoints, type HeroProgress } from "./skills";
@@ -68,10 +69,13 @@ export interface SaveData {
   history: RunRecord[];
   /** Chosen cosmetic hero flair (see flair.ts). */
   flair: string;
+  /** Selected campaign difficulty, and per chapter the highest difficulty rank cleared (1 hard, 2 nightmare). */
+  difficulty: DifficultyId;
+  diffCleared: Record<number, number>;
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], flair: "none" };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], flair: "none", difficulty: "normal", diffCleared: {} };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -100,6 +104,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
+  d.difficulty = isDifficulty((r as { difficulty?: unknown }).difficulty) ? (r as { difficulty: DifficultyId }).difficulty : "normal";
+  for (const [k, v] of Object.entries(rec((r as { diffCleared?: unknown }).diffCleared))) if (chapterIds.has(Number(k))) d.diffCleared[Number(k)] = Math.max(0, Math.min(2, Math.floor(num(v, 0))));
   d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
   d.heroes = sanitizeHeroProgress(rawHeroes);
@@ -150,6 +156,8 @@ export interface RunResult {
   wave: number;
   gateFrac: number;
   goldFromKills: number;
+  /** Campaign difficulty played (default normal). */
+  difficulty?: DifficultyId;
 }
 
 export interface RunReward {
@@ -163,6 +171,8 @@ export interface RunReward {
   /** Endless: one-time milestone bonus (every 5 nights) and the nights it was for. */
   milestoneBonus?: number;
   milestones?: number[];
+  /** First clear on Hard (1) / Nightmare (2) this run. */
+  hardClear?: number;
 }
 
 /** Endless milestones: every 5 nights held pays once, more for deeper nights. */
@@ -178,6 +188,8 @@ export function nextEndlessMilestone(s: SaveData): number {
 /** Applies a finished run to the save and returns what was earned. */
 export function applyRun(s: SaveData, r: RunResult): RunReward {
   // Endless pays like a mid-campaign chapter per wave held.
+  const diff = DIFF_BY_ID[r.chapter === ENDLESS_ID ? "normal" : r.difficulty ?? "normal"];
+  if (diff.rank > 0) return applyHardRun(s, r, diff.rank, diff.gold);
   const goldTier = r.chapter === 99 ? 3 : r.chapter;
   const waveBonus = Math.max(0, r.wave - (r.won ? 0 : 1)) * 4 * goldTier;
   const firstClear = r.won && (s.stars[r.chapter] ?? 0) === 0;
@@ -217,4 +229,23 @@ export function grantHeroXp(s: SaveData, hero: HeroId, nights: number): number {
   const before = skillPoints(p.xp);
   p.xp += Math.max(0, Math.floor(nights));
   return skillPoints(p.xp) - before;
+}
+
+/**
+ * A Hard / Nightmare run: pays more gold, records the clear, but leaves stars (and so chapter /
+ * hero unlocks) to the Normal campaign.
+ */
+function applyHardRun(s: SaveData, r: RunResult, rank: number, goldMult: number): RunReward {
+  const waveBonus = Math.round(Math.max(0, r.wave - (r.won ? 0 : 1)) * 4 * r.chapter * goldMult);
+  const firstClear = r.won && (s.diffCleared[r.chapter] ?? 0) < rank;
+  const winBonus = r.won ? Math.round(40 * r.chapter * (firstClear ? 2 : 1) * goldMult) : 0;
+  const loot = Math.round(r.goldFromKills * goldMult);
+  if (r.won) s.diffCleared[r.chapter] = Math.max(s.diffCleared[r.chapter] ?? 0, rank);
+  const gold = loot + waveBonus + winBonus;
+  s.gold = Math.min(MAX_GOLD, s.gold + gold);
+  s.stats.goldEarned = (s.stats.goldEarned ?? 0) + gold;
+  s.runs += 1;
+  if (r.won) s.wins += 1;
+  s.lastChapter = r.chapter;
+  return { gold, waveBonus, winBonus, stars: 0, newStars: 0, firstClear: false, unlockedHeroes: [], hardClear: firstClear ? rank : 0 };
 }

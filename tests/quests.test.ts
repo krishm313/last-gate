@@ -92,3 +92,37 @@ describe("run history", async () => {
     expect(sanitizeHistory("junk")).toEqual([]);
   });
 });
+
+describe("difficulty modes", async () => {
+  const { applyRun, newSave: fresh, sanitizeSave: clean } = await import("../src/core/meta");
+  const { difficultyOpen, chapterOnDifficulty } = await import("../src/core/difficulty");
+  const { CHAPTER_BY_ID } = await import("../src/core/chapters");
+  it("unlocks Hard after Normal and Nightmare after Hard", () => {
+    expect(difficultyOpen("hard", false, 0)).toBe(false);
+    expect(difficultyOpen("hard", true, 0)).toBe(true);
+    expect(difficultyOpen("nightmare", true, 0)).toBe(false);
+    expect(difficultyOpen("nightmare", true, 1)).toBe(true);
+  });
+  it("pays more, records the clear, and leaves stars alone", () => {
+    const a = fresh(), b = fresh();
+    a.stars[2] = 3; b.stars[2] = 3;
+    const run = { chapter: 2, won: true, wave: 10, gateFrac: 1, goldFromKills: 100 };
+    const normal = applyRun(a, run);
+    const hard = applyRun(b, { ...run, difficulty: "hard" });
+    expect(hard.gold).toBeGreaterThan(normal.gold * 1.4);
+    expect(hard.hardClear).toBe(1);
+    expect(b.diffCleared[2]).toBe(1);
+    expect(b.stars[2]).toBe(3);
+    expect(applyRun(b, { ...run, difficulty: "hard" }).hardClear).toBe(0); // only the first time
+    // Endless ignores difficulty.
+    expect(applyRun(b, { chapter: 99, won: false, wave: 5, gateFrac: 0, goldFromKills: 0, difficulty: "nightmare" }).hardClear).toBeUndefined();
+  });
+  it("scales the chapter and sanitizes the save", () => {
+    const ch = CHAPTER_BY_ID[1]!;
+    expect(chapterOnDifficulty(ch, "nightmare").speedMult).toBeCloseTo(ch.speedMult * 1.2);
+    expect(chapterOnDifficulty(ch, "normal")).toBe(ch);
+    const s = clean({ difficulty: "insane", diffCleared: { 1: 9, 77: 1 } });
+    expect(s.difficulty).toBe("normal");
+    expect(s.diffCleared).toEqual({ 1: 2 });
+  });
+});

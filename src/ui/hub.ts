@@ -9,6 +9,7 @@ import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
 import { historySummary } from "../core/history";
 import { activeFlair, FLAIRS } from "../core/flair";
+import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
 import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
@@ -42,6 +43,8 @@ export interface HubCallbacks {
   onResetSkills?: (hero: HeroId) => void;
   /** Picked a cosmetic hero flair. */
   onFlair?: (id: string) => void;
+  /** Picked a campaign difficulty. */
+  onDifficulty?: (id: DifficultyId) => void;
   /** Claimed a finished daily / weekly quest. */
   onClaimQuest: (id: string) => void;
   /** New quests were handed out (the save should be written). */
@@ -185,6 +188,20 @@ export class Hub {
   private battleTab(body: HTMLElement, save: SaveData): void {
     body.append(el("div", "hub-hint", `Hero: ${HERO_BY_ID[save.hero].name} — pick a battlefield`));
     if ((save.stars[1] ?? 0) > 0) body.append(this.dailyCard(save));
+    // Campaign difficulty, once a chapter has been cleared.
+    const diff = DIFF_BY_ID[save.difficulty];
+    if ((save.stars[1] ?? 0) > 0) {
+      const seg = el("div", "lgd-seg");
+      for (const d of DIFFICULTIES) {
+        const any = CHAPTERS.some((ch) => difficultyOpen(d.id, (save.stars[ch.id] ?? 0) > 0, save.diffCleared[ch.id] ?? 0));
+        const b = this.button(`${d.icon} ${d.name}`, `lgd-opt lgd-${d.id}${d.id === diff.id ? " on" : ""}${any ? "" : " locked"}`, () => {
+          if (!any) return this.denied(b);
+          if (d.id !== diff.id) this.cb.onDifficulty?.(d.id);
+        });
+        seg.append(b);
+      }
+      body.append(seg, el("div", "lgd-desc", diff.desc));
+    }
     // Chapters unlocked since the player last saw this list get a one-time reveal.
     const seenKey = "lastgate.seenChapters";
     // No record yet (fresh install or an older save): treat what's open now as already seen.
@@ -196,12 +213,13 @@ export class Hub {
       if (unlocked) nowOpen.push(ch.id);
       const stars = save.stars[ch.id] ?? 0;
       const isNext = unlocked && stars === 0 && !CHAPTERS.some((o) => o.id < ch.id && chapterUnlocked(save, o.id) && !(save.stars[o.id] ?? 0));
-      const card = el("button", `chapter${unlocked ? "" : " locked"}${isNext ? " next" : ""}`);
+      const diffOpen = unlocked && difficultyOpen(diff.id, stars > 0, save.diffCleared[ch.id] ?? 0);
+      const card = el("button", `chapter${unlocked ? "" : " locked"}${isNext && diff.rank === 0 ? " next" : ""}${diff.rank > 0 && unlocked ? ` lgd-card lgd-${diff.id}${diffOpen ? "" : " lgd-shut"}` : ""}`);
       card.style.setProperty("--i", String(ch.id)); // entrance stagger (daily card is 0)
       if (unlocked && !seen.has(ch.id)) {
         card.classList.add("fresh");
         card.append(el("div", "ch-fresh", "🔓 NEW!"));
-      } else if (isNext) card.append(el("div", "ch-next", "NEXT"));
+      } else if (isNext && diff.rank === 0) card.append(el("div", "ch-next", "NEXT"));
       card.style.setProperty("--g1", ch.ground[0]);
       card.style.setProperty("--g2", ch.ground[1]);
       const left = el("div", "ch-left");
@@ -222,6 +240,8 @@ export class Hub {
       const right = el("div", "ch-right");
       right.append(el("div", "ch-stars", unlocked ? "★".repeat(stars) + "☆".repeat(3 - stars) : "🔒"));
       if (save.best[ch.id]) right.append(el("div", "ch-best", stars ? "Cleared" : `Best: night ${save.best[ch.id]}`));
+      const dc = save.diffCleared[ch.id] ?? 0;
+      if (dc > 0) right.append(el("div", "lgd-skulls", dc >= 2 ? "💀 ☠️" : "💀"));
       if (unlocked && !stars && save.best[ch.id]) {
         // How close you've come to clearing it.
         const bar = el("div", "ch-prog");
@@ -230,9 +250,11 @@ export class Hub {
         bar.append(fill);
         right.append(bar);
       }
-      if (unlocked) right.append(el("div", "ch-play", "PLAY ▶"));
+      if (unlocked && diff.rank > 0 && !diffOpen) right.append(el("div", "lgd-need", diff.rank === 1 ? "Clear on Normal first" : "Clear on Hard first"));
+      else if (unlocked) right.append(el("div", "ch-play", diff.rank > 0 ? `${diff.icon} PLAY` : "PLAY ▶"));
       card.append(left, right);
-      if (unlocked)
+      if (unlocked && diff.rank > 0 && !diffOpen) card.onclick = () => this.denied(card);
+      else if (unlocked)
         card.onclick = () => {
           this.cb.onClick();
           this.cb.onPlay(ch.id);
@@ -725,6 +747,7 @@ export class Hub {
       box.append(tip);
     }
     if (r.dailyStreak && r.dailyStreak >= 2) box.append(el("div", "end-unlock end-record", `🔥 ${r.dailyStreak}-day streak!`));
+    if (reward.hardClear) box.append(el("div", "end-unlock end-record", reward.hardClear >= 2 ? "☠️ Nightmare cleared!" : "💀 Hard cleared! Nightmare unlocked"));
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
     if (r.skillPoints) box.append(el("div", "end-unlock end-record", `⭐ ${r.skillPoints.hero}: +${r.skillPoints.n} skill point${r.skillPoints.n > 1 ? "s" : ""} — spend it in Heroes`));

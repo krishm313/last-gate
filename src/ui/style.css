@@ -1102,3 +1102,17 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgf-chip.on { border-color: #ffd24a; background: rgba(255, 210, 74, 0.16); }
 .lgf-chip.on .lgf-how { color: #ffd76a; font-weight: 800; }
 .lgf-chip.locked { opacity: 0.55; }
+
+/* Campaign difficulty (Battle tab). */
+.lgd-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0 4px; }
+.lgd-opt { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; padding: 8px 4px; border-radius: 10px; font-weight: 800; font-size: 0.82em; color: #c8d0e8; background: rgba(14, 22, 48, 0.8); border: 2px solid rgba(255, 255, 255, 0.12); }
+.lgd-opt.on { color: #fff; border-color: #ffd24a; background: rgba(255, 210, 74, 0.18); }
+.lgd-opt.lgd-hard.on { border-color: #ff8a4a; background: rgba(255, 110, 50, 0.22); }
+.lgd-opt.lgd-nightmare.on { border-color: #c070ff; background: rgba(150, 60, 220, 0.28); }
+.lgd-opt.locked { opacity: 0.4; }
+.lgd-desc { text-align: center; font-size: 0.74em; color: #c8d0e8; margin-bottom: 8px; }
+.chapter.lgd-card.lgd-hard { box-shadow: 0 0 0 3px #ff7a3a, 0 6px 0 rgba(0, 0, 0, 0.4); }
+.chapter.lgd-card.lgd-nightmare { box-shadow: 0 0 0 3px #b060ff, 0 6px 0 rgba(0, 0, 0, 0.4); }
+.chapter.lgd-shut { filter: grayscale(0.7) brightness(0.75); }
+.lgd-need { font-size: 0.7em; font-weight: 800; color: #ffcf9a; text-align: right; max-width: 90px; }
+.lgd-skulls { font-size: 0.9em; text-align: right; }

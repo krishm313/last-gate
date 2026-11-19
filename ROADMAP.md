@@ -110,7 +110,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   sparkles), Ember Trail (clear ch4), Petal Trail (8 trophies), Shadow Wisps (Endless night 20),
   Frost Trail (clear ch6). Picker panel at the bottom of the Heroes tab (locked chips say how).
 
+- **Difficulty modes** (Phase 4, slice 1) — Normal / 💀 Hard / ☠️ Nightmare selector on the Battle
+  tab (after the first clear). Hard opens per chapter once it's cleared on Normal (foes +40% HP,
+  +10% speed, +15% gate dmg, gold ×1.5); Nightmare once cleared on Hard (+90% HP, +20% speed, +30%
+  gate, gold ×2.2). Stars and unlocks stay Normal-only; clears show as 💀 / ☠️ on the card; first
+  clear doubles the win bonus and the end screen celebrates it. Endless & daily always Normal.
+  Bot: ch2 @L4 normal 100% / hard 60% / nightmare 40%; ch1 hard 100%.
+
 ## Shipped (newest first)
+- Difficulty modes: Hard & Nightmare per chapter (more HP/speed/gate damage, ×1.5 / ×2.2 gold), skull badges (tests).
 - Hero flair: 5 unlockable cosmetic trails/halos (ember, frost, petals, shadow wisps, golden halo), picker on Heroes tab (test).
 - Run history: last 20 runs (chapter/daily/endless, hero, nights, kills, gold) with win rate, under Records on Trophies (test).
 - Hero skill trees: XP from nights survived, 3 branches × 3 skills per hero, Heroes tab panel, end-screen notice (tests).
