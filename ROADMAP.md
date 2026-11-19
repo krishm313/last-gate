@@ -30,6 +30,23 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **Reverse mode: "Siege Lord"** (owner: "the reverse mode sounds soo tuff and fire" — TOP PRIORITY,
+  ahead of the Archery Range screen) — you command the horde against a human castle. Built on the
+  existing camp sim, flipped: the defence (King, towers, walls, hall) is played by the campaign bot
+  (`campBotStep`, which already builds, upgrades, repairs and fights); the player controls the
+  attack. Bottom bar: a deck of unit cards (Footman 2, Runner 2, Shieldbearer 3, Brute 4, Crossbow 3,
+  Sapper 4, Bat swarm 3, Ram 6, then War Raven / Fire Imp / Tunneler unlocked by progress) paid from
+  a War Chest that refills over time (+ a bounty for every tower or wall section destroyed). Tap a
+  card, then tap the top of the field (the forest edge, one of 3 lanes) to send them. Win: destroy
+  the hall before the defenders hold 8 nights (each "night" = a 45 s push; between pushes the bot
+  gets a short build phase with income). Lose: the timer runs out. Stars for hall destroyed by night
+  4/6/8. Siege maps reuse chapter grounds; the defenders get stronger per siege (bot perms level).
+  Slices: (1) sim hooks — a `reverse` camp flag: no auto wave queue, `deploy(c, unit, lane)` from the
+  player's chest, chest income, defender bot drives the hero/plots; tests (deploy costs, chest
+  refills, hall death = win); (2) HUD: card bar + chest meter + lane tap targets, end screen;
+  (3) map entry (a ⚔️ "Siege Lord" card above Endless) + 3 sieges with rising defences + stars/rewards
+  in save.mini; (4) polish: horde banner fx, war drums, unit card art from bestiary portraits.
+
 - **Campaign map + side stops** (owner request 2026-11-19) — (1) ✅ the chapter list becomes a map: a
   winding road from chapter 1 (bottom) to the final chapter (top); land bands in each chapter's
   colours; cleared stops fly a flag with stars/skulls, the next one glows with NEXT/NEW!, everything
