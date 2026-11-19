@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Victory fanfare for chapters 8 and 9 (own keys; the Moors in a minor key with a slow double heartbeat and a deep gong). Checked the hub chapter list on iPhone SE with 9 chapters + Endless (clean).
 - Chapter 9 boss (slice 3): **The Blood Moon Warlord** — crimson-haloed summoner (knights, runners when enraged); phase 2 flares the blood moon every 12 s: all foes +35% speed and attack 25% faster for 5 s, the hall's arrows +25%, the field washes red with "BLOOD MOON!". Joins Endless's boss rotation; "Moonbreaker" trophy; 🌕 on the chapter card. bossHpMult 0.7 in ch9 → campsim L10 50% (was 0% at full HP). Test included.
 - Chapter 9 scenery (slice 2): moor prop atlas — the summer set recoloured to wine-red heath trees and bracken with dark slate rocks (moor.webp, 91 KB); checked by day and at night.
 - **Chapter 9: Bloodmoon Moors** (slice 1) — unlocked after the Sunken Citadel. Plum heath ground (ground_5 recoloured, hue blended the short way round so the path stays sandy), deep-red wash with blood-moon light pulsing from the north and crimson mist, dead trees + stumps, no butterflies, crimson leaf bursts, autumn props for now, crimson/plum confetti, "Lord of the Moors" trophy. hpMult 4.0; CAMP_CHAPTER_HP 2.45 → campsim L10 42% (= ch8), L5 0%. Final boss is the Iron Colossus until slice 3 brings the Blood Moon Warlord.
