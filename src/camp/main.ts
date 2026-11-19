@@ -386,6 +386,11 @@ function lossTip(c: Camp): string {
   if (s.breaches >= 3 && !built("fortify")) return "The wall kept breaking. Fortify it into stone, and stand on Repair Wall during the day.";
   if (s.breaches >= 3 && !built("barracks")) return "Build a Barracks — its soldiers hold breaches while you repair.";
   if (s.heroDeaths >= 2) return "Your hero fell often. Fight from behind the wall, or take Vigor / the Knight Captain.";
+  // Barely touched the hero's ability (it recharges every ~20 s, so a night has room for 2–3).
+  if (c.wave >= 3 && (s.casts ?? 0) < c.wave) {
+    const ab = Object.values(HERO_BY_ID).find((h) => h.ability === c.ability);
+    if (ab) return `${ab.abilityName} recharges fast — tap it whenever foes bunch up. You used it ${s.casts ?? 0} time${s.casts === 1 ? "" : "s"} in ${c.wave} nights.`;
+  }
   if (!built("lumber")) return "Build the Lumber Camp early: logs unlock tower levels 3–4 and stone walls.";
   if (c.plots.filter((p) => p.kind === "tower" && p.level >= 3).length < 2) return "Push a couple of towers to level 3+ — they're your main damage.";
   return "Spend your gold in the Armory, then try again — every run makes you stronger.";

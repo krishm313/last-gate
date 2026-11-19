@@ -432,7 +432,7 @@ export interface Camp {
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
-  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number };
+  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number; casts?: number };
   strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
   owned: Record<string, number>;
   offers: Blessing[];
@@ -1221,6 +1221,7 @@ function useAbility(c: Camp): void {
     }
   }
   c.events.push({ type: "ability", id: c.ability, x: h.x, y: h.y });
+  c.runStats.casts = (c.runStats.casts ?? 0) + 1;
 }
 
 export const CATAPULT_LEVELS = [
