@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Checked with Large text on iPhone SE: Armory (incl. Royal Legacy), Heroes tab Won chips, What's-new card — all fit, nothing clipped. Decision: quest rewards keep their +25%/cleared-chapter scaling (a 650 weekly pays ~2.1k at 9 chapters) now that Royal Legacy gives late gold somewhere to go.
 - Armory capstone 👑 **Royal Legacy** (late-game gold sink): unlocks once every other upgrade is maxed (~25.6k gold); 10 levels, +3% hero & tower damage and wall HP each, ~20k gold total. Balance sims skip capstones, so the L5/L10 tables keep their meaning (test). Locked + open states checked on SE.
 - Weekly quest 🌋 "Win 2 runs in chapter 7+ this week" (new lateWins stat) joins from the week of Mon 2026-11-30, only for players who have beaten chapter 7; this week and next are unchanged (tests). First appearance for a ch7 veteran: week of 21 Dec.
 - Heroes tab: a "🏆 Won" chip on every hero that has won a run, so Band of Heroes progress is visible where you pick heroes.
