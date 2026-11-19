@@ -43,7 +43,13 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   the foe nearest the wall within 300–340 with lightning that hops to 2/3/4 more foes (110 px hops,
   ×0.8 per hop), ignoring armour. Stone spire with a floating crystal that flares on each cast.
 
+- **Healer's Tent** — new plot by the hall (unlocks after night 5, 3 levels, coins): heals the King
+  and soldiers within 200/230/260 for 6/10/15 HP/s and mends every standing wall section by
+  0.4/0.7/1.1% of max HP per second (broken ones still need Repair). Striped tent, red-cross banner,
+  dashed green radius ring on the ground, green sparkles + "+" on whoever it heals.
+
 ## Shipped (newest first)
+- Healer's Tent: heals the King/soldiers nearby and slowly mends the wall (plot, tent art, aura ring, heal motes, test).
 - Mage Tower: chain lightning that ignores armour (plot, spire + crystal art, purple bolts, tests).
 - Lightning arcs now draw above the night darkness (they were nearly invisible at night).
 - Spike trap: stakes before the gate wound + slow walkers (plot, info card, visuals, tests; campsim ch1 100%).

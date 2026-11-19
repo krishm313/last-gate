@@ -403,3 +403,24 @@ describe("mage tower", () => {
     expect(hp - k.hp).toBeCloseTo(MAGE_LEVELS[0]!.damage * c.chapter.hpMult ** 0.6, 3);
   });
 });
+
+describe("healer's tent", () => {
+  it("heals the King within its radius, not outside it, and mends standing wall sections", () => {
+    const c = createCamp(1);
+    const t = c.plots.find((p) => p.kind === "healer")!;
+    t.locked = false; t.level = 1;
+    c.incomePile = 0; c.mods.income = 1e-9;
+    c.hero.coins = 0;
+    c.hero.x = t.x + 60; c.hero.y = t.y + 60; c.hero.hp = 50; c.hero.sinceHit = 0;
+    c.segments[0]!.hp = c.segments[0]!.maxHp * 0.5;
+    c.segments[1]!.hp = 0;
+    const w0 = c.segments[0]!.hp;
+    step(c, still);
+    expect(c.hero.hp).toBeGreaterThan(50);
+    expect(c.segments[0]!.hp).toBeGreaterThan(w0);
+    expect(c.segments[1]!.hp).toBe(0);
+    c.hero.x = t.x + 400; c.hero.y = t.y - 300; c.hero.hp = 50; c.hero.sinceHit = 0;
+    step(c, still);
+    expect(c.hero.hp).toBe(50);
+  });
+});

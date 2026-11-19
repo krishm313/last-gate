@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -50,6 +50,16 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
       return {
         title: `Mage Tower · Lv ${p.level}`,
         lines: [`Damage ${arrow(cur.damage, nx?.damage ?? null)} · ignores armour`, `Jumps ${arrow(cur.chains, nx?.chains ?? null)} · every ${arrow(`${cur.every}s`, nx ? `${nx.every}s` : null)}`],
+      };
+    }
+    case "healer": {
+      const cur = HEALER_LEVELS[p.level - 1];
+      const nx = next ? HEALER_LEVELS[next - 1]! : null;
+      const wall = (v: number) => `${(v * 100).toFixed(1)}%/s`;
+      if (!cur) return { title: "Build: Healer's Tent", lines: [`Heals the King and soldiers nearby: ${nx!.heal} HP/s`, `Mends the whole wall: ${wall(nx!.wall)}`] };
+      return {
+        title: `Healer's Tent · Lv ${p.level}`,
+        lines: [`Heal ${arrow(`${cur.heal}/s`, nx ? `${nx.heal}/s` : null)} · radius ${arrow(cur.radius, nx?.radius ?? null)}`, `Wall mending ${arrow(wall(cur.wall), nx ? wall(nx.wall) : null)}`],
       };
     }
     case "spikes": {

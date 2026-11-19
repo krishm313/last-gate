@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { SPIKES } from "./sim";
+import { HEALER_LEVELS, SPIKES } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -204,6 +204,58 @@ export class CampRenderer {
   flushUnlocks(): void {
     for (const u of this.pendingUnlocks) this.revealUnlock(u.x, u.y);
     this.pendingUnlocks = [];
+  }
+
+  /** The healer's heal radius on the ground (drawn under everything that stands), breathing gently. */
+  private drawHealerAura(ctx: CanvasRenderingContext2D, p: Plot): void {
+    const r = HEALER_LEVELS[p.level - 1]!.radius;
+    const br = 0.5 + 0.5 * Math.sin(this.time * 1.6);
+    ctx.save();
+    ctx.strokeStyle = `rgba(210,255,190,${(0.38 + br * 0.2).toFixed(3)})`;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([10, 8]);
+    ctx.lineDashOffset = -this.time * 8;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + 10, r, r * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Healer's tent: a striped canvas tent with a red-cross banner, and a soft green aura on the ground. */
+  private drawHealerTent(ctx: CanvasRenderingContext2D, p: Plot): void {
+    const { x, y } = p;
+    const since = this.time - (this.builtAt.get(p.id) ?? -9);
+    const s = (since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1) * (0.9 + p.level * 0.07);
+    softShadow(ctx, x + 6, y + 18, 34 * s, 9 * s, 0.3);
+    ctx.save();
+    ctx.translate(x, y + 16);
+    ctx.scale(s, s);
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2.2;
+    // Canvas: two slopes with red stripes, a dark open door flap.
+    const W = 34, H = 40;
+    const cloth = (side: number) => {
+      ctx.beginPath();
+      ctx.moveTo(0, -H); ctx.lineTo(side * W, 0); ctx.lineTo(0, 0); ctx.closePath();
+    };
+    cloth(-1); ctx.fillStyle = "#f4f0e6"; ctx.fill(); ctx.stroke();
+    cloth(1); ctx.fillStyle = "#d8d2c4"; ctx.fill(); ctx.stroke();
+    ctx.save();
+    cloth(-1); ctx.clip();
+    ctx.fillStyle = "#d84a3a";
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-W + k * 12, 0); ctx.lineTo(-W + k * 12 + 5, 0); ctx.lineTo(0, -H); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    ctx.fillStyle = "#3a2a20";
+    ctx.beginPath(); ctx.moveTo(0, -H * 0.55); ctx.lineTo(9, 0); ctx.lineTo(-5, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Pole and banner with a cross, fluttering.
+    ctx.strokeStyle = INK; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(0, -H); ctx.lineTo(0, -H - 18); ctx.stroke();
+    const fl = Math.sin(this.time * 4 + x) * 2;
+    ctx.fillStyle = "#f4f0e6"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(0, -H - 18); ctx.lineTo(16, -H - 15 + fl); ctx.lineTo(16, -H - 5 + fl); ctx.lineTo(0, -H - 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#d84a3a";
+    ctx.fillRect(6.5, -H - 15 + fl * 0.6, 3, 8);
+    ctx.fillRect(4, -H - 12.5 + fl * 0.6, 8, 3);
+    ctx.restore();
   }
 
   /** Mage tower: a stone spire with a floating arcane crystal that flares when it casts. */
@@ -543,6 +595,12 @@ export class CampRenderer {
           }
           break;
         }
+        case "tentHeal":
+          for (const pt of ev.points) {
+            fx.burst(pt.x, pt.y - 10, "#8ef06a", 4, 40, { max: 0.7, size: 2.6, gravity: -90, shape: "spark" });
+            fx.number(pt.x + 12, pt.y - 30, "+", "#8ef06a", 14, 0.6);
+          }
+          break;
         case "mageZap":
           fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
           for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
@@ -985,6 +1043,8 @@ fx.shake(0.15);
     const spikePlot = c.plots.find((q) => q.kind === "spikes");
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p) });
+    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
@@ -2273,7 +2333,7 @@ fx.shake(0.15);
     this.plotUiT = this.time;
     for (const p of c.plots) {
       // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
-      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage")) {
+      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer")) {
         const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
         const ribbon = (ctx: CanvasRenderingContext2D): void => {
         ctx.save();
@@ -2299,7 +2359,7 @@ fx.shake(0.15);
       }
       if (plotMaxed(p) || p.locked) continue;
       const near = !h.dead && this.nearPlot(h, p);
-      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage") && p.level > 0;
+      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer") && p.level > 0;
       const half = built ? CAMP.plotHalf * 0.8 : CAMP.plotHalf;
       const cost = plotCost(p);
       const logCost = plotLogCost(p);
@@ -2454,7 +2514,7 @@ fx.shake(0.15);
           ctx.fillText(lt, 7, ly + 1);
         }
         // Caption.
-        const caption = p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
+        const caption = p.kind === "healer" ? (built ? `▲ Lv ${p.level + 1}` : "Healer's Tent") : p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
         outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
       };
       if (this.night > 0.3) {

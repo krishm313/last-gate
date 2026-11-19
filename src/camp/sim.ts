@@ -102,7 +102,7 @@ export interface Enemy {
   targetX?: number;
 }
 
-export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage";
+export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage" | "healer";
 
 export interface Plot {
   id: string;
@@ -142,6 +142,12 @@ export const MAGE_LEVELS = [
   { damage: 48, range: 340, every: 1.7, chains: 4 },
 ];
 export const MAGE = { hop: 110, falloff: 0.8 };
+/** Healer's tent: heals the King and soldiers within its radius, and slowly mends the whole wall. */
+export const HEALER_LEVELS = [
+  { radius: 200, heal: 6, wall: 0.004 },
+  { radius: 230, heal: 10, wall: 0.007 },
+  { radius: 260, heal: 15, wall: 0.011 },
+];
 
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
@@ -232,6 +238,8 @@ export type CampEvent =
   | { type: "spikeHit"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
+  /** Healer's tent mended someone (throttled): green motes rise from each point. */
+  | { type: "tentHeal"; points: Vec[] }
   | { type: "specChosen"; plot: string; spec: TowerSpec; x: number; y: number }
   | { type: "wallHit"; seg: number; x: number; y: number; damage: number }
   | { type: "wallBreak"; seg: number; x: number; y: number }
@@ -303,6 +311,8 @@ export interface Camp {
   courierTimer: number;
   /** Throttle for the spike trap's hit event. */
   spikeFx: number;
+  /** Throttle for the healer's heal event. */
+  healFx: number;
   hallCooldown: number;
   /** Palisade level: 0 wood, 1 banded, 2 stone, 3 stone + battlements. */
   wallLevel: number;
@@ -412,6 +422,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
     { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [60, 100, 160], 3), locked: true, unlockWave: 4 },
+    { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [50, 90, 140], 3), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);
@@ -449,6 +460,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     incomeTimer: 0,
     courierTimer: 0,
     spikeFx: 0,
+    healFx: 0,
     hallCooldown: 0,
     wallLevel: 0,
     mods,
@@ -1483,6 +1495,31 @@ function updateMage(c: Camp): void {
   }
 }
 
+function updateHealer(c: Camp): void {
+  const p = c.plots.find((q) => q.kind === "healer");
+  if (!p || p.level === 0) return;
+  const st = HEALER_LEVELS[p.level - 1]!;
+  const r2 = st.radius ** 2;
+  const healed: Vec[] = [];
+  const h = c.hero;
+  if (!h.dead && h.hp < h.maxHp && (h.x - p.x) ** 2 + (h.y - p.y) ** 2 <= r2) {
+    h.hp = Math.min(h.maxHp, h.hp + st.heal * STEP);
+    healed.push({ x: h.x, y: h.y });
+  }
+  for (const a of c.allies) {
+    if (a.respawn > 0 || a.hp >= a.maxHp || (a.x - p.x) ** 2 + (a.y - p.y) ** 2 > r2) continue;
+    a.hp = Math.min(a.maxHp, a.hp + st.heal * STEP);
+    healed.push({ x: a.x, y: a.y });
+  }
+  // The wall is mended a little everywhere (broken sections need the Repair plot).
+  for (const sg of c.segments) if (sg.hp > 0 && sg.hp < sg.maxHp) sg.hp = Math.min(sg.maxHp, sg.hp + sg.maxHp * st.wall * STEP);
+  c.healFx -= STEP;
+  if (healed.length && c.healFx <= 0) {
+    c.healFx = 0.6;
+    c.events.push({ type: "tentHeal", points: healed });
+  }
+}
+
 function updateSpikes(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "spikes");
   if (!p || p.level === 0) return;
@@ -1605,6 +1642,7 @@ export function step(c: Camp, input: CampInput): void {
 
   updateIncome(c);
   updateSpikes(c);
+  updateHealer(c);
   updateWorkers(c);
   updateAllies(c);
   updateForge(c);
