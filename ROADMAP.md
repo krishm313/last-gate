@@ -174,7 +174,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   bubbling pools with scorched rims that cool and crust, ERUPTION! pop, rumble SFX, 🌋 on the hub.
   campsim ch7: @L7 17%, @L10 75% (hardest chapter, as the finale should be).
 
+- **The Warden** (5th hero, unlocks at 14★) — hooded archer (painted archer sprite + portrait cut
+  from it). Passive: every shot hits 1 extra target. Ability "Snare Field" (20 s): vines root every
+  walker within 240 for 3 s (bosses 1 s) and snared foes take +30% damage — sets up towers, catapults
+  and lava. Green rings + "SNARED!" + vines coiling at the feet of rooted foes. Has its own skill tree
+  progress like every hero.
+
 ## Shipped (newest first)
+- New hero: The Warden — extra-target shots and Snare Field (roots foes, +30% damage taken); 14★ to unlock (test).
 - Daily variety: 4 new twists using the newer systems (Elite Rush, Fog of War, Storm Day, Iron Walls) + Bounty Hunter / Vigor as starting blessings — from 2026-11-20 so days already played keep their daily (test).
 - End screen "Damage dealt": top 3 sources with share bars (towers, hero, catapults, soldiers, Mage, burning, spikes, lightning, lava) — sim credits every damage source in runStats.dmg (test).
 - 5 new trophies (Hardened, Stuff of Nightmares, Elite Hunter ×25, Wyrmslayer, Titanfall); Endless now rotates in the Frost Wyrm (night 40) and Magma Titan (night 45) and mixes in Ravens, Tunnelers and Banner-bearers (bot @L5 still reaches nights 18–27).

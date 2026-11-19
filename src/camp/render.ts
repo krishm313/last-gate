@@ -834,6 +834,14 @@ fx.shake(0.15);
             this.impacts.push({ x: ev.x, y: ev.y, r: ev.r, t: this.time });
             break;
           }
+          if (ev.kind === "snare") {
+            fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#6ad46a", life: 0.6, max: 0.6, width: 7 });
+            fx.rings.push({ x: ev.x, y: ev.y, r: ev.r * 0.6, color: "#a8f08a", life: 0.45, max: 0.45, width: 4 });
+            fx.burst(ev.x, ev.y, "#5ab84a", 30, 240, { max: 0.7, size: 3.4, gravity: 120, shape: "chunk" });
+            fx.number(ev.x, ev.y - 50, "SNARED!", "#a8f08a", 16, 1);
+            fx.shake(0.25);
+            break;
+          }
           fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: ev.kind === "nova" ? "#ff7a2a" : "#c8d8ff", life: 0.5, max: 0.5, width: 8 });
           // A shockwave rolls along the ground: dust kicked up in an expanding ring, and a scorch.
           this.shockwaves.push({ x: ev.x, y: ev.y, r: ev.r, t: this.time, nova: ev.kind === "nova" });
@@ -3900,6 +3908,35 @@ fx.shake(0.15);
       ctx.restore();
     } else this.drawEnemyInner(ctx, c, e);
     if (e.elite) this.drawEliteMarks(ctx, c, e);
+    if (e.snared && e.snared > 0) this.drawSnare(ctx, c, e);
+  }
+
+  /** Snared by the Warden: green vines coil around the feet (they wither as the root wears off). */
+  private drawSnare(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const r = e.def.radius;
+    const k = Math.min(1, e.snared! / 0.5);
+    ctx.save();
+    ctx.globalAlpha *= k;
+    ctx.strokeStyle = "#3a8a2a";
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = "round";
+    for (let i = 0; i < 4; i++) {
+      const a0 = i * 1.6 + e.id;
+      ctx.beginPath();
+      for (let t = 0; t <= 1.001; t += 0.1) {
+        const a = a0 + t * 4.2;
+        const rr = r * (0.9 + 0.25 * Math.sin(t * 9 + c.time * 2));
+        const x = e.x + Math.cos(a) * rr, y = e.y + r * 0.8 + Math.sin(a) * rr * 0.35 - t * r * 0.9;
+        if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#6ad46a";
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.3 + e.id;
+      ctx.beginPath(); ctx.ellipse(e.x + Math.cos(a) * r * 0.9, e.y + r * 0.5 + Math.sin(a) * r * 0.3, 3, 1.6, a, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
   }
 
   /** A lava pool from the Magma Titan: swells in, glows and bubbles, then crusts over and cools. */
@@ -5204,7 +5241,7 @@ fx.shake(0.15);
       heroFrame = (1 - h.cooldown / 0.16) * 3.2;
     }
     // Other heroes: their painted figure from the character sheet with procedural motion.
-    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman" };
+    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer" };
     const alt = altHero[c.heroLook];
     const kingDrawn = alt
       ? drawSprite(ctx, alt, x, y + 12, 42, {

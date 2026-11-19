@@ -71,3 +71,24 @@ describe("hero flair", async () => {
     expect(sanitizeSave({ flair: 42 }).flair).toBe("none");
   });
 });
+
+describe("the Warden", async () => {
+  const { createCamp, spawnEnemy, step, drainEvents } = await import("../src/camp/sim");
+  it("Snare Field roots nearby walkers and makes them take more damage", () => {
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 2 }; // 14 stars
+    const setup = campSetupFromSave(s, "warden");
+    expect(setup.ability).toBe("snare");
+    expect(setup.mods!.heroMultishot).toBe(campSetupFromSave(s, "ranger").mods!.heroMultishot + 1);
+    const c = createCamp(3, undefined, setup);
+    c.phase = "wave";
+    c.queue = [];
+    const e = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 1, lane: null }, { x: c.hero.x + 100, y: c.hero.y - 60 });
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    expect(drainEvents(c).some((ev) => ev.type === "boom" && ev.kind === "snare")).toBe(true);
+    expect(e.stunTime).toBeGreaterThan(2);
+    expect(e.snared).toBeGreaterThan(2);
+  });
+});

@@ -33,7 +33,7 @@ function entry(name: SpriteName): Entry | null {
 
 /** Preload every sprite (call once at startup so the first wave already shows the art). */
 export function preloadSprites(): void {
-  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "castle"] as SpriteName[])) entry(n);
+  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "archer", "castle"] as SpriteName[])) entry(n);
 }
 
 /** A white silhouette of the sprite for hit flashes (built once per sprite). */

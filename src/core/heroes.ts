@@ -1,5 +1,5 @@
-export type HeroId = "ranger" | "knight" | "pyro" | "engineer";
-export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock";
+export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden";
+export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare";
 
 export interface HeroDef {
   id: HeroId;
@@ -36,6 +36,11 @@ export const HEROES: HeroDef[] = [
     id: "engineer", name: "Engineer", title: "Master of Engines", color: "#c08a3a",
     ability: "overclock", abilityName: "Overclock", abilityDesc: "All towers fire 2.5× faster for 6s.",
     cooldown: 22, starsToUnlock: 10,
+  },
+  {
+    id: "warden", name: "The Warden", title: "Hooded archer of the deep woods", color: "#3d6aa8",
+    ability: "snare", abilityName: "Snare Field", abilityDesc: "Vines root every foe nearby for 3s; snared foes take 30% more damage.",
+    cooldown: 20, starsToUnlock: 14,
   },
 ];
 

@@ -93,6 +93,8 @@ export interface Enemy {
   healTimer: number;
   age: number;
   enraged: boolean;
+  /** Snare Field: seconds left rooted by the Warden (takes extra damage meanwhile). */
+  snared?: number;
   /** Elite modifier (if any) and the Shielded elite's remaining shield. */
   elite?: EliteMod;
   shield?: number;
@@ -340,7 +342,7 @@ export type CampEvent =
   | { type: "plotUnlocked"; label: string; x: number; y: number }
   | { type: "thief"; x: number; y: number }
   | { type: "thiefEscaped" }
-  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" }
+  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare" }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -458,6 +460,8 @@ export interface Ally {
 }
 
 export const BARRACKS = { x: 620, y: 715 };
+/** The Warden's Snare Field. */
+export const SNARE = { radius: 240, time: 3, bossTime: 1, vuln: 1.3 };
 /** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
 export const WATCH = { x: 480, y: 935 };
 export const WATCH_LEVELS = [
@@ -1114,6 +1118,15 @@ function useAbility(c: Camp): void {
     case "overclock":
       c.overclock = 6;
       break;
+    case "snare":
+      // Snare Field: vines root everything near the Warden; rooted foes are easier to hurt.
+      for (const e of c.enemies) {
+        if (e.def.flying || Math.hypot(e.x - h.x, e.y - h.y) > SNARE.radius) continue;
+        e.stunTime = Math.max(e.stunTime, e.def.boss ? SNARE.bossTime : SNARE.time);
+        e.snared = SNARE.time;
+      }
+      c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare" });
+      break;
   }
   c.events.push({ type: "ability", id: c.ability, x: h.x, y: h.y });
 }
@@ -1238,7 +1251,7 @@ const SRC: Record<string, string> = { tower: "towers", hero: "hero", catapult: "
 function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false, src?: string): void {
   const red = reduction(e);
   if (red >= 1) return;
-  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1);
+  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1) * (e.snared && e.snared > 0 ? SNARE.vuln : 1);
   if (e.shield && e.shield > 0) {
     // The Shielded elite's barrier soaks damage first.
     e.shield -= dmg;
@@ -1644,6 +1657,7 @@ function updateEnemies(c: Camp): void {
   for (const e of c.enemies) {
     e.age += STEP;
     e.flash = Math.max(0, e.flash - STEP);
+    if (e.snared) e.snared = Math.max(0, e.snared - STEP);
     if (e.burnTime > 0) {
       e.burnTime -= STEP;
       const burn = e.burnDps * STEP * (e.slowTime > 0 ? c.mods.thermal : 1);
