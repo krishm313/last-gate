@@ -366,7 +366,12 @@ function pauseStatus(c: Camp): string[] {
   const cur = c.phase === "wave" ? c.wave : c.chapter.endless ? c.wave + 1 : Math.min(total, c.wave + 1);
   const wave = c.chapter.endless ? `🌙 Night ${cur}` : `🌙 Night ${cur}/${total}`;
   const t = Math.floor(c.time);
-  return [`📜 ${c.chapter.name}`, wave, `⚔️ ${c.kills} slain`, `⏱ ${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`];
+  const out = [`📜 ${c.chapter.name}`, wave, `⚔️ ${c.kills} slain`, `⏱ ${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`];
+  const dd = DIFF_BY_ID[runDifficulty];
+  if (dd.rank > 0) out.push(`${dd.icon} ${dd.name}`);
+  if (c.phase === "wave" && c.weather !== "clear") out.push(`${WEATHER_INFO[c.weather].icon} ${WEATHER_INFO[c.weather].name}`);
+  if (c.chapter.endless && !dailyRun) { const tw = endlessTwistFor(); out.push(`${tw.icon} ${tw.name}`); }
+  return out;
 }
 
 /** One actionable tip for the end screen, based on how the run went. */

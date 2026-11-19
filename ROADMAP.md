@@ -193,6 +193,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Normal ch4 but at a coin-flip — a fair risk premium, not a farm. No change.
 
 ## Shipped (newest first)
+- Pause menu status strip adds difficulty (💀 Hard / ☠️ Nightmare), tonight's weather and this week's Endless twist.
 - End screen "Earned this run": chips for each trophy unlocked and quest completed during the run.
 - Hawkeye (legendary combo: Eagle Towers + a built Watchtower): towers in the Watchtower's reach deal +10% and crit 15% of the time — the first way towers can crit (test).
 - Trophies "Warden of the Woods" (snare 200 foes) and "Firefighter" (stamp out 25 fires); Fire Imps join Endless waves.
