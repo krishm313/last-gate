@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -43,6 +43,15 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
       return { title: `Town Hall · Lv ${p.level + 1}`, lines: ["+450 hall HP, +35% income, stronger hall archers", p.level === 0 ? "Unlocks 2 more tower slots" : "Max level next"] };
     case "fortify":
       return { title: ["Palisade", "Banded Wall", "Stone Wall", "Battlements"][p.level]!, lines: [next ? `Next: wall max HP +${Math.round((CAMP.fortifyMult - 1) * 100)}% and full repair` : "Fully fortified"] };
+    case "mage": {
+      const cur = MAGE_LEVELS[p.level - 1];
+      const nx = next ? MAGE_LEVELS[next - 1]! : null;
+      if (!cur) return { title: "Build: Mage Tower", lines: [`Chain lightning: ${nx!.damage} dmg, jumps to ${nx!.chains} more foes`, "Ignores armour · range " + nx!.range] };
+      return {
+        title: `Mage Tower · Lv ${p.level}`,
+        lines: [`Damage ${arrow(cur.damage, nx?.damage ?? null)} · ignores armour`, `Jumps ${arrow(cur.chains, nx?.chains ?? null)} · every ${arrow(`${cur.every}s`, nx ? `${nx.every}s` : null)}`],
+      };
+    }
     case "spikes": {
       const pct = (v: number) => `${Math.round(v * 100)}%`;
       if (p.level === 0) return { title: "Build: Spike Trap", lines: [`Stakes before the gate: ${SPIKES.dps[0]} dmg/s to foes crossing`, `Slows them ${pct(SPIKES.slow[0]!)} while they wade through`] };

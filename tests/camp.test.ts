@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 
 const still: CampInput = { move: { x: 0, y: 0 } };
@@ -368,5 +368,38 @@ describe("spike trap", () => {
     const hp = e.hp;
     step(c, still);
     expect(e.hp).toBe(hp);
+  });
+});
+
+describe("mage tower", () => {
+  const setup = () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const m = c.plots.find((p) => p.kind === "mage")!;
+    m.locked = false; m.level = 1; m.cooldown = 0;
+    return { c, m };
+  };
+  it("chains lightning through nearby foes (1 + chains), and only those in hop range", () => {
+    const { c, m } = setup();
+    const foes = [0, 1, 2, 3].map((i) => spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 10, lane: 0.5 }, { x: m.x + i * 50, y: m.y - 200 }));
+    const far = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 10, lane: 0.5 }, { x: m.x + 400, y: m.y - 200 });
+    const hp0 = foes.map((f) => f.hp);
+    const farHp = far.hp;
+    step(c, still);
+    const hitCount = foes.filter((f, i) => f.hp < hp0[i]!).length;
+    expect(hitCount).toBe(1 + MAGE_LEVELS[0]!.chains);
+    expect(far.hp).toBe(farHp);
+    expect(drainEvents(c).some((e) => e.type === "mageZap")).toBe(true);
+  });
+  it("ignores armour", () => {
+    const { c, m } = setup();
+    const k = spawnEnemy(c, { at: 0, enemy: "knight", hpMult: 10, lane: 0.5 }, { x: m.x, y: m.y - 200 });
+    const hp = k.hp;
+    step(c, still);
+    expect(hp - k.hp).toBeCloseTo(MAGE_LEVELS[0]!.damage * c.chapter.hpMult ** 0.6, 3);
   });
 });

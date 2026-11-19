@@ -102,7 +102,7 @@ export interface Enemy {
   targetX?: number;
 }
 
-export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes";
+export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage";
 
 export interface Plot {
   id: string;
@@ -134,6 +134,14 @@ export interface Plot {
 
 /** Spike trap: a strip of stakes in front of the gate that wounds and slows foes walking through. */
 export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps: [10, 16, 24], slow: [0.25, 0.3, 0.35] };
+
+/** Mage tower: chain lightning that ignores armour (level 1..3). */
+export const MAGE_LEVELS = [
+  { damage: 24, range: 300, every: 2.4, chains: 2 },
+  { damage: 34, range: 320, every: 2.0, chains: 3 },
+  { damage: 48, range: 340, every: 1.7, chains: 4 },
+];
+export const MAGE = { hop: 110, falloff: 0.8 };
 
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
@@ -222,6 +230,8 @@ export type CampEvent =
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
+  /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
+  | { type: "mageZap"; points: Vec[] }
   | { type: "specChosen"; plot: string; spec: TowerSpec; x: number; y: number }
   | { type: "wallHit"; seg: number; x: number; y: number; damage: number }
   | { type: "wallBreak"; seg: number; x: number; y: number }
@@ -401,6 +411,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     makePlot("repair", "repair", "Repair Wall", 310, WALL_Y + 158, [15], 999),
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
+    { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [60, 100, 160], 3), locked: true, unlockWave: 4 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);
@@ -1429,6 +1440,49 @@ function updateCoins(c: Camp): void {
   c.coins = c.coins.filter((k) => k.vz !== -1);
 }
 
+function updateMage(c: Camp): void {
+  for (const p of c.plots) {
+    if (p.kind !== "mage" || p.level === 0) continue;
+    const st = MAGE_LEVELS[p.level - 1]!;
+    p.fired += STEP;
+    p.cooldown -= STEP * (c.overclock > 0 ? 2.5 : 1);
+    if (p.cooldown > 0) continue;
+    const from = { x: p.x, y: p.y - 46 };
+    // Strike the foe nearest the wall within range, then hop to the nearest unstruck foe each time.
+    let cur: Enemy | null = null;
+    for (const e of c.enemies) {
+      if (e.y < SPAWN_Y + 10 || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > st.range ** 2) continue;
+      if (!cur || Math.abs(e.y - WALL_Y) < Math.abs(cur.y - WALL_Y)) cur = e;
+    }
+    if (!cur) {
+      p.cooldown = 0;
+      continue;
+    }
+    p.cooldown = st.every;
+    p.fired = 0;
+    const struck = new Set<Enemy>();
+    const points: Vec[] = [from];
+    let dmg = st.damage * towerScale(c);
+    for (let i = 0; i <= st.chains && cur; i++) {
+      struck.add(cur);
+      points.push({ x: cur.x, y: cur.y - cur.def.radius * 0.6 });
+      // Arcane: armour doesn't help.
+      cur.hp -= dmg;
+      cur.flash = 0.1;
+      c.events.push({ type: "hit", x: cur.x, y: cur.y, damage: Math.round(dmg), crit: false, owner: "tower", eid: cur.id });
+      dmg *= MAGE.falloff;
+      let next: Enemy | null = null, best = MAGE.hop ** 2;
+      for (const e of c.enemies) {
+        if (struck.has(e) || e.hp <= 0) continue;
+        const d = (e.x - cur.x) ** 2 + (e.y - cur.y) ** 2;
+        if (d < best) { best = d; next = e; }
+      }
+      cur = next;
+    }
+    c.events.push({ type: "mageZap", points });
+  }
+}
+
 function updateSpikes(c: Camp): void {
   const p = c.plots.find((q) => q.kind === "spikes");
   if (!p || p.level === 0) return;
@@ -1556,6 +1610,7 @@ export function step(c: Camp, input: CampInput): void {
   updateForge(c);
   updateHero(c, input);
   updateTowers(c);
+  updateMage(c);
   updateCatapults(c);
   updateHallDefense(c);
   updateEnemies(c);

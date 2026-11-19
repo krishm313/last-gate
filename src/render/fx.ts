@@ -280,6 +280,21 @@ export class Fx {
         c.fill();
       }
     }
+    c.globalAlpha = 1;
+    for (const coin of this.coins) {
+      c.fillStyle = "#f2c94c";
+      c.strokeStyle = "#8a5a10";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.arc(coin.x, coin.y, 3.5, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
+
+  /** Lightning arcs (drawn with the numbers, after the night darkness, so bolts light up the dark). */
+  private drawZaps(c: CanvasRenderingContext2D): void {
     c.lineCap = "round";
     c.lineJoin = "round";
     for (const z of this.zaps) {
@@ -302,20 +317,11 @@ export class Fx {
       }
     }
     c.globalAlpha = 1;
-    for (const coin of this.coins) {
-      c.fillStyle = "#f2c94c";
-      c.strokeStyle = "#8a5a10";
-      c.lineWidth = 1;
-      c.beginPath();
-      c.arc(coin.x, coin.y, 3.5, 0, Math.PI * 2);
-      c.fill();
-      c.stroke();
-    }
-    c.globalAlpha = 1;
   }
 
   /** Floating numbers/labels: drawn separately (after night lighting) so they stay readable. */
   drawNumbers(c: CanvasRenderingContext2D): void {
+    this.drawZaps(c);
     c.textAlign = "center";
     c.textBaseline = "middle";
     for (const n of this.nums) {

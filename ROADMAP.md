@@ -39,7 +39,13 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   stakes in front of the gate: walkers crossing take 10/16/24 dmg/s (×chapter scale, armour applies)
   and are slowed 25/30/35%; flyers pass over. Stakes judder and flash where a foe is caught.
 
+- **Mage Tower** — new plot (unlocks after night 4, 3 levels, coins): every 2.4/2.0/1.7 s strikes
+  the foe nearest the wall within 300–340 with lightning that hops to 2/3/4 more foes (110 px hops,
+  ×0.8 per hop), ignoring armour. Stone spire with a floating crystal that flares on each cast.
+
 ## Shipped (newest first)
+- Mage Tower: chain lightning that ignores armour (plot, spire + crystal art, purple bolts, tests).
+- Lightning arcs now draw above the night darkness (they were nearly invisible at night).
 - Spike trap: stakes before the gate wound + slow walkers (plot, info card, visuals, tests; campsim ch1 100%).
 - Tower specialisations slice 3: info card shows the path (and hints "At Lv 3: choose…" on Lv 2 towers).
 - Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.

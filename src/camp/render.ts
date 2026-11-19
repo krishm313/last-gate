@@ -206,6 +206,53 @@ export class CampRenderer {
     this.pendingUnlocks = [];
   }
 
+  /** Mage tower: a stone spire with a floating arcane crystal that flares when it casts. */
+  private drawMageTower(ctx: CanvasRenderingContext2D, p: Plot): void {
+    const { x, y } = p;
+    const since = this.time - (this.builtAt.get(p.id) ?? -9);
+    const rise = since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1;
+    const H = (52 + p.level * 8) * rise;
+    softShadow(ctx, x + 6, y + 16, 26, 8, 0.32);
+    ctx.save();
+    ctx.lineJoin = "round";
+    // Base and tapering spire.
+    const g = ctx.createLinearGradient(x - 18, 0, x + 18, 0);
+    g.addColorStop(0, "#9a96a8"); g.addColorStop(0.5, "#cfcadc"); g.addColorStop(1, "#7a7488");
+    ctx.fillStyle = g;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(x - 20, y + 14); ctx.lineTo(x + 20, y + 14); ctx.lineTo(x + 12, y + 14 - H); ctx.lineTo(x - 12, y + 14 - H); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // Stone courses and a glowing rune band per level.
+    ctx.strokeStyle = "rgba(40,30,60,0.35)"; ctx.lineWidth = 1;
+    for (let k = 1; k < 5; k++) { const yy = y + 14 - (H * k) / 5, hw = 20 - (8 * k) / 5; ctx.beginPath(); ctx.moveTo(x - hw, yy); ctx.lineTo(x + hw, yy); ctx.stroke(); }
+    const cast = Math.max(0, 1 - p.fired / 0.35);
+    for (let k = 0; k < p.level; k++) {
+      const yy = y + 4 - k * 12;
+      ctx.strokeStyle = `rgba(200,150,255,${(0.55 + cast * 0.45).toFixed(3)})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x - 15 + k * 1.5, yy); ctx.lineTo(x + 15 - k * 1.5, yy); ctx.stroke();
+    }
+    // Battlement cap.
+    ctx.fillStyle = "#6a6478"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(x - 16, y + 8 - H, 32, 8, 2); ctx.fill(); ctx.stroke();
+    // Floating crystal: bobs, spins slowly, flares on each cast.
+    const cy = y - 6 - H - 8 + Math.sin(this.time * 2.2 + x) * 3;
+    const sc = 1 + cast * 0.35;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const glow = this.blob("magecrystal", [[0, "rgba(220,170,255,1)"], [0.45, "rgba(160,90,255,0.6)"], [1, "rgba(120,60,255,0)"]]);
+    this.drawBlob(ctx, glow, x, cy, 20 * sc, 20 * sc, 0.55 + cast * 0.45);
+    ctx.restore();
+    const w = 7 * sc, hgt = 12 * sc, tw = Math.sin(this.time * 1.4 + x) * 0.35;
+    ctx.fillStyle = "#b07aff"; ctx.strokeStyle = "#2a1450"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(x, cy - hgt); ctx.lineTo(x + w * Math.cos(tw), cy); ctx.lineTo(x, cy + hgt * 0.7); ctx.lineTo(x - w * Math.cos(tw), cy); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(255,240,255,0.75)";
+    ctx.beginPath(); ctx.moveTo(x, cy - hgt); ctx.lineTo(x + w * 0.4 * Math.cos(tw), cy - 2); ctx.lineTo(x, cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
   /** When the spike trap last caught a foe (and where): stakes near it flash and judder. */
   private spikeHit = { x: 0, t: -9 };
   /** One row of the spike trap: sharpened stakes leaning out toward the forest (denser per level). */
@@ -496,6 +543,10 @@ export class CampRenderer {
           }
           break;
         }
+        case "mageZap":
+          fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
+          for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
+          break;
         case "spikeHit":
           this.spikeHit = { x: ev.x, t: this.time };
           fx.burst(ev.x, ev.y + 4, "#8a5a2a", 4, 70, { max: 0.3, size: 2.4, gravity: 260, shape: "chunk" });
@@ -934,6 +985,7 @@ fx.shake(0.15);
     const spikePlot = c.plots.find((q) => q.kind === "spikes");
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
     for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => this.drawAlly(ctx, c, a) });
@@ -2221,7 +2273,7 @@ fx.shake(0.15);
     this.plotUiT = this.time;
     for (const p of c.plots) {
       // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
-      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks")) {
+      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage")) {
         const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
         const ribbon = (ctx: CanvasRenderingContext2D): void => {
         ctx.save();
@@ -2247,7 +2299,7 @@ fx.shake(0.15);
       }
       if (plotMaxed(p) || p.locked) continue;
       const near = !h.dead && this.nearPlot(h, p);
-      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks") && p.level > 0;
+      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage") && p.level > 0;
       const half = built ? CAMP.plotHalf * 0.8 : CAMP.plotHalf;
       const cost = plotCost(p);
       const logCost = plotLogCost(p);
@@ -2402,7 +2454,7 @@ fx.shake(0.15);
           ctx.fillText(lt, 7, ly + 1);
         }
         // Caption.
-        const caption = p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
+        const caption = p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
         outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
       };
       if (this.night > 0.3) {
