@@ -26,3 +26,5 @@ PROP_ATLAS.winter = PROP_ATLAS.summer!;
 PROP_ATLAS.ash = PROP_ATLAS.summer!;
 /** Sunken props for chapter 8 (summer atlas recoloured: sea moss, hanging weed, barnacled rocks). */
 PROP_ATLAS.sunken = PROP_ATLAS.summer!;
+/** Moor props for chapter 9 (summer atlas recoloured: wine-red heath trees and bracken, slate rocks). */
+PROP_ATLAS.moor = PROP_ATLAS.summer!;

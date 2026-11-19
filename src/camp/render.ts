@@ -1924,7 +1924,7 @@ fx.shake(0.15);
   private propImgs = new Map<string, HTMLImageElement>();
   private propCache = new Map<string, HTMLCanvasElement>();
   private propTint(): string {
-    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "autumn" } as Record<number, string>)[this.mood] ?? "summer";
+    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "moor" } as Record<number, string>)[this.mood] ?? "summer";
   }
   private propAtlas(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
