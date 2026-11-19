@@ -93,7 +93,12 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   daily, gold edge weekly, reset timer), claim with the usual coin burst; counted in the tab badge.
   Next slices: quest progress on the end-of-run screen; "quest done!" toast in a run.
 
+- **Endless milestones** (Phase 3) — every 5 nights held in Endless pays a one-time bonus of
+  30 gold × the night (night 5: 150, 10: 300, …), paid at the end of the run (end screen row
+  "Milestone: night 5"); toast in-run when one is reached; the Endless card shows the next target.
+
 ## Shipped (newest first)
+- Endless milestones: one-time gold for every 5 nights held, next-target line on the Endless card (test).
 - Quests slice 2: "📜 Quest complete" toast mid-run; end screen says how many quests are ready to claim.
 - Daily & weekly quests on the Trophies tab (rotate by date, claim for gold; save migration + tests).
 - Frostpeak scenery: snow-laden pines, frosted round trees, snowy rocks/bushes (winter prop atlas), bare winter trees, no butterflies in the snow.

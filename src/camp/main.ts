@@ -10,7 +10,7 @@ import { RenderInterp } from "./interp";
 import { crispCache, crispStats } from "./sprites";
 import type { GameEvent } from "../core/events";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, buyPerm, canBuy, chapterUnlocked, heroUnlocked, PERMS } from "../core/meta";
+import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, heroUnlocked, nextEndlessMilestone, PERMS } from "../core/meta";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -681,6 +681,11 @@ function frame(now: number) {
         hud.banner(`Night ${ev.wave}`, "🏆 New record!");
         renderer.celebrate();
         continue;
+      }
+      // Endless milestone reached (paid when the run ends).
+      if (ev.type === "waveClear" && c.chapter.endless && !dailyRun && c.wave % ENDLESS_MILESTONE_STEP === 0 && c.wave >= nextEndlessMilestone(save)) {
+        hud.toast(`🎯 Night ${c.wave} milestone! +${endlessMilestoneReward(c.wave)} gold`);
+        sfx.unlockChime();
       }
       if (ev.type === "waveStart" && ev.weather !== "clear") {
         const w = WEATHER_INFO[ev.weather];

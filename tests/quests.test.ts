@@ -60,3 +60,21 @@ describe("quests", () => {
     expect(sanitizeSave(JSON.parse(JSON.stringify(old))).quests).toEqual(old.quests);
   });
 });
+
+describe("endless milestones", async () => {
+  const { applyRun, newSave: fresh, nextEndlessMilestone } = await import("../src/core/meta");
+  it("pays each 5-night mark once", () => {
+    const s = fresh();
+    s.stars[1] = 1;
+    const r1 = applyRun(s, { chapter: 99, won: false, wave: 12, gateFrac: 0, goldFromKills: 0 }); // held 11
+    expect(r1.milestones).toEqual([5, 10]);
+    expect(r1.milestoneBonus).toBe(150 + 300);
+    expect(nextEndlessMilestone(s)).toBe(15);
+    const r2 = applyRun(s, { chapter: 99, won: false, wave: 14, gateFrac: 0, goldFromKills: 0 });
+    expect(r2.milestoneBonus).toBe(0);
+    const r3 = applyRun(s, { chapter: 99, won: false, wave: 16, gateFrac: 0, goldFromKills: 0 });
+    expect(r3.milestones).toEqual([15]);
+    // Campaign runs never pay milestones.
+    expect(applyRun(s, { chapter: 2, won: true, wave: 10, gateFrac: 1, goldFromKills: 0 }).milestoneBonus).toBe(0);
+  });
+});

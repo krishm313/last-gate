@@ -8,7 +8,7 @@ import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
-import { canBuy, chapterUnlocked, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
+import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
 import { CAMP_HEROES } from "../camp/meta";
 
 /** Painted portraits cut from the owner's character sheet. */
@@ -247,6 +247,10 @@ export class Hub {
     const right = el("div", "ch-right");
     right.append(el("div", "ch-stars", open ? "♾️" : "🔒"));
     if (save.best[ENDLESS.id]) right.append(el("div", "ch-best", `Record: night ${save.best[ENDLESS.id]}`));
+    if (open) {
+      const m = nextEndlessMilestone(save);
+      left.append(el("div", "ch-boss lge-next", `🎯 Next milestone: night ${m} · ● ${endlessMilestoneReward(m)}`));
+    }
     if (open) right.append(el("div", "ch-play", "PLAY ▶"));
     card.append(left, right);
     if (open)
@@ -597,6 +601,7 @@ export class Hub {
     row("Battle loot", `● ${r.coins}`);
     if (reward.waveBonus) row("Nights bonus", `● ${reward.waveBonus}`);
     if (reward.winBonus) row(reward.firstClear ? "First victory bonus" : "Victory bonus", `● ${reward.winBonus}`);
+    if (reward.milestoneBonus) row(`Milestone${reward.milestones!.length > 1 ? "s" : ""}: night ${reward.milestones!.join(", ")}`, `● ${reward.milestoneBonus}`, "best");
     const total = row("Gold earned", `● 0`, "total");
     // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
     const nRows = rows.childElementCount;

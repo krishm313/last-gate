@@ -146,6 +146,19 @@ export interface RunReward {
   newStars: number;
   firstClear: boolean;
   unlockedHeroes: HeroId[];
+  /** Endless: one-time milestone bonus (every 5 nights) and the nights it was for. */
+  milestoneBonus?: number;
+  milestones?: number[];
+}
+
+/** Endless milestones: every 5 nights held pays once, more for deeper nights. */
+export const ENDLESS_MILESTONE_STEP = 5;
+export function endlessMilestoneReward(night: number): number {
+  return night * 30;
+}
+/** The next Endless milestone not yet paid out. */
+export function nextEndlessMilestone(s: SaveData): number {
+  return (s.stats.endlessMilestone ?? 0) + ENDLESS_MILESTONE_STEP;
 }
 
 /** Applies a finished run to the save and returns what was earned. */
@@ -160,14 +173,25 @@ export function applyRun(s: SaveData, r: RunResult): RunReward {
   const heroesBefore = HEROES.filter((h) => heroUnlocked(s, h.id)).map((h) => h.id);
   s.stars[r.chapter] = Math.max(s.stars[r.chapter] ?? 0, stars);
   s.best[r.chapter] = Math.max(s.best[r.chapter] ?? 0, r.wave);
-  const gold = r.goldFromKills + waveBonus + winBonus;
+  // Endless milestones: pay each 5-night mark held for the first time.
+  const milestones: number[] = [];
+  let milestoneBonus = 0;
+  if (r.chapter === ENDLESS_ID) {
+    const held = Math.max(0, r.wave - (r.won ? 0 : 1));
+    for (let m = nextEndlessMilestone(s); m <= held; m += ENDLESS_MILESTONE_STEP) {
+      milestones.push(m);
+      milestoneBonus += endlessMilestoneReward(m);
+      s.stats.endlessMilestone = m;
+    }
+  }
+  const gold = r.goldFromKills + waveBonus + winBonus + milestoneBonus;
   s.gold += gold;
   s.stats.goldEarned = (s.stats.goldEarned ?? 0) + gold;
   s.runs += 1;
   if (r.won) s.wins += 1;
   s.lastChapter = r.chapter;
   return {
-    gold, waveBonus, winBonus, stars, firstClear,
+    gold, waveBonus, winBonus, stars, firstClear, milestoneBonus, milestones,
     newStars: totalStars(s) - before,
     unlockedHeroes: HEROES.filter((h) => heroUnlocked(s, h.id) && !heroesBefore.includes(h.id)).map((h) => h.id),
   };
