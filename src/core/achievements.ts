@@ -36,7 +36,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "lancer", name: "Unstoppable", desc: "Skewer 300 foes with the Lancer's lance", icon: "🔱", goal: 300, reward: 300, progress: stat("lanced") },
   { id: "firefighter", name: "Firefighter", desc: "Stamp out 25 fires", icon: "🧯", goal: 25, reward: 250, progress: stat("firesOut") },
   { id: "citadel", name: "Lord of the Tides", desc: "Clear chapter 8, Sunken Citadel", icon: "🌊", goal: 1, reward: 1100, progress: (s) => ((s.stars[8] ?? 0) > 0 ? 1 : 0) },
-  { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌕", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
+  { id: "moonbreaker", name: "Moonbreaker", desc: "Defeat the Blood Moon Warlord", icon: "🌕", goal: 1, reward: 500, progress: stat("bloodlord") },
+  { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
 ];

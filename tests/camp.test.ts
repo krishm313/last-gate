@@ -885,6 +885,34 @@ describe("Drowned King", () => {
   });
 });
 
+describe("Blood Moon Warlord", () => {
+  it("flares the blood moon in phase 2: foes run wild for a few seconds, then it fades", async () => {
+    const { enemySpeed } = await import("../src/camp/sim");
+    const { CHAPTER_BY_ID } = await import("../src/core/chapters");
+    const c = createCamp(14, CHAPTER_BY_ID[9]);
+    c.phase = "wave";
+    c.queue = [];
+    const b = spawnEnemy(c, { at: 0, enemy: "bloodlord", hpMult: 1, lane: null }, { x: 360, y: WALL_Y - 140 });
+    b.hp = b.maxHp * 0.45;
+    const keep = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: 40, y: 80 });
+    keep.stunTime = 1e9;
+    const calm = enemySpeed(c, keep);
+    drainEvents(c);
+    let flare = false;
+    for (let i = 0; i < 60 * 4 && !flare; i++) {
+      b.x = 360; b.y = WALL_Y - 140; b.stunTime = 0;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      flare = drainEvents(c).some((e) => e.type === "bloodmoon");
+    }
+    expect(flare).toBe(true);
+    expect(c.bloodmoon).toBeGreaterThan(4);
+    expect(enemySpeed(c, keep)).toBeCloseTo(calm * 1.35);
+    expect(enemySpeed(c, b)).toBeGreaterThan(0); // the boss itself isn't sped up by its own flare
+    for (let i = 0; i < 60 * 6; i++) { b.stunTime = 1e9; step(c, { move: { x: 0, y: 0 } } as CampInput); }
+    expect(c.bloodmoon).toBe(0); // wears off after 5 s (the next flare is 12 s after the last)
+  });
+});
+
 describe("Tidal Week", () => {
   it("rolls a tide in on its own during the night", () => {
     const c = createCamp(13, undefined, { tideEvery: 2 });

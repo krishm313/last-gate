@@ -46,6 +46,7 @@ export const LOOKS: Record<string, UnitLook> = {
   ogre: { body: "#6a7a3a", trim: "#3a4a1a", skin: "#9ab06a", head: "bare", weapon: "club", bulk: 1 },
   troll: { body: "#4a7a5a", trim: "#2a4a3a", skin: "#7aa088", head: "bare", weapon: "club" },
   warlord: { body: "#7a1a1a", trim: "#ffd84a", skin: "#e8b890", head: "crown", helm: "#9aa0a8", weapon: "axe" },
+  bloodlord: { body: "#5a0a1a", trim: "#ff5a5a", skin: "#d8a890", head: "crown", helm: "#6a2a3a", weapon: "axe" },
   hag: { body: "#4a5a2a", trim: "#2a3a10", skin: "#a8c088", head: "hood", helm: "#3a4a1a", weapon: "staff" },
   golem: { body: "#7a7468", trim: "#4a463e", skin: "#9a9488", head: "bare", weapon: "none" },
   drowned: { body: "#1f4a52", trim: "#7ae0d0", skin: "#4a7a7a", head: "bare", weapon: "none" },

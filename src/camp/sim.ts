@@ -164,6 +164,8 @@ export const MAGE_LEVELS = [
 export const MAGE = { hop: 110, falloff: 0.8 };
 /** Banner-bearer aura (kept in one place so the sim and the renderer agree). */
 export const RALLY = { radius: 120, speed: 0.3, armor: 0.25 };
+/** Blood moon flare: foes move faster and attack more often; the hall's archers fire harder. */
+export const BLOODMOON = { speed: 1.35, attack: 1.25, hall: 1.25 };
 /** Healer's tent: heals the King and soldiers within its radius, and slowly mends the whole wall. */
 export const HEALER_LEVELS = [
   { radius: 200, heal: 6, wall: 0.004 },
@@ -314,6 +316,7 @@ export type CampEvent =
   | { type: "shieldBreak"; x: number; y: number }
   | { type: "bossSlam"; x: number; y: number; r: number }
   | { type: "warcry"; x: number; y: number; r: number }
+  | { type: "bloodmoon"; x: number; y: number }
   | { type: "curse"; x: number; y: number; r: number }
   | { type: "tide"; y: number; h: number }
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
@@ -424,6 +427,8 @@ export interface Camp {
   /** 0..1, usable at 1 (charges during waves). */
   abilityCharge: number;
   overclock: number;
+  /** Blood moon flare: seconds left of every foe running wild (the Blood Moon Warlord's phase 2). */
+  bloodmoon: number;
   enemyHpMult: number;
   /** Share of fresh spawns that become elites (difficulty). */
   eliteChance: number;
@@ -602,6 +607,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     abilityCooldown: setup.abilityCooldown ?? 18,
     abilityCharge: 0.6,
     overclock: 0,
+    bloodmoon: 0,
     enemyHpMult: setup.enemyHpMult ?? 1,
     eliteChance: setup.eliteChance ?? 0,
     tideEvery: setup.tideEvery ?? 0,
@@ -1108,7 +1114,7 @@ function updateHallDefense(c: Camp): void {
     return;
   }
   c.hallCooldown = 1 / CAMP.hallRate;
-  fireArrow(c, { x: HALL.x, y: HALL.y - 60 }, best, CAMP.hallDamage * c.mods.hallDamage * towerScale(c), "tower");
+  fireArrow(c, { x: HALL.x, y: HALL.y - 60 }, best, CAMP.hallDamage * c.mods.hallDamage * towerScale(c) * (c.bloodmoon > 0 ? BLOODMOON.hall : 1), "tower");
 }
 
 export function abilityReady(c: Camp): boolean {
@@ -1387,10 +1393,10 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
   return e;
 }
 
-function enemySpeed(c: Camp, e: Enemy): number {
+export function enemySpeed(c: Camp, e: Enemy): number {
   if (e.stunTime > 0) return 0;
   const slow = e.slowTime > 0 ? e.slowPct * (e.def.slowResist ?? 1) : 0;
-  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (e.def.boss ? 1 : tideSlow(c, e.y)) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
+  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (e.def.boss ? 1 : tideSlow(c, e.y)) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1) * (c.bloodmoon > 0 && !e.def.boss ? BLOODMOON.speed : 1);
 }
 
 function moveToward(c: Camp, e: Enemy, tx: number, ty: number): number {
@@ -1531,6 +1537,9 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     // War cry: every foe in earshot is rallied (faster, tougher) for a while.
     for (const o of c.enemies) if (o !== e && !o.def.boss && near(o.x, o.y)) o.warcry = p2.power;
     c.events.push({ type: "warcry", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "bloodmoon") {
+    c.bloodmoon = p2.power;
+    c.events.push({ type: "bloodmoon", x: e.x, y: e.y });
   } else if (p2.kind === "tide") {
     // The tide: a band of water across the field, centred between the boss and the hero.
     const h = 170;
@@ -1612,9 +1621,9 @@ function updateLobs(c: Camp): void {
   c.lobs = c.lobs.filter((l) => l.t < l.dur);
 }
 
-function attackTick(_c: Camp, e: Enemy, hit: () => void): void {
+function attackTick(c: Camp, e: Enemy, hit: () => void): void {
   e.attacking = true;
-  e.attackTimer -= STEP;
+  e.attackTimer -= STEP * (c.bloodmoon > 0 && !e.def.boss ? BLOODMOON.attack : 1);
   if (e.attackTimer <= 0) {
     e.attackTimer += e.def.attackInterval;
     hit();
@@ -1797,6 +1806,7 @@ function updateRally(c: Camp): void {
 }
 
 function updateEnemies(c: Camp): void {
+  if (c.bloodmoon > 0) c.bloodmoon = Math.max(0, c.bloodmoon - STEP);
   updateRally(c);
   for (const e of c.enemies) {
     e.age += STEP;

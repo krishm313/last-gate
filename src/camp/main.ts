@@ -636,6 +636,7 @@ function trackStats(ev: CampEvent) {
     if (ev.enemy.id === "frostwyrm") add("frostwyrm");
     if (ev.enemy.id === "magma") add("magma");
     if (ev.enemy.id === "drowned") add("drowned");
+    if (ev.enemy.id === "bloodlord") add("bloodlord");
   } else if (ev.type === "boom" && ev.kind === "snare" && ev.n) add("snared", ev.n);
   else if (ev.type === "lance" && ev.n) add("lanced", ev.n);
   else if (ev.type === "fireOut") add("firesOut");
@@ -656,6 +657,7 @@ function playSfx(ev: CampEvent, c: Camp) {
       buzz(settings, 25);
       return;
     case "warcry":
+    case "bloodmoon":
     case "curse":
     case "boulderThrow":
     case "eliteSpawn":

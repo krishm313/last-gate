@@ -958,6 +958,14 @@ fx.shake(0.15);
           fx.number(ev.x, ev.y - 50, "SLAM!", "#ffd890", 16, 1);
           fx.shake(0.45);
           break;
+        case "bloodmoon":
+          // The moon flares: a red flash over the field, blood-red rings from the Warlord, and a warning.
+          fx.flash = 0.35;
+          fx.flashColor = "#ff2a3a";
+          for (let k = 0; k < 3; k++) fx.rings.push({ x: ev.x, y: ev.y, r: 160 + k * 90, color: "#ff3a4a", life: 0.6 + k * 0.15, max: 0.6 + k * 0.15, width: 5 });
+          fx.number(ev.x, ev.y - 64, "BLOOD MOON!", "#ff6a6a", 18, 1.2);
+          fx.shake(0.35);
+          break;
         case "warcry":
           for (let k = 0; k < 3; k++) fx.rings.push({ x: ev.x, y: ev.y, r: ev.r * (0.5 + k * 0.25), color: "#ff3a2a", life: 0.5 + k * 0.15, max: 0.5 + k * 0.15, width: 4 });
           fx.number(ev.x, ev.y - 56, "WAR CRY!", "#ff6a4a", 16, 1);
@@ -1422,6 +1430,11 @@ fx.shake(0.15);
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     }
     drawMood(ctx, c, o, this.mood, this.time, this.fx.shakeOffset(this.time));
+    if (c.bloodmoon > 0) {
+      // Blood moon flare: the whole field runs red while the horde runs wild (fades in the last second).
+      ctx.fillStyle = `rgba(200,20,40,${(0.14 * Math.min(1, c.bloodmoon)).toFixed(3)})`;
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    }
     // Chapter 4 is permanently night; everywhere else waves are fought at night, building by day.
     this.drawDayNight(ctx, c, o, sh, dt);
     this.drawWeather(ctx, dt, o);
@@ -3966,6 +3979,7 @@ fx.shake(0.15);
     // Fresh spawns fade in out of the dark of the woods rather than popping into existence.
     if (e.elite) this.drawEliteRing(ctx, c, e);
     if (e.def.id === "magma") this.drawMagmaAura(ctx, c, e);
+    if (e.def.id === "bloodlord") this.drawBloodAura(ctx, c, e);
     if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
     if (e.age < 0.5 && !e.def.boss) {
       ctx.save();
@@ -4084,6 +4098,18 @@ fx.shake(0.15);
     this.drawBlob(ctx, this.blob("seaglow", [[0, "rgba(90,220,230,0.85)"], [1, "rgba(20,120,160,0)"]]), e.x, e.y - r * 0.5, r * (2 + pulse * 0.3), r * (1.6 + pulse * 0.2), (e.enraged ? 0.5 : 0.32) + this.night * 0.25);
     ctx.restore();
     if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * 0.6, Math.sin(c.time * 29) > 0 ? "#9ae6ff" : "#4ab0d0", 1, 30, { max: 0.6, size: 2.4, gravity: 220, shape: "dot" });
+  }
+
+  /** The Blood Moon Warlord: a crimson halo that flares while the moon is up, shedding red motes. */
+  private drawBloodAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.6 + e.id);
+    const flare = c.bloodmoon > 0 ? 0.3 : 0;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("bloodglow", [[0, "rgba(255,60,70,0.9)"], [1, "rgba(160,10,40,0)"]]), e.x, e.y - r * 0.5, r * (2.1 + pulse * 0.3 + flare), r * (1.6 + pulse * 0.2 + flare * 0.6), (e.enraged ? 0.5 : 0.32) + flare + this.night * 0.25);
+    ctx.restore();
+    if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ff7a7a" : "#c81a3a", 1, 36, { max: 0.7, size: 2.4, gravity: -60, shape: "dot" });
   }
 
   /** The Magma Titan glows from within: a molten halo and embers shed as it walks; brighter once it erupts. */
