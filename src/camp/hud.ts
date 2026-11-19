@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WEATHER_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -60,6 +60,16 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
       return {
         title: `Healer's Tent · Lv ${p.level}`,
         lines: [`Heal ${arrow(`${cur.heal}/s`, nx ? `${nx.heal}/s` : null)} · radius ${arrow(cur.radius, nx?.radius ?? null)}`, `Wall mending ${arrow(wall(cur.wall), nx ? wall(nx.wall) : null)}`],
+      };
+    }
+    case "watch": {
+      const pct = (v: number) => `+${Math.round(v * 100)}%`;
+      const cur = WATCH_LEVELS[p.level - 1];
+      const nx = next ? WATCH_LEVELS[next - 1]! : null;
+      if (!cur) return { title: "Build: Watchtower", lines: [`Archer towers within ${nx!.radius}: range ${pct(nx!.range)}, fire rate ${pct(nx!.rate)}`, "Their aim isn't dulled by fog or rain"] };
+      return {
+        title: `Watchtower · Lv ${p.level}`,
+        lines: [`Reach ${arrow(cur.radius, nx?.radius ?? null)} · tower range ${arrow(pct(cur.range), nx ? pct(nx.range) : null)}`, `Fire rate ${arrow(pct(cur.rate), nx ? pct(nx.rate) : null)} · sees through fog`],
       };
     }
     case "spikes": {

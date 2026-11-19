@@ -743,3 +743,19 @@ describe("building blessings", () => {
     expect(run(2)).toBeCloseTo(run(1) * 2, -1);
   });
 });
+
+describe("watchtower", () => {
+  it("boosts archer towers in reach and ignores fog for them", async () => {
+    const { watchBoost } = await import("../src/camp/sim");
+    const c = createCamp(4);
+    const w = c.plots.find((p) => p.kind === "watch")!;
+    const near = c.plots.find((p) => p.id === "tower-3")!;
+    const far = c.plots.find((p) => p.id === "tower-1")!;
+    expect(watchBoost(c, near).range).toBe(1); // not built yet
+    w.level = 1;
+    expect(watchBoost(c, near)).toEqual({ range: 1.2, rate: 1.1, clear: true });
+    expect(watchBoost(c, far).range).toBe(1);
+    w.level = 2;
+    expect(watchBoost(c, near).range).toBeCloseTo(1.35);
+  });
+});

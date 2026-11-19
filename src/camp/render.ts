@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, type Weather } from "./sim";
+import { ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -295,6 +295,74 @@ export class CampRenderer {
     ctx.fillStyle = "#d84a3a";
     ctx.fillRect(6.5, -H - 15 + fl * 0.6, 3, 8);
     ctx.fillRect(4, -H - 12.5 + fl * 0.6, 8, 3);
+    ctx.restore();
+  }
+
+  /** Watchtower: a tall timber lookout on stilts with a lantern and pennant; lights up the towers it boosts. */
+  private drawWatchtower(ctx: CanvasRenderingContext2D, p: Plot): void {
+    const { x, y } = p;
+    const since = this.time - (this.builtAt.get(p.id) ?? -9);
+    const rise = since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1;
+    const H = (78 + p.level * 12) * rise;
+    softShadow(ctx, x + 8, y + 16, 26, 8, 0.32);
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = INK;
+    // Four splayed stilts with cross braces.
+    ctx.lineWidth = 3;
+    const top = y + 14 - H;
+    ctx.strokeStyle = "#5a3a1e";
+    for (const [bx, tx] of [[-18, -10], [18, 10], [-8, -5], [8, 5]] as const) { ctx.beginPath(); ctx.moveTo(x + bx, y + 14); ctx.lineTo(x + tx, top + 18); ctx.stroke(); }
+    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = "#7a5230";
+    for (let k = 1; k <= 2; k++) {
+      const yy = y + 14 - (H - 18) * (k / 3), w0 = 18 - 8 * (k / 3);
+      ctx.beginPath(); ctx.moveTo(x - w0, yy); ctx.lineTo(x + w0, yy - (H - 18) / 3); ctx.moveTo(x + w0, yy); ctx.lineTo(x - w0, yy - (H - 18) / 3); ctx.stroke();
+    }
+    // Lookout cabin with a pointed roof.
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2.2;
+    ctx.fillStyle = "#a8743e";
+    ctx.beginPath(); ctx.rect(x - 15, top + 2, 30, 18); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#3a2618";
+    ctx.fillRect(x - 10, top + 6, 20, 7);
+    ctx.fillStyle = "#b8443a";
+    ctx.beginPath(); ctx.moveTo(x - 19, top + 3); ctx.lineTo(x, top - 16); ctx.lineTo(x + 19, top + 3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Lantern (glows brighter at night) and a pennant on the peak.
+    const glow = 0.5 + this.night * 0.5 + Math.sin(this.time * 3) * 0.08;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("lantern", [[0, "rgba(255,210,120,1)"], [1, "rgba(255,160,60,0)"]]), x, top + 10, 16, 16, glow * 0.8);
+    ctx.restore();
+    ctx.fillStyle = "#ffd27a";
+    ctx.beginPath(); ctx.arc(x, top + 10, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, top - 16); ctx.lineTo(x, top - 30); ctx.stroke();
+    const fl = Math.sin(this.time * 4 + x) * 2;
+    ctx.fillStyle = "#3d6aa8"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(x, top - 30); ctx.lineTo(x + 15, top - 26 + fl); ctx.lineTo(x, top - 22); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  /** While the King stands at the Watchtower: its reach on the ground and a gleam on the towers it boosts. */
+  private drawWatchReach(ctx: CanvasRenderingContext2D, c: Camp, p: Plot): void {
+    const st = WATCH_LEVELS[p.level - 1]!;
+    const near = (c.hero.x - p.x) ** 2 + (c.hero.y - p.y) ** 2 < 70 ** 2;
+    if (!near) return;
+    ctx.save();
+    ctx.strokeStyle = "rgba(120,180,255,0.7)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.lineDashOffset = -this.time * 12;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, st.radius, st.radius * 0.92, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    for (const t of c.plots) {
+      if (t.kind !== "tower" || t.level === 0 || (t.x - p.x) ** 2 + (t.y - p.y) ** 2 > st.radius ** 2) continue;
+      ctx.fillStyle = "rgba(120,180,255,0.22)";
+      ctx.beginPath(); ctx.ellipse(t.x, t.y + 6, 34, 14, 0, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -1167,6 +1235,10 @@ fx.shake(0.15);
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
+    for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
+      items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
+      items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
+    }
     for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
@@ -2456,7 +2528,7 @@ fx.shake(0.15);
     this.plotUiT = this.time;
     for (const p of c.plots) {
       // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
-      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer")) {
+      if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer" || p.kind === "watch")) {
         const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
         const ribbon = (ctx: CanvasRenderingContext2D): void => {
         ctx.save();
@@ -2482,7 +2554,7 @@ fx.shake(0.15);
       }
       if (plotMaxed(p) || p.locked) continue;
       const near = !h.dead && this.nearPlot(h, p);
-      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer") && p.level > 0;
+      const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer" || p.kind === "watch") && p.level > 0;
       const half = built ? CAMP.plotHalf * 0.8 : CAMP.plotHalf;
       const cost = plotCost(p);
       const logCost = plotLogCost(p);
@@ -2637,7 +2709,7 @@ fx.shake(0.15);
           ctx.fillText(lt, 7, ly + 1);
         }
         // Caption.
-        const caption = p.kind === "healer" ? (built ? `▲ Lv ${p.level + 1}` : "Healer's Tent") : p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
+        const caption = p.kind === "watch" ? (built ? `▲ Lv ${p.level + 1}` : "Watchtower") : p.kind === "healer" ? (built ? `▲ Lv ${p.level + 1}` : "Healer's Tent") : p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
         outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
       };
       if (this.night > 0.3) {

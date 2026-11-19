@@ -143,7 +143,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   66 ms/frame at 3× density with 0 foes vs 20 ms at 1×; 80 foes add only ~3 ms), which the iPhone's
   GPU handles and `perfSample` already steps down (3 → 2 → 1.5 → 1×) if a device can't hold 24 fps.
 
+- **Watchtower** (Phase 6 new building) — plot right of the road by the hall (unlocks after night 5,
+  2 levels, 70/120 coins + 6/12 logs): archer towers within 340/420 get +20%/+35% range and
+  +10%/+20% fire rate, and fog/rain don't shorten their range. Stilted timber lookout with a lantern
+  (brighter at night) and a pennant; standing on it shows its reach and highlights boosted towers.
+  Placement matters: from its corner it covers the right-hand towers first.
+
 ## Shipped (newest first)
+- Watchtower: new building that extends and speeds up nearby archer towers and cuts through fog (art, reach ring, info card, test).
 - Accessibility: "Reduced motion" (no shake, flashes or slow-mo; on by default if the OS asks) and "Large text" (+15% fonts via a text-only CSS unit, layout unchanged); Vibration row hidden where unsupported (iPhone Safari can't vibrate).
 - Performance: unit shadows use one cached sprite instead of a new gradient each (−160 gradients/frame in big fights).
 - 4 new blessings: Arcane Focus (Mage +30% dmg, +1 hop), Field Medic (Healer reach +30%, heals +40%), Cruel Stakes (spikes +60%), Bounty Hunter (bosses & elites drop double coins) — building ones only offered once built (tests).

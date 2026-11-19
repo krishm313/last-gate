@@ -116,7 +116,7 @@ export interface Enemy {
   targetX?: number;
 }
 
-export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage" | "healer";
+export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage" | "healer" | "watch";
 
 export interface Plot {
   id: string;
@@ -455,6 +455,20 @@ export interface Ally {
 }
 
 export const BARRACKS = { x: 620, y: 715 };
+/** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
+export const WATCH = { x: 480, y: 935 };
+export const WATCH_LEVELS = [
+  { radius: 340, range: 0.2, rate: 0.1 },
+  { radius: 420, range: 0.35, rate: 0.2 },
+];
+/** The Watchtower's boost for an archer tower (none if it isn't built or the tower is out of reach). */
+export function watchBoost(c: Camp, t: Plot): { range: number; rate: number; clear: boolean } {
+  const w = c.plots.find((q) => q.kind === "watch");
+  if (!w || w.level === 0) return { range: 1, rate: 1, clear: false };
+  const st = WATCH_LEVELS[w.level - 1]!;
+  if ((t.x - w.x) ** 2 + (t.y - w.y) ** 2 > st.radius ** 2) return { range: 1, rate: 1, clear: false };
+  return { range: 1 + st.range, rate: 1 + st.rate, clear: true };
+}
 export const ALLY = { hp: 90, damage: 9, rate: 1.1, speed: 95, reach: 20, aggro: 230, respawn: 8 };
 
 export interface Worker {
@@ -511,6 +525,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
     { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [60, 100, 160], 3), locked: true, unlockWave: 4 },
     { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [50, 90, 140], 3), locked: true, unlockWave: 5 },
+    { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [70, 120], 2, [6, 12]), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);
@@ -989,9 +1004,10 @@ function updateTowers(c: Camp): void {
       continue;
     }
     const st = TOWER_LEVELS[p.level - 1]!;
-    const range = st.range * c.mods.towerRange * weatherRange(c);
+    const wb = watchBoost(c, p);
+    const range = st.range * c.mods.towerRange * (wb.clear ? 1 : weatherRange(c)) * wb.range;
     p.fired += STEP;
-    p.cooldown -= STEP * c.mods.towerRate * (c.overclock > 0 ? 2.5 : 1);
+    p.cooldown -= STEP * c.mods.towerRate * wb.rate * (c.overclock > 0 ? 2.5 : 1);
     if (p.cooldown > 0) continue;
     // Nearest enemy to the wall within range.
     let best: Enemy | null = null;
