@@ -679,7 +679,8 @@ input.vol { flex: 1; accent-color: #ffd84a; height: calc(20 * var(--u)); pointer
 .pause-status span { font-size: calc(11.5 * var(--tu)); padding: calc(2 * var(--u)) calc(8 * var(--u)); }
 body.panel-open .toast-host { top: auto; bottom: calc(14 * var(--u)); }
 /* Victory confetti: falls behind the end panel, once. */
-.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+/* In front of the panel (it ignores taps and fades out in ~3 s), so it shows even when the panel fills a small phone. */
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
 .overlay > .panel { position: relative; z-index: 1; }
 .confetti i { position: absolute; top: -4%; width: calc(8 * var(--u)); height: calc(13 * var(--u)); border-radius: calc(2 * var(--u)); opacity: 0; animation: confetti-fall 2.6s cubic-bezier(.3,.6,.6,1) forwards; }
 .confetti i:nth-child(3n) { width: calc(10 * var(--u)); height: calc(10 * var(--u)); border-radius: 50%; }

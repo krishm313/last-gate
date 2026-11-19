@@ -221,6 +221,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Victory confetti falls in front of the end panel (it ignores taps and fades in ~3 s) — on a phone the panel used to hide almost all of it.
 - The King's speech bubble now clears his "40 FULL" coin tag (the tail used to poke into it) and bobs with him.
 - HUD: the coin pill's FULL badge now hangs under the pill instead of covering the coin count (found in a ch1 browser playthrough).
 - Weekly quests: three new ones join the rotation from the week of Mon 2026-11-23 — 30 elite foes (needs a cleared chapter), 10 flawless nights, 500 logs. The current week is unchanged (test).
