@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { HEALER_LEVELS, RALLY, SPIKES, type Weather } from "./sim";
+import { ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -804,6 +804,16 @@ fx.shake(0.15);
           fx.number(ev.x, ev.y - 112, `LEVEL ${ev.level}!`, "#ffe66a", 22, 1.4);
           fx.burst(ev.x, ev.y, "#ffe08a", 26, 190, { max: 0.8, size: 3, gravity: -80 });
           fx.rings.push({ x: ev.x, y: ev.y + 12, r: 60, color: "#ffe08a", life: 0.6, max: 0.6, width: 5 });
+          break;
+        case "eliteSpawn": {
+          const info = ELITE_INFO[ev.mod];
+          fx.rings.push({ x: ev.x, y: ev.y, r: 30, color: info.color, life: 0.5, max: 0.5, width: 3 });
+          fx.number(ev.x, ev.y - 34, `${info.name}!`, info.color, 13, 1);
+          break;
+        }
+        case "shieldBreak":
+          fx.burst(ev.x, ev.y - 6, "#a8c8ff", 14, 160, { max: 0.5, size: 3, gravity: 200, shape: "chunk" });
+          fx.rings.push({ x: ev.x, y: ev.y - 6, r: 26, color: "#8ab4ff", life: 0.3, max: 0.3, width: 3 });
           break;
         case "bossSpawn":
           this.say(["That one's big…", "A champion? Good.", "Face me!"]);
@@ -3778,14 +3788,65 @@ fx.shake(0.15);
     }
     if (this.brokeCover.size > 300) { const live = new Set(c.enemies.map((q) => q.id)); for (const id of this.brokeCover) if (!live.has(id)) this.brokeCover.delete(id); }
     // Fresh spawns fade in out of the dark of the woods rather than popping into existence.
+    if (e.elite) this.drawEliteRing(ctx, c, e);
     if (e.age < 0.5 && !e.def.boss) {
       ctx.save();
       ctx.globalAlpha *= e.age / 0.5;
       this.drawEnemyInner(ctx, c, e);
       ctx.restore();
-      return;
+    } else this.drawEnemyInner(ctx, c, e);
+    if (e.elite) this.drawEliteMarks(ctx, c, e);
+  }
+
+  /** Elite: a pulsing ring in the modifier's colour on the ground. */
+  private drawEliteRing(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const info = ELITE_INFO[e.elite!];
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 5 + e.id);
+    ctx.save();
+    ctx.strokeStyle = info.color;
+    ctx.globalAlpha *= 0.65 + pulse * 0.35;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 3]);
+    ctx.lineDashOffset = -c.time * 18;
+    ctx.beginPath();
+    ctx.ellipse(e.x, e.y + r * 0.9, r * 1.35 + pulse * 2, r * 0.5 + pulse, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Elite: a shield bubble while it holds, and the modifier's badge over its head (readable at night). */
+  private drawEliteMarks(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const info = ELITE_INFO[e.elite!];
+    const r = e.def.radius;
+    if (e.shield && e.shield > 0) {
+      ctx.save();
+      const a = 0.25 + 0.1 * Math.sin(c.time * 6 + e.id);
+      ctx.fillStyle = `rgba(110,160,255,${a})`;
+      ctx.strokeStyle = "rgba(170,205,255,0.9)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y - r * 0.4, r * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
     }
-    this.drawEnemyInner(ctx, c, e);
+    const top = e.y - r * (e.def.flying ? 2.6 : 2.3) - 12;
+    this.overlay(ctx, (g) => {
+      g.save();
+      g.fillStyle = "rgba(20,14,30,0.85)";
+      g.strokeStyle = info.color;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(e.x, top, 8.5, 0, Math.PI * 2);
+      g.fill();
+      g.stroke();
+      g.font = "10px system-ui, sans-serif";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText(info.icon, e.x, top + 0.5);
+      g.restore();
+    });
   }
 
   /** Strike telegraph: in the last ~0.35 s before an enemy's blow lands, a red ring tightens under

@@ -13,13 +13,15 @@ export interface DifficultyDef {
   speed: number;
   gate: number;
   gold: number;
+  /** Share of spawns that become elites. */
+  elite: number;
   desc: string;
 }
 
 export const DIFFICULTIES: DifficultyDef[] = [
-  { id: "normal", rank: 0, name: "Normal", icon: "🛡️", hp: 1, speed: 1, gate: 1, gold: 1, desc: "The campaign as told." },
-  { id: "hard", rank: 1, name: "Hard", icon: "💀", hp: 1.4, speed: 1.1, gate: 1.15, gold: 1.5, desc: "Foes +40% HP, faster, hit harder · gold ×1.5" },
-  { id: "nightmare", rank: 2, name: "Nightmare", icon: "☠️", hp: 1.9, speed: 1.2, gate: 1.3, gold: 2.2, desc: "Foes +90% HP, much faster · gold ×2.2" },
+  { id: "normal", rank: 0, name: "Normal", icon: "🛡️", hp: 1, speed: 1, gate: 1, gold: 1, elite: 0, desc: "The campaign as told." },
+  { id: "hard", rank: 1, name: "Hard", icon: "💀", hp: 1.4, speed: 1.1, gate: 1.15, gold: 1.5, elite: 0.08, desc: "Foes +40% HP, faster, elites appear · gold ×1.5" },
+  { id: "nightmare", rank: 2, name: "Nightmare", icon: "☠️", hp: 1.9, speed: 1.2, gate: 1.3, gold: 2.2, elite: 0.15, desc: "Foes +90% HP, much faster, more elites · gold ×2.2" },
 ];
 
 export const DIFF_BY_ID: Record<DifficultyId, DifficultyDef> = Object.fromEntries(DIFFICULTIES.map((d) => [d.id, d])) as Record<DifficultyId, DifficultyDef>;

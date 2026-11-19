@@ -93,6 +93,9 @@ export interface Enemy {
   healTimer: number;
   age: number;
   enraged: boolean;
+  /** Elite modifier (if any) and the Shielded elite's remaining shield. */
+  elite?: EliteMod;
+  shield?: number;
   /** Frost Wyrm: seconds until the next frost nova (phase 2). */
   novaTimer?: number;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
@@ -189,6 +192,23 @@ export function weatherRange(c: Camp): number {
   return c.weather === "rain" ? WEATHER.rain.towerRange : c.weather === "fog" ? WEATHER.fog.towerRange : 1;
 }
 
+/** Elite foes (Hard / Nightmare, deep Endless): one modifier each, tougher, richer. */
+export type EliteMod = "swift" | "armored" | "vampiric" | "splitting" | "shielded";
+export const ELITE_MODS: EliteMod[] = ["swift", "armored", "vampiric", "splitting", "shielded"];
+export const ELITE_INFO: Record<EliteMod, { name: string; icon: string; color: string }> = {
+  swift: { name: "Swift", icon: "💨", color: "#7ae0ff" },
+  armored: { name: "Armored", icon: "🛡️", color: "#c8ccd8" },
+  vampiric: { name: "Vampiric", icon: "🩸", color: "#ff4a5a" },
+  splitting: { name: "Splitting", icon: "🧬", color: "#8aef6a" },
+  shielded: { name: "Shielded", icon: "🔷", color: "#6aa0ff" },
+};
+export const ELITE = { hp: 1.6, gold: 3, speed: 1.4, armor: 0.35, vampHeal: 0.06, splitHp: 0.3, shield: 0.3 };
+/** Elite chance for a spawn: the run's setting, rising in Endless past night 10. */
+export function eliteChance(c: Camp): number {
+  const endless = c.chapter.endless && c.wave > 10 ? Math.min(0.2, 0.05 + 0.01 * (c.wave - 10)) : 0;
+  return Math.max(c.eliteChance, endless);
+}
+
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
 export const TOWER_SPEC_LEVEL = 3;
@@ -278,6 +298,8 @@ export type CampEvent =
   | { type: "spikeHit"; x: number; y: number }
   | { type: "towerStunned"; plot: string; x: number; y: number; frozen?: boolean }
   | { type: "frostNova"; x: number; y: number; r: number }
+  | { type: "eliteSpawn"; x: number; y: number; mod: EliteMod; name: string }
+  | { type: "shieldBreak"; x: number; y: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
@@ -377,6 +399,8 @@ export interface Camp {
   abilityCharge: number;
   overclock: number;
   enemyHpMult: number;
+  /** Share of fresh spawns that become elites (difficulty). */
+  eliteChance: number;
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
@@ -447,6 +471,7 @@ export interface CampSetup {
   abilityCooldown?: number;
   /** Extra enemy HP multiplier (daily twists). */
   enemyHpMult?: number;
+  eliteChance?: number;
   /** Blessings granted at the start of the run. */
   startBlessings?: string[];
 }
@@ -526,6 +551,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     abilityCharge: 0.6,
     overclock: 0,
     enemyHpMult: setup.enemyHpMult ?? 1,
+    eliteChance: setup.eliteChance ?? 0,
     heroLevel: 1,
     heroXp: 0,
     runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0 },
@@ -1166,6 +1192,7 @@ export function reduction(e: Enemy): number {
   if (e.burrow && e.burrow > 0) return 1;
   let r = e.def.armor ?? 0;
   if (e.rallied) r = 1 - (1 - r) * (1 - RALLY.armor);
+  if (e.elite === "armored") r = 1 - (1 - r) * (1 - ELITE.armor);
   const cyc = e.def.armorCycle;
   if (cyc && e.age % (cyc.on + cyc.off) >= cyc.off) r = 1 - (1 - r) * (1 - cyc.reduction);
   return r;
@@ -1175,7 +1202,15 @@ function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = fals
   const red = reduction(e);
   if (red >= 1) return;
   const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1);
-  e.hp -= dmg;
+  if (e.shield && e.shield > 0) {
+    // The Shielded elite's barrier soaks damage first.
+    e.shield -= dmg;
+    if (e.shield <= 0) {
+      e.hp += e.shield;
+      e.shield = 0;
+      c.events.push({ type: "shieldBreak", x: e.x, y: e.y });
+    }
+  } else e.hp -= dmg;
   e.flash = 0.08;
   c.events.push({ type: "hit", x: e.x, y: e.y, damage: Math.round(dmg), crit, owner, eid: e.id });
 }
@@ -1195,6 +1230,14 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
     burnTime: 0, burnDps: 0, slowTime: 0, slowPct: 0, stunTime: 0,
     abilityTimer: def.summon?.interval ?? 0, healTimer: def.heal?.interval ?? 0, age: 0, enraged: false, attacking: false, inside: false, exploded: false,
   };
+  // Elites: only fresh wave spawns (not summons / splits), never bosses or the treasure goblin.
+  const ec = !at && !def.boss && !def.crossing ? eliteChance(c) : 0;
+  if (ec > 0 && chance(c.rng, ec)) {
+    e.elite = ELITE_MODS[Math.floor(range(c.rng, 0, ELITE_MODS.length))]!;
+    e.hp = e.maxHp = e.maxHp * ELITE.hp;
+    if (e.elite === "shielded") e.shield = e.maxHp * ELITE.shield;
+    c.events.push({ type: "eliteSpawn", x: e.x, y: Math.max(e.y, 120), mod: e.elite, name: def.name });
+  }
   c.enemies.push(e);
   if (def.boss) c.events.push({ type: "bossSpawn", name: def.name, x: e.x, y: Math.max(e.y, 120) });
   return e;
@@ -1203,7 +1246,7 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
 function enemySpeed(c: Camp, e: Enemy): number {
   if (e.stunTime > 0) return 0;
   const slow = e.slowTime > 0 ? e.slowPct * (e.def.slowResist ?? 1) : 0;
-  return e.def.speed * c.chapter.speedMult * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
+  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
 }
 
 function moveToward(c: Camp, e: Enemy, tx: number, ty: number): number {
@@ -1324,6 +1367,7 @@ function attackTick(_c: Camp, e: Enemy, hit: () => void): void {
   if (e.attackTimer <= 0) {
     e.attackTimer += e.def.attackInterval;
     hit();
+    if (e.elite === "vampiric") e.hp = Math.min(e.maxHp, e.hp + e.maxHp * ELITE.vampHeal);
   }
 }
 
@@ -1713,13 +1757,19 @@ function reap(c: Camp): void {
       // Enemies that removed themselves (a sapper blowing up on the wall/hall, an escaped treasure goblin)
       // were not killed by the player: no kill, XP, coins, streak or kill event.
       if (e.exploded) continue;
-      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops));
+      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops * (e.elite ? ELITE.gold : 1)));
       c.kills += 1;
       c.goldEarned += gold;
       gainXp(c, e.def.boss ? 15 : Math.max(1, Math.round(e.def.cost)));
       if (e.def.boss) c.runStats.bosses += 1;
       if (gold) dropCoins(c, e.x, e.y, gold);
       c.events.push({ type: "kill", x: e.x, y: e.y, enemy: e.def, gold, eid: e.id });
+      if (e.elite === "splitting") {
+        for (let i = 0; i < 2; i++) {
+          const k = spawnEnemy(c, { at: 0, enemy: e.def.id, hpMult: e.hpMult, lane: null }, { x: e.x + (i ? 12 : -12), y: e.y - 4 });
+          k.hp = k.maxHp = e.maxHp * ELITE.splitHp;
+        }
+      }
       if (e.def.splitsInto) {
         const { enemy, count } = e.def.splitsInto;
         for (let i = 0; i < count; i++) spawnEnemy(c, { at: 0, enemy, hpMult: e.hpMult, lane: null }, { x: e.x + (i - 1) * 14, y: e.y });

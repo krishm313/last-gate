@@ -607,3 +607,49 @@ describe("Frost Wyrm boss", () => {
     expect(t.stun ?? 0).toBeGreaterThan(1.5);
   });
 });
+
+describe("elite enemies", () => {
+  const eliteCamp = () => {
+    const c = createCamp(11, undefined, { eliteChance: 1 });
+    c.phase = "wave";
+    c.queue = [];
+    return c;
+  };
+  const spawnElite = (c: Camp, mod: import("../src/camp/sim").EliteMod) => {
+    // Spawn fresh (no position → eligible), then force the modifier under test.
+    const e = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: 0.5 });
+    expect(e.elite).toBeDefined();
+    e.elite = mod;
+    e.shield = mod === "shielded" ? e.maxHp * 0.3 : 0;
+    return e;
+  };
+  it("normal runs have no elites; elite spawns are tougher", () => {
+    const n = createCamp(11);
+    const plain = spawnEnemy(n, { at: 0, enemy: "footman", hpMult: 1, lane: 0.5 });
+    expect(plain.elite).toBeUndefined();
+    const c = eliteCamp();
+    const e = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: 0.5 });
+    expect(e.elite).toBeDefined();
+    expect(e.maxHp).toBeCloseTo(plain.maxHp * 1.6);
+    // Summons / splits (given a position) never roll elite.
+    expect(spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 1, lane: null }, { x: 300, y: 200 }).elite).toBeUndefined();
+  });
+  it("armored reduces damage, shielded soaks it first", () => {
+    const c = eliteCamp();
+    const a = spawnElite(c, "armored");
+    expect(reduction(a)).toBeCloseTo(0.35);
+    const s = spawnElite(c, "shielded");
+    expect(s.shield).toBeGreaterThan(0);
+  });
+  it("splitting elites burst into two smaller copies", () => {
+    const c = eliteCamp();
+    const e = spawnElite(c, "splitting");
+    const before = c.enemies.length;
+    e.hp = 0;
+    step(c, { move: { x: 0, y: 0 } } as CampInput);
+    const kids = c.enemies.filter((k) => k.def.id === "footman" && !k.elite);
+    expect(c.enemies.length).toBe(before + 1); // one died, two appeared
+    expect(kids.length).toBe(2);
+    expect(kids[0]!.maxHp).toBeCloseTo(e.maxHp * 0.3);
+  });
+});

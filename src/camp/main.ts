@@ -231,7 +231,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   // Campaign difficulty (Endless and the daily always play Normal; a locked pick falls back too).
   runDifficulty = !chapter.endless && difficultyOpen(diff, (save.stars[id] ?? 0) > 0, save.diffCleared[id] ?? 0) ? diff : "normal";
   const dd = DIFF_BY_ID[runDifficulty];
-  if (dd.rank > 0) setup = { ...setup, enemyHpMult: (setup.enemyHpMult ?? 1) * dd.hp };
+  if (dd.rank > 0) setup = { ...setup, enemyHpMult: (setup.enemyHpMult ?? 1) * dd.hp, eliteChance: dd.elite };
   camp = createCamp(seed, chapterOnDifficulty(chapter, runDifficulty), setup);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
   renderer.setGround(chapter.ground, chapter.id);

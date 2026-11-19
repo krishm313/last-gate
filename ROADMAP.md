@@ -117,7 +117,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   clear doubles the win bonus and the end screen celebrates it. Endless & daily always Normal.
   Bot: ch2 @L4 normal 100% / hard 60% / nightmare 40%; ch1 hard 100%.
 
+- **Elite enemies** (Phase 4, slice 2) — on Hard (8% of spawns) / Nightmare (15%) and Endless past
+  night 10 (5% +1%/night, max 20%), fresh wave spawns may be elite: +60% HP, 3× coins, one modifier —
+  Swift 💨 (+40% speed), Armored 🛡️ (+35% reduction), Vampiric 🩸 (heals 6% max HP per hit),
+  Splitting 🧬 (bursts into two 30%-HP copies), Shielded 🔷 (barrier = 30% HP soaks damage first).
+  Dashed coloured ground ring, badge over the head (above the night darkness), shield bubble,
+  "Swift!" pop on spawn, shard burst when a shield breaks. Normal campaign untouched (RNG unchanged).
+
 ## Shipped (newest first)
+- Elite enemies: 5 modifiers on Hard/Nightmare and deep Endless (rings, badges, shield bubble; tests).
 - Difficulty modes: Hard & Nightmare per chapter (more HP/speed/gate damage, ×1.5 / ×2.2 gold), skull badges (tests).
 - Hero flair: 5 unlockable cosmetic trails/halos (ember, frost, petals, shadow wisps, golden halo), picker on Heroes tab (test).
 - Run history: last 20 runs (chapter/daily/endless, hero, nights, kills, gold) with win rate, under Records on Trophies (test).
