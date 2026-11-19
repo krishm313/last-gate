@@ -211,6 +211,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
 
 ## Shipped (newest first)
+- Endless twist #7 "Tidal Week" (a tide rolls in every 14 s at night, slowing you and the horde; coins +15%) — joins the rotation from Mon 23 Nov so the current week keeps its twist. Bug sweep 3 (ch8 + Warden, ch5 Hard): clean.
 - Sunken Citadel scenery (sea-moss trees and bushes, barnacled grey-green rocks — sunken prop atlas); "Tidebreaker" trophy; the Drowned King joins Endless's boss rotation (night 50).
 - The Drowned King: ch8 boss whose phase-2 tide slows everyone it covers and puts out fires (fx, SFX, test).
 - Chapter 8 "Sunken Citadel": drowned-ruins map, sea mist and drizzle, rainy nights, achievement (balance-tuned).

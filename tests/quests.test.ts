@@ -135,8 +135,9 @@ describe("endless weekly twists", async () => {
     expect(sun.id).toBe(mon.id);
     expect(next.id).not.toBe(mon.id);
     const seen = new Set<string>();
-    for (let d = 0; d < 7 * 6; d += 7) seen.add(endlessTwistFor(new Date(Date.UTC(2026, 10, 16 + d)).toISOString().slice(0, 10)).id);
-    expect(seen.size).toBe(ENDLESS_TWISTS.length); // every twist comes round in 6 weeks
+    for (let d = 0; d < 7 * 7; d += 7) seen.add(endlessTwistFor(new Date(Date.UTC(2026, 10, 23 + d)).toISOString().slice(0, 10)).id);
+    expect(seen.size).toBe(ENDLESS_TWISTS.length); // every twist comes round in 7 weeks
+    expect(endlessTwistFor("2026-11-19").id).toBe("elite"); // the week in progress keeps its twist
   });
   it("applies its rules to the run", () => {
     const glass = ENDLESS_TWISTS.find((t) => t.id === "glass")!;

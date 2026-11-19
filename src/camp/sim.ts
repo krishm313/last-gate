@@ -425,6 +425,8 @@ export interface Camp {
   enemyHpMult: number;
   /** Share of fresh spawns that become elites (difficulty). */
   eliteChance: number;
+  tideEvery: number;
+  tideTimer: number;
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
@@ -512,6 +514,8 @@ export interface CampSetup {
   /** Extra enemy HP multiplier (daily twists). */
   enemyHpMult?: number;
   eliteChance?: number;
+  /** Tidal Week (Endless twist): a tide rolls in every this many seconds of night (0 = never). */
+  tideEvery?: number;
   /** Blessings granted at the start of the run. */
   startBlessings?: string[];
 }
@@ -596,6 +600,8 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     overclock: 0,
     enemyHpMult: setup.enemyHpMult ?? 1,
     eliteChance: setup.eliteChance ?? 0,
+    tideEvery: setup.tideEvery ?? 0,
+    tideTimer: setup.tideEvery ?? 0,
     heroLevel: 1,
     heroXp: 0,
     runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0, dmg: {} },
@@ -1510,6 +1516,16 @@ export function tideSlow(c: Camp, y: number): number {
   return k;
 }
 function updateTides(c: Camp): void {
+  // Tidal Week: the sea comes in on its own during the night, across a random band near the wall.
+  if (c.tideEvery > 0 && c.phase === "wave") {
+    c.tideTimer -= STEP;
+    if (c.tideTimer <= 0) {
+      c.tideTimer += c.tideEvery;
+      const h = 150, cy = WALL_Y + range(c.rng, -100, 200);
+      c.tides.push({ y: cy - h / 2, h, t: 0, dur: 4, slow: 0.5 });
+      c.events.push({ type: "tide", y: cy - h / 2, h });
+    }
+  }
   if (!c.tides.length) return;
   for (const t of c.tides) t.t += STEP;
   c.tides = c.tides.filter((t) => t.t < t.dur);

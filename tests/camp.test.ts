@@ -884,3 +884,19 @@ describe("Drowned King", () => {
     expect(tideSlow(c, t.y - 50)).toBe(1);
   });
 });
+
+describe("Tidal Week", () => {
+  it("rolls a tide in on its own during the night", () => {
+    const c = createCamp(13, undefined, { tideEvery: 2 });
+    c.phase = "wave";
+    c.queue = [];
+    const keep = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 9, lane: null }, { x: 40, y: 80 });
+    keep.stunTime = 1e9;
+    let tides = 0;
+    for (let i = 0; i < 60 * 5; i++) {
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      tides += drainEvents(c).filter((e) => e.type === "tide").length;
+    }
+    expect(tides).toBe(2);
+  });
+});
