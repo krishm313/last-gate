@@ -181,7 +181,7 @@ export const ENDLESS: ChapterDef = {
     { mix: { footman: 2, sapper: 1, ram: 0.6, bat: 2, raven: 0.6 } },
     { mix: { wraith: 2, knight: 1, shaman: 0.6 } },
     { mix: { goblin: 3, bat: 3, runner: 2, tunneler: 0.6 } },
-    { mix: { shield: 2, brute: 1, crossbow: 1.5, sapper: 1 } },
+    { mix: { shield: 2, brute: 1, crossbow: 1.5, sapper: 1, imp: 0.5 } },
     { mix: { knight: 1.5, wraith: 1.5, ram: 0.8, mob: 1, shaman: 0.6, banner: 0.6 } },
   ],
 };

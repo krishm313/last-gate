@@ -31,6 +31,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "elites", name: "Elite Hunter", desc: "Defeat 25 elite foes", icon: "🎖️", goal: 25, reward: 250, progress: stat("elites") },
   { id: "wyrm", name: "Wyrmslayer", desc: "Defeat the Frost Wyrm", icon: "🐉", goal: 1, reward: 300, progress: stat("frostwyrm") },
   { id: "titan", name: "Titanfall", desc: "Defeat the Magma Titan", icon: "🌋", goal: 1, reward: 400, progress: stat("magma") },
+  { id: "warden", name: "Warden of the Woods", desc: "Snare 200 foes with the Warden", icon: "🕸️", goal: 200, reward: 300, progress: stat("snared") },
+  { id: "firefighter", name: "Firefighter", desc: "Stamp out 25 fires", icon: "🧯", goal: 25, reward: 250, progress: stat("firesOut") },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
 ];

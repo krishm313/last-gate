@@ -346,7 +346,7 @@ export type CampEvent =
   | { type: "plotUnlocked"; label: string; x: number; y: number }
   | { type: "thief"; x: number; y: number }
   | { type: "thiefEscaped" }
-  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare" }
+  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -1140,15 +1140,18 @@ function useAbility(c: Camp): void {
     case "overclock":
       c.overclock = 6;
       break;
-    case "snare":
+    case "snare": {
       // Snare Field: vines root everything near the Warden; rooted foes are easier to hurt.
+      let n = 0;
       for (const e of c.enemies) {
         if (e.def.flying || Math.hypot(e.x - h.x, e.y - h.y) > SNARE.radius) continue;
         e.stunTime = Math.max(e.stunTime, e.def.boss ? SNARE.bossTime : SNARE.time);
         e.snared = SNARE.time;
+        n++;
       }
-      c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare" });
+      c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
       break;
+    }
   }
   c.events.push({ type: "ability", id: c.ability, x: h.x, y: h.y });
 }
