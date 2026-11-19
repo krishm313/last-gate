@@ -211,6 +211,13 @@ describe("daily heroes", async () => {
     for (let d = 21; d <= 120; d++) later.add(dailyFor(iso(d)).hero);
     expect(later.has("warden") && later.has("lancer")).toBe(true);
   });
+  it("adds the Cleric only from the 24th", () => {
+    const iso = (d: number) => new Date(Date.UTC(2026, 10, d)).toISOString().slice(0, 10);
+    for (let d = 1; d <= 23; d++) expect(dailyFor(iso(d)).hero).not.toBe("cleric");
+    const later = new Set<string>();
+    for (let d = 24; d <= 160; d++) later.add(dailyFor(iso(d)).hero);
+    expect(later.has("cleric")).toBe(true);
+  });
 });
 
 describe("daily variety", async () => {

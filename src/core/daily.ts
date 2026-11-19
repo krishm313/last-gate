@@ -103,7 +103,10 @@ export function liveDailyStreak(stats: Record<string, number>, date: string): nu
 const EXPANDED_FROM = "2026-11-20";
 const ORIGINAL_TWISTS = ["gold-rush", "lone-hero", "engineers", "horde", "glass"];
 
+/** The Cleric joins from this date (days before keep the six-hero pool). */
+const CLERIC_FROM = "2026-11-24";
 function heroPool(date: string): HeroId[] {
+  if (date >= CLERIC_FROM) return [...HEROES, ...NEW_HEROES, "cleric"];
   return date >= HEROES_EXPANDED_FROM ? [...HEROES, ...NEW_HEROES] : HEROES;
 }
 
