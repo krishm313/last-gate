@@ -182,3 +182,16 @@ describe("endless top sieges", async () => {
     expect(sanitizeEndlessTop([{ nights: "x" }, { nights: 4, hero: "pyro" }, { nights: 9, hero: "bad" }])).toEqual([{ nights: 4, hero: "pyro", date: "" }]);
   });
 });
+
+describe("best night per difficulty", async () => {
+  const { applyRun, newSave: fresh, sanitizeSave: clean } = await import("../src/core/meta");
+  it("records the furthest night on Hard / Nightmare", () => {
+    const s = fresh();
+    s.stars[2] = 3;
+    applyRun(s, { chapter: 2, won: false, wave: 6, gateFrac: 0, goldFromKills: 0, difficulty: "hard" });
+    applyRun(s, { chapter: 2, won: false, wave: 4, gateFrac: 0, goldFromKills: 0, difficulty: "hard" });
+    expect(s.diffBest["2:1"]).toBe(6);
+    expect(clean(JSON.parse(JSON.stringify(s))).diffBest).toEqual({ "2:1": 6 });
+    expect(clean({ diffBest: { "2:3": 5, "x": 1, "77:1": 2 } }).diffBest).toEqual({});
+  });
+});

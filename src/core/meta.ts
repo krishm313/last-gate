@@ -78,10 +78,12 @@ export interface SaveData {
   /** Selected campaign difficulty, and per chapter the highest difficulty rank cleared (1 hard, 2 nightmare). */
   difficulty: DifficultyId;
   diffCleared: Record<number, number>;
+  /** Best night reached per chapter on Hard / Nightmare, keyed "chapter:rank". */
+  diffBest: Record<string, number>;
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {} };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {}, diffBest: {} };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -115,6 +117,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   d.endlessTop = sanitizeEndlessTop((r as { endlessTop?: unknown }).endlessTop);
   // Saves from before the board: the Endless record so far becomes its first entry.
   if ((r as { endlessTop?: unknown }).endlessTop === undefined && (d.best[ENDLESS_ID] ?? 0) > 0) d.endlessTop = [{ nights: Math.max(0, d.best[ENDLESS_ID]! - 1), hero: d.hero, date: "" }];
+  for (const [k, v] of Object.entries(rec((r as { diffBest?: unknown }).diffBest))) if (/^\d+:[12]$/.test(k) && chapterIds.has(Number(k.split(":")[0]))) d.diffBest[k] = Math.max(0, Math.min(99, Math.floor(num(v, 0))));
   d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
   d.heroes = sanitizeHeroProgress(rawHeroes);
@@ -250,6 +253,8 @@ function applyHardRun(s: SaveData, r: RunResult, rank: number, goldMult: number)
   const winBonus = r.won ? Math.round(40 * r.chapter * (firstClear ? 2 : 1) * goldMult) : 0;
   const loot = Math.round(r.goldFromKills * goldMult);
   if (r.won) s.diffCleared[r.chapter] = Math.max(s.diffCleared[r.chapter] ?? 0, rank);
+  const key = `${r.chapter}:${rank}`;
+  s.diffBest[key] = Math.max(s.diffBest[key] ?? 0, r.wave);
   const gold = loot + waveBonus + winBonus;
   s.gold = Math.min(MAX_GOLD, s.gold + gold);
   s.stats.goldEarned = (s.stats.goldEarned ?? 0) + gold;

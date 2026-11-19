@@ -282,9 +282,14 @@ export class Hub {
       }
       const right = el("div", "ch-right");
       right.append(el("div", "ch-stars", unlocked ? "★".repeat(stars) + "☆".repeat(3 - stars) : "🔒"));
-      if (save.best[ch.id]) right.append(el("div", "ch-best", stars ? "Cleared" : `Best: night ${save.best[ch.id]}`));
+      const dBest = diff.rank > 0 ? save.diffBest[`${ch.id}:${diff.rank}`] ?? 0 : 0;
+      if (diff.rank > 0 && diffOpen) {
+        // On Hard / Nightmare, the card speaks for that difficulty.
+        const cleared = (save.diffCleared[ch.id] ?? 0) >= diff.rank;
+        if (cleared || dBest) right.append(el("div", "ch-best", cleared ? `${diff.icon} Cleared` : `${diff.icon} Best: night ${dBest}`));
+      } else if (save.best[ch.id]) right.append(el("div", "ch-best", stars ? "Cleared" : `Best: night ${save.best[ch.id]}`));
       const dc = save.diffCleared[ch.id] ?? 0;
-      if (dc > 0) right.append(el("div", "lgd-skulls", dc >= 2 ? "💀 ☠️" : "💀"));
+      if (dc > 0 && diff.rank === 0) right.append(el("div", "lgd-skulls", dc >= 2 ? "💀 ☠️" : "💀"));
       if (unlocked && !stars && save.best[ch.id]) {
         // How close you've come to clearing it.
         const bar = el("div", "ch-prog");
