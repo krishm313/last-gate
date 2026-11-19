@@ -6,6 +6,8 @@ import { SiegeBar } from "../ui/siegeBar";
 import { ArcheryView, rangeReward } from "../mini/archeryView";
 import { SupplyView } from "../mini/supplyView";
 import { supplyReward } from "../mini/supply";
+import { WallWatchView } from "../mini/wallwatchView";
+import { watchReward } from "../mini/wallwatch";
 import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -105,6 +107,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     supply.open((Date.now() >>> 0) ^ 0x5a9);
+  },
+  onWatch: () => {
+    hub.hide();
+    sfx.unlock();
+    wallWatch.open((Date.now() >>> 0) ^ 0x3a7);
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -381,6 +388,22 @@ const supply = new SupplyView(
     const prev = save.mini.supply ?? { best: 0, stars: 0 };
     const r = supplyReward(score, prev.stars);
     save.mini.supply = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+  },
+  () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
+);
+
+// ---- Wall Watch (side stop on the map). ----
+const wallWatch = new WallWatchView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.watch ?? { best: 0, stars: 0 };
+    const r = watchReward(score, prev.stars);
+    save.mini.watch = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -1115,6 +1138,7 @@ Object.assign(window, {
   __camp: () => camp,
   __archery: () => archery,
   __supply: () => supply,
+  __watch: () => wallWatch,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

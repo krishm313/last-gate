@@ -78,6 +78,8 @@ export interface HubCallbacks {
   onArchery?: () => void;
   /** Open the Supply Run side stop. */
   onSupply?: () => void;
+  /** Open the Wall Watch side stop. */
+  onWatch?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -417,6 +419,25 @@ export class Hub {
         if (!open) return this.denied(side);
         this.cb.onClick();
         this.cb.onSupply?.();
+      };
+      track.append(side);
+    }
+    // Side stop between chapters 4 and 5: Wall Watch (opens after chapter 4).
+    {
+      const open = (save.stars[4] ?? 0) > 0;
+      const side = el("button", `lgm-side${open ? "" : " locked"}`);
+      side.style.left = "11%";
+      side.style.bottom = `${((3.6 * 10 + 5) / H) * 100}%`;
+      side.append(el("div", "lgm-pin", open ? "🛡️" : "?"));
+      const lab = el("div", "lgm-label");
+      const st = save.mini.watch?.stars ?? 0;
+      lab.append(el("div", "lgm-name", open ? "Wall Watch" : "???"));
+      if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
+      side.append(lab);
+      side.onclick = () => {
+        if (!open) return this.denied(side);
+        this.cb.onClick();
+        this.cb.onWatch?.();
       };
       track.append(side);
     }
