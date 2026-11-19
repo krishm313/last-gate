@@ -26,6 +26,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "champion", name: "Champion of the Realm", desc: "Clear chapter 5", icon: "🏆", goal: 1, reward: 500, progress: (s) => ((s.stars[5] ?? 0) > 0 ? 1 : 0) },
   { id: "frostpeak", name: "King of the Mountain", desc: "Clear chapter 6, Frostpeak Pass", icon: "🏔️", goal: 1, reward: 700, progress: (s) => ((s.stars[6] ?? 0) > 0 ? 1 : 0) },
   { id: "caldera", name: "Through the Fire", desc: "Clear chapter 7, Ashen Caldera", icon: "🌋", goal: 1, reward: 900, progress: (s) => ((s.stars[7] ?? 0) > 0 ? 1 : 0) },
+  { id: "hardclear", name: "Hardened", desc: "Clear any chapter on Hard", icon: "💀", goal: 1, reward: 300, progress: (s) => (Object.values(s.diffCleared).some((v) => v >= 1) ? 1 : 0) },
+  { id: "nightmare", name: "Stuff of Nightmares", desc: "Clear any chapter on Nightmare", icon: "☠️", goal: 1, reward: 600, progress: (s) => (Object.values(s.diffCleared).some((v) => v >= 2) ? 1 : 0) },
+  { id: "elites", name: "Elite Hunter", desc: "Defeat 25 elite foes", icon: "🎖️", goal: 25, reward: 250, progress: stat("elites") },
+  { id: "wyrm", name: "Wyrmslayer", desc: "Defeat the Frost Wyrm", icon: "🐉", goal: 1, reward: 300, progress: stat("frostwyrm") },
+  { id: "titan", name: "Titanfall", desc: "Defeat the Magma Titan", icon: "🌋", goal: 1, reward: 400, progress: stat("magma") },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
 ];

@@ -175,6 +175,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   campsim ch7: @L7 17%, @L10 75% (hardest chapter, as the finale should be).
 
 ## Shipped (newest first)
+- 5 new trophies (Hardened, Stuff of Nightmares, Elite Hunter ×25, Wyrmslayer, Titanfall); Endless now rotates in the Frost Wyrm (night 40) and Magma Titan (night 45) and mixes in Ravens, Tunnelers and Banner-bearers (bot @L5 still reaches nights 18–27).
 - Ashen Caldera scenery: charred pines and trees with glowing ember seams, smouldering bushes, ash-grey rocks (ash prop atlas).
 - The Magma Titan: ch7 boss whose phase-2 eruptions leave lava pools that burn the hero AND the horde (fx, SFX, test).
 - Chapter 7 "Ashen Caldera": volcanic ground, heat haze, embers and ash, smoky nights, achievement (balance-tuned).

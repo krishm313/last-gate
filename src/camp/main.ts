@@ -607,6 +607,9 @@ function trackStats(ev: CampEvent) {
   else if (ev.type === "kill") {
     add("kills");
     if (ev.enemy.boss) add("bosses");
+    if (ev.elite) add("elites");
+    if (ev.enemy.id === "frostwyrm") add("frostwyrm");
+    if (ev.enemy.id === "magma") add("magma");
   }
 }
 

@@ -284,7 +284,7 @@ export interface Hero {
 export type CampEvent =
   | { type: "shoot"; owner: "hero" | "tower" | "enemy" | "catapult"; x: number; y: number }
   | { type: "hit"; x: number; y: number; damage: number; crit: boolean; owner: string; eid?: number }
-  | { type: "kill"; x: number; y: number; enemy: EnemyDef; gold: number; eid: number }
+  | { type: "kill"; x: number; y: number; enemy: EnemyDef; gold: number; eid: number; elite?: boolean }
   | { type: "coinPickup"; x: number; y: number }
   /** A coin sent from the hall's pile straight to the King (wherever he is). */
   | { type: "courier"; x: number; y: number }
@@ -1879,7 +1879,7 @@ function reap(c: Camp): void {
       gainXp(c, e.def.boss ? 15 : Math.max(1, Math.round(e.def.cost)));
       if (e.def.boss) c.runStats.bosses += 1;
       if (gold) dropCoins(c, e.x, e.y, gold);
-      c.events.push({ type: "kill", x: e.x, y: e.y, enemy: e.def, gold, eid: e.id });
+      c.events.push({ type: "kill", x: e.x, y: e.y, enemy: e.def, gold, eid: e.id, ...(e.elite ? { elite: true } : {}) });
       if (e.elite === "splitting") {
         for (let i = 0; i < 2; i++) {
           const k = spawnEnemy(c, { at: 0, enemy: e.def.id, hpMult: e.hpMult, lane: null }, { x: e.x + (i ? 12 : -12), y: e.y - 4 });
