@@ -126,3 +126,25 @@ describe("difficulty modes", async () => {
     expect(s.diffCleared).toEqual({ 1: 2 });
   });
 });
+
+describe("endless weekly twists", async () => {
+  const { endlessTwistFor, applyEndlessTwist, ENDLESS_TWISTS } = await import("../src/core/endlessMods");
+  const { baseMods } = await import("../src/camp/blessings");
+  it("is the same all week and changes week to week", () => {
+    const mon = endlessTwistFor("2026-11-16"), sun = endlessTwistFor("2026-11-22"), next = endlessTwistFor("2026-11-23");
+    expect(sun.id).toBe(mon.id);
+    expect(next.id).not.toBe(mon.id);
+    const seen = new Set<string>();
+    for (let d = 0; d < 7 * 6; d += 7) seen.add(endlessTwistFor(new Date(Date.UTC(2026, 10, 16 + d)).toISOString().slice(0, 10)).id);
+    expect(seen.size).toBe(ENDLESS_TWISTS.length); // every twist comes round in 6 weeks
+  });
+  it("applies its rules to the run", () => {
+    const glass = ENDLESS_TWISTS.find((t) => t.id === "glass")!;
+    const setup = { mods: baseMods() };
+    applyEndlessTwist(glass, setup, {});
+    expect(setup.mods.wallHp).toBeCloseTo(0.7);
+    expect(setup.mods.towerDamage).toBeCloseTo(1.25);
+    const storm = ENDLESS_TWISTS.find((t) => t.id === "storm")!;
+    expect(applyEndlessTwist(storm, { mods: baseMods() }, {} as { weatherOdds?: { rain: number; fog: number; storm: number } }).weatherOdds?.storm).toBeGreaterThan(0.5);
+  });
+});

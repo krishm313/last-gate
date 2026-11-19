@@ -155,7 +155,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   6/8 vs 7/8) → the new buildings were overpriced. Now Mage 50/85/140, Healer 40/75/120, Watchtower
   60/110 with +25/40% range, +15/25% rate → explorer 5/8 vs 3/8 (ch3), 7/8 vs 7/8 (ch2).
 
+- **Endless weekly twists** — one of 6 rules applies to every Endless siege for a week (Mon–Sun,
+  rotating so all 6 come round in 6 weeks): Iron Horde (+30% HP, +30% coins), Gold Rush (coins ×1.6,
+  +20% HP), Storm Season (storms most nights), Glass Walls (walls −30%, towers +25%), Elite Week
+  (elites 12% from night 1, coins +20%), Hero's Week (hero +40%, towers −20%). Shown on the Endless
+  card and as a toast when a siege starts.
+
 ## Shipped (newest first)
+- Endless weekly twists: 6 rotating rules (Iron Horde, Gold Rush, Storm Season, Glass Walls, Elite Week, Hero's Week) on the Endless card (tests).
 - Cheaper Mage Tower / Healer's Tent / Watchtower (stronger Watchtower) after A/B balance runs showed they were overpriced.
 - Watchtower: new building that extends and speeds up nearby archer towers and cuts through fog (art, reach ring, info card, test).
 - Accessibility: "Reduced motion" (no shake, flashes or slow-mo; on by default if the OS asks) and "Large text" (+15% fonts via a text-only CSS unit, layout unchanged); Vibration row hidden where unsupported (iPhone Safari can't vibrate).

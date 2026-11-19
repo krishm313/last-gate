@@ -9,6 +9,7 @@ import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
 import { historySummary } from "../core/history";
+import { endlessTwistFor } from "../core/endlessMods";
 import { activeFlair, FLAIRS } from "../core/flair";
 import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
@@ -287,6 +288,10 @@ export class Hub {
     const left = el("div", "ch-left");
     left.append(el("div", "ch-num", "Endless"), el("div", "ch-name", ENDLESS.name), el("div", "ch-blurb", open ? ENDLESS.blurb : "Clear chapter 1 to unlock"));
     if (open) left.append(el("div", "ch-affix", ENDLESS.affixes.join(" · ")));
+    if (open) {
+      const t = endlessTwistFor();
+      left.append(el("div", "ch-boss lge-twist", `${t.icon} This week: ${t.name} — ${t.desc}`));
+    }
     const right = el("div", "ch-right");
     right.append(el("div", "ch-stars", open ? "♾️" : "🔒"));
     if (save.best[ENDLESS.id]) right.append(el("div", "ch-best", `Record: night ${save.best[ENDLESS.id]}`));
