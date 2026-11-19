@@ -19,6 +19,24 @@ describe("quests", () => {
     expect(typeof weeklyPick(1)).toBe("string");
   });
 
+  it("adds the newer weekly quests only from the week of 2026-11-23, and only when eligible", () => {
+    const original = ["w-kills", "w-nights", "w-boss", "w-win", "w-gold"];
+    const thisWeek = weekNumber("2026-11-19");
+    for (let w = thisWeek - 30; w <= thisWeek; w++) expect(original).toContain(weeklyPick(w));
+    const fresh = newSave();
+    const vet = newSave();
+    vet.stars[1] = 3;
+    const seenFresh = new Set<string>();
+    const seenVet = new Set<string>();
+    for (let w = thisWeek + 1; w < thisWeek + 200; w++) {
+      seenFresh.add(weeklyPick(w, fresh));
+      seenVet.add(weeklyPick(w, vet));
+    }
+    expect(seenFresh.has("w-elites")).toBe(false);
+    expect(seenVet.has("w-elites")).toBe(true);
+    expect(seenFresh.has("w-flawless") && seenFresh.has("w-logs")).toBe(true);
+  });
+
   it("tracks progress from when the quest was handed out, then pays once", () => {
     const s = newSave();
     s.stats.kills = 500;

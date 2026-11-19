@@ -42,7 +42,14 @@ export const WEEKLY_QUESTS: QuestDef[] = [
   { id: "w-boss", icon: "👑", desc: "Defeat 8 bosses this week", stat: "bosses", goal: 8, reward: 450 },
   { id: "w-win", icon: "🏆", desc: "Win 4 runs this week", stat: "wins", goal: 4, reward: 500 },
   { id: "w-gold", icon: "💰", desc: "Earn 2,500 gold from runs this week", stat: "goldEarned", goal: 2500, reward: 450 },
+  // Newer content (from the week starting Mon 2026-11-23).
+  { id: "w-elites", icon: "🎖️", desc: "Defeat 30 elite foes this week", stat: "elites", goal: 30, reward: 450 },
+  { id: "w-flawless", icon: "✨", desc: "Hold 10 flawless nights this week", stat: "flawlessWaves", goal: 10, reward: 450 },
+  { id: "w-logs", icon: "🪓", desc: "Deliver 500 logs this week", stat: "logs", goal: 500, reward: 400 },
 ];
+/** Weekly quests in the rotation before the newer ones joined (keeps the current week stable). */
+const ORIGINAL_WEEKLY = 5;
+const WEEKLY_EXPANDED_FROM = "2026-11-23";
 
 const BY_ID: Record<string, QuestDef> = Object.fromEntries([...DAILY_QUESTS, ...WEEKLY_QUESTS].map((q) => [q.id, q]));
 
@@ -82,19 +89,19 @@ function hash(n: number): number {
   return (h ^ (h >>> 13)) >>> 0;
 }
 
-/** The three daily quest ids for a date (distinct, deterministic). */
 /**
- * Whether a player can realistically finish a quest yet: elites need Hard (a chapter cleared),
+ * Whether a player can realistically finish a quest yet: elites (daily or weekly) need Hard (a chapter cleared),
  * fires need Fire Imps (chapter 7 open), Hard wins need a chapter cleared.
  */
 export function questEligible(s: SaveData | null, id: string): boolean {
   if (!s) return true;
   const cleared = Object.values(s.stars).some((v) => v > 0);
-  if (id === "d-elites" || id === "d-hard") return cleared;
+  if (id === "d-elites" || id === "d-hard" || id === "w-elites") return cleared;
   if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
   return true;
 }
 
+/** The three daily quest ids for a date (distinct, deterministic). */
 export function dailyPicks(date: string, s: SaveData | null = null): string[] {
   const pool = (date >= QUESTS_EXPANDED_FROM ? DAILY_QUESTS : DAILY_QUESTS.slice(0, ORIGINAL_DAILY)).map((q) => q.id).filter((id) => questEligible(s, id));
   const out: string[] = [];
@@ -107,8 +114,9 @@ export function dailyPicks(date: string, s: SaveData | null = null): string[] {
   return out;
 }
 
-export function weeklyPick(week: number): string {
-  return WEEKLY_QUESTS[hash(week * 7919) % WEEKLY_QUESTS.length]!.id;
+export function weeklyPick(week: number, s: SaveData | null = null): string {
+  const pool = (week >= weekNumber(WEEKLY_EXPANDED_FROM) ? WEEKLY_QUESTS : WEEKLY_QUESTS.slice(0, ORIGINAL_WEEKLY)).filter((q) => questEligible(s, q.id));
+  return pool[hash(week * 7919) % pool.length]!.id;
 }
 
 /** Hands out new quests when the day / week has turned. Returns true if anything changed. */
@@ -124,7 +132,7 @@ export function refreshQuests(s: SaveData, now = new Date()): boolean {
   const week = weekNumber(day);
   if (q.week !== week || !q.weekly) {
     q.week = week;
-    const id = weeklyPick(week);
+    const id = weeklyPick(week, s);
     q.weekly = { id, start: questStat(s, BY_ID[id]!.stat), claimed: false };
     changed = true;
   }
