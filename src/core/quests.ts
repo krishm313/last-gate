@@ -83,8 +83,20 @@ function hash(n: number): number {
 }
 
 /** The three daily quest ids for a date (distinct, deterministic). */
-export function dailyPicks(date: string): string[] {
-  const pool = (date >= QUESTS_EXPANDED_FROM ? DAILY_QUESTS : DAILY_QUESTS.slice(0, ORIGINAL_DAILY)).map((q) => q.id);
+/**
+ * Whether a player can realistically finish a quest yet: elites need Hard (a chapter cleared),
+ * fires need Fire Imps (chapter 7 open), Hard wins need a chapter cleared.
+ */
+export function questEligible(s: SaveData | null, id: string): boolean {
+  if (!s) return true;
+  const cleared = Object.values(s.stars).some((v) => v > 0);
+  if (id === "d-elites" || id === "d-hard") return cleared;
+  if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
+  return true;
+}
+
+export function dailyPicks(date: string, s: SaveData | null = null): string[] {
+  const pool = (date >= QUESTS_EXPANDED_FROM ? DAILY_QUESTS : DAILY_QUESTS.slice(0, ORIGINAL_DAILY)).map((q) => q.id).filter((id) => questEligible(s, id));
   const out: string[] = [];
   let seed = dayNumber(date);
   while (out.length < 3) {
@@ -106,7 +118,7 @@ export function refreshQuests(s: SaveData, now = new Date()): boolean {
   let changed = false;
   if (q.day !== day) {
     q.day = day;
-    q.daily = dailyPicks(day).map((id) => ({ id, start: questStat(s, BY_ID[id]!.stat), claimed: false }));
+    q.daily = dailyPicks(day, s).map((id) => ({ id, start: questStat(s, BY_ID[id]!.stat), claimed: false }));
     changed = true;
   }
   const week = weekNumber(day);

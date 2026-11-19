@@ -221,6 +221,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Quest fairness: daily quests now only include ones the player can do yet (elites / Hard wins need a cleared chapter so Hard is open; fires need chapter 7). Caught by checking tomorrow's quests in the browser with a faked date (test).
 - Chapter 5's night-5 Golem mid-boss softened (HP ×0.6 → ×0.45): at perms L5, 9/16 runs used to die right there (13% wins) → 25% with a smoother ramp; @L10 100%.
 - 3 new daily quests from 2026-11-20 (gated so today's stay put): defeat 5 elites, stamp out 3 fires, win a run on Hard/Nightmare (new hardWins stat). Skipped a Warden-only quest — dailies shouldn't need a specific hero (test).
 - Loss tips cover the newer threats: buildings left burning (Fire Imps), towers stunned often (War Ravens), Tunnelers surfacing with no Barracks — from new run counters.

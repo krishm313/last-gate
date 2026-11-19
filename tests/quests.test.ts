@@ -207,3 +207,18 @@ describe("quest pool expansion", () => {
     expect(fresh.some((id) => later.has(id))).toBe(true);
   });
 });
+
+describe("quest eligibility", () => {
+  it("never hands out quests the player can't do yet", async () => {
+    const { dailyPicks } = await import("../src/core/quests");
+    const { newSave: fresh } = await import("../src/core/meta");
+    const s = fresh(); // nothing cleared
+    for (let d = 20; d <= 30; d++) {
+      const p = dailyPicks(`2026-11-${d}`, s);
+      expect(p).not.toContain("d-elites");
+      expect(p).not.toContain("d-fires");
+      expect(p).not.toContain("d-hard");
+      expect(new Set(p).size).toBe(3);
+    }
+  });
+});
