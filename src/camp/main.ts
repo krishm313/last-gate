@@ -624,6 +624,7 @@ function trackStats(ev: CampEvent) {
     if (ev.elite) add("elites");
     if (ev.enemy.id === "frostwyrm") add("frostwyrm");
     if (ev.enemy.id === "magma") add("magma");
+    if (ev.enemy.id === "drowned") add("drowned");
   } else if (ev.type === "boom" && ev.kind === "snare" && ev.n) add("snared", ev.n);
   else if (ev.type === "fireOut") add("firesOut");
 }

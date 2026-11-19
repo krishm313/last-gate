@@ -24,3 +24,5 @@ export const DECOR_ATLAS: Record<string, [number, number, number, number, number
 PROP_ATLAS.winter = PROP_ATLAS.summer!;
 /** Charred props for the volcano chapter (summer atlas recoloured: burnt wood, ember-lit leaves). */
 PROP_ATLAS.ash = PROP_ATLAS.summer!;
+/** Sunken props for chapter 8 (summer atlas recoloured: sea moss, hanging weed, barnacled rocks). */
+PROP_ATLAS.sunken = PROP_ATLAS.summer!;

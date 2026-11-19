@@ -30,6 +30,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "nightmare", name: "Stuff of Nightmares", desc: "Clear any chapter on Nightmare", icon: "☠️", goal: 1, reward: 600, progress: (s) => (Object.values(s.diffCleared).some((v) => v >= 2) ? 1 : 0) },
   { id: "elites", name: "Elite Hunter", desc: "Defeat 25 elite foes", icon: "🎖️", goal: 25, reward: 250, progress: stat("elites") },
   { id: "wyrm", name: "Wyrmslayer", desc: "Defeat the Frost Wyrm", icon: "🐉", goal: 1, reward: 300, progress: stat("frostwyrm") },
+  { id: "tidebreaker", name: "Tidebreaker", desc: "Defeat the Drowned King", icon: "🔱", goal: 1, reward: 450, progress: stat("drowned") },
   { id: "titan", name: "Titanfall", desc: "Defeat the Magma Titan", icon: "🌋", goal: 1, reward: 400, progress: stat("magma") },
   { id: "warden", name: "Warden of the Woods", desc: "Snare 200 foes with the Warden", icon: "🕸️", goal: 200, reward: 300, progress: stat("snared") },
   { id: "firefighter", name: "Firefighter", desc: "Stamp out 25 fires", icon: "🧯", goal: 25, reward: 250, progress: stat("firesOut") },
