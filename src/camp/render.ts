@@ -642,6 +642,12 @@ export class CampRenderer {
           fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
           for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
           break;
+        case "burrow":
+        case "emerge":
+          fx.burst(ev.x, ev.y, "#7a5a32", ev.type === "emerge" ? 16 : 10, 150, { max: 0.6, size: 3, gravity: 300, shape: "chunk" });
+          fx.rings.push({ x: ev.x, y: ev.y + 4, r: 26, color: "#a88a5a", life: 0.35, max: 0.35, width: 3 });
+          if (ev.type === "emerge") fx.shake(0.12);
+          break;
         case "towerStunned":
           this.towerStunAt.set(ev.plot, this.time);
           fx.burst(ev.x, ev.y, "#2a2438", 14, 150, { max: 0.6, size: 3, gravity: 120, shape: "chunk" });
@@ -3698,6 +3704,21 @@ fx.shake(0.15);
   private brokeCover = new Set<number>();
   private drawEnemy(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
     const r = e.def.radius;
+    if (e.burrow && e.burrow > 0) {
+      // Underground: a heaving mound of dirt crawls under the wall, kicking up clods.
+      const heave = Math.sin(c.time * 14 + e.id) * 1.5;
+      ctx.save();
+      softShadow(ctx, e.x, e.y + 4, r * 1.3, r * 0.45, 0.3);
+      ctx.fillStyle = "#6a4a2a";
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(e.x, e.y + 2 - heave * 0.4, r * 1.15, r * 0.55 + heave * 0.3, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#8a6a40";
+      for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(e.x - r * 0.5 + k * r * 0.5, e.y - r * 0.15 - heave * 0.3, 2.4, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+      if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x, e.y, "#7a5a32", 1, 50, { max: 0.4, size: 2.4, gravity: 260, shape: "chunk" });
+      return;
+    }
     // Walkers pushing out of the treeline rustle the undergrowth: a spray of leaves and a little
     // dust where they break cover.
     if (!e.def.flying && e.y > FOREST_Y - 6 && e.y < FOREST_Y + 40 && !this.brokeCover.has(e.id)) {

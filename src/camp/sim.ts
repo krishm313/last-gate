@@ -95,6 +95,9 @@ export interface Enemy {
   enraged: boolean;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
   rallied?: boolean;
+  /** Tunneler: seconds left digging under the wall (untargetable), and whether it has dug yet. */
+  burrow?: number;
+  dug?: boolean;
   /** What it is currently hitting, for rendering lunges. */
   attacking: boolean;
   inside: boolean;
@@ -243,6 +246,8 @@ export type CampEvent =
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
   | { type: "towerStunned"; plot: string; x: number; y: number }
+  | { type: "burrow"; x: number; y: number }
+  | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
   /** Healer's tent mended someone (throttled): green motes rise from each point. */
@@ -550,6 +555,7 @@ function heroAttackTarget(c: Camp): Enemy | null {
   let best: Enemy | null = null;
   let bestD = CAMP.heroRange ** 2;
   for (const e of c.enemies) {
+    if (e.burrow && e.burrow > 0) continue;
     const d = (e.x - h.x) ** 2 + (e.y - h.y) ** 2;
     if (d < bestD) {
       bestD = d;
@@ -909,7 +915,7 @@ function updateTowers(c: Camp): void {
     // Nearest enemy to the wall within range.
     let best: Enemy | null = null;
     for (const e of c.enemies) {
-      if (e.y < SPAWN_Y + 10) continue;
+      if (e.y < SPAWN_Y + 10 || (e.burrow && e.burrow > 0)) continue;
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > range ** 2) continue;
       if (!best || Math.abs(e.y - WALL_Y) < Math.abs(best.y - WALL_Y)) best = e;
     }
@@ -1113,6 +1119,7 @@ function updateArrows(c: Camp): void {
 
 /** Current damage reduction from armour and armour cycles (1 = immune). */
 export function reduction(e: Enemy): number {
+  if (e.burrow && e.burrow > 0) return 1;
   let r = e.def.armor ?? 0;
   if (e.rallied) r = 1 - (1 - r) * (1 - RALLY.armor);
   const cyc = e.def.armorCycle;
@@ -1269,6 +1276,18 @@ function updateEnemy(c: Camp, e: Enemy): void {
   const heroD = h.dead ? Infinity : Math.hypot(h.x - e.x, h.y - e.y);
   const reach = def.radius + 14;
 
+  // Tunneler underground: crawl beneath the wall, then surface inside the camp.
+  if (e.burrow && e.burrow > 0) {
+    const endY = WALL_Y + WALL_THICK / 2 + def.radius + 18;
+    e.y += (endY - (WALL_Y - WALL_THICK / 2 - def.radius)) / (def.tunneler ?? 3) * STEP;
+    e.burrow -= STEP;
+    if (e.burrow <= 0) {
+      e.y = endY;
+      c.events.push({ type: "emerge", x: e.x, y: e.y });
+    }
+    return;
+  }
+
   if (def.crossing) {
     // Treasure goblin: dash across and vanish off the far side.
     if (moveToward(c, e, e.targetX ?? MAP_W + 40, e.y + Math.sin(c.time * 6 + e.sway) * 3) < 6) {
@@ -1358,6 +1377,12 @@ function updateEnemy(c: Camp, e: Enemy): void {
       moveToward(c, e, e.x + Math.sin(c.time * 2 + e.sway) * 2, wallFront);
       return;
     }
+    if (def.tunneler && !e.dug) {
+      e.dug = true;
+      e.burrow = def.tunneler;
+      c.events.push({ type: "burrow", x: e.x, y: e.y });
+      return;
+    }
     if (def.kamikaze) {
       damageWall(c, seg, def.gateDamage * 2.5);
       c.events.push({ type: "sapper", x: e.x, y: e.y });
@@ -1416,9 +1441,10 @@ function separate(c: Camp): void {
   const es = c.enemies;
   for (let i = 0; i < es.length; i++) {
     const a = es[i]!;
+    if (a.burrow && a.burrow > 0) continue;
     for (let j = i + 1; j < es.length; j++) {
       const b = es[j]!;
-      if (a.def.flying !== b.def.flying) continue;
+      if (a.def.flying !== b.def.flying || (b.burrow && b.burrow > 0)) continue;
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const min = (a.def.radius + b.def.radius) * 0.9;
@@ -1507,7 +1533,7 @@ function updateMage(c: Camp): void {
     // Strike the foe nearest the wall within range, then hop to the nearest unstruck foe each time.
     let cur: Enemy | null = null;
     for (const e of c.enemies) {
-      if (e.y < SPAWN_Y + 10 || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > st.range ** 2) continue;
+      if (e.y < SPAWN_Y + 10 || (e.burrow && e.burrow > 0) || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > st.range ** 2) continue;
       if (!cur || Math.abs(e.y - WALL_Y) < Math.abs(cur.y - WALL_Y)) cur = e;
     }
     if (!cur) {

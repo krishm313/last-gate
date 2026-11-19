@@ -62,7 +62,7 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 3, runner: 2 }, breather: true },
       { mix: { shield: 2, knight: 1, crossbow: 1, brute: 0.8 }, boss: "ogre" },
       { mix: { footman: 2, shield: 2, knight: 1, ram: 0.6 }, intro: "ram" },
-      { mix: { shield: 2, crossbow: 2, knight: 1.2, ram: 0.6, shaman: 0.6 } },
+      { mix: { shield: 2, crossbow: 2, knight: 1.2, ram: 0.6, shaman: 0.6, tunneler: 1 }, intro: "tunneler" },
       { mix: { footman: 3, crossbow: 2 }, breather: true },
       { mix: { shield: 2, crossbow: 1.5, knight: 1.5, ram: 0.8, brute: 0.8, shaman: 0.6, sapper: 0.6 } },
       { mix: { footman: 2, shield: 2, knight: 1, crossbow: 1, ram: 0.5 }, boss: "golem" },

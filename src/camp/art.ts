@@ -40,6 +40,7 @@ export const LOOKS: Record<string, UnitLook> = {
   shaman: { body: "#2a8a8a", trim: "#1a5050", skin: "#d8b890", head: "hood", helm: "#1a6a6a", weapon: "staff" },
   ram: { body: "#8a6a3a", trim: "#5a3a1a", skin: "#f2c9a0", head: "helmet", helm: "#7a6a5a", weapon: "none" },
   sapper: { body: "#3a3a3a", trim: "#1a1a1a", skin: "#f2c9a0", head: "cap", helm: "#5a3a2a", weapon: "bomb" },
+  tunneler: { body: "#6a4a2a", trim: "#3a2a14", skin: "#f2c9a0", head: "cap", helm: "#8a6a3a", weapon: "sword" },
   knight: { body: "#3a404a", trim: "#1a1e24", skin: "#c8ccd4", head: "plume", helm: "#5a6070", weapon: "sword", shield: "#2a2e36" },
   wraith: { body: "#8a9ac0", trim: "#5a6a90", skin: "#c8d4f0", head: "hood", helm: "#6a7aa0", weapon: "none" },
   ogre: { body: "#6a7a3a", trim: "#3a4a1a", skin: "#9ab06a", head: "bare", weapon: "club", bulk: 1 },

@@ -492,3 +492,28 @@ describe("war raven", () => {
     expect(f.hp).toBe(hp);
   });
 });
+
+describe("tunneler", () => {
+  it("digs under an intact wall (can't be hurt meanwhile) and surfaces inside the camp", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const t = spawnEnemy(c, { at: 0, enemy: "tunneler", hpMult: 1, lane: 0.5 }, { x: 120, y: WALL_Y - 60 });
+    let sawBurrow = false;
+    for (let i = 0; i < 60 * 8 && !(t.dug && !t.burrow); i++) {
+      step(c, still);
+      if (t.burrow && t.burrow > 0) {
+        sawBurrow = true;
+        expect(reduction(t)).toBe(1);
+      }
+    }
+    expect(sawBurrow).toBe(true);
+    expect(c.segments.every((s) => s.hp === s.maxHp)).toBe(true);
+    expect(t.y).toBeGreaterThan(WALL_Y);
+    step(c, still);
+    expect(t.inside).toBe(true);
+  });
+});

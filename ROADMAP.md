@@ -62,7 +62,13 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   stars, "STUNNED!"). Towers can shoot it down first. Bat model, bigger, red eyes + war-paint crest,
   feather trail. Introduced in chapter 3 night 3.
 
+- **Tunneler** (Phase 2 enemy 3) — at the wall it digs under for 3 s (untargetable, immune, a
+  heaving dirt mound crawls through) and surfaces ~20 px inside the camp, then goes for the hall.
+  Doesn't damage the wall — it bypasses it. Counter: the King / barracks / Healer area inside.
+  Sapper body in brown. Introduced in chapter 3 night 7.
+
 ## Shipped (newest first)
+- Tunneler enemy: digs under the wall and surfaces inside (dirt mound, dirt bursts), chapter 3 intro, test.
 - War Raven enemy: dives at towers and stuns them (stun stars, STUNNED!), chapter 3 intro, test.
 - Banner-bearer enemy: rally aura (faster + tougher foes nearby), banner art + rally ring, chapter 2 intro, test.
 - Blessing combos: 5 new two-part combos, combo badge shows its parts, big COMBO! moment (tests).
