@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- **Chapter 9: Bloodmoon Moors** (slice 1) — unlocked after the Sunken Citadel. Plum heath ground (ground_5 recoloured, hue blended the short way round so the path stays sandy), deep-red wash with blood-moon light pulsing from the north and crimson mist, dead trees + stumps, no butterflies, crimson leaf bursts, autumn props for now, crimson/plum confetti, "Lord of the Moors" trophy. hpMult 4.0; CAMP_CHAPTER_HP 2.45 → campsim L10 42% (= ch8), L5 0%. Final boss is the Iron Colossus until slice 3 brings the Blood Moon Warlord.
 - Checked: Trophies tab on iPhone SE (quests, 24 achievements, records) renders cleanly and claiming pays (gold + badge update).
 - Daily streaks now pay: +25 gold per streak day after the first, up to +150 from day 7, on top of the 150 victory bonus. The daily card's prize includes it ("+225 gold" on a 3-day streak) and the end screen shows a 🔥 Streak bonus row (test). Also checked: the Armory fits one iPhone SE screen.
 - Lancer: "SKEWERED ×n" / "Out of reach!" float above the coin stack instead of on the count (found in a chapter 8 night pass with the Lancer — otherwise clean).

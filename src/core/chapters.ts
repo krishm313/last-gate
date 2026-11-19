@@ -181,6 +181,29 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 2, shield: 1.2, knight: 1.5, wraith: 1.2, crossbow: 1, brute: 1, banner: 0.8, raven: 0.8, imp: 0.6 }, boss: "drowned" },
     ],
   },
+  {
+    id: 9,
+    name: "Bloodmoon Moors",
+    blurb: "The last road runs over the red heath. When the moon bleeds, the horde runs wild.",
+    hpMult: 4.0,
+    speedMult: 1.16,
+    gateDamageMult: 1.4,
+    affixes: ["Blood moon: the horde hits the gate 40% harder", "Wild heath: the horde moves 16% faster"],
+    ground: ["#3a1f2e", "#4a2838"],
+    weatherOdds: { rain: 0.15, fog: 0.3, storm: 0.1 },
+    waves: [
+      { mix: { footman: 2, runner: 2, shield: 1.2, brute: 0.7, banner: 0.6 } },
+      { mix: { knight: 1.3, wraith: 1.3, crossbow: 1, bat: 2, raven: 1 } },
+      { mix: { shield: 2, brute: 1.1, ram: 0.8, sapper: 1.2, tunneler: 1, shaman: 0.8, imp: 0.8 } },
+      { mix: { runner: 3, bat: 2.2, raven: 1.2, goblin: 1.2 }, breather: true },
+      { mix: { knight: 1.6, wraith: 1.6, brute: 1.1, crossbow: 1.2, banner: 0.9 }, boss: "warlord", bossHpMult: 0.5 },
+      { mix: { footman: 2, shield: 2, brute: 1.3, ram: 0.9, sapper: 1.2, tunneler: 1, raven: 1, imp: 0.9 } },
+      { mix: { knight: 1.8, wraith: 1.8, crossbow: 1.5, brute: 1.3, shaman: 1, banner: 0.9 } },
+      { mix: { runner: 3, goblin: 3, bat: 2.2, raven: 1.3, imp: 1.1 }, breather: true },
+      { mix: { shield: 2, knight: 1.8, wraith: 1.8, crossbow: 1.3, ram: 1, brute: 1.3, sapper: 1, shaman: 0.9, banner: 0.9, tunneler: 0.9, imp: 0.9 } },
+      { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.3, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, imp: 0.7 }, boss: "colossus" },
+    ],
+  },
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */

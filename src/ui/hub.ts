@@ -1150,6 +1150,7 @@ const CONFETTI_COLORS: Record<number, string[]> = {
   6: ["#ffd84a", "#bfe8ff", "#6ad0ff", "#4a9cff", "#e8f6ff", "#ffffff"], // Frostpeak: ice
   7: ["#ffd84a", "#ff5a2a", "#ff9a2a", "#ffcf4a", "#b03a2a", "#ffffff"], // Ashen Caldera: embers
   8: ["#ffd84a", "#3ac9b8", "#2a8ac9", "#7be3d0", "#5a6cff", "#ffffff"], // Sunken Citadel: tide
+  9: ["#ffd84a", "#d83a4a", "#8a2a5a", "#ff8a7a", "#5a1a3a", "#ffffff"], // Bloodmoon Moors: crimson + plum
 };
 const CONFETTI_DEFAULT = ["#ffd84a", "#ff7a2a", "#5ec43a", "#4a9cff", "#ff5a8a", "#ffffff"];
 

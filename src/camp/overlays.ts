@@ -166,6 +166,27 @@ export function drawMood(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, mood: n
     }
     ctx.stroke();
     ctx.restore();
+  } else if (mood === 9) {
+    // Bloodmoon Moors: a deep red wash, blood-moon light pouring in from the north that swells
+    // slowly like a heartbeat, and low crimson mist drifting over the heath.
+    ctx.fillStyle = "rgba(110,20,45,0.13)";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    const pulse = 0.75 + 0.25 * Math.sin(time * 0.9);
+    const mg = ctx.createRadialGradient(VIEW_W * 0.72, -140, 40, VIEW_W * 0.72, -140, VIEW_H * 0.75);
+    mg.addColorStop(0, `rgba(255,70,60,${0.32 * pulse})`);
+    mg.addColorStop(0.45, `rgba(200,40,60,${0.12 * pulse})`);
+    mg.addColorStop(1, "rgba(160,20,50,0)");
+    ctx.fillStyle = mg;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    for (let i = 0; i < 4; i++) {
+      const x = ((time * 9 + i * 190) % (VIEW_W + 300)) - 150;
+      const y = 200 + i * 180 + Math.sin(time * 0.35 + i * 1.3) * 26;
+      const g = ctx.createRadialGradient(x, y, 10, x, y, 170);
+      g.addColorStop(0, "rgba(190,60,80,0.16)");
+      g.addColorStop(1, "rgba(190,60,80,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(x - 170, y - 170, 340, 340);
+    }
   } else if (mood === 99) {
     ctx.fillStyle = "rgba(90,40,120,0.12)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
