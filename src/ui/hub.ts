@@ -1,3 +1,4 @@
+import { fairPick, openMinis } from "../mini/fair";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate } from "./settings";
@@ -393,6 +394,7 @@ export class Hub {
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
     ];
+    const fair = fairPick(todayString(), openMinis(save.stars));
     for (const sd of sides) {
       const open = (save.stars[sd.after] ?? 0) > 0;
       const side = el("button", `lgm-side${open ? "" : " locked"}`);
@@ -406,6 +408,7 @@ export class Hub {
       if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
       if (open && rec?.best) lab.append(el("div", "lgm-best", `best ${rec.best}`));
       side.append(lab);
+      if (open && fair === sd.key) side.append(el("div", "lgm-flag lgm-fair", "2× GOLD"));
       side.onclick = () => {
         if (!open) return this.denied(side);
         this.cb.onClick();

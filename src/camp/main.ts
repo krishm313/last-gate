@@ -10,6 +10,8 @@ import { WallWatchView } from "../mini/wallwatchView";
 import { watchReward } from "../mini/wallwatch";
 import { CatapultView } from "../mini/catapultView";
 import { catReward } from "../mini/catapult";
+import { fairPick, openMinis } from "../mini/fair";
+import { todayString as fairDate } from "../core/daily";
 import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -372,6 +374,11 @@ function showMenuSettings() {
   );
 }
 
+/** Fair day: today's featured mini-game pays double gold. */
+function fairGold(key: string, gold: number): number {
+  return fairPick(fairDate(), openMinis(save.stars)) === key ? gold * 2 : gold;
+}
+
 // ---- Archery Range (side stop on the map). ----
 const archery = new ArcheryView(
   uiRoot,
@@ -379,6 +386,7 @@ const archery = new ArcheryView(
     const prev = save.mini.archery ?? { best: 0, stars: 0 };
     const r = rangeReward(score, prev.stars);
     save.mini.archery = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    r.gold = fairGold("archery", r.gold);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -395,6 +403,7 @@ const supply = new SupplyView(
     const prev = save.mini.supply ?? { best: 0, stars: 0 };
     const r = supplyReward(score, prev.stars);
     save.mini.supply = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    r.gold = fairGold("supply", r.gold);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -411,6 +420,7 @@ const wallWatch = new WallWatchView(
     const prev = save.mini.watch ?? { best: 0, stars: 0 };
     const r = watchReward(score, prev.stars);
     save.mini.watch = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    r.gold = fairGold("watch", r.gold);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -427,6 +437,7 @@ const catapult = new CatapultView(
     const prev = save.mini.catapult ?? { best: 0, stars: 0 };
     const r = catReward(score, prev.stars);
     save.mini.catapult = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    r.gold = fairGold("catapult", r.gold);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
