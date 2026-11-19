@@ -30,6 +30,15 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **6th hero: The Lancer** (polish ran dry after sweeps 4–5: ch1 run, end screens, ch6/7 at night) —
+  uses the unused painted "spearman" art; unlocked at 18★ (24 max). Passive "Long reach": hero melee
+  range +35%. Ability **Charge** (cd 18 s): dashes up to 170 px toward the densest foe cluster in
+  front, dealing 3× hero damage to every walker within 34 px of the path and knocking them back;
+  bosses take the damage but aren't knocked. Sim moves the hero (deterministic), emits an ability
+  event; render draws a dust trail + streak and "CHARGE!". New `charged` stat + achievement
+  "Unstoppable" (hit 300 foes with Charge). Slices: (1) sim + data + test, (2) look: trail, portrait
+  cut from the sprite, hub card, (3) campsim check that the hero isn't stronger than the Warden.
+
 - **Tower specialisations** — at Lv 3 each archer tower picks a path (game waits on a 3-card choice,
   like blessings): Fire (burn 45% of hit dmg over 3 s), Frost (40% slow 1.6 s, 0.9× dmg),
   Volley (+2 arrows at nearby foes, 0.55× dmg). Permanent per tower. Bot rotates paths for campsim.
