@@ -10,11 +10,13 @@ import { RenderInterp } from "./interp";
 import { crispCache, crispStats } from "./sprites";
 import type { GameEvent } from "../core/events";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, heroUnlocked, nextEndlessMilestone, PERMS } from "../core/meta";
+import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, nextEndlessMilestone, PERMS } from "../core/meta";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
 import { campBotInput, campBotPick, campBotStep } from "./bot";
+import { HERO_BY_ID } from "../core/heroes";
+import { learnSkill, resetSkills } from "../core/skills";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
@@ -108,6 +110,18 @@ const hub = new Hub(uiRoot, {
     hub.showHub(save, "trophies");
   },
   onQuestsChanged: () => writeSave(save),
+  onLearnSkill: (hero, id) => {
+    if (learnSkill(save.heroes[hero], id)) {
+      writeSave(save);
+      sfx.play({ type: "upgrade", id });
+    }
+    hub.showHub(save, "heroes");
+  },
+  onResetSkills: (hero) => {
+    resetSkills(save.heroes[hero]);
+    writeSave(save);
+    hub.showHub(save, "heroes");
+  },
   onSettings: () => showMenuSettings(),
   onReset: () => {
     save = resetSave();
@@ -208,6 +222,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
   knownTrophies = new Set(claimable(save).map((a) => a.id));
   refreshQuests(save);
+  nightsThisRun = 0;
   knownQuests = new Set(questViews(save).filter((v) => v.done).map((v) => v.slot.id));
   flawlessWaves = 0;
   specChoosing = false;
@@ -333,6 +348,11 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   // Record whether this run beat the lifetime best streak (shown on the end screen).
   streakIsBest = renderer.bestStreak >= 10 && renderer.bestStreak > (save.stats.bestStreak ?? 0);
   save.stats.bestStreak = Math.max(save.stats.bestStreak ?? 0, renderer.bestStreak);
+  // Nights held go to the hero as skill-tree XP.
+  const heroId = dailyRun ? dailyRun.hero : save.hero;
+  const pts = grantHeroXp(save, heroId, nightsThisRun);
+  newSkillPoints = pts > 0 ? { hero: HERO_BY_ID[heroId].name, n: pts } : null;
+  nightsThisRun = 0;
   if (dailyRun) return finishDaily(c, won, abandoned, dailyRun);
   const prevBest = save.best[c.chapter.id] ?? 0;
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
@@ -347,7 +367,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
     reward,
     () => newRun(chapterId),
     () => goHub("armory"),
@@ -391,7 +411,7 @@ function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChalleng
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), questsReady: questsReady(save) },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
     reward,
     () => startDaily(),
     () => goHub("battle"),
@@ -517,6 +537,9 @@ let lastCoinAt = 0;
 /** Lifetime stats for achievements (saved with the next run result). */
 /** Trophies already claimable/claimed when we last looked, so new ones can be announced in-run. */
 let knownTrophies = new Set<string>();
+/** Nights held this run (hero skill XP) and skill points the last run earned (end screen). */
+let nightsThisRun = 0;
+let newSkillPoints: { hero: string; n: number } | null = null;
 /** Quests already finished when we last looked (a newly finished one gets a toast mid-run). */
 let knownQuests = new Set<string>();
 function announceTrophies(): void {
@@ -536,7 +559,10 @@ function announceTrophies(): void {
 
 function trackStats(ev: CampEvent) {
   const add = (k: string, n = 1) => (save.stats[k] = (save.stats[k] ?? 0) + n);
-  if (ev.type === "waveClear") add("wavesHeld");
+  if (ev.type === "waveClear") {
+    add("wavesHeld");
+    nightsThisRun += 1;
+  }
   else if (ev.type === "build" && ev.kind === "tower" && ev.level === 1) add("towersBuilt");
   else if (ev.type === "logsDelivered") add("logs", ev.n);
   else if (ev.type === "forged") add("bows");

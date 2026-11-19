@@ -6,6 +6,7 @@ import { DAILY_BONUS, dailyFor, liveDailyStreak, timeToNextDaily, todayString } 
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
+import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
 import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
@@ -34,6 +35,9 @@ export interface HubCallbacks {
   onBuy: (permId: string) => void;
   onReset: () => void;
   onClaim: (id: string) => void;
+  /** Learn / reset a hero skill (Heroes tab). */
+  onLearnSkill?: (hero: HeroId, id: string) => void;
+  onResetSkills?: (hero: HeroId) => void;
   /** Claimed a finished daily / weekly quest. */
   onClaimQuest: (id: string) => void;
   /** New quests were handed out (the save should be written). */
@@ -49,6 +53,8 @@ export interface RunSummary {
   upgradesReady?: number;
   /** Finished quests waiting on the Trophies tab. */
   questsReady?: number;
+  /** Skill points the run's hero just earned. */
+  skillPoints?: { hero: string; n: number };
   /** Hall HP left at the end, 0..100 (for the "next star" hint). */
   hallPct?: number;
   chapterName: string;
@@ -77,6 +83,7 @@ type Tab = "battle" | "heroes" | "armory" | "trophies";
 export class Hub {
   readonly overlay = el("div", "overlay hub-overlay");
   private tab: Tab = "battle";
+  private justLearned: string | null = null;
   private renderedTab: Tab | null = null;
   /** Perm just bought (and what it cost), celebrated on the next render. */
   private justBought: { id: string; cost: number } | null = null;
@@ -150,6 +157,7 @@ export class Hub {
       const affordable = PERMS.filter((p) => canBuy(save, p.id)).length;
       if (id === "armory" && affordable) t.append(el("span", "tab-badge", String(affordable)));
       if (id === "heroes" && freshHeroes(save).length) t.append(el("span", "tab-badge", "NEW"));
+      else if (id === "heroes" && HEROES.some((h) => heroUnlocked(save, h.id) && freePoints(save.heroes[h.id]) > 0)) t.append(el("span", "tab-badge", "⭐"));
       t.setAttribute("aria-label", `${names[id]}${extra}${id === "armory" && affordable ? `, ${affordable} affordable` : ""}`);
       tabs.append(t);
     }
@@ -428,6 +436,8 @@ export class Hub {
         bar.append(fill);
         info.append(el("div", "hero-lock", `🔒 ${have} / ${h.starsToUnlock} ★ to unlock`), bar);
       }
+      const pts = unlocked ? freePoints(save.heroes[h.id]) : 0;
+      if (pts > 0) info.append(el("div", "lgs-pts-chip", `★ ${pts} skill point${pts > 1 ? "s" : ""} to spend`));
       card.append(portrait, info);
       if (unlocked && !selected)
         card.onclick = () => {
@@ -437,8 +447,54 @@ export class Hub {
         };
       else if (!unlocked) card.onclick = () => this.denied(card);
       body.append(card);
+      if (selected) body.append(this.skillPanel(save, h.id));
     }
     this.justPicked = null;
+  }
+
+  /** The selected hero's skill tree: XP toward the next point, then three branches of three. */
+  private skillPanel(save: SaveData, hero: HeroId): HTMLElement {
+    const p = save.heroes[hero];
+    const panel = el("div", "lgs-panel");
+    const head = el("div", "lgs-head");
+    const next = nextSkillThreshold(p.xp);
+    const pts = freePoints(p);
+    head.append(el("div", "lgs-title", `${HERO_BY_ID[hero].name}'s skills`), el("div", `lgs-pts${pts ? " has" : ""}`, `★ ${pts}`));
+    panel.append(head);
+    const bar = el("div", "trophy-bar lgs-xp");
+    const fill = el("div", "trophy-fill");
+    const prev = [0, 5, 15, 30, 50, 75, 105, 140, 180, 225].filter((t) => t <= p.xp).pop() ?? 0;
+    fill.style.width = next ? `${((p.xp - prev) / (next - prev)) * 100}%` : "100%";
+    bar.append(fill, el("div", "trophy-num", next ? `${p.xp} / ${next} nights · next skill point` : `${p.xp} nights · all points earned`));
+    panel.append(bar);
+    const grid = el("div", "lgs-grid");
+    for (const b of SKILL_BRANCHES) {
+      const col = el("div", "lgs-col");
+      col.append(el("div", "lgs-branch", `${b.icon} ${b.name}`));
+      for (const sk of SKILLS.filter((x) => x.branch === b.id).sort((x, y) => x.tier - y.tier)) {
+        const learned = p.skills.includes(sk.id);
+        const can = canLearn(p, sk.id);
+        const node = el("button", `lgs-node${learned ? " learned" : can ? " can" : ""}${this.justLearned === sk.id ? " just" : ""}`);
+        node.append(el("div", "lgs-icon", sk.icon), el("div", "lgs-name", sk.name), el("div", "lgs-desc", sk.desc));
+        node.setAttribute("aria-label", `${sk.name}: ${sk.desc}${learned ? ", learned" : can ? ", tap to learn" : ""}`);
+        if (can)
+          node.onclick = () => {
+            this.cb.onClick();
+            this.justLearned = sk.id;
+            this.cb.onLearnSkill?.(hero, sk.id);
+          };
+        else if (!learned) node.onclick = () => this.denied(node);
+        col.append(node);
+      }
+      grid.append(col);
+    }
+    panel.append(grid);
+    const foot = el("div", "lgs-foot");
+    foot.append(el("span", "", "Earn skill points by surviving nights with this hero."));
+    if (p.skills.length) foot.append(this.button("Reset", "btn btn-ghost btn-mini lgs-reset", () => this.cb.onResetSkills?.(hero)));
+    panel.append(foot);
+    this.justLearned = null;
+    return panel;
   }
 
   private armoryTab(body: HTMLElement, save: SaveData): void {
@@ -616,6 +672,7 @@ export class Hub {
     if (r.dailyStreak && r.dailyStreak >= 2) box.append(el("div", "end-unlock end-record", `🔥 ${r.dailyStreak}-day streak!`));
     if (reward.firstClear && r.chapterId < CHAPTERS.length) box.append(el("div", "end-unlock", `🔓 Chapter ${r.chapterId + 1} unlocked!`));
     for (const h of reward.unlockedHeroes) box.append(el("div", "end-unlock", `🔓 New hero: ${HERO_BY_ID[h].name}!`));
+    if (r.skillPoints) box.append(el("div", "end-unlock end-record", `⭐ ${r.skillPoints.hero}: +${r.skillPoints.n} skill point${r.skillPoints.n > 1 ? "s" : ""} — spend it in Heroes`));
     if (r.questsReady) box.append(el("div", "end-unlock lgq-end", `📜 ${r.questsReady} quest${r.questsReady === 1 ? "" : "s"} ready to claim in Trophies`));
     box.querySelectorAll<HTMLElement>(".end-unlock").forEach((u, i) => u.style.setProperty("--d", `${0.45 + nRows * 0.07 + i * 0.15}s`));
     const btns = el("div", "btn-col");

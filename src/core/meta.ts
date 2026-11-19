@@ -1,6 +1,7 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
+import { newHeroProgress, sanitizeHeroProgress, skillPoints, type HeroProgress } from "./skills";
 
 /** Permanent upgrades bought with gold between runs. */
 export interface PermDef {
@@ -60,10 +61,12 @@ export interface SaveData {
   claimed: string[];
   /** Daily / weekly quests handed out (see quests.ts). */
   quests: QuestState;
+  /** Per-hero XP (nights survived) and learned skills. */
+  heroes: Record<HeroId, HeroProgress>;
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState() };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress() };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -91,6 +94,10 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stats))) d.stats[k] = Math.max(0, Math.floor(num(v, 0)));
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
+  const rawHeroes = (r as { heroes?: unknown }).heroes;
+  d.heroes = sanitizeHeroProgress(rawHeroes);
+  // Saves from before skill trees: the nights already survived count for the current hero.
+  if (rawHeroes === undefined && (raw as { version?: unknown }).version !== undefined) d.heroes[d.hero].xp = d.stats.wavesHeld ?? 0;
   d.quests = sanitizeQuests((r as { quests?: unknown }).quests);
   if (dl && typeof dl.date === "string") d.daily = { date: dl.date, best: Math.max(0, Math.floor(num(dl.best, 0))), won: dl.won === true };
   return d;
@@ -195,4 +202,12 @@ export function applyRun(s: SaveData, r: RunResult): RunReward {
     newStars: totalStars(s) - before,
     unlockedHeroes: HEROES.filter((h) => heroUnlocked(s, h.id) && !heroesBefore.includes(h.id)).map((h) => h.id),
   };
+}
+
+/** Nights survived in a run go to the hero who held them. Returns skill points newly earned. */
+export function grantHeroXp(s: SaveData, hero: HeroId, nights: number): number {
+  const p = s.heroes[hero];
+  const before = skillPoints(p.xp);
+  p.xp += Math.max(0, Math.floor(nights));
+  return skillPoints(p.xp) - before;
 }

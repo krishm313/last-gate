@@ -97,7 +97,16 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   30 gold × the night (night 5: 150, 10: 300, …), paid at the end of the run (end screen row
   "Milestone: night 5"); toast in-run when one is reached; the Endless card shows the next target.
 
+- **Hero skill trees** (Phase 3) — every night survived gives that hero 1 XP; points at 5, 15,
+  30, 50, 75, 105, 140, 180, 225 nights (9 total = the whole tree). Three branches learned in
+  order: Might (dmg +8% → crit +4% → ability −15% cooldown), Guard (HP +15% → wall +8% → soldiers
+  +20%), Fortune (carry +10/magnet → move +8% → +10 start coins & income +10%). Free reset. Panel
+  under the selected hero on the Heroes tab (green learned, glowing learnable, grey locked), ★ chip
+  on heroes with points, ★ badge on the tab, end screen announces new points. Old saves: nights
+  already survived credit the current hero. campsim ch1 100% (bot has no skills).
+
 ## Shipped (newest first)
+- Hero skill trees: XP from nights survived, 3 branches × 3 skills per hero, Heroes tab panel, end-screen notice (tests).
 - Endless milestones: one-time gold for every 5 nights held, next-target line on the Endless card (test).
 - Quests slice 2: "📜 Quest complete" toast mid-run; end screen says how many quests are ready to claim.
 - Daily & weekly quests on the Trophies tab (rotate by date, claim for gold; save migration + tests).

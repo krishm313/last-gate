@@ -1,5 +1,6 @@
 import { HERO_BY_ID, type HeroId } from "../core/heroes";
 import type { SaveData } from "../core/meta";
+import { skillMods } from "../core/skills";
 import { baseMods } from "./blessings";
 import type { CampSetup } from "./sim";
 
@@ -39,5 +40,18 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   s.heroLook = h.look;
   s.ability = HERO_BY_ID[hero].ability;
   s.abilityCooldown = HERO_BY_ID[hero].cooldown;
+  // Hero skill tree.
+  const k = skillMods(save.heroes?.[hero]?.skills ?? []);
+  m.heroDamage *= k.heroDamage;
+  s.critChance! += k.critChance;
+  s.abilityCooldown *= k.abilityCooldown;
+  m.heroHp *= k.heroHp;
+  m.wallHp *= k.wallHp;
+  m.allyPower *= k.allyPower;
+  m.carry += k.carry;
+  m.magnet *= k.magnet;
+  m.heroSpeed *= k.heroSpeed;
+  s.startCoins! += k.startCoins;
+  m.income *= k.income;
   return s;
 }
