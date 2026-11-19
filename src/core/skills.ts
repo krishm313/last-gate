@@ -19,6 +19,10 @@ export interface SkillMods {
   heroSpeed: number;
   startCoins: number;
   income: number;
+  /** Capstones. */
+  bossDamage: number;
+  hallArmor: number;
+  drops: number;
 }
 
 export interface SkillDef {
@@ -47,13 +51,16 @@ export const SKILLS: SkillDef[] = [
   { id: "rally", branch: "guard", tier: 3, name: "Rally Cry", icon: "📯", desc: "Soldiers +20% HP and damage", apply: (m) => { m.allyPower *= 1.2; } },
   { id: "purse", branch: "fortune", tier: 1, name: "Deep Purse", icon: "🎒", desc: "Carry +10 coins, wider magnet", apply: (m) => { m.carry += 10; m.magnet *= 1.15; } },
   { id: "stride", branch: "fortune", tier: 2, name: "Long Stride", icon: "👢", desc: "Move 8% faster", apply: (m) => { m.heroSpeed *= 1.08; } },
+  { id: "executioner", branch: "might", tier: 4, name: "Executioner", icon: "🪓", desc: "+20% damage to bosses", apply: (m) => { m.bossDamage *= 1.2; } },
+  { id: "bulwark", branch: "guard", tier: 4, name: "Bulwark", icon: "🏰", desc: "The hall takes 15% less damage", apply: (m) => { m.hallArmor *= 0.85; } },
+  { id: "midas", branch: "fortune", tier: 4, name: "Midas", icon: "✨", desc: "Foes drop 15% more coins", apply: (m) => { m.drops *= 1.15; } },
   { id: "mint", branch: "fortune", tier: 3, name: "Royal Mint", icon: "👑", desc: "Start with +10 coins, hall income +10%", apply: (m) => { m.startCoins += 10; m.income *= 1.1; } },
 ];
 
 export const SKILL_BY_ID: Record<string, SkillDef> = Object.fromEntries(SKILLS.map((s) => [s.id, s]));
 
 /** Total nights survived with a hero needed for each skill point. */
-export const SKILL_THRESHOLDS = [5, 15, 30, 50, 75, 105, 140, 180, 225];
+export const SKILL_THRESHOLDS = [5, 15, 30, 50, 75, 105, 140, 180, 225, 280, 340, 400];
 
 export interface HeroProgress {
   xp: number;
@@ -96,7 +103,7 @@ export function resetSkills(p: HeroProgress): void {
 
 /** Combined effect of a hero's learned skills (multipliers start at 1, additions at 0). */
 export function skillMods(skills: string[]): SkillMods {
-  const m: SkillMods = { heroDamage: 1, critChance: 0, abilityCooldown: 1, heroHp: 1, wallHp: 1, allyPower: 1, carry: 0, magnet: 1, heroSpeed: 1, startCoins: 0, income: 1 };
+  const m: SkillMods = { heroDamage: 1, critChance: 0, abilityCooldown: 1, heroHp: 1, wallHp: 1, allyPower: 1, carry: 0, magnet: 1, heroSpeed: 1, startCoins: 0, income: 1, bossDamage: 1, hallArmor: 1, drops: 1 };
   for (const id of skills) SKILL_BY_ID[id]?.apply(m);
   return m;
 }

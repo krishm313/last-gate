@@ -59,5 +59,8 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   m.heroSpeed *= k.heroSpeed;
   s.startCoins! += k.startCoins;
   m.income *= k.income;
+  m.bossDamage *= k.bossDamage;
+  m.hallArmor *= k.hallArmor;
+  m.drops *= k.drops;
   return s;
 }

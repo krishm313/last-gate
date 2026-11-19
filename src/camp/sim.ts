@@ -1290,7 +1290,7 @@ const SRC: Record<string, string> = { tower: "towers", hero: "hero", catapult: "
 function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false, src?: string): void {
   const red = reduction(e);
   if (red >= 1) return;
-  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1) * (e.snared && e.snared > 0 ? SNARE.vuln : 1);
+  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1) * (e.snared && e.snared > 0 ? SNARE.vuln : 1) * (e.def.boss ? c.mods.bossDamage : 1);
   if (e.shield && e.shield > 0) {
     // The Shielded elite's barrier soaks damage first.
     e.shield -= dmg;
@@ -1382,7 +1382,7 @@ function damageHero(c: Camp, raw: number): void {
 }
 
 function damageHall(c: Camp, raw: number, x: number, y: number): void {
-  const dmg = raw * c.chapter.gateDamageMult;
+  const dmg = raw * c.chapter.gateDamageMult * c.mods.hallArmor;
   c.hallHp -= dmg;
   c.events.push({ type: "hallHit", x, y, damage: Math.round(dmg) });
 }

@@ -105,3 +105,20 @@ describe("new armory upgrades", () => {
     expect(sanitizeSave({ perms: { arcanum: 99 } }).perms.arcanum).toBe(5);
   });
 });
+
+describe("skill capstones", () => {
+  it("unlock after tier 3 with the extra points and reach the run", () => {
+    const s = newSave();
+    const p = s.heroes.ranger;
+    p.xp = 400; // 12 points
+    for (const id of ["edge", "aim", "focus"]) learnSkill(p, id);
+    expect(canLearn(p, "executioner")).toBe(true);
+    expect(canLearn(p, "bulwark")).toBe(false); // guard tier 3 not learned
+    learnSkill(p, "executioner");
+    for (const id of ["tough", "mortar", "rally", "bulwark"]) learnSkill(p, id);
+    const m = campSetupFromSave(s).mods!;
+    expect(m.bossDamage).toBeCloseTo(1.2);
+    expect(m.hallArmor).toBeCloseTo(0.85);
+    expect(skillPoints(400)).toBe(12);
+  });
+});

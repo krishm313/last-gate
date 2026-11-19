@@ -7,7 +7,7 @@ import { DAILY_BONUS, dailyFor, liveDailyStreak, timeToNextDaily, todayString } 
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
-import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
+import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
 import { weekNumber } from "../core/quests";
 import { endlessTwistFor } from "../core/endlessMods";
@@ -606,7 +606,7 @@ export class Hub {
         // Skill progress at a glance for the heroes you're not playing.
         const xp = save.heroes[h.id].xp;
         const nx = nextSkillThreshold(xp);
-        const prev = [0, 5, 15, 30, 50, 75, 105, 140, 180, 225].filter((t) => t <= xp).pop() ?? 0;
+        const prev = [0, ...SKILL_THRESHOLDS].filter((t) => t <= xp).pop() ?? 0;
         const bar = el("div", "lgs-mini");
         const fill = el("i", "");
         fill.style.width = nx ? `${((xp - prev) / (nx - prev)) * 100}%` : "100%";
@@ -666,7 +666,7 @@ export class Hub {
     panel.append(head);
     const bar = el("div", "trophy-bar lgs-xp");
     const fill = el("div", "trophy-fill");
-    const prev = [0, 5, 15, 30, 50, 75, 105, 140, 180, 225].filter((t) => t <= p.xp).pop() ?? 0;
+    const prev = [0, ...SKILL_THRESHOLDS].filter((t) => t <= p.xp).pop() ?? 0;
     fill.style.width = next ? `${((p.xp - prev) / (next - prev)) * 100}%` : "100%";
     bar.append(fill, el("div", "trophy-num", next ? `${p.xp} / ${next} nights · next skill point` : `${p.xp} nights · all points earned`));
     panel.append(bar);

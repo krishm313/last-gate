@@ -211,6 +211,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
 
 ## Shipped (newest first)
+- Hero skill capstones: 3 more skill points (280 / 340 / 400 nights) and a tier-4 skill per branch — Executioner (+20% vs bosses), Bulwark (hall takes −15%), Midas (+15% coins) (test).
 - Hub header shows trophies claimed (🏆 x/N) beside stars. Checked chapters 2–5 by day and night against the newer polish: consistent (ch4's drifting grave mist is intended).
 - Blessing cards: combo badges also show the building a blessing needs ("COMBO 🦅 + 🗼"); Hawkeye gets its own 👁️ icon (it shared Eagle Towers' 🦅). Checked the new blessing cards on the pick screen.
 - Endless twist #7 "Tidal Week" (a tide rolls in every 14 s at night, slowing you and the horde; coins +15%) — joins the rotation from Mon 23 Nov so the current week keeps its twist. Bug sweep 3 (ch8 + Warden, ch5 Hard): clean.
