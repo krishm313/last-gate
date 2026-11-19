@@ -6,8 +6,8 @@ import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
-import { ENEMIES } from "../core/enemies";
-import { ACHIEVEMENTS, claimable, heroHasWon } from "../core/achievements";
+import { ENEMIES, enemyTraits } from "../core/enemies";
+import { ACHIEVEMENTS, claimable, foeMet, foesMet, heroHasWon } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
 import { weekNumber } from "../core/quests";
@@ -562,8 +562,33 @@ export class Hub {
       grid.append(cell);
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
+    this.bestiarySection(body, save);
     this.historySection(body, save);
     this.endlessTopSection(body, save);
+  }
+
+  /** Bestiary: every kind of foe, revealed once you've slain one. */
+  private bestiarySection(body: HTMLElement, save: SaveData): void {
+    const ids = Object.keys(ENEMIES) as (keyof typeof ENEMIES)[];
+    body.append(el("div", "hub-hint records-title", `📖 Bestiary · ${foesMet(save)} / ${ids.length}`));
+    const grid = el("div", "lgb-grid");
+    for (const id of ids) {
+      const d = ENEMIES[id];
+      const met = foeMet(save, id);
+      const tile = el("div", `lgb-tile${met ? "" : " lgb-unmet"}${d.boss ? " lgb-boss" : ""}`);
+      const art = el("div", "lgb-art");
+      const pic = FOE_PORTRAIT[id];
+      if (met && pic) {
+        const img = document.createElement("img");
+        img.src = `./sprites/portraits/${pic}.png`;
+        img.alt = "";
+        art.append(img);
+      } else art.textContent = met ? FOE_EMOJI[id] ?? "👹" : "❔";
+      tile.append(art, el("div", "lgb-name", met ? d.name.replace(/^The /, "") : "???"));
+      if (met) tile.append(el("div", "lgb-traits", enemyTraits(d).slice(0, 2).join(" · ")));
+      grid.append(tile);
+    }
+    body.append(grid);
   }
 
   /** Best Endless sieges ever. */
@@ -1189,6 +1214,17 @@ export function fmtGold(n: number): string {
   if (n < 1_000_000) return `${Math.floor(n / 1000)}k`;
   return `${(Math.floor(n / 100_000) / 10).toFixed(1)}M`;
 }
+
+/** Bestiary art: painted portraits where they exist, emoji for the rest. */
+const FOE_PORTRAIT: Record<string, string> = {
+  footman: "enemy_footman", runner: "enemy_footman", banner: "enemy_footman", shield: "enemy_shield", brute: "enemy_brute",
+  crossbow: "enemy_crossbow", knight: "enemy_knight", shaman: "enemy_shaman", wraith: "enemy_wraith", sapper: "enemy_sapper",
+  tunneler: "enemy_sapper", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", hag: "elite_mage",
+};
+const FOE_EMOJI: Record<string, string> = {
+  bat: "🦇", raven: "🐦‍⬛", imp: "👺", ram: "🪵", ogre: "👹", troll: "🧌", golem: "🗿", dragon: "🐉", colossus: "🛡️",
+  frostwyrm: "❄️", magma: "🌋", drowned: "🔱", warlord: "⚔️", bloodlord: "🌕",
+};
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */
 const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱" };

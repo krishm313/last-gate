@@ -1162,3 +1162,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Armory capstone (Royal Legacy) before every other upgrade is maxed: dimmed, not tappable. */
 .perm.lgl-locked { opacity: 0.55; filter: saturate(0.5); }
 .perm.lgl-locked .perm-cost { font-size: calc(11 * var(--tu)); }
+/* Trophies tab: Bestiary tiles (a portrait or emoji, the name, two traits; unmet foes are hidden). */
+.lgb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(6 * var(--u)); }
+.lgb-tile { background: linear-gradient(#3a2e52, #231a38); border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(12 * var(--u)); box-shadow: inset 0 calc(2 * var(--u)) 0 #ffffff20, 0 calc(3 * var(--u)) 0 #1d1208; padding: calc(5 * var(--u)) calc(4 * var(--u)) calc(6 * var(--u)); text-align: center; color: #fff; min-height: calc(92 * var(--u)); }
+.lgb-tile.lgb-boss { background: linear-gradient(#5a2a2a, #331616); }
+.lgb-tile.lgb-unmet { background: #15111f; opacity: 0.7; }
+.lgb-art { height: calc(40 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(26 * var(--tu)); }
+.lgb-art img { height: 100%; width: auto; image-rendering: auto; filter: drop-shadow(0 calc(2 * var(--u)) 0 #1d1208); }
+.lgb-name { font-weight: 900; font-size: calc(11 * var(--tu)); line-height: 1.15; margin-top: calc(3 * var(--u)); }
+.lgb-traits { font-size: calc(8.5 * var(--tu)); opacity: 0.75; line-height: 1.2; margin-top: calc(2 * var(--u)); }
