@@ -37,6 +37,28 @@ describe("quests", () => {
     expect(seenFresh.has("w-flawless") && seenFresh.has("w-logs")).toBe(true);
   });
 
+  it("adds the late-chapter weekly from the week of 2026-11-30, only for players past chapter 7", () => {
+    const vet = newSave();
+    vet.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 1 };
+    const fresh = newSave();
+    const before = weekNumber("2026-11-23");
+    expect(weeklyPick(before, vet)).not.toBe("w-late");
+    const seenVet = new Set<string>();
+    const seenFresh = new Set<string>();
+    for (let w = before + 1; w < before + 200; w++) { seenVet.add(weeklyPick(w, vet)); seenFresh.add(weeklyPick(w, fresh)); }
+    expect(seenVet.has("w-late")).toBe(true);
+    expect(seenFresh.has("w-late")).toBe(false);
+  });
+
+  it("counts late-chapter wins for that quest", async () => {
+    const { applyRun } = await import("../src/core/meta");
+    const s = newSave();
+    applyRun(s, { chapter: 6, won: true, wave: 10, gateFrac: 0.9, goldFromKills: 0 });
+    applyRun(s, { chapter: 8, won: true, wave: 10, gateFrac: 0.9, goldFromKills: 0 });
+    applyRun(s, { chapter: 9, won: false, wave: 4, gateFrac: 0, goldFromKills: 0 });
+    expect(s.stats.lateWins).toBe(1);
+  });
+
   it("tracks progress from when the quest was handed out, then pays once", () => {
     const s = newSave();
     s.stats.kills = 500;

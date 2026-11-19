@@ -201,6 +201,8 @@ export function nextEndlessMilestone(s: SaveData): number {
 
 /** Applies a finished run to the save and returns what was earned. */
 export function applyRun(s: SaveData, r: RunResult): RunReward {
+  // Late-campaign wins (chapter 7 onward, any difficulty) feed a weekly quest.
+  if (r.won && r.chapter >= 7 && r.chapter !== ENDLESS_ID) s.stats.lateWins = (s.stats.lateWins ?? 0) + 1;
   // Endless pays like a mid-campaign chapter per wave held.
   const diff = DIFF_BY_ID[r.chapter === ENDLESS_ID ? "normal" : r.difficulty ?? "normal"];
   if (diff.rank > 0) return applyHardRun(s, r, diff.rank, diff.gold);

@@ -46,10 +46,15 @@ export const WEEKLY_QUESTS: QuestDef[] = [
   { id: "w-elites", icon: "🎖️", desc: "Defeat 30 elite foes this week", stat: "elites", goal: 30, reward: 450 },
   { id: "w-flawless", icon: "✨", desc: "Hold 10 flawless nights this week", stat: "flawlessWaves", goal: 10, reward: 450 },
   { id: "w-logs", icon: "🪓", desc: "Deliver 500 logs this week", stat: "logs", goal: 500, reward: 400 },
+  // From the week starting Mon 2026-11-30.
+  { id: "w-late", icon: "🌋", desc: "Win 2 runs in chapter 7+ this week", stat: "lateWins", goal: 2, reward: 650 },
 ];
 /** Weekly quests in the rotation before the newer ones joined (keeps the current week stable). */
 const ORIGINAL_WEEKLY = 5;
 const WEEKLY_EXPANDED_FROM = "2026-11-23";
+/** Weekly quests in the rotation from WEEKLY_EXPANDED_FROM until the next batch joined. */
+const WEEKLY_SECOND = 8;
+const WEEKLY_EXPANDED_2 = "2026-11-30";
 
 const BY_ID: Record<string, QuestDef> = Object.fromEntries([...DAILY_QUESTS, ...WEEKLY_QUESTS].map((q) => [q.id, q]));
 
@@ -98,6 +103,7 @@ export function questEligible(s: SaveData | null, id: string): boolean {
   const cleared = Object.values(s.stars).some((v) => v > 0);
   if (id === "d-elites" || id === "d-hard" || id === "w-elites") return cleared;
   if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
+  if (id === "w-late") return (s.stars[7] ?? 0) > 0; // has beaten chapter 7 once already
   return true;
 }
 
@@ -115,7 +121,8 @@ export function dailyPicks(date: string, s: SaveData | null = null): string[] {
 }
 
 export function weeklyPick(week: number, s: SaveData | null = null): string {
-  const pool = (week >= weekNumber(WEEKLY_EXPANDED_FROM) ? WEEKLY_QUESTS : WEEKLY_QUESTS.slice(0, ORIGINAL_WEEKLY)).filter((q) => questEligible(s, q.id));
+  const size = week >= weekNumber(WEEKLY_EXPANDED_2) ? WEEKLY_QUESTS.length : week >= weekNumber(WEEKLY_EXPANDED_FROM) ? WEEKLY_SECOND : ORIGINAL_WEEKLY;
+  const pool = WEEKLY_QUESTS.slice(0, size).filter((q) => questEligible(s, q.id));
   return pool[hash(week * 7919) % pool.length]!.id;
 }
 
