@@ -231,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Endless: 8th weekly twist **Mist Week** 🌫️ (fog most nights cuts tower range; hero +25% damage, coins +10%), joining from Mon 2026-11-30 so this week (Elite) and next (Gold Rush) are unchanged; first comes round the week of 4 Jan. Test covers the gating.
 - The Lancer is drawn at body height matching the other heroes (his raised spear made him look a size smaller and left the Golden Halo floating above his head). Flair checked on all 6 heroes.
 - Balance check, King vs Lancer (campsim, 10 runs each, win %): L5 ch1–8 King 100/100/100/60/10/20/0/0 · Lancer 100/100/90/70/20/40/0/20; L10 King 100/100/100/100/100/70/40/40 · Lancer 100/100/100/100/70/70/40/70. On par within noise — no change.
 - New loss tip for every hero: if you used your ability fewer times than nights survived (from night 3), the end screen names it — "Piercing Lance recharges fast — tap it whenever foes bunch up. You used it 1 time in 5 nights." Casts are tracked in runStats.

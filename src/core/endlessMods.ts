@@ -30,13 +30,15 @@ export const ENDLESS_TWISTS: EndlessTwist[] = [
   { id: "elite", name: "Elite Week", icon: "👑", desc: "Elite foes from night 1 (12%) · coins +20%", eliteChance: 0.12, drops: 1.2 },
   { id: "tidal", name: "Tidal Week", icon: "🌊", desc: "The tide rolls in every 14s at night — it slows you and the horde alike · coins +15%", tideEvery: 14, drops: 1.15 },
   { id: "hero", name: "Hero's Week", icon: "🗡️", desc: "Your hero +40% damage, towers −20%", heroDamage: 1.4, towerDamage: 0.8 },
+  { id: "mist", name: "Mist Week", icon: "🌫️", desc: "Fog most nights cuts tower range — hero +25% damage · coins +10%", weatherOdds: { rain: 0.05, fog: 0.6, storm: 0 }, heroDamage: 1.25, drops: 1.1 },
 ];
 
 /** The twist for the week containing `date` (YYYY-MM-DD). */
 export function endlessTwistFor(date = todayString()): EndlessTwist {
   const w = weekNumber(date);
-  // Tidal Week joins the rotation from Monday 23 Nov 2026 (so the week in progress keeps its twist).
-  const list = date >= "2026-11-23" ? ENDLESS_TWISTS : ENDLESS_TWISTS.filter((t) => t.id !== "tidal");
+  // Newer twists join from a Monday, so the week in progress always keeps its twist:
+  // Tidal Week from 23 Nov 2026, Mist Week from 30 Nov 2026.
+  const list = ENDLESS_TWISTS.filter((t) => (t.id !== "tidal" || date >= "2026-11-23") && (t.id !== "mist" || date >= "2026-11-30"));
   const n = list.length;
   return list[((w % n) + n) % n]!;
 }

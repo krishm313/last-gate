@@ -153,9 +153,13 @@ describe("endless weekly twists", async () => {
     expect(sun.id).toBe(mon.id);
     expect(next.id).not.toBe(mon.id);
     const seen = new Set<string>();
-    for (let d = 0; d < 7 * 7; d += 7) seen.add(endlessTwistFor(new Date(Date.UTC(2026, 10, 23 + d)).toISOString().slice(0, 10)).id);
-    expect(seen.size).toBe(ENDLESS_TWISTS.length); // every twist comes round in 7 weeks
+    for (let d = 0; d < 7 * ENDLESS_TWISTS.length; d += 7) seen.add(endlessTwistFor(new Date(Date.UTC(2026, 10, 30 + d)).toISOString().slice(0, 10)).id);
+    expect(seen.size).toBe(ENDLESS_TWISTS.length); // every twist comes round once per cycle
     expect(endlessTwistFor("2026-11-19").id).toBe("elite"); // the week in progress keeps its twist
+    // Mist Week only from 30 Nov: next week (23–29 Nov) keeps the twist it was going to have.
+    const nextWeek = endlessTwistFor("2026-11-23");
+    expect(endlessTwistFor("2026-11-29").id).toBe(nextWeek.id);
+    for (let d = 0; d < 7; d++) expect(endlessTwistFor(`2026-11-${23 + d}`).id).not.toBe("mist");
   });
   it("applies its rules to the run", () => {
     const glass = ENDLESS_TWISTS.find((t) => t.id === "glass")!;
