@@ -136,7 +136,15 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   fills, faster tempo 96→130 bpm); boss alive = darker progression + low filtered brass. Level eases
   toward the target (~2 s) so layers swell instead of switching.
 
+- **Performance pass** (Phase 6) — measured in Chromium, 4× CPU throttle, 81 enemies at night in
+  a storm: canvas calls per frame were ~450 save/restore, 182 radial gradients (one per unit shadow),
+  560 drawImage. `softShadow` now blits one cached shadow disc → gradients 182 → 21, save/restore 449
+  → 285, arcs 201 → 37 per frame. Frame cost is dominated by pixel fill (headless software raster:
+  66 ms/frame at 3× density with 0 foes vs 20 ms at 1×; 80 foes add only ~3 ms), which the iPhone's
+  GPU handles and `perfSample` already steps down (3 → 2 → 1.5 → 1×) if a device can't hold 24 fps.
+
 ## Shipped (newest first)
+- Performance: unit shadows use one cached sprite instead of a new gradient each (−160 gradients/frame in big fights).
 - 4 new blessings: Arcane Focus (Mage +30% dmg, +1 hop), Field Medic (Healer reach +30%, heals +40%), Cruel Stakes (spikes +60%), Bounty Hunter (bosses & elites drop double coins) — building ones only offered once built (tests).
 - Onboarding coachmarks: one-time bubbles under the tab that holds a new system (quests, skill points, hero flair); gone once the tab is opened. Bug sweep (autoplay ch1, ch3, ch6 Hard): no errors.
 - SFX for the new content: frost nova shimmer, frozen-tower crack, boss slam boom, war horn, curse, boulder whoosh, elite sting, shield shatter, mage zap, storm thunder, spike ticks, digging, spec chord; haptic buzz on slams/novas/stuns (all rate-limited).

@@ -75,9 +75,36 @@ export function shadeVolume(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
  * Soft contact shadow, cast down-right from the shared top-left light: dark under the feet,
  * feathering out — reads as an object standing on the ground rather than a flat sticker.
  */
+/** Pre-rendered shadow disc (full-strength; drawn scaled with globalAlpha), built on first use. */
+let shadowCv: HTMLCanvasElement | null = null;
+function shadowSprite(): HTMLCanvasElement | null {
+  if (shadowCv) return shadowCv;
+  if (typeof document === "undefined") return null;
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 128;
+  const g = cv.getContext("2d");
+  if (!g) return null;
+  const grad = g.createRadialGradient(64, 64, 64 * 0.15, 64, 64, 64);
+  grad.addColorStop(0, "rgba(10,14,30,1)");
+  grad.addColorStop(0.6, "rgba(10,14,30,0.55)");
+  grad.addColorStop(1, "rgba(10,14,30,0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  return (shadowCv = cv);
+}
+
 export function softShadow(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, alpha = 0.32): void {
   const ox = x + rx * 0.22;
   const oy = y + ry * 0.25;
+  const sp = shadowSprite();
+  if (sp) {
+    // One cached disc blitted per shadow (was a new radial gradient per unit per frame).
+    const a = ctx.globalAlpha;
+    ctx.globalAlpha = a * alpha;
+    ctx.drawImage(sp, ox - rx, oy - ry, rx * 2, ry * 2);
+    ctx.globalAlpha = a;
+    return;
+  }
   ctx.save();
   ctx.translate(ox, oy);
   ctx.scale(1, ry / rx);
