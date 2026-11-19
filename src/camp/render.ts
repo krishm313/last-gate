@@ -5447,7 +5447,7 @@ fx.shake(0.15);
     }
     for (let i = 0; i < Math.min(10, h.bows); i++) drawBowItem(ctx, x + 14 * K, y - bob - 14 - top - i * 4, 0.8);
     // Sits above the count tag (shown from 12 coins, or when full) instead of on it.
-    this.drawQuip(ctx, x, y - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (h.coins >= 12 || full ? 14 : 0));
+    this.drawQuip(ctx, x, y - bob - 30 - top - n * 3 - (nl > 0 ? 6 : 0) - (h.coins >= 12 || full ? 20 : 0));
     if (h.hp < h.maxHp) {
       ctx.fillStyle = "rgba(20,10,5,0.85)";
       ctx.beginPath();
