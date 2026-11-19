@@ -1,4 +1,4 @@
-/** Camp balance simulator: `npm run campsim -- [runs] [chapter]` */
+/** Camp balance simulator: `npm run campsim -- [runs] [chapter] [permLevel] [hero]` */
 import { CHAPTER_BY_ID } from "../src/core/chapters";
 import { campBotStep } from "../src/camp/bot";
 import { createCamp, drainEvents } from "../src/camp/sim";
@@ -10,7 +10,8 @@ const chapter = CHAPTER_BY_ID[Number(process.argv[3] ?? 1)]!;
 const permLevel = Number(process.argv[4] ?? 0);
 const save = newSave();
 for (const p of PERMS) save.perms[p.id] = Math.min(p.max, permLevel);
-const setup = () => campSetupFromSave(save, "ranger");
+const hero = (process.argv[5] ?? "ranger") as Parameters<typeof campSetupFromSave>[1];
+const setup = () => campSetupFromSave(save, hero);
 const reached: number[] = [];
 let wins = 0;
 let secs = 0;

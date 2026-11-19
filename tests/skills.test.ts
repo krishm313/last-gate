@@ -122,3 +122,29 @@ describe("skill capstones", () => {
     expect(skillPoints(400)).toBe(12);
   });
 });
+
+describe("the Lancer", async () => {
+  const { createCamp, spawnEnemy, step, drainEvents, heroRange } = await import("../src/camp/sim");
+  it("reaches farther, and Piercing Lance skewers a whole line of foes", () => {
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3 }; // 18 stars
+    const setup = campSetupFromSave(s, "lancer");
+    expect(setup.ability).toBe("lance");
+    const c = createCamp(3, undefined, setup);
+    expect(heroRange(c)).toBeCloseTo(heroRange(createCamp(3, undefined, campSetupFromSave(s, "ranger"))) * 1.3);
+    c.phase = "wave";
+    c.queue = [];
+    // Three foes in a column straight above the hero, one off to the side.
+    const line = [80, 180, 300].map((dy) => spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 50, lane: null }, { x: c.hero.x, y: c.hero.y - dy }));
+    const side = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 50, lane: null }, { x: c.hero.x + 200, y: c.hero.y - 40 });
+    const hp = line.map((e) => e.hp);
+    const sideHp = side.hp;
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    const ev = drainEvents(c).find((e) => e.type === "lance");
+    expect(ev && ev.type === "lance" && ev.n).toBe(3);
+    line.forEach((e, i) => expect(e.hp).toBeLessThan(hp[i]!));
+    expect(side.hp).toBeGreaterThan(sideHp - 1); // at most a stray hero arrow, not the lance
+  });
+});

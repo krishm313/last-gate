@@ -9,6 +9,8 @@ export interface CampMods {
   heroSpeed: number;
   heroHp: number;
   heroMultishot: number;
+  /** Hero attack range multiplier (the Lancer). */
+  heroRange: number;
   carry: number;
   towerDamage: number;
   towerRate: number;
@@ -50,7 +52,7 @@ export interface CampMods {
 
 export function baseMods(): CampMods {
   return {
-    heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, carry: 0, towerDamage: 1, towerRate: 1,
+    heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, heroRange: 1, carry: 0, towerDamage: 1, towerRate: 1,
     towerRange: 1, wallHp: 1, income: 1, drops: 1, burn: 0, burnMult: 1, slow: 0, hallDamage: 1, repairAfterWave: 0, magnet: 1, rerolls: 1,
     allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1, hawkeye: 0, bossDamage: 1, hallArmor: 1,
   };

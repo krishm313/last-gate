@@ -1,5 +1,5 @@
-export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden";
-export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare";
+export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer";
+export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance";
 
 export interface HeroDef {
   id: HeroId;
@@ -41,6 +41,11 @@ export const HEROES: HeroDef[] = [
     id: "warden", name: "The Warden", title: "Hooded archer of the deep woods", color: "#3d6aa8",
     ability: "snare", abilityName: "Snare Field", abilityDesc: "Vines root every foe nearby for 3s; snared foes take 30% more damage.",
     cooldown: 20, starsToUnlock: 14,
+  },
+  {
+    id: "lancer", name: "The Lancer", title: "Spear of the northern march", color: "#b8483a",
+    ability: "lance", abilityName: "Piercing Lance", abilityDesc: "Hurl a lance that skewers every foe in a line and knocks them back.",
+    cooldown: 16, starsToUnlock: 18,
   },
 ];
 

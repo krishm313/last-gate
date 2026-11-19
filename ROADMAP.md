@@ -30,7 +30,8 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
-- **6th hero: The Lancer** (polish ran dry after sweeps 4–5: ch1 run, end screens, ch6/7 at night) —
+- **6th hero: The Lancer** — ✅ SHIPPED (Charge became a thrown **Piercing Lance**: the hero can't
+  cross the wall, so a dash would stall; a line throw works over it). (polish ran dry after sweeps 4–5: ch1 run, end screens, ch6/7 at night) —
   uses the unused painted "spearman" art; unlocked at 18★ (24 max). Passive "Long reach": hero melee
   range +35%. Ability **Charge** (cd 18 s): dashes up to 170 px toward the densest foe cluster in
   front, dealing 3× hero damage to every walker within 34 px of the path and knocking them back;
@@ -230,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- New hero **The Lancer** (18★): shoots 30% farther; Piercing Lance (16 s) hurls a lance through the best-lined-up foes in reach (420 px line), 3.5× hero damage + knockback (not bosses), "SKEWERED ×n" with a hot streak. Painted spearman art + portrait, 🔱 icon, achievement "Unstoppable" (300 skewered). campsim ch5 L5: King 17% · Warden 17% · Lancer 25% (12 runs each; `campsim` now takes a hero arg). Test included.
 - Victory confetti falls in front of the end panel (it ignores taps and fades in ~3 s) — on a phone the panel used to hide almost all of it.
 - The King's speech bubble now clears his "40 FULL" coin tag (the tail used to poke into it) and bobs with him.
 - HUD: the coin pill's FULL badge now hangs under the pill instead of covering the coin count (found in a ch1 browser playthrough).

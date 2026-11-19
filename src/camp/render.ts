@@ -815,6 +815,12 @@ fx.shake(0.15);
           fx.shake(Math.min(0.3, 0.05 + ev.damage / 150));
           fx.burst(ev.x, ev.y, "#c0a080", 3, 100, { max: 0.4, size: 3, gravity: 300, shape: "chunk" });
           break;
+        case "lance": {
+          this.lances.push({ x: ev.x, y: ev.y - 20, x2: ev.x2, y2: ev.y2 - 20, t: this.time });
+          fx.number(ev.x, ev.y - 54, ev.n > 1 ? `SKEWERED ×${ev.n}` : "LANCE!", "#ffd0a0", 16, 1);
+          fx.shake(0.22);
+          break;
+        }
         case "ability":
           this.castFlourishAt = this.time;
           fx.shake(0.3);
@@ -1366,6 +1372,7 @@ fx.shake(0.15);
 
     this.drawArrows(ctx, c);
     this.drawStrikes(ctx, c);
+    this.drawLances(ctx);
     this.drawImpacts(ctx, "dust");
     this.drawHitStars(ctx);
     if (this.bossRumble) {
@@ -3751,6 +3758,43 @@ fx.shake(0.15);
   }
   private repairKnock = new Set<string>();
 
+  /** Piercing Lance: a spear streaks along the line (0.2 s), trailing a hot streak that fades. */
+  private drawLances(ctx: CanvasRenderingContext2D): void {
+    this.lances = this.lances.filter((l) => this.time - l.t < 0.6);
+    for (const l of this.lances) {
+      const age = this.time - l.t;
+      const u = Math.min(1, age / 0.2);
+      const hx = l.x + (l.x2 - l.x) * u, hy = l.y + (l.y2 - l.y) * u;
+      const fade = age < 0.2 ? 1 : 1 - (age - 0.2) / 0.4;
+      const a = Math.atan2(l.y2 - l.y, l.x2 - l.x);
+      ctx.save();
+      ctx.lineCap = "round";
+      // Streak: a wide warm glow under a thin white-hot core.
+      const g = ctx.createLinearGradient(l.x, l.y, hx, hy);
+      g.addColorStop(0, "rgba(255,150,80,0)");
+      g.addColorStop(1, `rgba(255,190,120,${0.75 * fade})`);
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(hx, hy); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,248,230,${0.9 * fade})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(l.x + (hx - l.x) * 0.35, l.y + (hy - l.y) * 0.35); ctx.lineTo(hx, hy); ctx.stroke();
+      if (u < 1) {
+        // The lance itself: a dark shaft with a steel head, pointing along the throw.
+        ctx.translate(hx, hy);
+        ctx.rotate(a);
+        ctx.strokeStyle = "#5a3a1e";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(-6, 0); ctx.stroke();
+        ctx.fillStyle = "#e8eef4";
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-7, -4.5); ctx.lineTo(-7, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
   /** Ability shockwaves: a ring of ground dust racing outward (ease-out) and thinning, with a
    *  bright leading edge (fiery for Nova, pale for Shield Bash). */
   private drawShockwaves(ctx: CanvasRenderingContext2D): void {
@@ -4973,6 +5017,8 @@ fx.shake(0.15);
   private segHpSeen: number[] = [];
   private repairs: { seg: number; t: number }[] = [];
   private shockwaves: { x: number; y: number; r: number; t: number; nova: boolean }[] = [];
+  /** The Lancer's thrown lance: flies the line in 0.2 s, leaving a fading streak. */
+  private lances: { x: number; y: number; x2: number; y2: number; t: number }[] = [];
   /** Planks flung from a collapsing wall segment (visual only). */
   private planks: { x: number; y: number; vx: number; vy: number; a: number; va: number; t: number; gy: number }[] = [];
   private blasts: { x: number; y: number; t: number }[] = [];
@@ -5262,7 +5308,7 @@ fx.shake(0.15);
     ctx.setLineDash([6, 8]);
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(h.x, h.y, CAMP.heroRange, 0, Math.PI * 2);
+    ctx.arc(h.x, h.y, CAMP.heroRange * c.mods.heroRange, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
     // Selection ring under the hero.
@@ -5341,13 +5387,13 @@ fx.shake(0.15);
       // The slash leaves as the sword comes down (pose ~3.2), then follows through.
       heroAnim = "attack";
       heroFrame = 3.2 + (sinceShot / 0.2) * 1.8;
-    } else if (!h.moving && h.cooldown > 0 && h.cooldown < 0.16 && c.enemies.some((e) => (e.x - h.x) ** 2 + (e.y - h.y) ** 2 < CAMP.heroRange ** 2)) {
+    } else if (!h.moving && h.cooldown > 0 && h.cooldown < 0.16 && c.enemies.some((e) => (e.x - h.x) ** 2 + (e.y - h.y) ** 2 < (CAMP.heroRange * c.mods.heroRange) ** 2)) {
       // Wind-up into the next swing as the cooldown runs out.
       heroAnim = "attack";
       heroFrame = (1 - h.cooldown / 0.16) * 3.2;
     }
     // Other heroes: their painted figure from the character sheet with procedural motion.
-    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer" };
+    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman" };
     const alt = altHero[c.heroLook];
     const kingDrawn = alt
       ? drawSprite(ctx, alt, x, y + 12, 42, {

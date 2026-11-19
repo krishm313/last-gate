@@ -627,8 +627,8 @@ export class CampHud {
   update(c: Camp): void {
     if (c.ability !== this.abilityId) {
       this.abilityId = c.ability;
-      this.abilityIcon.textContent = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️" }[c.ability];
-      this.abilityLabel.textContent = { arrowRain: "Arrow Rain", shieldBash: "Shield Bash", fireNova: "Fire Nova", overclock: "Overclock", snare: "Snare Field" }[c.ability];
+      this.abilityIcon.textContent = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱" }[c.ability];
+      this.abilityLabel.textContent = { arrowRain: "Arrow Rain", shieldBash: "Shield Bash", fireNova: "Fire Nova", overclock: "Overclock", snare: "Snare Field", lance: "Piercing Lance" }[c.ability];
     }
     this.ability.style.display = c.phase === "wave" ? "flex" : "none";
     // Hero down: the battlefield goes grey until they're back (the corner pill alone is easy to miss).

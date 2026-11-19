@@ -630,6 +630,7 @@ function trackStats(ev: CampEvent) {
     if (ev.enemy.id === "magma") add("magma");
     if (ev.enemy.id === "drowned") add("drowned");
   } else if (ev.type === "boom" && ev.kind === "snare" && ev.n) add("snared", ev.n);
+  else if (ev.type === "lance" && ev.n) add("lanced", ev.n);
   else if (ev.type === "fireOut") add("firesOut");
 }
 
@@ -699,6 +700,9 @@ function playSfx(ev: CampEvent, c: Camp) {
       break;
     case "boom":
       sfx.play({ type: "boom", x: ev.x, y: ev.y, r: ev.r, kind: ev.kind === "nova" ? "nova" : "boulder" });
+      break;
+    case "lance":
+      sfx.play({ type: "boom", x: ev.x, y: ev.y, r: 120, kind: "boulder" });
       break;
     case "wallHit":
     case "hallHit":

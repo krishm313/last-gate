@@ -26,6 +26,7 @@ const HERO_PORTRAIT: Record<string, string> = {
   pyro: "./sprites/portraits/pyro.png",
   engineer: "./sprites/portraits/engineer.png",
   warden: "./sprites/portraits/huntress.png",
+  lancer: "./sprites/portraits/lancer.png",
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
@@ -1171,4 +1172,4 @@ export function fmtGold(n: number): string {
 }
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */
-const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️" };
+const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱" };

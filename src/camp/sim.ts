@@ -350,6 +350,7 @@ export type CampEvent =
   | { type: "thief"; x: number; y: number }
   | { type: "thiefEscaped" }
   | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
+  | { type: "lance"; x: number; y: number; x2: number; y2: number; n: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -471,6 +472,8 @@ export interface Ally {
 }
 
 export const BARRACKS = { x: 620, y: 715 };
+/** The Lancer's Piercing Lance: a line this long and this wide (plus the foe's radius). */
+export const LANCE = { length: 420, width: 26, damage: 3.5, push: 60 };
 /** The Warden's Snare Field. */
 export const SNARE = { radius: 240, time: 3, bossTime: 1, vuln: 1.3 };
 /** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
@@ -670,10 +673,15 @@ export function wallIntact(c: Camp, seg: number): boolean {
 // ---------------------------------------------------------------------------------------------
 // Hero
 
+/** The hero's attack range (the Lancer reaches farther). */
+export function heroRange(c: Camp): number {
+  return CAMP.heroRange * c.mods.heroRange;
+}
+
 function heroAttackTarget(c: Camp): Enemy | null {
   const h = c.hero;
   let best: Enemy | null = null;
-  let bestD = (CAMP.heroRange * (c.weather === "fog" ? WEATHER.fog.heroRange : 1)) ** 2;
+  let bestD = (heroRange(c) * (c.weather === "fog" ? WEATHER.fog.heroRange : 1)) ** 2;
   for (const e of c.enemies) {
     if (e.burrow && e.burrow > 0) continue;
     const d = (e.x - h.x) ** 2 + (e.y - h.y) ** 2;
@@ -745,7 +753,7 @@ function updateHero(c: Camp, input: CampInput): void {
       // Split shot: extra arrows at the next-nearest enemies.
       if (c.mods.heroMultishot > 0) {
         const others = c.enemies
-          .filter((e) => e !== t && (e.x - h.x) ** 2 + (e.y - h.y) ** 2 < CAMP.heroRange ** 2)
+          .filter((e) => e !== t && (e.x - h.x) ** 2 + (e.y - h.y) ** 2 < heroRange(c) ** 2)
           .sort((a, b) => (a.x - h.x) ** 2 + (a.y - h.y) ** 2 - ((b.x - h.x) ** 2 + (b.y - h.y) ** 2));
         for (const o of others.slice(0, c.mods.heroMultishot)) fireArrow(c, h, o, dmg, "hero");
       }
@@ -1165,6 +1173,43 @@ function useAbility(c: Camp): void {
         n++;
       }
       c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
+      break;
+    }
+    case "lance": {
+      // Aim through whichever foe in reach lines up the most others behind it.
+      const live = c.enemies.filter((e) => !(e.burrow && e.burrow > 0));
+      const onLine = (dx: number, dy: number, e: Enemy): boolean => {
+        const t = (e.x - h.x) * dx + (e.y - h.y) * dy;
+        if (t < 0 || t > LANCE.length) return false;
+        return Math.abs((e.x - h.x) * dy - (e.y - h.y) * dx) < LANCE.width + e.def.radius;
+      };
+      let dir = { x: 0, y: -1 };
+      let best = -1;
+      for (const a of live) {
+        const d = Math.hypot(a.x - h.x, a.y - h.y);
+        if (d === 0 || d > LANCE.length) continue;
+        const dx = (a.x - h.x) / d, dy = (a.y - h.y) / d;
+        let n = 0;
+        for (const e of live) if (onLine(dx, dy, e)) n++;
+        if (n > best) { best = n; dir = { x: dx, y: dy }; }
+      }
+      let n = 0;
+      for (const e of live) {
+        if (!onLine(dir.x, dir.y, e)) continue;
+        n++;
+        damageEnemy(c, e, dmg * LANCE.damage, "hero");
+        if (e.def.boss) continue;
+        const wasNorth = e.y < WALL_Y;
+        e.x += dir.x * LANCE.push;
+        e.y += dir.y * LANCE.push;
+        if (!e.def.flying && wallIntact(c, segmentIndexAt(e.x))) {
+          const edge = WALL_THICK / 2 + e.def.radius;
+          if (wasNorth) e.y = Math.min(e.y, WALL_Y - edge);
+          else e.y = Math.max(e.y, WALL_Y + edge);
+        }
+        e.stunTime = Math.max(e.stunTime, 0.6);
+      }
+      c.events.push({ type: "lance", x: h.x, y: h.y, x2: h.x + dir.x * LANCE.length, y2: h.y + dir.y * LANCE.length, n });
       break;
     }
   }
