@@ -187,6 +187,11 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   rig with a flame glow and sparks; flames, smoke and a "🔥 Stamp it out!" hint on the burning
   building; crackle / hiss SFX.
 
+- **Difficulty payout check** (`scripts/campgold.ts`, bot gold per minute incl. applyRun bonuses):
+  ch2 @L6 normal 49 / hard 65 / nightmare 85 gold/min at 100/75/50% wins; ch4 @L8 normal 68 / hard
+  70 / nightmare 63 at 88/25/0%. Harder pays more only while you can win; Nightmare ch2 out-earns
+  Normal ch4 but at a coin-flip — a fair risk premium, not a farm. No change.
+
 ## Shipped (newest first)
 - Trophies "Warden of the Woods" (snare 200 foes) and "Firefighter" (stamp out 25 fires); Fire Imps join Endless waves.
 - "How to play" updated for everything new (tower paths, new buildings, weather, fires, combos, skills & quests, courier) and compacted so the whole guide + button fit one screen even on a 320×568 iPhone SE.
