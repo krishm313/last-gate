@@ -911,6 +911,26 @@ describe("Blood Moon Warlord", () => {
     for (let i = 0; i < 60 * 6; i++) { b.stunTime = 1e9; step(c, { move: { x: 0, y: 0 } } as CampInput); }
     expect(c.bloodmoon).toBe(0); // wears off after 5 s (the next flare is 12 s after the last)
   });
+
+  it("closes the first Endless boss cycle at night 55, and flares there too", async () => {
+    const { ENDLESS } = await import("../src/core/chapters");
+    const { planWave } = await import("../src/core/waves");
+    expect(planWave(ENDLESS, 55).boss).toBe("bloodlord");
+    const c = createCamp(15, ENDLESS);
+    c.phase = "wave";
+    c.queue = [];
+    const b = spawnEnemy(c, { at: 0, enemy: "bloodlord", hpMult: 1, lane: null }, { x: 360, y: WALL_Y - 140 });
+    b.hp = b.maxHp * 0.45;
+    const keep = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: 40, y: 80 });
+    keep.stunTime = 1e9;
+    let flare = false;
+    for (let i = 0; i < 60 * 4 && !flare; i++) {
+      b.x = 360; b.y = WALL_Y - 140; b.stunTime = 0;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      flare = drainEvents(c).some((e) => e.type === "bloodmoon");
+    }
+    expect(flare).toBe(true);
+  });
 });
 
 describe("Tidal Week", () => {
