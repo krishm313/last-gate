@@ -14,6 +14,8 @@ export interface PermDef {
   max: number;
   baseCost: number;
   costGrowth: number;
+  /** Late-game sink: locked until every other upgrade is maxed. */
+  capstone?: boolean;
 }
 
 export const PERMS: PermDef[] = [
@@ -39,6 +41,8 @@ export const PERMS: PermDef[] = [
     desc: (l) => `Mage Tower damage +${l * 8}%` },
   { id: "fieldworks", name: "Field Works", icon: "🪤", max: 5, baseCost: 80, costGrowth: 1.6,
     desc: (l) => `Spikes +${l * 10}%, Healer reach +${l * 5}%` },
+  { id: "legacy", name: "Royal Legacy", icon: "👑", max: 10, baseCost: 600, costGrowth: 1.25, capstone: true,
+    desc: (l) => `Hero & tower damage, wall HP +${l * 3}%` },
 ];
 
 export const PERM_BY_ID: Record<string, PermDef> = Object.fromEntries(PERMS.map((p) => [p.id, p]));
@@ -141,9 +145,14 @@ export function chapterUnlocked(s: SaveData, id: number): boolean {
   return id === 1 || (s.stars[id - 1] ?? 0) > 0;
 }
 
+/** Whether an upgrade can be bought at all yet (the capstone waits until all the others are maxed). */
+export function permOpen(s: SaveData, p: PermDef): boolean {
+  return !p.capstone || PERMS.every((o) => o.capstone || (s.perms[o.id] ?? 0) >= o.max);
+}
+
 export function canBuy(s: SaveData, id: string): boolean {
   const p = PERM_BY_ID[id];
-  if (!p) return false;
+  if (!p || !permOpen(s, p)) return false;
   const lvl = s.perms[id] ?? 0;
   return lvl < p.max && s.gold >= permCost(p, lvl);
 }

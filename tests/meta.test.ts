@@ -233,3 +233,16 @@ describe("sanitizeSave hardening", () => {
     expect(s.best).toEqual({ 99: 12 });
   });
 });
+
+describe("Royal Legacy (Armory capstone)", () => {
+  it("stays locked until every other upgrade is maxed", () => {
+    const s = newSave();
+    s.gold = 1e6;
+    expect(buyPerm(s, "legacy")).toBe(false);
+    for (const p of PERMS) if (!p.capstone) s.perms[p.id] = p.max - (p.id === "walls" ? 1 : 0);
+    expect(buyPerm(s, "legacy")).toBe(false); // walls one short
+    s.perms.walls = PERMS.find((p) => p.id === "walls")!.max;
+    expect(buyPerm(s, "legacy")).toBe(true);
+    expect(s.perms.legacy).toBe(1);
+  });
+});

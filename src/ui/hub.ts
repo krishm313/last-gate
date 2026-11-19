@@ -16,7 +16,7 @@ import { activeFlair, FLAIRS } from "../core/flair";
 import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
-import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
+import { canBuy, permOpen, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
 import { CAMP_HEROES } from "../camp/meta";
 
 /** Painted portraits cut from the owner's character sheet. */
@@ -751,7 +751,8 @@ export class Hub {
       const maxed = lvl >= p.max;
       const text = p.desc;
       const buyable = !maxed && canBuy(save, p.id);
-      const card = el("button", `perm${maxed ? " maxed" : buyable ? " buyable" : " poor"}`);
+      const open = permOpen(save, p);
+      const card = el("button", `perm${maxed ? " maxed" : buyable ? " buyable" : " poor"}${open ? "" : " lgl-locked"}`);
       const just = this.justBought?.id === p.id;
       if (just) card.classList.add("just");
       const pips = el("div", "perm-pips");
@@ -762,9 +763,9 @@ export class Hub {
         el("div", "perm-name", p.name),
         el("div", "perm-desc", lvl === 0 ? `Next: ${text(1)}` : maxed ? text(lvl) : upgradeText(text(lvl), text(lvl + 1))),
         pips,
-        el("div", "perm-cost", maxed ? "MAX" : `● ${permCost(p, lvl)}`),
+        el("div", "perm-cost", maxed ? "MAX" : open ? `● ${permCost(p, lvl)}` : "🔒 Max all others"),
       );
-      if (!maxed)
+      if (!maxed && open)
         card.onclick = () => {
           if (!canBuy(save, p.id)) {
             // Not enough gold: a quick "no" shake instead of a silent re-render.

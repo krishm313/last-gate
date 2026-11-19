@@ -1159,3 +1159,6 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgn-ok { display: block; margin: 0 auto; }
 /* Heroes tab: a hero that has won a run (Band of Heroes progress). */
 .lgw-won { display: inline-block; margin-left: calc(6 * var(--u)); padding: 0 calc(6 * var(--u)); border-radius: calc(8 * var(--u)); background: rgba(255, 216, 74, 0.18); border: calc(1 * var(--u)) solid rgba(255, 216, 74, 0.55); color: #ffe27a; font-size: calc(10 * var(--tu)); font-weight: 800; vertical-align: middle; line-height: calc(16 * var(--u)); }
+/* Armory capstone (Royal Legacy) before every other upgrade is maxed: dimmed, not tappable. */
+.perm.lgl-locked { opacity: 0.55; filter: saturate(0.5); }
+.perm.lgl-locked .perm-cost { font-size: calc(11 * var(--tu)); }

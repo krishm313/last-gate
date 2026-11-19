@@ -10,7 +10,7 @@ for (const d of ["normal", "hard", "nightmare"] as DifficultyId[]) {
   let gold = 0, mins = 0, wins = 0;
   for (let r = 0; r < n; r++) {
     const save = newSave();
-    for (const p of PERMS) save.perms[p.id] = Math.min(p.max, perm);
+    for (const p of PERMS) if (!p.capstone) save.perms[p.id] = Math.min(p.max, perm);
     save.stars[ch] = 1; // replaying a cleared chapter (no first-clear bonus on Normal)
     save.diffCleared[ch] = 2;
     const s = campSetupFromSave(save);

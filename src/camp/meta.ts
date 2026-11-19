@@ -41,6 +41,9 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   m.mageDamage *= 1 + 0.08 * lv("arcanum");
   m.spikeDamage *= 1 + 0.1 * lv("fieldworks");
   m.healerPower *= 1 + 0.05 * lv("fieldworks");
+  m.heroDamage *= 1 + 0.03 * lv("legacy");
+  m.towerDamage *= 1 + 0.03 * lv("legacy");
+  m.wallHp *= 1 + 0.03 * lv("legacy");
   const h = CAMP_HEROES[hero];
   h.apply(s);
   s.heroLook = h.look;

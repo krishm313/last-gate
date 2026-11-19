@@ -9,7 +9,7 @@ const runs = Number(process.argv[2] ?? 20);
 const chapter = CHAPTER_BY_ID[Number(process.argv[3] ?? 1)]!;
 const permLevel = Number(process.argv[4] ?? 0);
 const save = newSave();
-for (const p of PERMS) save.perms[p.id] = Math.min(p.max, permLevel);
+for (const p of PERMS) if (!p.capstone) save.perms[p.id] = Math.min(p.max, permLevel);
 const hero = (process.argv[5] ?? "ranger") as Parameters<typeof campSetupFromSave>[1];
 const setup = () => campSetupFromSave(save, hero);
 const reached: number[] = [];

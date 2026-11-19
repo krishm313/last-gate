@@ -6,7 +6,7 @@ import { campSetupFromSave } from "../src/camp/meta";
 import { newSave, PERMS } from "../src/core/meta";
 const [ch, perm, n] = [Number(process.argv[2]), Number(process.argv[3]), Number(process.argv[4] ?? 16)];
 const save = newSave();
-for (const p of PERMS) save.perms[p.id] = Math.min(p.max, perm);
+for (const p of PERMS) if (!p.capstone) save.perms[p.id] = Math.min(p.max, perm);
 const res = { 0: [0, 0], 1: [0, 0] } as Record<number, number[]>;
 const built: Record<string, number> = {};
 for (let r = 0; r < n; r++) {
