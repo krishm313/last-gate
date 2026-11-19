@@ -231,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Daily challenge: two new twists from 2026-11-21 — **High Tide** (free tide every 12 s at night, coins +20%) and **Last Stand** (walls −40%, hero +60% damage, coins +20%). Twists now carry a `since` date; days up to the 20th are byte-for-byte unchanged (diffed before/after). First High Tide: 25 Nov. Test included.
 - Daily challenge: the Warden and the Lancer join the daily hero pool from 2026-11-21 (days up to the 20th keep their hero — the daily uses its own fixed hero list, so adding heroes never shifted past days). First Lancer daily: 29 Nov. Checked a Lancer daily starts as the Lancer (test).
 - Endless: 8th weekly twist **Mist Week** 🌫️ (fog most nights cuts tower range; hero +25% damage, coins +10%), joining from Mon 2026-11-30 so this week (Elite) and next (Gold Rush) are unchanged; first comes round the week of 4 Jan. Test covers the gating.
 - The Lancer is drawn at body height matching the other heroes (his raised spear made him look a size smaller and left the Golden Halo floating above his head). Flair checked on all 6 heroes.

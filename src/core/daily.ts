@@ -25,6 +25,10 @@ export interface Twist {
   weatherOdds?: { rain: number; fog: number; storm: number };
   /** Wall HP multiplier. */
   wallHp?: number;
+  /** Seconds between free tides each night (slows foes and the hero alike). */
+  tideEvery?: number;
+  /** First date this twist can appear (so days already decided keep their twist). */
+  since?: string;
 }
 
 export const TWISTS: Twist[] = [
@@ -36,6 +40,8 @@ export const TWISTS: Twist[] = [
   { id: "fog-war", name: "Fog of War", desc: "Every night from the 3rd is foggy; towers +20% damage to make up", enemyHp: 1, drops: 1.1, heroDamage: 1, towerDamage: 1.2, weatherOdds: { rain: 0, fog: 1, storm: 0 } },
   { id: "storm-day", name: "Storm Day", desc: "Lightning every night from the 3rd; foes +25% HP", enemyHp: 1.25, drops: 1.1, heroDamage: 1, towerDamage: 1, weatherOdds: { rain: 0, fog: 0, storm: 1 } },
   { id: "iron-walls", name: "Iron Walls", desc: "Walls +60% HP; your hero −25%", enemyHp: 1, drops: 1, heroDamage: 0.75, towerDamage: 1, wallHp: 1.6 },
+  { id: "high-tide", name: "High Tide", desc: "The tide rolls in every 12s at night — it slows you and the horde · coins +20%", enemyHp: 1, drops: 1.2, heroDamage: 1, towerDamage: 1, tideEvery: 12, since: "2026-11-21" },
+  { id: "last-stand", name: "Last Stand", desc: "Walls −40% HP; your hero +60% damage · coins +20%", enemyHp: 1, drops: 1.2, heroDamage: 1.6, towerDamage: 1, wallHp: 0.6, since: "2026-11-21" },
   { id: "glass", name: "Glass Cannon", desc: "Everything you have hits 50% harder; enemies +50% HP", enemyHp: 1.5, drops: 1.2, heroDamage: 1.5, towerDamage: 1.5 },
 ];
 
@@ -104,7 +110,7 @@ function heroPool(date: string): HeroId[] {
 export function dailyFor(date: string): DailyChallenge {
   const h = hash(`lastgate-${date}`);
   const expanded = date >= EXPANDED_FROM;
-  const twists = expanded ? TWISTS : TWISTS.filter((t) => ORIGINAL_TWISTS.includes(t.id));
+  const twists = expanded ? TWISTS.filter((t) => !t.since || date >= t.since) : TWISTS.filter((t) => ORIGINAL_TWISTS.includes(t.id));
   const blessings = expanded ? BLESSINGS : BLESSINGS.slice(0, 10);
   return {
     date,

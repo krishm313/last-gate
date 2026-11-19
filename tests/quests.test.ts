@@ -194,6 +194,13 @@ describe("daily variety", async () => {
     for (let d = 1; d <= 60; d++) before.add(dailyFor(new Date(Date.UTC(2026, 8, d)).toISOString().slice(0, 10)).twist.id);
     expect([...before].every((id) => ["gold-rush", "lone-hero", "engineers", "horde", "glass"].includes(id))).toBe(true);
   });
+  it("adds High Tide and Last Stand from the 21st only", () => {
+    const iso = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
+    for (let d = 1; d <= 20; d++) expect(["high-tide", "last-stand"]).not.toContain(dailyFor(iso(2026, 10, d)).twist.id);
+    const later = new Set<string>();
+    for (let d = 21; d <= 160; d++) later.add(dailyFor(iso(2026, 10, d)).twist.id);
+    expect(later.has("high-tide") && later.has("last-stand")).toBe(true);
+  });
 });
 
 describe("week summary", async () => {

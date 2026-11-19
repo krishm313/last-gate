@@ -285,6 +285,7 @@ function startDaily() {
   setup.enemyHpMult = d.twist.enemyHp;
   if (d.twist.eliteChance) setup.eliteChance = d.twist.eliteChance;
   if (d.twist.wallHp) setup.mods!.wallHp *= d.twist.wallHp;
+  if (d.twist.tideEvery) setup.tideEvery = d.twist.tideEvery;
   setup.startBlessings = [d.blessing];
   newRun(d.chapterId, setup, d.seed, "normal", d.twist.weatherOdds);
   dailyRun = d;
