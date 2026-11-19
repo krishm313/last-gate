@@ -211,6 +211,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
 
 ## Shipped (newest first)
+- Hub header shows trophies claimed (🏆 x/N) beside stars. Checked chapters 2–5 by day and night against the newer polish: consistent (ch4's drifting grave mist is intended).
 - Blessing cards: combo badges also show the building a blessing needs ("COMBO 🦅 + 🗼"); Hawkeye gets its own 👁️ icon (it shared Eagle Towers' 🦅). Checked the new blessing cards on the pick screen.
 - Endless twist #7 "Tidal Week" (a tide rolls in every 14 s at night, slowing you and the horde; coins +15%) — joins the rotation from Mon 23 Nov so the current week keeps its twist. Bug sweep 3 (ch8 + Warden, ch5 Hard): clean.
 - Sunken Citadel scenery (sea-moss trees and bushes, barnacled grey-green rocks — sunken prop atlas); "Tidebreaker" trophy; the Drowned King joins Endless's boss rotation (night 50).

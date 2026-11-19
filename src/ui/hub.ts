@@ -190,7 +190,7 @@ export class Hub {
     titleRow.append(el("h1", "title", "Last Gate"), Object.assign(this.button("⚙", "gear-btn", () => this.cb.onSettings()), { title: "Settings", ariaLabel: "Settings" }));
     head.append(titleRow);
     const res = el("div", "hub-res");
-    res.append(el("span", `res-gold${this.justBought || this.justClaimed ? " spent" : ""}`, `● ${fmtGold(save.gold)}`), el("span", "res-stars", `★ ${totalStars(save)}/${CHAPTERS.length * 3}`));
+    res.append(el("span", `res-gold${this.justBought || this.justClaimed ? " spent" : ""}`, `● ${fmtGold(save.gold)}`), el("span", "res-stars", `★ ${totalStars(save)}/${CHAPTERS.length * 3} · 🏆 ${save.claimed.length}/${ACHIEVEMENTS.length}`));
     head.append(res);
     wrap.append(head);
     const tabs = el("div", "tabs");
