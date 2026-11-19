@@ -9,6 +9,8 @@ import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
 const CARD_ART: Record<string, string> = {
   footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper",
 };
+/** Cards drawn from in-game sprites (full paths). */
+const CARD_SPRITE: Record<string, string> = { bat: "./sprites/props/bat.webp", imp: "./sprites/props/imp.webp" };
 const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
 const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps" };
 
@@ -56,9 +58,11 @@ export class SiegeBar {
       const b = el("button", "lgs2-card");
       const art = el("div", "lgs2-art");
       const pic = CARD_ART[card.id];
-      if (pic) {
+      const sprite = CARD_SPRITE[card.id];
+      if (pic || sprite) {
         const img = document.createElement("img");
-        img.src = `./sprites/portraits/${pic}.png`;
+        img.src = sprite ?? `./sprites/portraits/${pic}.png`;
+        if (sprite) img.className = "wide";
         img.alt = "";
         art.append(img);
       } else art.textContent = CARD_EMOJI[card.id] ?? "👹";

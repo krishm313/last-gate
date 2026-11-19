@@ -1242,6 +1242,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-card.locked .lgs2-cost { color: #ddd; }
 .lgs2-art { height: calc(30 * var(--u)); display: flex; align-items: center; justify-content: center; font-size: calc(20 * var(--tu)); }
 .lgs2-art img { height: 100%; width: auto; }
+.lgs2-art img.wide { height: auto; width: 100%; max-height: 100%; object-fit: contain; }
 .lgs2-name { font-weight: 900; font-size: calc(9.5 * var(--tu)); line-height: 1.1; white-space: nowrap; }
 .lgs2-cost { font-weight: 800; font-size: calc(9.5 * var(--tu)); color: #ffd84a; }
 @media (prefers-reduced-motion: reduce) { .lgs2-lane { animation: none; } }
