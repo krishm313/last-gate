@@ -74,6 +74,8 @@ function settingLabels(): Record<string, string> {
 export interface HubCallbacks {
   onClick: () => void;
   onDaily: () => void;
+  /** Open the Archery Range side stop. */
+  onArchery?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -378,6 +380,25 @@ export class Hub {
       };
       track.append(stop);
     });
+    // Side stop between chapters 1 and 2: the Archery Range mini-game (opens after chapter 1).
+    {
+      const open = (save.stars[1] ?? 0) > 0;
+      const side = el("button", `lgm-side${open ? "" : " locked"}`);
+      side.style.left = "84%";
+      side.style.bottom = `${((0.5 * 10 + 5) / H) * 100}%`;
+      side.append(el("div", "lgm-pin", open ? "🎯" : "?"));
+      const lab = el("div", "lgm-label");
+      const st = save.mini.archery?.stars ?? 0;
+      lab.append(el("div", "lgm-name", open ? "Archery Range" : "???"));
+      if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
+      side.append(lab);
+      side.onclick = () => {
+        if (!open) return this.denied(side);
+        this.cb.onClick();
+        this.cb.onArchery?.();
+      };
+      track.append(side);
+    }
     map.append(el("div", "lgm-progress", `${cleared} / ${n} chapters cleared`));
     // Bring the current stop into view once the tab is laid out.
     const target = current ?? map.querySelector<HTMLElement>(".lgm-stop.done:last-of-type");

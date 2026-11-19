@@ -3,6 +3,7 @@ import { Music } from "../audio/music";
 import { musicIntensity } from "../audio/intensity";
 import { Sfx } from "../audio/sfx";
 import { SiegeBar } from "../ui/siegeBar";
+import { ArcheryView, rangeReward } from "../mini/archeryView";
 import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -93,6 +94,11 @@ const hub = new Hub(uiRoot, {
   onDenied: () => sfx.denied(),
   onDaily: () => startDaily(),
   onSiege: (i) => startSiege(i),
+  onArchery: () => {
+    hub.hide();
+    sfx.unlock();
+    archery.open((Date.now() >>> 0) ^ 0xa11);
+  },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
     if (!heroUnlocked(save, id)) return;
@@ -344,6 +350,21 @@ function showMenuSettings() {
     },
   );
 }
+
+// ---- Archery Range (side stop on the map). ----
+const archery = new ArcheryView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.archery ?? { best: 0, stars: 0 };
+    const r = rangeReward(score, prev.stars);
+    save.mini.archery = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+  },
+  () => hub.showHub(save, "battle"),
+);
 
 // ---- Siege Lord (reverse mode): the player sends the horde; the campaign bot defends the castle. ----
 const siegeBar = new SiegeBar(
@@ -1066,6 +1087,7 @@ window.setInterval(() => void checkForUpdate(), 5 * 60 * 1000);
 
 Object.assign(window, {
   __camp: () => camp,
+  __archery: () => archery,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,
