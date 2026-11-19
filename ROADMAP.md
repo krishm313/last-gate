@@ -387,3 +387,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   cross the wall) + out-of-reach charge keep, What's-new refresh, ability-unused loss tip, King vs
   Lancer sweep (on par), Lancer body size fix found by the flair check. 150 tests. Lesson: a design
   note's mechanic should be sanity-checked against the map rules before building (the dash).
+- **2026-11-19 18:40** — deploys 165–173 all green. This hour: Endless Mist Week (from 11-30), Warden +
+  Lancer in the daily hero pool and daily twists High Tide / Last Stand (from 11-21, past days diffed
+  unchanged), daily streak bonus, lance labels, Armory + Trophies SE checks (clean), then chapter 9
+  Bloodmoon Moors slices 1–2 (map, mood, balance L10 42%, moor props). 154 tests. Lessons: blend hues
+  the short way round the wheel (the first ground recolour went green); chapter affix text must only
+  promise what's built (caught "more elites" before shipping).
