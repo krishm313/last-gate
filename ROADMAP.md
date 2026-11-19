@@ -30,6 +30,19 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
+- **Chapter 9: Bloodmoon Moors** — the finale after the Sunken Citadel. Purple-red heath under a
+  huge blood moon: heather-and-bracken ground (recolour of ground_5 toward plum/crimson, like ch6–8
+  were made), "moor" prop atlas (summer atlas recoloured: wine-red pines, rust bracken bushes, dark
+  slate rocks), drawMood 9 = deep red night wash + a blood moon disc low in the sky + drifting embers
+  of red mist; no butterflies; dark ground palette. hpMult 4.0 (> 3.9), CAMP_CHAPTER_HP tuned so
+  L10 lands near ch8 (~40–60%). Waves: every foe type, more elites late. Mid-boss night 5: Warlord
+  ×0.5. Boss **The Blood Moon Warlord** (boss sprite with a crimson tint) with a new phase-2
+  `bloodmoon`: every 12 s the moon flares — all foes on the field enrage for 5 s (+35% speed, +25%
+  damage) with a red pulse; the King's hall arrows get +25% damage during a flare so it's a race.
+  Achievement "Moonbreaker" (defeat the Warlord) + "Lord of the Moors" (clear ch9), hub boss icon,
+  per-chapter confetti (crimson/plum), fanfare. Slices: (1) chapter data + ground + mood + balance,
+  (2) moor props + decor, (3) Warlord + bloodmoon phase + trophies + Endless rotation.
+
 - **6th hero: The Lancer** — ✅ SHIPPED (Charge became a thrown **Piercing Lance**: the hero can't
   cross the wall, so a dash would stall; a line throw works over it). (polish ran dry after sweeps 4–5: ch1 run, end screens, ch6/7 at night) —
   uses the unused painted "spearman" art; unlocked at 18★ (24 max). Passive "Long reach": hero melee
@@ -231,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Checked: Trophies tab on iPhone SE (quests, 24 achievements, records) renders cleanly and claiming pays (gold + badge update).
 - Daily streaks now pay: +25 gold per streak day after the first, up to +150 from day 7, on top of the 150 victory bonus. The daily card's prize includes it ("+225 gold" on a 3-day streak) and the end screen shows a 🔥 Streak bonus row (test). Also checked: the Armory fits one iPhone SE screen.
 - Lancer: "SKEWERED ×n" / "Out of reach!" float above the coin stack instead of on the count (found in a chapter 8 night pass with the Lancer — otherwise clean).
 - Daily challenge: two new twists from 2026-11-21 — **High Tide** (free tide every 12 s at night, coins +20%) and **Last Stand** (walls −40%, hero +60% damage, coins +20%). Twists now carry a `since` date; days up to the 20th are byte-for-byte unchanged (diffed before/after). First High Tide: 25 Nov. Test included.
