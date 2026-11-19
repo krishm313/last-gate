@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Catapult Toss (mini-game #4): 🪨 side stop beside chapters 6–7 (opens after chapter 6). Siege towers (3 hits) and battering rams (1 hit) roll down the field; tap to lob a stone — it lands after a flight time that grows with distance, so lead the target; splash hits everything nearby; combos ×2/×3. 3 engines at the wall = lost; 60 s. Stars 100/200/300, gold = score/3 + first-time star bonuses (save.mini.catapult). New achievement Siegebreaker (3★); Champion of the Fair now needs all 12 mini-game stars (600 gold). scripts/catsim.ts: perfect-lead bot ~360, 40 px error ~290, 60 px error loses.
 - Siege Lord deck art: Bats and Fire Imps cards use the in-game sprites instead of emoji.
 - Mini-game polish: Supply Run wagon kicks up dust trails and its wheel treads roll; Wall Watch climbers hop and lean as they climb.
 - Mini-game achievements: Marksman / Quartermaster / Sentinel (3★ in Archery / Supply Run / Wall Watch, 250 gold each) and Champion of the Fair (all 9 mini-game stars, 500). Map side stops show your best score; the three side-stop blocks in hub.ts are now one table-driven loop.

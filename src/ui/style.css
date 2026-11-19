@@ -1263,6 +1263,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 #ui .lgw, #ui .lgw * { pointer-events: auto; }
 .lgw-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
 .lgw-end { position: relative; z-index: 1; display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
+.lgc { position: absolute; inset: 0; z-index: 6; background: #202a18; display: flex; align-items: center; justify-content: center; }
+#ui .lgc, #ui .lgc * { pointer-events: auto; }
+.lgc-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.lgc-end { position: relative; z-index: 1; display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
 /* The map's side stop: a smaller pin off the road. */
 .lgm-side { position: absolute; transform: translate(-50%, 50%); background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: calc(2 * var(--u)); z-index: 1; }
 .lgm-side .lgm-pin { width: calc(40 * var(--u)); height: calc(40 * var(--u)); font-size: calc(18 * var(--tu)); background: radial-gradient(circle at 35% 30%, #e0a03a, #8a5a1a); }

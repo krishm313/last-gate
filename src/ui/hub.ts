@@ -80,6 +80,8 @@ export interface HubCallbacks {
   onSupply?: () => void;
   /** Open the Wall Watch side stop. */
   onWatch?: () => void;
+  /** Open the Catapult Toss side stop. */
+  onCatapult?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -389,6 +391,7 @@ export class Hub {
       { key: "archery", icon: "🎯", name: "Archery Range", after: 1, left: 84, at: 0.5, go: () => this.cb.onArchery?.() },
       { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
+      { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
     ];
     for (const sd of sides) {
       const open = (save.stars[sd.after] ?? 0) > 0;
@@ -551,7 +554,7 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 3 sieges, new cards as you win",
-          "🎯 Archery Range, 🛒 Supply Run & 🛡️ Wall Watch: new mini-games on the map, with stars and gold",
+          "🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch & 🪨 Catapult Toss: new mini-games on the map, with stars and gold",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
         ]
       : seen.startsWith("2026-11-19")
