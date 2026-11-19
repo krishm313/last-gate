@@ -5399,7 +5399,8 @@ fx.shake(0.15);
     const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman" };
     const alt = altHero[c.heroLook];
     const kingDrawn = alt
-      ? drawSprite(ctx, alt, x, y + 12, 42, {
+      // The spearman's raised spear takes up the top of its art, so it's drawn taller to match the others' bodies.
+      ? drawSprite(ctx, alt, x, y + 12, alt === "spearman" ? 54 : 42, {
           walk: h.moving ? 0.001 + (this.walkPhase("hero", h.x, h.y, 68) * Math.PI) / 4 : 0, time: this.time, seed: 0, flip: Math.cos(faceDir) > 0.15, flash: h.sinceHit < 0.1 ? 1 : 0, lunge: shotK * 0.5,
         })
       : (() => {
