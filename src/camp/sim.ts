@@ -158,6 +158,35 @@ export const HEALER_LEVELS = [
   { radius: 260, heal: 15, wall: 0.011 },
 ];
 
+/** Night weather: rolled per night from the seed (deterministic), from night 3 on, never on breathers. */
+export type Weather = "clear" | "rain" | "fog" | "storm";
+export const WEATHER = {
+  rain: { towerRange: 0.85, burn: 0.5 },
+  fog: { towerRange: 0.75, heroRange: 0.8 },
+  storm: { every: 3.2, damage: 34, stun: 0.6 },
+  /** Chance of each weather on an eligible night. */
+  odds: { rain: 0.15, fog: 0.12, storm: 0.13 },
+};
+export const WEATHER_INFO: Record<Weather, { name: string; icon: string; desc: string }> = {
+  clear: { name: "Clear", icon: "🌙", desc: "" },
+  rain: { name: "Rain", icon: "🌧️", desc: "Towers −15% range · fire burns weaker" },
+  fog: { name: "Fog", icon: "🌫️", desc: "Towers −25% range · the King sees less" },
+  storm: { name: "Storm", icon: "⛈️", desc: "Lightning strikes your foes!" },
+};
+export function rollWeather(seed: number, wave: number, breather: boolean): Weather {
+  if (wave < 3 || breather) return "clear";
+  // Hash (seed, wave) to [0,1) without touching the run's RNG stream.
+  let h = (seed * 374761393 + wave * 668265263) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  const u = ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  const o = WEATHER.odds;
+  return u < o.rain ? "rain" : u < o.rain + o.fog ? "fog" : u < o.rain + o.fog + o.storm ? "storm" : "clear";
+}
+/** Multiplier on tower / mage range from tonight's weather. */
+export function weatherRange(c: Camp): number {
+  return c.weather === "rain" ? WEATHER.rain.towerRange : c.weather === "fog" ? WEATHER.fog.towerRange : 1;
+}
+
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
 export const TOWER_SPEC_LEVEL = 3;
@@ -264,7 +293,9 @@ export type CampEvent =
   | { type: "enrage"; x: number; y: number; name: string }
   | { type: "bossSpawn"; name: string; x: number; y: number }
   | { type: "sapper"; x: number; y: number }
-  | { type: "waveStart"; wave: number; breather: boolean; boss: string | null; intro: string | null }
+  | { type: "waveStart"; wave: number; breather: boolean; boss: string | null; intro: string | null; weather: Weather }
+  /** Storm weather: a lightning bolt strikes a foe. */
+  | { type: "stormBolt"; x: number; y: number }
   | { type: "earlyBonus"; coins: number }
   | { type: "waveClear"; wave: number; bonus: number }
   | { type: "offers" }
@@ -325,6 +356,10 @@ export interface Camp {
   spikeFx: number;
   /** Throttle for the healer's heal event. */
   healFx: number;
+  /** Tonight's weather (always clear by day). */
+  weather: Weather;
+  /** Storm: seconds to the next lightning strike. */
+  stormTimer: number;
   hallCooldown: number;
   /** Palisade level: 0 wood, 1 banded, 2 stone, 3 stone + battlements. */
   wallLevel: number;
@@ -473,6 +508,8 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     courierTimer: 0,
     spikeFx: 0,
     healFx: 0,
+    weather: "clear",
+    stormTimer: 0,
     hallCooldown: 0,
     wallLevel: 0,
     mods,
@@ -553,7 +590,7 @@ export function wallIntact(c: Camp, seg: number): boolean {
 function heroAttackTarget(c: Camp): Enemy | null {
   const h = c.hero;
   let best: Enemy | null = null;
-  let bestD = CAMP.heroRange ** 2;
+  let bestD = (CAMP.heroRange * (c.weather === "fog" ? WEATHER.fog.heroRange : 1)) ** 2;
   for (const e of c.enemies) {
     if (e.burrow && e.burrow > 0) continue;
     const d = (e.x - h.x) ** 2 + (e.y - h.y) ** 2;
@@ -908,7 +945,7 @@ function updateTowers(c: Camp): void {
       continue;
     }
     const st = TOWER_LEVELS[p.level - 1]!;
-    const range = st.range * c.mods.towerRange;
+    const range = st.range * c.mods.towerRange * weatherRange(c);
     p.fired += STEP;
     p.cooldown -= STEP * c.mods.towerRate * (c.overclock > 0 ? 2.5 : 1);
     if (p.cooldown > 0) continue;
@@ -1104,7 +1141,7 @@ function updateArrows(c: Camp): void {
       }
       if (a.spec) c.events.push({ type: "specHit", spec: a.spec, x: t.x, y: t.y - t.def.radius * 0.6 });
       if (a.spec === "fire") {
-        t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn);
+        t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn * (c.weather === "rain" ? WEATHER.rain.burn : 1));
         t.burnTime = Math.max(t.burnTime, SPEC.fireTime);
       } else if (a.spec === "frost") {
         t.slowPct = Math.max(t.slowTime > 0 ? t.slowPct : 0, SPEC.frostSlow);
@@ -1533,7 +1570,7 @@ function updateMage(c: Camp): void {
     // Strike the foe nearest the wall within range, then hop to the nearest unstruck foe each time.
     let cur: Enemy | null = null;
     for (const e of c.enemies) {
-      if (e.y < SPAWN_Y + 10 || (e.burrow && e.burrow > 0) || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > st.range ** 2) continue;
+      if (e.y < SPAWN_Y + 10 || (e.burrow && e.burrow > 0) || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > (st.range * weatherRange(c)) ** 2) continue;
       if (!cur || Math.abs(e.y - WALL_Y) < Math.abs(cur.y - WALL_Y)) cur = e;
     }
     if (!cur) {
@@ -1588,6 +1625,21 @@ function updateHealer(c: Camp): void {
     c.healFx = 0.6;
     c.events.push({ type: "tentHeal", points: healed });
   }
+}
+
+function updateStorm(c: Camp): void {
+  if (c.weather !== "storm" || c.phase !== "wave") return;
+  c.stormTimer -= STEP;
+  if (c.stormTimer > 0) return;
+  c.stormTimer = WEATHER.storm.every;
+  const foes = c.enemies.filter((e) => e.y > SPAWN_Y + 20 && !(e.burrow && e.burrow > 0));
+  if (!foes.length) return;
+  const e = foes[Math.floor(range(c.rng, 0, foes.length))]!;
+  e.hp -= WEATHER.storm.damage * towerScale(c);
+  e.stunTime = Math.max(e.stunTime, WEATHER.storm.stun);
+  e.flash = 0.15;
+  c.events.push({ type: "stormBolt", x: e.x, y: e.y });
+  c.events.push({ type: "hit", x: e.x, y: e.y, damage: Math.round(WEATHER.storm.damage * towerScale(c)), crit: false, owner: "tower", eid: e.id });
 }
 
 function updateSpikes(c: Camp): void {
@@ -1674,12 +1726,14 @@ export function spawnThief(c: Camp): void {
 
 function startWave(c: Camp): void {
   c.wave += 1;
+  c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather);
+  c.stormTimer = WEATHER.storm.every;
   const plan = planWave(c.chapter, c.wave, c.seed);
   c.queue = plan.spawns.slice();
   c.waveTime = 0;
   c.phase = "wave";
   c.events.push({
-    type: "waveStart", wave: c.wave, breather: plan.breather,
+    type: "waveStart", wave: c.wave, breather: plan.breather, weather: c.weather,
     boss: plan.boss ? ENEMIES[plan.boss].name : null, intro: plan.intro ? ENEMIES[plan.intro].name : null,
   });
 }
@@ -1712,6 +1766,7 @@ export function step(c: Camp, input: CampInput): void {
 
   updateIncome(c);
   updateSpikes(c);
+  updateStorm(c);
   updateHealer(c);
   updateWorkers(c);
   updateAllies(c);
@@ -1766,6 +1821,7 @@ export function step(c: Camp, input: CampInput): void {
 
 function beginBuild(c: Camp): void {
   c.phase = "build";
+  c.weather = "clear";
   c.timer = CAMP.intermission;
 }
 

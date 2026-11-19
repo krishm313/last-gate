@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WEATHER_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -705,7 +705,8 @@ export class CampHud {
     this.lastKey = key;
     const total = c.chapter.waves.length;
     const cur = c.phase === "wave" ? c.wave : Math.min(total, c.wave + 1);
-    this.waveLabel.textContent = c.chapter.endless ? `NIGHT ${cur} · ENDLESS` : `NIGHT ${cur}/${total}`;
+    const wIcon = c.phase === "wave" && c.weather !== "clear" ? ` ${WEATHER_INFO[c.weather].icon}` : "";
+    this.waveLabel.textContent = (c.chapter.endless ? `NIGHT ${cur} · ENDLESS` : `NIGHT ${cur}/${total}`) + wIcon;
     this.waveDots.style.display = c.chapter.endless ? "none" : "flex";
     const showBest = !!c.chapter.endless && this.endlessBest > 0;
     this.waveBest.style.display = showBest ? "block" : "none";

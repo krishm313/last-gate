@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, RALLY, reduction, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, RALLY, reduction, rollWeather, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 import { rollBlessings } from "../src/camp/blessings";
 import { createRng } from "../src/core/rng";
@@ -515,5 +515,43 @@ describe("tunneler", () => {
     expect(t.y).toBeGreaterThan(WALL_Y);
     step(c, still);
     expect(t.inside).toBe(true);
+  });
+});
+
+describe("weather", () => {
+  it("is deterministic per seed+night, clear before night 3 and on breathers, and varied overall", () => {
+    expect(rollWeather(7, 5, false)).toBe(rollWeather(7, 5, false));
+    for (let s = 0; s < 50; s++) {
+      expect(rollWeather(s, 1, false)).toBe("clear");
+      expect(rollWeather(s, 2, false)).toBe("clear");
+      expect(rollWeather(s, 6, true)).toBe("clear");
+    }
+    const seen = new Set<string>();
+    for (let s = 0; s < 400; s++) seen.add(rollWeather(s, 5, false));
+    expect([...seen].sort()).toEqual(["clear", "fog", "rain", "storm"]);
+  });
+  it("fog shortens tower range; a storm strikes foes with lightning", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const t = c.plots.find((p) => p.kind === "tower")!;
+    t.level = 1; t.cooldown = 0;
+    // A foe at ~230 px: in range on a clear night (250), out of range in fog (250 × 0.75).
+    const f = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 10, lane: 0.5 }, { x: t.x, y: t.y - 230 });
+    c.weather = "fog";
+    step(c, still);
+    expect(c.arrows.length).toBe(0);
+    c.weather = "clear";
+    step(c, still);
+    expect(c.arrows.length).toBeGreaterThan(0);
+    c.weather = "storm";
+    c.stormTimer = 0;
+    const hp = f.hp;
+    step(c, still);
+    expect(drainEvents(c).some((e) => e.type === "stormBolt")).toBe(true);
+    expect(f.hp).toBeLessThan(hp);
   });
 });

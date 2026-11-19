@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { HEALER_LEVELS, RALLY, SPIKES } from "./sim";
+import { HEALER_LEVELS, RALLY, SPIKES, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -219,6 +219,21 @@ export class CampRenderer {
     ctx.restore();
   }
 
+  /** Fog weather: soft pale banks drifting across the view, thicker away from the King's light. */
+  private drawFog(ctx: CanvasRenderingContext2D, o: Vec): void {
+    const t = this.time;
+    const blob = this.blob("fogbank", [[0, "rgba(210,220,230,0.55)"], [0.6, "rgba(200,210,220,0.25)"], [1, "rgba(200,210,220,0)"]]);
+    ctx.save();
+    for (let i = 0; i < 9; i++) {
+      const x = ((i * 157 + t * (14 + (i % 3) * 6) - o.x * 0.6) % (VIEW_W + 300)) - 150;
+      const y = ((i * 211) % (VIEW_H + 200)) - 100 + Math.sin(t * 0.3 + i) * 20;
+      this.drawBlob(ctx, blob, x, y, 190, 90, 0.55 + 0.15 * Math.sin(t * 0.5 + i * 1.7));
+    }
+    ctx.fillStyle = "rgba(190,200,215,0.12)";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    ctx.restore();
+  }
+
   /** Banner-bearer: a tall pole with a red war banner over his shoulder, and his rally ring on the ground. */
   private drawBanner(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, x: number, y: number, r: number): void {
     const pulse = 0.5 + 0.5 * Math.sin(c.time * 3 + e.id);
@@ -334,6 +349,9 @@ export class CampRenderer {
   private spikeHit = { x: 0, t: -9 };
   /** When each tower was last stunned by a War Raven. */
   towerStunAt = new Map<string, number>();
+  /** Tonight's weather (mirrored from the camp each frame) and where a storm bolt is striking. */
+  private weatherNow: Weather = "clear";
+  private boltTarget: Vec | null = null;
   /** One row of the spike trap: sharpened stakes leaning out toward the forest (denser per level). */
   private drawSpikeRow(ctx: CanvasRenderingContext2D, level: number, row: number): void {
     const y = SPIKES.y0 + 12 + row * 18;
@@ -648,6 +666,13 @@ export class CampRenderer {
           fx.rings.push({ x: ev.x, y: ev.y + 4, r: 26, color: "#a88a5a", life: 0.35, max: 0.35, width: 3 });
           if (ev.type === "emerge") fx.shake(0.12);
           break;
+        case "stormBolt":
+          this.lightning = 1;
+          this.boltSeed = Math.floor(this.time * 1000) + Math.round(ev.x);
+          this.boltTarget = { x: ev.x, y: ev.y };
+          fx.burst(ev.x, ev.y, "#e8e0ff", 14, 220, { max: 0.5, size: 3, shape: "spark" });
+          fx.shake(0.18);
+          break;
         case "towerStunned":
           this.towerStunAt.set(ev.plot, this.time);
           fx.burst(ev.x, ev.y, "#2a2438", 14, 150, { max: 0.6, size: 3, gravity: 120, shape: "chunk" });
@@ -888,6 +913,7 @@ fx.shake(0.15);
     this.fx.update(dt);
     this.pickupTimer += dt;
     this.courierTo = { x: c.hero.x, y: c.hero.y };
+    this.weatherNow = this.ambient ? "clear" : c.weather;
     if (this.fireworks > 0) {
       this.fireworks -= dt;
       this.fireworkTimer -= dt;
@@ -3220,7 +3246,10 @@ fx.shake(0.15);
    */
   private drawWeather(ctx: CanvasRenderingContext2D, dt: number, o: Vec = { x: 0, y: 0 }): void {
     const t = this.time;
-    if (this.mood === 2) {
+    // Night weather (gameplay): fog rolls in as drifting banks; rain/storm reuse the marsh rain.
+    if (this.weatherNow === "fog") this.drawFog(ctx, o);
+    const raining = this.weatherNow === "rain" || this.weatherNow === "storm";
+    if (this.mood === 2 || raining) {
       ctx.save();
       // Three depths of rain: far drops are thin, faint, short and slow; near ones long, bright and
       // fast. Each streak leans exactly along its own fall direction (wind / speed).
@@ -3389,9 +3418,11 @@ fx.shake(0.15);
         this.drawBlob(ctx, mist, sx, sy, rw, rh, (0.8 + 0.2 * Math.sin(t * 0.4 + i * 1.3)) * field);
       }
       ctx.restore();
-    } else if (this.mood === 5 && dt > 0) {
+    }
+    if ((this.mood === 5 || this.lightning > 0) && dt > 0) {
       this.nextBolt -= dt;
-      if (this.nextBolt <= 0) {
+      if (this.mood === 5 && this.nextBolt <= 0) {
+        this.boltTarget = null;
         this.lightning = 1;
         this.nextBolt = 6 + ((t * 7.31) % 8);
         this.boltSeed = Math.floor(t * 1000);
@@ -3406,7 +3437,9 @@ fx.shake(0.15);
         // displacement, drawn as a wide soft glow under a white-hot core, with a ground flash.
         let seed = this.boltSeed;
         const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-        const sx = 60 + rnd() * (VIEW_W - 120), ex = sx + (rnd() - 0.5) * 140, ey = VIEW_H * (0.45 + rnd() * 0.25);
+        let sx = 60 + rnd() * (VIEW_W - 120), ex = sx + (rnd() - 0.5) * 140, ey = VIEW_H * (0.45 + rnd() * 0.25);
+        // A storm-weather bolt strikes a real foe.
+        if (this.boltTarget) { ex = this.boltTarget.x - o.x; ey = this.boltTarget.y - o.y - 10; sx = ex + (rnd() - 0.5) * 120; }
         const bolt = (x0: number, y0: number, x1: number, y1: number, d: number, out: [number, number][]): void => {
           if (d <= 0) { out.push([x1, y1]); return; }
           const mx = (x0 + x1) / 2 + (rnd() - 0.5) * Math.hypot(x1 - x0, y1 - y0) * 0.35, my = (y0 + y1) / 2;

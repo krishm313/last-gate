@@ -67,7 +67,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Doesn't damage the wall — it bypasses it. Counter: the King / barracks / Healer area inside.
   Sapper body in brown. Introduced in chapter 3 night 7.
 
+- **Night weather** — from night 3 (never on breathers), each night rolls from the seed: Rain 15%
+  (towers −15% range, Fire Archers burn half), Fog 12% (towers and Mage −25% range, King −20%),
+  Storm 13% (a lightning bolt strikes a random foe every 3.2 s: dmg + short stun), else clear.
+  Shown as an icon next to "NIGHT n" and a toast at nightfall. Rain streaks / drifting fog banks /
+  forked sky bolts that hit the struck foe. campsim ch1 still 100%.
+
 ## Shipped (newest first)
+- Night weather: Rain / Fog / Storm change tower range, burn and add lightning strikes (visuals, HUD icon, toast, tests).
 - Tunneler enemy: digs under the wall and surfaces inside (dirt mound, dirt bursts), chapter 3 intro, test.
 - War Raven enemy: dives at towers and stuns them (stun stars, STUNNED!), chapter 3 intro, test.
 - Banner-bearer enemy: rally aura (faster + tougher foes nearby), banner art + rally ring, chapter 2 intro, test.

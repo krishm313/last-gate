@@ -1,7 +1,7 @@
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { Sfx } from "../audio/sfx";
-import { chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
@@ -660,6 +660,10 @@ function frame(now: number) {
         hud.banner(`Night ${ev.wave}`, "🏆 New record!");
         renderer.celebrate();
         continue;
+      }
+      if (ev.type === "waveStart" && ev.weather !== "clear") {
+        const w = WEATHER_INFO[ev.weather];
+        window.setTimeout(() => hud.toast(`${w.icon} ${w.name} tonight — ${w.desc}`), 1600);
       }
       if (ev.type === "waveStart")
         hud.banner(
