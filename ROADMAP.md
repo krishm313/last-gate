@@ -144,6 +144,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   GPU handles and `perfSample` already steps down (3 → 2 → 1.5 → 1×) if a device can't hold 24 fps.
 
 ## Shipped (newest first)
+- Accessibility: "Reduced motion" (no shake, flashes or slow-mo; on by default if the OS asks) and "Large text" (+15% fonts via a text-only CSS unit, layout unchanged); Vibration row hidden where unsupported (iPhone Safari can't vibrate).
 - Performance: unit shadows use one cached sprite instead of a new gradient each (−160 gradients/frame in big fights).
 - 4 new blessings: Arcane Focus (Mage +30% dmg, +1 hop), Field Medic (Healer reach +30%, heals +40%), Cruel Stakes (spikes +60%), Bounty Hunter (bosses & elites drop double coins) — building ones only offered once built (tests).
 - Onboarding coachmarks: one-time bubbles under the tab that holds a new system (quests, skill points, hero flair); gone once the tab is opened. Bug sweep (autoplay ch1, ch3, ch6 Hard): no errors.

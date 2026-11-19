@@ -246,6 +246,8 @@ export class Fx {
   /** Current camera offset from screen shake. */
   /** 0 disables screen shake (accessibility setting). */
   shakeScale = 1;
+  /** Reduced motion: full-screen flashes are skipped. */
+  calm = false;
 
   shakeOffset(time: number): Vec {
     const t = this.trauma * this.trauma * this.shakeScale;

@@ -1339,7 +1339,7 @@ fx.shake(0.15);
     }
     this.drawUiCoins(ctx, dt);
     this.drawJoystick(ctx);
-    if (this.fx.flash > 0) {
+    if (this.fx.flash > 0 && !this.fx.calm) {
       ctx.globalAlpha = Math.min(0.6, this.fx.flash);
       ctx.fillStyle = this.fx.flashColor;
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);

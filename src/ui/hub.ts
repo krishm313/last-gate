@@ -1,4 +1,5 @@
 import { getJson, setItem } from "./store";
+import { canVibrate } from "./settings";
 import { exportSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
@@ -28,6 +29,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: s
   e.className = cls;
   if (text !== undefined) e.textContent = text;
   return e;
+}
+
+/** Settings rows (Vibration only where the device supports it — not on iPhone). */
+function settingLabels(): Record<string, string> {
+  const l: Record<string, string> = { music: "🎵 Music", sfx: "🔔 Sound effects", shake: "📳 Screen shake", calm: "🌙 Reduced motion", bigText: "🔠 Large text" };
+  if (canVibrate) l.haptics = "📱 Vibration";
+  return l;
 }
 
 export interface HubCallbacks {
@@ -838,7 +846,7 @@ export class Hub {
     const box = el("div", "panel pop-in");
     box.append(el("h1", "title", "Settings"));
     const grid = el("div", "settings");
-    const labels: Record<string, string> = { music: "🎵 Music", sfx: "🔔 Sound effects", shake: "📳 Screen shake", haptics: "📱 Vibration" };
+    const labels: Record<string, string> = settingLabels();
     for (const k of Object.keys(labels)) {
       const row = el("button", `setting${values[k] ? " on" : ""}`);
       row.setAttribute("aria-pressed", String(!!values[k]));
@@ -884,7 +892,7 @@ export class Hub {
     if (build) box.append(build);
     if (settings) {
       const grid = el("div", "settings");
-      const labels: Record<string, string> = { music: "🎵 Music", sfx: "🔔 Sound effects", shake: "📳 Screen shake", haptics: "📱 Vibration" };
+      const labels: Record<string, string> = settingLabels();
       for (const k of Object.keys(labels)) {
         const row = el("button", `setting${settings.values[k] ? " on" : ""}`);
         row.setAttribute("aria-pressed", String(!!settings.values[k]));

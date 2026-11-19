@@ -23,7 +23,7 @@ import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } fr
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
-import { buzz, loadSettings, saveSettings } from "../ui/settings";
+import { applyDisplaySettings, buzz, loadSettings, saveSettings } from "../ui/settings";
 import { padMove, pollPad } from "./input";
 import { Tutorial } from "./tutorial";
 
@@ -36,7 +36,13 @@ const sfx = new Sfx();
 const music = new Music(() => sfx.context, () => sfx.musicOutput);
 const settings = loadSettings();
 sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
-renderer.fx.shakeScale = settings.shake ? 1 : 0;
+/** Screen shake / flashes / slow-mo follow the shake and reduced-motion settings. */
+function applyMotion(): void {
+  renderer.fx.shakeScale = settings.shake && !settings.calm ? 1 : 0;
+  renderer.fx.calm = settings.calm;
+}
+applyMotion();
+applyDisplaySettings(settings);
 sfx.muted = getItem("lastgate.muted") === "1";
 
 let camp: Camp | null = null;
@@ -272,14 +278,15 @@ function startDaily() {
   hud.banner(`Daily: ${d.twist.name}`, d.twist.desc);
 }
 
-type ToggleKey = "music" | "sfx" | "shake" | "haptics";
+type ToggleKey = "music" | "sfx" | "shake" | "haptics" | "calm" | "bigText";
 
 function toggleSetting(k: string) {
   const key = k as ToggleKey;
   settings[key] = !settings[key];
   saveSettings(settings);
   sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
-  renderer.fx.shakeScale = settings.shake ? 1 : 0;
+  applyMotion();
+  applyDisplaySettings(settings);
   if (key === "haptics") buzz(settings, 30);
 }
 
@@ -721,7 +728,7 @@ function frame(now: number) {
   const realDt = Math.min(0.1, (now - last) / 1000);
   last = now;
   if (document.visibilityState === "visible" && !paused) renderer.perfSample(realDt);
-  const dt = (renderer.fx.slowmo > 0 ? realDt * 0.3 : realDt) * gameSpeed;
+  const dt = (renderer.fx.slowmo > 0 && !settings.calm ? realDt * 0.3 : realDt) * gameSpeed;
   const c = camp;
   if (c && !paused && !specChoosing) {
     accumulator += dt;
