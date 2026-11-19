@@ -35,6 +35,10 @@ export const PERMS: PermDef[] = [
     desc: (l) => `+${l} reroll${l === 1 ? "" : "s"} per run` },
   { id: "treasury", name: "Treasury", icon: "💰", max: 5, baseCost: 100, costGrowth: 1.7,
     desc: (l) => `+${l * 10}% coins & income` },
+  { id: "arcanum", name: "Arcanum", icon: "🔮", max: 5, baseCost: 90, costGrowth: 1.6,
+    desc: (l) => `Mage Tower damage +${l * 8}%` },
+  { id: "fieldworks", name: "Field Works", icon: "🪤", max: 5, baseCost: 80, costGrowth: 1.6,
+    desc: (l) => `Spikes +${l * 10}%, Healer reach +${l * 5}%` },
 ];
 
 export const PERM_BY_ID: Record<string, PermDef> = Object.fromEntries(PERMS.map((p) => [p.id, p]));

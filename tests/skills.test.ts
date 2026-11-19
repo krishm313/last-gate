@@ -92,3 +92,16 @@ describe("the Warden", async () => {
     expect(e.snared).toBeGreaterThan(2);
   });
 });
+
+describe("new armory upgrades", () => {
+  it("Arcanum and Field Works feed the run setup", () => {
+    const s = newSave();
+    s.perms.arcanum = 3;
+    s.perms.fieldworks = 2;
+    const m = campSetupFromSave(s).mods!;
+    expect(m.mageDamage).toBeCloseTo(1.24);
+    expect(m.spikeDamage).toBeCloseTo(1.2);
+    expect(m.healerPower).toBeCloseTo(1.1);
+    expect(sanitizeSave({ perms: { arcanum: 99 } }).perms.arcanum).toBe(5);
+  });
+});

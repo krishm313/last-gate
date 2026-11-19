@@ -37,6 +37,9 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   m.drops *= 1 + 0.1 * lv("treasury");
   m.income *= 1 + 0.1 * lv("treasury");
   s.startCoins! += 4 * lv("treasury");
+  m.mageDamage *= 1 + 0.08 * lv("arcanum");
+  m.spikeDamage *= 1 + 0.1 * lv("fieldworks");
+  m.healerPower *= 1 + 0.05 * lv("fieldworks");
   const h = CAMP_HEROES[hero];
   h.apply(s);
   s.heroLook = h.look;
