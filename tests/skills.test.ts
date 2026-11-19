@@ -147,4 +147,20 @@ describe("the Lancer", async () => {
     line.forEach((e, i) => expect(e.hp).toBeLessThan(hp[i]!));
     expect(side.hp).toBeGreaterThan(sideHp - 1); // at most a stray hero arrow, not the lance
   });
+
+  it("keeps its charge when no foe is in reach", () => {
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3 };
+    const c = createCamp(3, undefined, campSetupFromSave(s, "lancer"));
+    c.phase = "wave";
+    c.queue = [];
+    spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 50, lane: null }, { x: c.hero.x, y: c.hero.y - 900 });
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    const evs = drainEvents(c);
+    expect(evs.some((e) => e.type === "noTarget")).toBe(true);
+    expect(evs.some((e) => e.type === "lance")).toBe(false);
+    expect(c.abilityCharge).toBe(1);
+  });
 });

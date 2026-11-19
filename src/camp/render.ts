@@ -815,6 +815,9 @@ fx.shake(0.15);
           fx.shake(Math.min(0.3, 0.05 + ev.damage / 150));
           fx.burst(ev.x, ev.y, "#c0a080", 3, 100, { max: 0.4, size: 3, gravity: 300, shape: "chunk" });
           break;
+        case "noTarget":
+          fx.number(ev.x, ev.y - 54, "Out of reach!", "#ffe0a0", 14, 0.9);
+          break;
         case "lance": {
           this.lances.push({ x: ev.x, y: ev.y - 20, x2: ev.x2, y2: ev.y2 - 20, t: this.time });
           fx.number(ev.x, ev.y - 54, ev.n > 1 ? `SKEWERED ×${ev.n}` : "LANCE!", "#ffd0a0", 16, 1);

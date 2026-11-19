@@ -351,6 +351,7 @@ export type CampEvent =
   | { type: "thiefEscaped" }
   | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
   | { type: "lance"; x: number; y: number; x2: number; y2: number; n: number }
+  | { type: "noTarget"; x: number; y: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -1192,6 +1193,12 @@ function useAbility(c: Camp): void {
         let n = 0;
         for (const e of live) if (onLine(dx, dy, e)) n++;
         if (n > best) { best = n; dir = { x: dx, y: dy }; }
+      }
+      if (best < 0) {
+        // Nothing in reach: keep the charge rather than throw the lance at empty grass.
+        c.abilityCharge = 1;
+        c.events.push({ type: "noTarget", x: h.x, y: h.y });
+        return;
       }
       let n = 0;
       for (const e of live) {
