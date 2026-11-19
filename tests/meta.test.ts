@@ -246,3 +246,13 @@ describe("Royal Legacy (Armory capstone)", () => {
     expect(s.perms.legacy).toBe(1);
   });
 });
+
+describe("mini-game records", () => {
+  it("keep known games, clamp values, and drop unknown ids", () => {
+    const s = sanitizeSave({ mini: { archery: { best: 123.7, stars: 9 }, hack: { best: 5, stars: 1 }, supply: "x" } });
+    expect(s.mini.archery).toEqual({ best: 123, stars: 3 });
+    expect(s.mini.hack).toBeUndefined();
+    expect(s.mini.supply).toEqual({ best: 0, stars: 0 });
+    expect(newSave().mini).toEqual({});
+  });
+});

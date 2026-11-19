@@ -84,10 +84,15 @@ export interface SaveData {
   diffCleared: Record<number, number>;
   /** Best night reached per chapter on Hard / Nightmare, keyed "chapter:rank". */
   diffBest: Record<string, number>;
+  /** Side-stop mini-games on the map: best score and stars per game id. */
+  mini: Record<string, { best: number; stars: number }>;
 }
 
+/** Known side-stop mini-games (anything else in a stored save is dropped). */
+export const MINI_IDS = ["archery", "supply"];
+
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {}, diffBest: {} };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], endlessTop: [], flair: "none", difficulty: "normal", diffCleared: {}, diffBest: {}, mini: {} };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -121,6 +126,11 @@ export function sanitizeSave(raw: unknown): SaveData {
   d.endlessTop = sanitizeEndlessTop((r as { endlessTop?: unknown }).endlessTop);
   // Saves from before the board: the Endless record so far becomes its first entry.
   if ((r as { endlessTop?: unknown }).endlessTop === undefined && (d.best[ENDLESS_ID] ?? 0) > 0) d.endlessTop = [{ nights: Math.max(0, d.best[ENDLESS_ID]! - 1), hero: d.hero, date: "" }];
+  for (const [k, v] of Object.entries(rec((r as { mini?: unknown }).mini))) {
+    if (!MINI_IDS.includes(k)) continue;
+    const m = rec(v);
+    d.mini[k] = { best: Math.max(0, Math.min(99999, Math.floor(num(m.best, 0)))), stars: Math.max(0, Math.min(3, Math.floor(num(m.stars, 0)))) };
+  }
   for (const [k, v] of Object.entries(rec((r as { diffBest?: unknown }).diffBest))) if (/^\d+:[12]$/.test(k) && chapterIds.has(Number(k.split(":")[0]))) d.diffBest[k] = Math.max(0, Math.min(99, Math.floor(num(v, 0))));
   d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
