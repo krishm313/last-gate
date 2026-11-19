@@ -4,6 +4,8 @@ import { musicIntensity } from "../audio/intensity";
 import { Sfx } from "../audio/sfx";
 import { SiegeBar } from "../ui/siegeBar";
 import { ArcheryView, rangeReward } from "../mini/archeryView";
+import { SupplyView } from "../mini/supplyView";
+import { supplyReward } from "../mini/supply";
 import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -98,6 +100,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     archery.open((Date.now() >>> 0) ^ 0xa11);
+  },
+  onSupply: () => {
+    hub.hide();
+    sfx.unlock();
+    supply.open((Date.now() >>> 0) ^ 0x5a9);
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -364,6 +371,22 @@ const archery = new ArcheryView(
     return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
   },
   () => hub.showHub(save, "battle"),
+);
+
+// ---- Supply Run (side stop on the map). ----
+const supply = new SupplyView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.supply ?? { best: 0, stars: 0 };
+    const r = supplyReward(score, prev.stars);
+    save.mini.supply = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+  },
+  () => hub.showHub(save, "battle"),
+  () => sfx.grunt(),
 );
 
 // ---- Siege Lord (reverse mode): the player sends the horde; the campaign bot defends the castle. ----
@@ -1088,6 +1111,7 @@ window.setInterval(() => void checkForUpdate(), 5 * 60 * 1000);
 Object.assign(window, {
   __camp: () => camp,
   __archery: () => archery,
+  __supply: () => supply,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

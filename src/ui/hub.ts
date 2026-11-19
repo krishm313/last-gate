@@ -76,6 +76,8 @@ export interface HubCallbacks {
   onDaily: () => void;
   /** Open the Archery Range side stop. */
   onArchery?: () => void;
+  /** Open the Supply Run side stop. */
+  onSupply?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -396,6 +398,25 @@ export class Hub {
         if (!open) return this.denied(side);
         this.cb.onClick();
         this.cb.onArchery?.();
+      };
+      track.append(side);
+    }
+    // Side stop between chapters 2 and 3: the Supply Run mini-game (opens after chapter 2).
+    {
+      const open = (save.stars[2] ?? 0) > 0;
+      const side = el("button", `lgm-side${open ? "" : " locked"}`);
+      side.style.left = "12%";
+      side.style.bottom = `${((1.5 * 10 + 5) / H) * 100}%`;
+      side.append(el("div", "lgm-pin", open ? "🛒" : "?"));
+      const lab = el("div", "lgm-label");
+      const st = save.mini.supply?.stars ?? 0;
+      lab.append(el("div", "lgm-name", open ? "Supply Run" : "???"));
+      if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
+      side.append(lab);
+      side.onclick = () => {
+        if (!open) return this.denied(side);
+        this.cb.onClick();
+        this.cb.onSupply?.();
       };
       track.append(side);
     }
