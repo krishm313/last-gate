@@ -229,6 +229,8 @@ export class Hub {
 
   private battleTab(body: HTMLElement, save: SaveData): void {
     body.append(el("div", "hub-hint", `Hero: ${HERO_BY_ID[save.hero].name} — pick a battlefield`));
+    const news = this.newsCard(save);
+    if (news) body.append(news);
     if ((save.stars[1] ?? 0) > 0) body.append(this.dailyCard(save));
     // Campaign difficulty, once a chapter has been cleared.
     const diff = DIFF_BY_ID[save.difficulty];
@@ -348,6 +350,29 @@ export class Hub {
     else card.onclick = () => this.denied(card);
     body.append(card);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
+  }
+
+  /** One-time "What's new" card after a big update (returning players only; dismissed for good). */
+  private newsCard(save: SaveData): HTMLElement | null {
+    const NEWS = "2026-11-19";
+    if (save.runs === 0 || getJson<string>("lastgate.seenNews", "") === NEWS) return null;
+    const card = el("div", "lgn-card");
+    card.append(el("div", "lgn-title", "✨ What's new"));
+    const list = el("ul", "lgn-list");
+    for (const t of [
+      "🗺️ Three new chapters: Frostpeak Pass, Ashen Caldera, Sunken Citadel — with new bosses",
+      "🏹 The Warden (new hero) · skill trees for every hero · hero flair",
+      "💀 Hard & Nightmare modes · elite foes · bosses with a second phase",
+      "📜 Daily & weekly quests · Endless milestones and weekly twists",
+      "🔮 New buildings: Mage Tower, Healer's Tent, Spike Trap, Watchtower",
+    ]) list.append(el("li", "", t));
+    card.append(list);
+    const ok = this.button("Let's go!", "btn btn-mini lgn-ok", () => {
+      setItem("lastgate.seenNews", JSON.stringify(NEWS));
+      card.remove();
+    });
+    card.append(ok);
+    return card;
   }
 
   private dailyCard(save: SaveData): HTMLElement {
