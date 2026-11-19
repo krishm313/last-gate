@@ -185,6 +185,8 @@ export interface RunReward {
   milestones?: number[];
   /** First clear on Hard (1) / Nightmare (2) this run. */
   hardClear?: number;
+  /** Daily: extra gold for the current daily streak. */
+  streakBonus?: number;
 }
 
 /** Endless milestones: every 5 nights held pays once, more for deeper nights. */

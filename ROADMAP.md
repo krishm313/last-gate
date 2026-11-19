@@ -231,6 +231,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Daily streaks now pay: +25 gold per streak day after the first, up to +150 from day 7, on top of the 150 victory bonus. The daily card's prize includes it ("+225 gold" on a 3-day streak) and the end screen shows a 🔥 Streak bonus row (test). Also checked: the Armory fits one iPhone SE screen.
 - Lancer: "SKEWERED ×n" / "Out of reach!" float above the coin stack instead of on the count (found in a chapter 8 night pass with the Lancer — otherwise clean).
 - Daily challenge: two new twists from 2026-11-21 — **High Tide** (free tide every 12 s at night, coins +20%) and **Last Stand** (walls −40%, hero +60% damage, coins +20%). Twists now carry a `since` date; days up to the 20th are byte-for-byte unchanged (diffed before/after). First High Tide: 25 Nov. Test included.
 - Daily challenge: the Warden and the Lancer join the daily hero pool from 2026-11-21 (days up to the 20th keep their hero — the daily uses its own fixed hero list, so adding heroes never shifted past days). First Lancer daily: 29 Nov. Checked a Lancer daily starts as the Lancer (test).

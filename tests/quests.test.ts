@@ -172,6 +172,13 @@ describe("endless weekly twists", async () => {
   });
 });
 
+describe("daily streak bonus", async () => {
+  const { dailyStreakBonus } = await import("../src/core/daily");
+  it("pays +25 per streak day after the first, capped at +150", () => {
+    expect([0, 1, 2, 3, 7, 8, 30].map(dailyStreakBonus)).toEqual([0, 0, 25, 50, 150, 150, 150]);
+  });
+});
+
 describe("daily heroes", async () => {
   const { dailyFor } = await import("../src/core/daily");
   it("keeps the original four heroes until the 21st, then adds the Warden and the Lancer", () => {

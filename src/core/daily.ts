@@ -124,3 +124,8 @@ export function dailyFor(date: string): DailyChallenge {
 
 /** Gold bonus for the first daily victory of the day. */
 export const DAILY_BONUS = 150;
+
+/** Extra gold for keeping a daily streak going: +25 per day after the first, up to +150 (day 7+). */
+export function dailyStreakBonus(streak: number): number {
+  return Math.max(0, Math.min(6, Math.floor(streak) - 1)) * 25;
+}

@@ -4,7 +4,7 @@ import { canVibrate } from "./settings";
 import { exportSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
-import { DAILY_BONUS, dailyFor, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
+import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
@@ -408,8 +408,10 @@ export class Hub {
       cal.append(el("div", "cal-mon", now.toLocaleString("en", { month: "short" })), el("div", "cal-day", String(now.getDate())));
       right.append(cal);
     }
-    right.append(el("div", "ch-best", today.won ? `New twist in ${timeToNextDaily()}` : today.best ? `Best: night ${today.best}` : `+${DAILY_BONUS} gold`));
     const streak = liveDailyStreak(save.stats, d.date);
+    // Today's prize includes the streak bonus a win would earn (the streak grows by one).
+    const prize = DAILY_BONUS + dailyStreakBonus(streak + 1);
+    right.append(el("div", "ch-best", today.won ? `New twist in ${timeToNextDaily()}` : today.best ? `Best: night ${today.best}` : `+${prize} gold`));
     if (streak >= 2) right.append(el("div", "daily-streak", `🔥 ${streak}-day streak`));
     right.append(el("div", "ch-play", today.won ? "REPLAY ↻" : "PLAY ▶"));
     card.append(left, right);
@@ -897,6 +899,7 @@ export class Hub {
     row("Battle loot", `● ${r.coins}`);
     if (reward.waveBonus) row("Nights bonus", `● ${reward.waveBonus}`);
     if (reward.winBonus) row(reward.firstClear ? "First victory bonus" : "Victory bonus", `● ${reward.winBonus}`);
+    if (reward.streakBonus) row(`🔥 Streak bonus (${r.dailyStreak ?? 0} days)`, `● ${reward.streakBonus}`, "best");
     if (reward.milestoneBonus) row(`Milestone${reward.milestones!.length > 1 ? "s" : ""}: night ${reward.milestones!.join(", ")}`, `● ${reward.milestoneBonus}`, "best");
     const total = row("Gold earned", `● 0`, "total");
     // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
