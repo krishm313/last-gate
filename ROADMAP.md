@@ -105,7 +105,13 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   on heroes with points, ★ badge on the tab, end screen announces new points. Old saves: nights
   already survived credit the current hero. campsim ch1 100% (bot has no skills).
 
+- **Hero flair** (Phase 3 "unlockable looks") — the heroes are painted sprites (recolouring would
+  look cheap), so looks are cosmetic flair worn by any hero: Golden Halo (6★: halo ring + orbiting
+  sparkles), Ember Trail (clear ch4), Petal Trail (8 trophies), Shadow Wisps (Endless night 20),
+  Frost Trail (clear ch6). Picker panel at the bottom of the Heroes tab (locked chips say how).
+
 ## Shipped (newest first)
+- Hero flair: 5 unlockable cosmetic trails/halos (ember, frost, petals, shadow wisps, golden halo), picker on Heroes tab (test).
 - Run history: last 20 runs (chapter/daily/endless, hero, nights, kills, gold) with win rate, under Records on Trophies (test).
 - Hero skill trees: XP from nights survived, 3 branches × 3 skills per hero, Heroes tab panel, end-screen notice (tests).
 - Endless milestones: one-time gold for every 5 nights held, next-target line on the Endless card (test).

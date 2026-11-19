@@ -57,3 +57,17 @@ describe("hero skill trees", () => {
     expect(again.heroes.ranger.xp).toBe(40);
   });
 });
+
+describe("hero flair", async () => {
+  const { activeFlair } = await import("../src/core/flair");
+  it("only wears unlocked flair and reaches the run setup", () => {
+    const s = newSave();
+    s.flair = "ember";
+    expect(activeFlair(s)).toBe("none"); // chapter 4 not cleared
+    expect(campSetupFromSave(s).heroFlair).toBe("none");
+    s.stars[4] = 1;
+    expect(activeFlair(s)).toBe("ember");
+    expect(campSetupFromSave(s).heroFlair).toBe("ember");
+    expect(sanitizeSave({ flair: 42 }).flair).toBe("none");
+  });
+});

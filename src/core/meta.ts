@@ -66,10 +66,12 @@ export interface SaveData {
   heroes: Record<HeroId, HeroProgress>;
   /** Recent runs, newest first (see history.ts). */
   history: RunRecord[];
+  /** Chosen cosmetic hero flair (see flair.ts). */
+  flair: string;
 }
 
 export function newSave(): SaveData {
-  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [] };
+  return { version: 1, gold: 0, stars: {}, perms: {}, hero: "ranger", best: {}, runs: 0, wins: 0, lastChapter: 1, daily: { date: "", best: 0, won: false }, stats: {}, claimed: [], quests: newQuestState(), heroes: newHeroProgress(), history: [], flair: "none" };
 }
 
 /** Accepts anything (corrupted / old saves) and returns a valid SaveData. */
@@ -97,6 +99,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stats))) d.stats[k] = Math.max(0, Math.floor(num(v, 0)));
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
+  d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
   d.history = sanitizeHistory((r as { history?: unknown }).history);
   const rawHeroes = (r as { heroes?: unknown }).heroes;
   d.heroes = sanitizeHeroProgress(rawHeroes);

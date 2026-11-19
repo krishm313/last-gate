@@ -4194,6 +4194,65 @@ fx.shake(0.15);
     ctx.restore();
   }
 
+  /** Cosmetic hero flair: a halo or a trail shed while walking (render-only, from the save). */
+  private flairAcc = 0;
+  private flairLastT = 0;
+  private drawFlair(ctx: CanvasRenderingContext2D, c: Camp, x: number, y: number, moving: boolean): void {
+    const dt = Math.min(0.1, Math.max(0, this.time - this.flairLastT));
+    this.flairLastT = this.time;
+    const f = c.heroFlair;
+    const tint = (col: string, a: number) => {
+      // A coloured pool on the ground under the hero (normal blending, so it reads on bright grass).
+      const g = this.blob(`flair-${col}`, [[0, col], [0.6, col.replace(/[\d.]+\)$/, "0.35)")], [1, "rgba(0,0,0,0)"]]);
+      this.drawBlob(ctx, g, x, y + 12, 30, 12, a);
+    };
+    if (f === "gold") {
+      tint("rgba(255,214,90,0.8)", 0.7);
+      // A floating golden halo ring above the head and sparkles circling it.
+      ctx.save();
+      const hy = y - 40 + Math.sin(this.time * 2.4) * 2;
+      ctx.strokeStyle = "rgba(255,226,120,0.95)";
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "rgba(255,210,80,0.9)";
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.ellipse(x, hy, 11, 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const g = this.glintBlob();
+      for (let i = 0; i < 4; i++) {
+        const a = this.time * 2.2 + (i * Math.PI) / 2;
+        this.drawBlob(ctx, g, x + Math.cos(a) * 22, y - 4 + Math.sin(a) * 8, 5, 5, 1);
+      }
+      ctx.restore();
+      if (moving) this.flairAcc += dt;
+      while (this.flairAcc > 0.08) {
+        this.flairAcc -= 0.08;
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, "#ffe27a", 1, 20, { max: 0.7, size: 3, gravity: -30, drag: 2, shape: "spark" });
+      }
+      return;
+    }
+    if (f === "ember") tint("rgba(255,110,30,0.75)", 0.55);
+    if (f === "frost") tint("rgba(160,220,255,0.8)", 0.6);
+    if (f === "shadow") tint("rgba(90,40,160,0.8)", 0.6);
+    if (f === "petal") tint("rgba(255,160,200,0.7)", 0.5);
+    // Trails: shed motes while walking (and a few while standing for the wisps).
+    this.flairAcc += dt * (moving ? 1 : f === "shadow" ? 0.5 : 0.15);
+    const every = 0.035;
+    while (this.flairAcc > every) {
+      this.flairAcc -= every;
+      const jx = Math.sin(this.time * 91.7 + this.flairAcc * 50) * 9, jy = Math.cos(this.time * 53.3) * 4;
+      const alt = Math.sin(this.time * 40 + jx) > 0;
+      if (f === "ember") this.fx.burst(x + jx, y + 10 + jy, alt ? "#ffc04a" : "#ff5a1a", 2, 34, { max: 0.9, size: 4.2, gravity: -80, drag: 1.6, shape: "dot" });
+      else if (f === "frost") this.fx.burst(x + jx, y + 10 + jy, alt ? "#ffffff" : "#8ad0ff", 1, 22, { max: 1.1, size: 3.2, gravity: 14, drag: 3, shape: "chunk" });
+      else if (f === "petal") this.fx.burst(x + jx, y + 2 + jy, alt ? "#ffb0d0" : "#ff6aa8", 1, 26, { max: 1.3, size: 3.6, gravity: 36, drag: 2.5, shape: "chunk" });
+      else if (f === "shadow") this.fx.burst(x + jx * 1.4, y + 8 + jy, alt ? "#5a2a98" : "#2a1448", 1, 16, { max: 1.1, size: 4.6, gravity: -46, drag: 2, shape: "dot" });
+    }
+    if (this.flairAcc > 1) this.flairAcc = 0;
+  }
+
   private drawDragon(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, flash: boolean): void {
     const r = e.def.radius;
     // Ground shadow far below the flyer (soft, swelling as it dips on its bob), then the 3D-rendered
@@ -4862,6 +4921,7 @@ fx.shake(0.15);
     ctx.beginPath();
     ctx.ellipse(h.x, h.y + 12, (17 + Math.sin(c.time * 4) * 1.5) * K, 6.5 * K, 0, 0, Math.PI * 2);
     ctx.stroke();
+    if (c.heroFlair !== "none") this.drawFlair(ctx, c, h.x, h.y, h.moving);
     const walk = h.moving ? c.time * 14 : 0;
     const step = h.moving ? Math.abs(Math.sin(c.time * 14)) : 0;
     const bob = step * 2;

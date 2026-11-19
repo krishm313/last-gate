@@ -1094,3 +1094,11 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgh-result { font-weight: 800; font-size: 0.8em; color: #ff9a9a; }
 .lgh-row.won .lgh-result { color: #8aef8a; }
 .lgh-gold { font-size: 0.75em; color: #ffd76a; font-weight: 700; }
+.lgf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lgf-chip { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 8px 4px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 255, 255, 0.12); }
+.lgf-icon { font-size: 1.4em; }
+.lgf-name { font-weight: 800; font-size: 0.76em; color: #fff; }
+.lgf-how { font-size: 0.66em; color: #a8b0cc; }
+.lgf-chip.on { border-color: #ffd24a; background: rgba(255, 210, 74, 0.16); }
+.lgf-chip.on .lgf-how { color: #ffd76a; font-weight: 800; }
+.lgf-chip.locked { opacity: 0.55; }

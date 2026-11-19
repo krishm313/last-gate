@@ -118,6 +118,11 @@ const hub = new Hub(uiRoot, {
     }
     hub.showHub(save, "heroes");
   },
+  onFlair: (id) => {
+    save.flair = id;
+    writeSave(save);
+    hub.showHub(save, "heroes");
+  },
   onResetSkills: (hero) => {
     resetSkills(save.heroes[hero]);
     writeSave(save);

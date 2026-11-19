@@ -8,6 +8,7 @@ import { ENEMIES } from "../core/enemies";
 import { ACHIEVEMENTS, claimable } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILLS } from "../core/skills";
 import { historySummary } from "../core/history";
+import { activeFlair, FLAIRS } from "../core/flair";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, type HeroId } from "../core/heroes";
 import { canBuy, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
@@ -39,6 +40,8 @@ export interface HubCallbacks {
   /** Learn / reset a hero skill (Heroes tab). */
   onLearnSkill?: (hero: HeroId, id: string) => void;
   onResetSkills?: (hero: HeroId) => void;
+  /** Picked a cosmetic hero flair. */
+  onFlair?: (id: string) => void;
   /** Claimed a finished daily / weekly quest. */
   onClaimQuest: (id: string) => void;
   /** New quests were handed out (the save should be written). */
@@ -475,6 +478,33 @@ export class Hub {
       if (selected) body.append(this.skillPanel(save, h.id));
     }
     this.justPicked = null;
+    body.append(this.flairPanel(save));
+  }
+
+  /** Cosmetic hero flair: a trail or halo worn by whichever hero you play. */
+  private flairPanel(save: SaveData): HTMLElement {
+    const panel = el("div", "lgs-panel lgf-panel");
+    const head = el("div", "lgs-head");
+    const owned = FLAIRS.filter((f) => f.unlocked(save)).length;
+    head.append(el("div", "lgs-title", "Hero flair"), el("div", "lgs-pts", `${owned - 1} / ${FLAIRS.length - 1}`));
+    panel.append(head);
+    const grid = el("div", "lgf-grid");
+    const active = activeFlair(save);
+    for (const f of FLAIRS) {
+      const open = f.unlocked(save);
+      const on = active === f.id;
+      const chip = el("button", `lgf-chip${on ? " on" : ""}${open ? "" : " locked"}`);
+      chip.append(el("div", "lgf-icon", open ? f.icon : "🔒"), el("div", "lgf-name", f.name), el("div", "lgf-how", on ? "Wearing" : open ? "Tap to wear" : f.how));
+      if (open && !on)
+        chip.onclick = () => {
+          this.cb.onClick();
+          this.cb.onFlair?.(f.id);
+        };
+      else if (!open) chip.onclick = () => this.denied(chip);
+      grid.append(chip);
+    }
+    panel.append(grid);
+    return panel;
   }
 
   /** The selected hero's skill tree: XP toward the next point, then three branches of three. */

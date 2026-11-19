@@ -1,6 +1,7 @@
 import { HERO_BY_ID, type HeroId } from "../core/heroes";
 import type { SaveData } from "../core/meta";
 import { skillMods } from "../core/skills";
+import { activeFlair } from "../core/flair";
 import { baseMods } from "./blessings";
 import type { CampSetup } from "./sim";
 
@@ -38,6 +39,7 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   const h = CAMP_HEROES[hero];
   h.apply(s);
   s.heroLook = h.look;
+  s.heroFlair = activeFlair(save);
   s.ability = HERO_BY_ID[hero].ability;
   s.abilityCooldown = HERO_BY_ID[hero].cooldown;
   // Hero skill tree.
