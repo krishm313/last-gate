@@ -221,6 +221,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Endless: this week's twist icon on the in-run night label ("NIGHT 1 · ENDLESS 👑").
 - One-time "What's new" card on the Battle tab for returning players (chapters 6–8, the Warden, skill trees & flair, Hard/Nightmare, quests & Endless twists, new buildings); "Let's go!" dismisses it for good.
 - Quest fairness: daily quests now only include ones the player can do yet (elites / Hard wins need a cleared chapter so Hard is open; fires need chapter 7). Caught by checking tomorrow's quests in the browser with a faked date (test).
 - Chapter 5's night-5 Golem mid-boss softened (HP ×0.6 → ×0.45): at perms L5, 9/16 runs used to die right there (13% wins) → 25% with a smoother ramp; @L10 100%.

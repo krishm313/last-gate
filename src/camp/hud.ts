@@ -193,6 +193,8 @@ export class CampHud {
   private waveBest = el("div", "wave-best");
   /** Previous best wave for the current endless run (0 = none / not endless). */
   endlessBest = 0;
+  /** This week's Endless twist icon (shown on the night label in Endless; "" otherwise). */
+  twistIcon = "";
   private coinPill = el("div", "pill coin-pill");
   private coinText = el("span", "coin-text");
   private logPill = el("div", "pill log-pill");
@@ -726,7 +728,7 @@ export class CampHud {
     const total = c.chapter.waves.length;
     const cur = c.phase === "wave" ? c.wave : Math.min(total, c.wave + 1);
     const wIcon = c.phase === "wave" && c.weather !== "clear" ? ` ${WEATHER_INFO[c.weather].icon}` : "";
-    this.waveLabel.textContent = (c.chapter.endless ? `NIGHT ${cur} · ENDLESS` : `NIGHT ${cur}/${total}`) + wIcon;
+    this.waveLabel.textContent = (c.chapter.endless ? `NIGHT ${cur} · ENDLESS${this.twistIcon ? ` ${this.twistIcon}` : ""}` : `NIGHT ${cur}/${total}`) + wIcon;
     this.waveDots.style.display = c.chapter.endless ? "none" : "flex";
     const showBest = !!c.chapter.endless && this.endlessBest > 0;
     this.waveBest.style.display = showBest ? "block" : "none";

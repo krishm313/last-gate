@@ -254,6 +254,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   renderer.setGround(chapter.ground, chapter.id);
   lastMood = chapter.id;
   hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
+  hud.twistIcon = chapter.endless ? endlessTwistFor().icon : "";
   knownTrophies = new Set(claimable(save).map((a) => a.id));
   refreshQuests(save);
   nightsThisRun = 0;
