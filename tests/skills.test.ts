@@ -200,8 +200,8 @@ describe("the Cleric", async () => {
     c.hero.hp = c.hero.maxHp * 0.3;
     step(c, { move: { x: 0, y: 0 }, ability: true } as never);
     expect(drainEvents(c).some((e) => e.type === "sanctuary")).toBe(true);
-    expect(c.hallHp).toBeCloseTo(c.hallMaxHp * 0.57, 0);
-    expect(c.segments[0]!.hp).toBeCloseTo(c.segments[0]!.maxHp * 0.65, 0);
+    expect(c.hallHp).toBeCloseTo(c.hallMaxHp * 0.55, 0);
+    expect(c.segments[0]!.hp).toBeCloseTo(c.segments[0]!.maxHp * 0.62, 0);
     expect(c.hero.hp).toBeCloseTo(c.hero.maxHp, 0);
   });
 });

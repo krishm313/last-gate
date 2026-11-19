@@ -96,6 +96,9 @@ export function campBotStep(c: Camp): void {
   for (const p of towersAwaitingSpec(c)) chooseTowerSpec(c, p.id, ROT[c.plots.indexOf(p) % 3]!);
   const input = campBotInput(c);
   // Use the ability when there's a crowd nearby.
-  input.ability = c.abilityCharge >= 1 && c.enemies.filter((e) => Math.hypot(e.x - c.hero.x, e.y - c.hero.y) < 220).length >= 4;
+  // (The Cleric's Sanctuary is a heal: cast it when the hall or a wall section is hurt instead.)
+  input.ability = c.abilityCharge >= 1 && (c.ability === "sanctuary"
+    ? c.hallHp < c.hallMaxHp * 0.85 || c.segments.some((sg) => sg.hp > 0 && sg.hp < sg.maxHp * 0.6)
+    : c.enemies.filter((e) => Math.hypot(e.x - c.hero.x, e.y - c.hero.y) < 220).length >= 4);
   step(c, input);
 }
