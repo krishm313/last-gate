@@ -549,14 +549,22 @@ export class Hub {
 
   /** One-time "What's new" card after a big update (returning players only; dismissed for good). */
   private newsCard(save: SaveData): HTMLElement | null {
-    const NEWS = "2026-11-19c";
+    // The 2026-11-20 card waits until that day (the 19th already had a card).
+    const NEWS = Date.now() >= Date.UTC(2026, 10, 20) ? "2026-11-20" : "2026-11-19c";
     const seen = getJson<string>("lastgate.seenNews", "");
     if (save.runs === 0 || seen === NEWS) return null;
     const card = el("div", "lgn-card");
     card.append(el("div", "lgn-title", "✨ What's new"));
     const list = el("ul", "lgn-list");
     // Saw an earlier card today: just the newest bits. Otherwise the whole update.
-    const lines = seen.startsWith("2026-11-19")
+    const lines = NEWS === "2026-11-20"
+      ? [
+          "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
+          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 3 sieges, new cards as you win",
+          "🎯 Archery Range & 🛒 Supply Run: new mini-games on the map, with stars and gold",
+          "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
+        ]
+      : seen.startsWith("2026-11-19")
       ? [
           "🌕 Chapter 9: Bloodmoon Moors — and the Blood Moon Warlord, whose moon makes the horde run wild",
           "🔱 The Lancer (new hero, 18★) hurls a lance through a whole line of foes",
