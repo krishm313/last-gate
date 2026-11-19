@@ -408,6 +408,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   const pts = grantHeroXp(save, heroId, nightsThisRun);
   const rec = { date: todayString(), hero: heroId, won, nights: nightsThisRun, kills: c.kills, minutes: Math.round((c.time / 60) * 10) / 10 };
   newSkillPoints = pts > 0 ? { hero: HERO_BY_ID[heroId].name, n: pts } : null;
+  if (won) save.stats[`won_${heroId}`] = 1;
   nightsThisRun = 0;
   if (dailyRun) return finishDaily(c, won, abandoned, dailyRun, rec);
   const prevBest = save.best[c.chapter.id] ?? 0;

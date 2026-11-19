@@ -1,3 +1,4 @@
+import { HEROES } from "./heroes";
 import type { SaveData } from "./meta";
 
 export interface Achievement {
@@ -12,6 +13,10 @@ export interface Achievement {
 }
 
 const stat = (k: string) => (s: SaveData) => s.stats[k] ?? 0;
+/** Heroes that have won a run (tracked per hero; older wins still in the history count too). */
+export function heroesWon(s: SaveData): number {
+  return HEROES.filter((h) => (s.stats[`won_${h.id}`] ?? 0) > 0 || s.history.some((r) => r.won && r.hero === h.id)).length;
+}
 
 export const ACHIEVEMENTS: Achievement[] = [
   { id: "first-wave", name: "First Stand", desc: "Survive your first night", icon: "🛡️", goal: 1, reward: 30, progress: stat("wavesHeld") },
@@ -38,6 +43,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "citadel", name: "Lord of the Tides", desc: "Clear chapter 8, Sunken Citadel", icon: "🌊", goal: 1, reward: 1100, progress: (s) => ((s.stars[8] ?? 0) > 0 ? 1 : 0) },
   { id: "moonbreaker", name: "Moonbreaker", desc: "Defeat the Blood Moon Warlord", icon: "🌕", goal: 1, reward: 500, progress: stat("bloodlord") },
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
+  { id: "band", name: "Band of Heroes", desc: "Win a run with every hero", icon: "🤝", goal: HEROES.length, reward: 600, progress: heroesWon },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
 ];

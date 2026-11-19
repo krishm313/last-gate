@@ -270,3 +270,15 @@ describe("quest eligibility", () => {
     }
   });
 });
+
+describe("Band of Heroes", async () => {
+  const { heroesWon } = await import("../src/core/achievements");
+  it("counts each hero that has won once, from stats or older history", () => {
+    const s = newSave();
+    expect(heroesWon(s)).toBe(0);
+    s.stats.won_ranger = 1;
+    s.stats.won_lancer = 1;
+    s.history = [{ date: "2026-11-01", chapter: 2, hero: "pyro", won: true, nights: 10, kills: 300, gold: 200, minutes: 9 }, { date: "2026-11-01", chapter: 2, hero: "knight", won: false, nights: 4, kills: 90, gold: 60, minutes: 4 }] as never;
+    expect(heroesWon(s)).toBe(3);
+  });
+});
