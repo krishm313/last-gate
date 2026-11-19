@@ -14,9 +14,15 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
       const cur = TOWER_LEVELS[p.level - 1];
       const nx = next ? TOWER_LEVELS[next - 1]! : null;
       if (!cur) return { title: "Build: Archer Tower", lines: [`Damage ${nx!.damage} · Range ${nx!.range}`, `${nx!.archers} archer — shoots anything in range`] };
+      const sp = p.spec ? TOWER_SPECS[p.spec] : null;
       return {
-        title: `Archer Tower · Lv ${p.level}`,
-        lines: [`Damage ${arrow(cur.damage, nx?.damage ?? null)}`, `Archers ${arrow(cur.archers, nx?.archers ?? null)} · Range ${arrow(cur.range, nx?.range ?? null)}`, p.bows ? `Bows ${p.bows}/10 (+${p.bows * 6}% dmg)` : "Bring bows from the forge for +6% each"],
+        title: sp ? `${sp.icon} ${sp.name} · Lv ${p.level}` : `Archer Tower · Lv ${p.level}`,
+        lines: [
+          `Damage ${arrow(cur.damage, nx?.damage ?? null)}`,
+          `Archers ${arrow(cur.archers, nx?.archers ?? null)} · Range ${arrow(cur.range, nx?.range ?? null)}`,
+          ...(sp ? [sp.desc] : p.level === 2 ? ["At Lv 3: choose Fire, Frost or Volley"] : []),
+          p.bows ? `Bows ${p.bows}/10 (+${p.bows * 6}% dmg)` : "Bring bows from the forge for +6% each",
+        ],
       };
     }
     case "catapult": {
