@@ -102,7 +102,7 @@ export interface Enemy {
   targetX?: number;
 }
 
-export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks";
+export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes";
 
 export interface Plot {
   id: string;
@@ -131,6 +131,9 @@ export interface Plot {
   /** Archer towers: specialisation chosen on reaching level 3 (unset until chosen). */
   spec?: TowerSpec;
 }
+
+/** Spike trap: a strip of stakes in front of the gate that wounds and slows foes walking through. */
+export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps: [10, 16, 24], slow: [0.25, 0.3, 0.35] };
 
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
@@ -218,6 +221,7 @@ export type CampEvent =
   /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
+  | { type: "spikeHit"; x: number; y: number }
   | { type: "specChosen"; plot: string; spec: TowerSpec; x: number; y: number }
   | { type: "wallHit"; seg: number; x: number; y: number; damage: number }
   | { type: "wallBreak"; seg: number; x: number; y: number }
@@ -287,6 +291,8 @@ export interface Camp {
   incomeTimer: number;
   /** Royal courier: time banked toward the next coin sent from the hall's pile to the King. */
   courierTimer: number;
+  /** Throttle for the spike trap's hit event. */
+  spikeFx: number;
   hallCooldown: number;
   /** Palisade level: 0 wood, 1 banded, 2 stone, 3 stone + battlements. */
   wallLevel: number;
@@ -394,6 +400,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("tower-6", "tower", "Archer Tower", 550, towerY, [40, 70, 120, 200], 4, [0, 0, 8, 14]), locked: true },
     makePlot("repair", "repair", "Repair Wall", 310, WALL_Y + 158, [15], 999),
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
+    { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);
@@ -430,6 +437,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     incomePile: 6,
     incomeTimer: 0,
     courierTimer: 0,
+    spikeFx: 0,
     hallCooldown: 0,
     wallLevel: 0,
     mods,
@@ -1421,6 +1429,27 @@ function updateCoins(c: Camp): void {
   c.coins = c.coins.filter((k) => k.vz !== -1);
 }
 
+function updateSpikes(c: Camp): void {
+  const p = c.plots.find((q) => q.kind === "spikes");
+  if (!p || p.level === 0) return;
+  const lv = p.level - 1;
+  const dps = SPIKES.dps[lv]! * towerScale(c);
+  c.spikeFx -= STEP;
+  let fxAt: Enemy | null = null;
+  for (const e of c.enemies) {
+    if (e.def.flying || e.x < SPIKES.x0 || e.x > SPIKES.x1 || e.y < SPIKES.y0 || e.y > SPIKES.y1) continue;
+    e.hp -= dps * STEP * (1 - Math.min(1, reduction(e)));
+    e.slowPct = Math.max(e.slowTime > 0 ? e.slowPct : 0, SPIKES.slow[lv]!);
+    e.slowTime = Math.max(e.slowTime, 0.3);
+    fxAt ??= e;
+  }
+  // A throttled event so the stakes can flash and spatter where foes are caught.
+  if (fxAt && c.spikeFx <= 0) {
+    c.spikeFx = 0.35;
+    c.events.push({ type: "spikeHit", x: fxAt.x, y: fxAt.y });
+  }
+}
+
 function updateIncome(c: Camp): void {
   c.incomeTimer += STEP;
   while (c.incomeTimer >= CAMP.incomeEvery / c.mods.income) {
@@ -1521,6 +1550,7 @@ export function step(c: Camp, input: CampInput): void {
   c.overclock = Math.max(0, c.overclock - STEP);
 
   updateIncome(c);
+  updateSpikes(c);
   updateWorkers(c);
   updateAllies(c);
   updateForge(c);

@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, plotMaxed, rerollsLeft, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -43,6 +43,14 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
       return { title: `Town Hall · Lv ${p.level + 1}`, lines: ["+450 hall HP, +35% income, stronger hall archers", p.level === 0 ? "Unlocks 2 more tower slots" : "Max level next"] };
     case "fortify":
       return { title: ["Palisade", "Banded Wall", "Stone Wall", "Battlements"][p.level]!, lines: [next ? `Next: wall max HP +${Math.round((CAMP.fortifyMult - 1) * 100)}% and full repair` : "Fully fortified"] };
+    case "spikes": {
+      const pct = (v: number) => `${Math.round(v * 100)}%`;
+      if (p.level === 0) return { title: "Build: Spike Trap", lines: [`Stakes before the gate: ${SPIKES.dps[0]} dmg/s to foes crossing`, `Slows them ${pct(SPIKES.slow[0]!)} while they wade through`] };
+      return {
+        title: `Spike Trap · Lv ${p.level}`,
+        lines: [`Damage ${arrow(`${SPIKES.dps[p.level - 1]}/s`, next ? `${SPIKES.dps[next - 1]}/s` : null)}`, `Slow ${arrow(pct(SPIKES.slow[p.level - 1]!), next ? pct(SPIKES.slow[next - 1]!) : null)}`],
+      };
+    }
     case "repair": {
       const hurt = c.segments.reduce((a, s) => a + (s.maxHp - s.hp), 0);
       return { title: "Repair Wall", lines: [hurt > 0 ? `Restores ${Math.round(hurt)} wall HP` : "The wall is at full health", `Broken sections: ${c.segments.filter((s) => s.hp <= 0).length}`] };

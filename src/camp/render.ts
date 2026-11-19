@@ -5,6 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
+import { SPIKES } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -203,6 +204,38 @@ export class CampRenderer {
   flushUnlocks(): void {
     for (const u of this.pendingUnlocks) this.revealUnlock(u.x, u.y);
     this.pendingUnlocks = [];
+  }
+
+  /** When the spike trap last caught a foe (and where): stakes near it flash and judder. */
+  private spikeHit = { x: 0, t: -9 };
+  /** One row of the spike trap: sharpened stakes leaning out toward the forest (denser per level). */
+  private drawSpikeRow(ctx: CanvasRenderingContext2D, level: number, row: number): void {
+    const y = SPIKES.y0 + 12 + row * 18;
+    const n = 6 + level * 2;
+    const w = SPIKES.x1 - SPIKES.x0;
+    const since = this.time - this.spikeHit.t;
+    ctx.save();
+    ctx.lineCap = "round";
+    for (let i = 0; i < n; i++) {
+      const x = SPIKES.x0 + ((i + (row % 2) * 0.5 + 0.25) / n) * w;
+      const near = since < 0.3 && Math.abs(x - this.spikeHit.x) < 26 ? 1 - since / 0.3 : 0;
+      const jig = near ? Math.sin(since * 70 + i) * 1.6 * near : 0;
+      const len = 13 + ((i * 7 + row * 3) % 5);
+      const lean = -0.35 + ((i * 13 + row * 5) % 7) * 0.05;
+      const tx = x + Math.sin(lean) * len + jig, ty = y - Math.cos(lean) * len;
+      ctx.strokeStyle = "rgba(0,0,0,0.25)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x + 2, y + 2); ctx.lineTo(tx + 6, y + 4); ctx.stroke();
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 4.2;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke();
+      ctx.strokeStyle = level >= 3 ? "#a8a8b0" : "#a8743e";
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+      ctx.fillStyle = near ? "#ff6a4a" : level >= 2 ? "#e8e8ee" : "#d8b07a";
+      ctx.beginPath(); ctx.arc(tx, ty, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
   }
 
   /** A blessing was just chosen: the golden pillar rises around the King, with its icon and name. */
@@ -463,6 +496,10 @@ export class CampRenderer {
           }
           break;
         }
+        case "spikeHit":
+          this.spikeHit = { x: ev.x, t: this.time };
+          fx.burst(ev.x, ev.y + 4, "#8a5a2a", 4, 70, { max: 0.3, size: 2.4, gravity: 260, shape: "chunk" });
+          break;
         case "specHit":
           if (ev.spec === "fire") fx.burst(ev.x, ev.y, "#ff9a3a", 5, 90, { max: 0.35, size: 2.6, gravity: -60, shape: "spark" });
           else if (ev.spec === "frost") {
@@ -893,6 +930,9 @@ fx.shake(0.15);
         ctx.globalAlpha = 1;
       },
     });
+    // Spike trap before the gate: three staggered rows of stakes, each row depth-sorted with the foes.
+    const spikePlot = c.plots.find((q) => q.kind === "spikes");
+    if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);

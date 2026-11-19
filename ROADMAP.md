@@ -35,7 +35,12 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Slices: (1) sim + tests + choice screen ✅ (2) in-world look ✅: tinted arrows, tower banner colour,
   hit effects (3) info card shows the path ✅. DONE.
 
+- **Spike trap** — new plot (unlocks after night 3, 3 levels, coins + logs) that plants a strip of
+  stakes in front of the gate: walkers crossing take 10/16/24 dmg/s (×chapter scale, armour applies)
+  and are slowed 25/30/35%; flyers pass over. Stakes judder and flash where a foe is caught.
+
 ## Shipped (newest first)
+- Spike trap: stakes before the gate wound + slow walkers (plot, info card, visuals, tests; campsim ch1 100%).
 - Tower specialisations slice 3: info card shows the path (and hints "At Lv 3: choose…" on Lv 2 towers).
 - Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).

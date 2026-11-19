@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, spawnEnemy, step, type Camp, type CampInput } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, plotCost, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 
 const still: CampInput = { move: { x: 0, y: 0 } };
@@ -333,5 +333,40 @@ describe("tower specialisations", () => {
       if (spec === "frost") expect(hit.some((e) => e.slowTime > 0 && e.slowPct >= 0.4)).toBe(true);
       if (spec === "volley") expect(hit.filter((e) => e.hp < e.maxHp).length).toBeGreaterThanOrEqual(3);
     }
+  });
+});
+
+describe("spike trap", () => {
+  it("wounds and slows walkers crossing the strip before the gate, not flyers or foes elsewhere", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const sp = c.plots.find((p) => p.kind === "spikes")!;
+    sp.locked = false; sp.level = 2;
+    const inside = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 5, lane: 0.5 }, { x: 360, y: SPIKES.y0 + 20 });
+    const outside = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 5, lane: 0.5 }, { x: 120, y: SPIKES.y0 + 20 });
+    const bat = spawnEnemy(c, { at: 0, enemy: "bat", hpMult: 5, lane: 0.5 }, { x: 380, y: SPIKES.y0 + 20 });
+    const hp0 = [inside.hp, outside.hp, bat.hp];
+    step(c, still);
+    expect(inside.slowTime).toBeGreaterThan(0);
+    run(c, 0.5);
+    expect(inside.hp).toBeLessThan(hp0[0]!);
+    expect(outside.hp).toBe(hp0[1]);
+    expect(bat.hp).toBe(hp0[2]);
+  });
+  it("does nothing until built", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const e = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 5, lane: 0.5 }, { x: 360, y: SPIKES.y0 + 20 });
+    const hp = e.hp;
+    step(c, still);
+    expect(e.hp).toBe(hp);
   });
 });
