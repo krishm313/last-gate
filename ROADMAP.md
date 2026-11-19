@@ -8,7 +8,7 @@ Goal: a game that keeps getting better — new features and content first, polis
 | # | Phase | Items |
 |---|---|---|
 | 1 | **New features** ✅ DONE | ✅ Royal courier · ✅ Tower specialisations · ✅ Spike traps · ✅ Mage Tower · ✅ Healer's tent · ✅ Blessing combos |
-| 2 | **New content** | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
+| 2 | **New content** ✅ DONE | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
 | 3 | **Reasons to come back** | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
 | 4 | **Optional challenge** | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
 | 5 | **Sound & feel** | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
@@ -87,6 +87,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Hub shows ❄️ boss. campsim ch6 @L10 75%; ch1 still 100%.
 
 ## Shipped (newest first)
+- Frostpeak scenery: snow-laden pines, frosted round trees, snowy rocks/bushes (winter prop atlas), bare winter trees, no butterflies in the snow.
 - The Frost Wyrm: new ch6 boss with a 2nd phase — frost nova freezes towers in ice (sprite, shards, nova fx, test).
 - Chapter 6 "Frostpeak Pass": snowy ground, falling snow, foggy/stormy nights, new achievement (tests).
 - Night weather: Rain / Fog / Storm change tower range, burn and add lightning strikes (visuals, HUD icon, toast, tests).

@@ -1627,6 +1627,7 @@ fx.shake(0.15);
       3: [["crates1", 7], ["wheel1", 7]],
       4: [["gravestone1", 9], ["gravestone2", 7], ["deadtree1", 6]],
       5: [["burntstump1", 12], ["deadtree1", 3]],
+      6: [["deadtree1", 7]],
       99: [["crystal1", 14]],
     };
     const set = SETS[this.mood];
@@ -1774,7 +1775,7 @@ fx.shake(0.15);
   private propImgs = new Map<string, HTMLImageElement>();
   private propCache = new Map<string, HTMLCanvasElement>();
   private propTint(): string {
-    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn" } as Record<number, string>)[this.mood] ?? "summer";
+    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter" } as Record<number, string>)[this.mood] ?? "summer";
   }
   private propAtlas(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
@@ -3138,7 +3139,7 @@ fx.shake(0.15);
       return [cx + Math.sin(tt * 0.37 + i * 1.7) * 60 + Math.sin(tt * 1.1 + i) * 12,
         cy + Math.cos(tt * 0.29 + i * 2.3) * 40 + Math.sin(tt * 2.3 + i) * 6];
     };
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < (this.mood === 6 ? 0 : 6); i++) {
       const [wx, wy] = bfPos(i, t);
       const [nx, ny] = bfPos(i, t + 0.15);
       const x = wx - o.x + sh.x, y = wy - o.y + sh.y;
