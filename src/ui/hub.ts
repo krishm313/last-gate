@@ -32,6 +32,32 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: s
   return e;
 }
 
+const DMG_LABEL: Record<string, [string, string]> = {
+  towers: ["🏹", "Archer towers"], hero: ["🗡️", "Your hero"], catapults: ["🪨", "Catapults"], soldiers: ["⚔️", "Soldiers"],
+  mage: ["🔮", "Mage Tower"], fire: ["🔥", "Burning"], spikes: ["🪤", "Spike trap"], storm: ["⚡", "Lightning"], lava: ["🌋", "Lava"],
+};
+/** "Who did the work": the top three damage sources of a run with their share. */
+function damageBreakdown(dmg?: Record<string, number>): HTMLElement | null {
+  if (!dmg) return null;
+  const total = Object.values(dmg).reduce((a, b) => a + b, 0);
+  if (total < 50) return null;
+  const top = Object.entries(dmg).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const box = el("div", "lgm-box");
+  box.append(el("div", "lgm-title", "Damage dealt"));
+  for (const [k, v] of top) {
+    const [icon, name] = DMG_LABEL[k] ?? ["•", k];
+    const pct = Math.round((v / total) * 100);
+    const row = el("div", "lgm-row");
+    const bar = el("div", "lgm-bar");
+    const fill = el("i", "");
+    fill.style.width = `${pct}%`;
+    bar.append(fill);
+    row.append(el("span", "lgm-name", `${icon} ${name}`), bar, el("span", "lgm-pct", `${pct}%`));
+    box.append(row);
+  }
+  return box;
+}
+
 /** Settings rows (Vibration only where the device supports it — not on iPhone). */
 function settingLabels(): Record<string, string> {
   const l: Record<string, string> = { music: "🎵 Music", sfx: "🔔 Sound effects", shake: "📳 Screen shake", calm: "🌙 Reduced motion", bigText: "🔠 Large text" };
@@ -69,6 +95,8 @@ export interface RunSummary {
   upgradesReady?: number;
   /** Finished quests waiting on the Trophies tab. */
   questsReady?: number;
+  /** Damage dealt per source this run (towers, hero, mage…) for the breakdown. */
+  dmg?: Record<string, number>;
   /** Skill points the run's hero just earned. */
   skillPoints?: { hero: string; n: number };
   /** Hall HP left at the end, 0..100 (for the "next star" hint). */
@@ -794,6 +822,8 @@ export class Hub {
     const nRows = rows.childElementCount;
     countUp(total, reward.gold, (r.won ? 2000 : 900) + 350 + nRows * 70);
     box.append(rows);
+    const dmgBox = damageBreakdown(r.dmg);
+    if (dmgBox) box.append(dmgBox);
     if (!r.won && r.tip) {
       // The bulb lights up after the stats deal in, so the advice reads as the takeaway.
       const tip = el("div", "end-tip lose-tip");

@@ -785,3 +785,14 @@ describe("Magma Titan", () => {
     expect(f.hp).toBeLessThan(fhp0);
   });
 });
+
+describe("damage breakdown", () => {
+  it("credits damage to its source over a night", async () => {
+    const { campBotStep } = await import("../src/camp/bot");
+    const c = createCamp(21);
+    for (let i = 0; i < 60 * 60 * 3 && c.wave < 3; i++) campBotStep(c);
+    const d = c.runStats.dmg;
+    expect((d.hero ?? 0) + (d.towers ?? 0)).toBeGreaterThan(0);
+    for (const v of Object.values(d)) expect(v).toBeGreaterThan(0);
+  });
+});

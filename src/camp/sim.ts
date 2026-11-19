@@ -417,7 +417,7 @@ export interface Camp {
   heroLevel: number;
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
-  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number };
+  runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number> };
   strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
   owned: Record<string, number>;
   offers: Blessing[];
@@ -584,7 +584,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     eliteChance: setup.eliteChance ?? 0,
     heroLevel: 1,
     heroXp: 0,
-    runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0 },
+    runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0, dmg: {} },
     strikes: [],
     crit: setup.critChance ?? 0.08,
     owned: {},
@@ -935,7 +935,7 @@ function updateAllies(c: Camp): void {
       if (a.cooldown <= 0) {
         a.cooldown = 1 / ALLY.rate;
         a.swinging = 0.25;
-        damageEnemy(c, target, ALLY.damage * c.mods.towerDamage * c.mods.allyPower * towerScale(c), "tower");
+        damageEnemy(c, target, ALLY.damage * c.mods.towerDamage * c.mods.allyPower * towerScale(c), "tower", false, "soldiers");
       }
     }
   }
@@ -1162,7 +1162,7 @@ function updateStrikes(c: Camp): void {
     st.t -= STEP;
     if (st.t > 0) continue;
     if (st.radius) {
-      for (const e of c.enemies) if (!e.def.flying && (e.x - st.x) ** 2 + (e.y - st.y) ** 2 < (st.radius + e.def.radius) ** 2) damageEnemy(c, e, st.damage, "tower");
+      for (const e of c.enemies) if (!e.def.flying && (e.x - st.x) ** 2 + (e.y - st.y) ** 2 < (st.radius + e.def.radius) ** 2) damageEnemy(c, e, st.damage, "tower", false, "catapults");
       c.events.push({ type: "boom", x: st.x, y: st.y, r: st.radius, kind: "boulder" });
       continue;
     }
@@ -1229,7 +1229,13 @@ export function reduction(e: Enemy): number {
   return r;
 }
 
-function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false): void {
+/** Run stats: damage dealt by each source (end-of-run breakdown). */
+export function credit(c: Camp, src: string, dmg: number): void {
+  if (dmg > 0) c.runStats.dmg[src] = (c.runStats.dmg[src] ?? 0) + dmg;
+}
+const SRC: Record<string, string> = { tower: "towers", hero: "hero", catapult: "catapults" };
+
+function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false, src?: string): void {
   const red = reduction(e);
   if (red >= 1) return;
   const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1);
@@ -1243,6 +1249,7 @@ function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = fals
     }
   } else e.hp -= dmg;
   e.flash = 0.08;
+  credit(c, src ?? SRC[owner] ?? owner, dmg);
   c.events.push({ type: "hit", x: e.x, y: e.y, damage: Math.round(dmg), crit, owner, eid: e.id });
 }
 
@@ -1451,7 +1458,7 @@ function updatePools(c: Camp): void {
     if (h.hp > 0 && !h.dead && (h.x - l.x) ** 2 + (h.y - l.y) ** 2 <= r2) damageHero(c, l.dps * STEP);
     for (const a of c.allies) if (a.respawn <= 0 && (a.x - l.x) ** 2 + (a.y - l.y) ** 2 <= r2) damageAlly(c, a, l.dps * STEP);
     // The lava doesn't care whose side you're on: walkers crossing it burn too (bosses shrug it off).
-    for (const e of c.enemies) if (!e.def.flying && !e.def.boss && (e.x - l.x) ** 2 + (e.y - l.y) ** 2 <= r2) e.hp -= l.dps * 1.5 * STEP;
+    for (const e of c.enemies) if (!e.def.flying && !e.def.boss && (e.x - l.x) ** 2 + (e.y - l.y) ** 2 <= r2) { e.hp -= l.dps * 1.5 * STEP; credit(c, "lava", l.dps * 1.5 * STEP); }
   }
   c.pools = c.pools.filter((l) => l.t < l.dur);
 }
@@ -1639,7 +1646,9 @@ function updateEnemies(c: Camp): void {
     e.flash = Math.max(0, e.flash - STEP);
     if (e.burnTime > 0) {
       e.burnTime -= STEP;
-      e.hp -= e.burnDps * STEP * (e.slowTime > 0 ? c.mods.thermal : 1);
+      const burn = e.burnDps * STEP * (e.slowTime > 0 ? c.mods.thermal : 1);
+      e.hp -= burn;
+      credit(c, "fire", burn);
     }
     if (e.slowTime > 0) e.slowTime -= STEP;
     if (e.stunTime > 0) {
@@ -1765,6 +1774,7 @@ function updateMage(c: Camp): void {
       points.push({ x: cur.x, y: cur.y - cur.def.radius * 0.6 });
       // Arcane: armour doesn't help.
       cur.hp -= dmg;
+      credit(c, "mage", dmg);
       cur.flash = 0.1;
       c.events.push({ type: "hit", x: cur.x, y: cur.y, damage: Math.round(dmg), crit: false, owner: "tower", eid: cur.id });
       dmg *= MAGE.falloff;
@@ -1817,6 +1827,7 @@ function updateStorm(c: Camp): void {
   if (!foes.length) return;
   const e = foes[Math.floor(range(c.rng, 0, foes.length))]!;
   e.hp -= WEATHER.storm.damage * towerScale(c);
+  credit(c, "storm", WEATHER.storm.damage * towerScale(c));
   e.stunTime = Math.max(e.stunTime, WEATHER.storm.stun);
   e.flash = 0.15;
   c.events.push({ type: "stormBolt", x: e.x, y: e.y });
@@ -1832,7 +1843,9 @@ function updateSpikes(c: Camp): void {
   let fxAt: Enemy | null = null;
   for (const e of c.enemies) {
     if (e.def.flying || e.x < SPIKES.x0 || e.x > SPIKES.x1 || e.y < SPIKES.y0 || e.y > SPIKES.y1) continue;
-    e.hp -= dps * STEP * (1 - Math.min(1, reduction(e)));
+    const sd = dps * STEP * (1 - Math.min(1, reduction(e)));
+    e.hp -= sd;
+    credit(c, "spikes", sd);
     e.slowPct = Math.max(e.slowTime > 0 ? e.slowPct : 0, SPIKES.slow[lv]!);
     e.slowTime = Math.max(e.slowTime, 0.3);
     fxAt ??= e;

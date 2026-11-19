@@ -403,7 +403,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: Math.round(c.goldEarned * LOOT_TO_GOLD), minutes: c.time / 60, endless: !!c.chapter.endless, record: c.wave > prevBest && prevBest > 0, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, upgradesReady: PERMS.filter((p) => canBuy(save, p.id)).length, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined, hallPct: Math.floor((c.hallHp / c.hallMaxHp) * 100) },
     reward,
     () => newRun(chapterId),
     () => goHub("armory"),
@@ -448,7 +448,7 @@ function finishDaily(c: Camp, won: boolean, abandoned: boolean, d: DailyChalleng
   }
   hud.setVisible(false);
   hub.showEnd(
-    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
+    { won, chapterName: c.chapter.name, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, daily: true, dailyStreak: streak, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
     reward,
     () => startDaily(),
     () => goHub("battle"),
