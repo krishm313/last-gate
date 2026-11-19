@@ -1136,3 +1136,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs-mini-label { margin-top: 4px; font-size: 0.7em; opacity: 0.8; }
 .lgs-mini { height: 5px; margin-top: 2px; border-radius: 3px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .lgs-mini i { display: block; height: 100%; background: linear-gradient(90deg, #6ab0ff, #9ad8ff); }
+
+/* "How to play" (full guide from Settings): no hero art, tighter rows, so it fits one screen. */
+.title-screen.lg-guide .title-king-wrap { display: none; }
+.title-screen.lg-guide .logo { font-size: calc(40 * var(--tu)); margin-top: calc(6 * var(--u)); }
+.title-screen.lg-guide .how { margin-bottom: calc(12 * var(--u)); padding: calc(8 * var(--u)) calc(10 * var(--u)); }
+.title-screen.lg-guide .how-row { font-size: calc(12.5 * var(--tu)); padding: calc(2.5 * var(--u)) 0; }

@@ -95,12 +95,14 @@ const CHOOSE_BEAT_MS = 340;
 /** Deeper rules shown when "How to play" is opened from Settings. */
 const HOW_MORE: [string, string][] = [
   ["🪵", "Build the Lumber Camp — logs unlock tower Lv 3–4, catapults and stone walls"],
-  ["⚒️", "The Forge turns logs into bows; carry them to towers for +6% damage each"],
-  ["🌙", "Start the night early for bonus coins"],
-  ["👀", "Tap NEXT (top right) to see who comes tonight"],
-  ["✨", "After each night, pick 1 of 3 blessings to shape your run"],
+  ["🎯", "At Lv 3 each archer tower picks a path: Fire, Frost or Volley"],
+  ["🔮", "Later plots: Mage Tower, Healer's Tent, Spike Trap, Watchtower — each changes how you defend"],
+  ["⛈️", "Nights can bring rain, fog or storms — check the icon next to NIGHT"],
+  ["🔥", "A burning building stops working — walk onto it to stamp the fire out"],
+  ["🌙", "Start the night early for bonus coins · tap NEXT to see who's coming"],
+  ["✨", "After each night, pick 1 of 3 blessings — some combine into combos"],
   ["✦", "Your hero's ability charges up — tap it when the horde is thick"],
-  ["🏛️", "Every run earns gold: spend it in the Armory to grow stronger"],
+  ["🏛️", "Every run earns gold for the Armory; heroes learn skills; quests pay extra"],
 ];
 
 /** Row of owned blessing icons with level badges ("Your build"), or null if none yet. */
@@ -322,7 +324,7 @@ export class CampHud {
   }
 
   showTitle(onPlay: () => void, full = false): void {
-    const box = el("div", "title-screen");
+    const box = el("div", `title-screen${full ? " lg-guide" : ""}`);
     const king = document.createElement("img");
     king.className = "title-king";
     king.src = "./sprites/units/king.png";
@@ -345,7 +347,7 @@ export class CampHud {
       el("div", "logo-sub", "Build. Defend. Hold the wall."),
     );
     const how = el("div", "how");
-    for (const [i, t] of [["🕹️", matchMedia("(pointer: fine)").matches ? "WASD / arrows or drag to walk" : "Drag anywhere to walk"], ["🪙", "Grab coins from fallen foes and your hall"], ["🏹", "Stand on a plot to build & upgrade"], ["🏰", full ? "Keep the hall standing for 10 nights — end above the bar marks (50% / 80%) for ★★ / ★★★" : "Keep the hall standing for 10 nights"], ...(full ? HOW_MORE : [])] as const) {
+    for (const [i, t] of [["🕹️", matchMedia("(pointer: fine)").matches ? "WASD / arrows or drag to walk" : "Drag anywhere to walk"], ["🪙", "Grab coins from fallen foes — the hall's income flies to you"], ["🏹", "Stand on a plot to build & upgrade"], ["🏰", full ? "Keep the hall standing for 10 nights — end above the bar marks (50% / 80%) for ★★ / ★★★" : "Keep the hall standing for 10 nights"], ...(full ? HOW_MORE : [])] as const) {
       const row = el("div", "how-row");
       row.style.setProperty("--i", String(how.childElementCount));
       row.append(el("span", "how-icon", i), el("span", "", t));

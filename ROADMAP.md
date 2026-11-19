@@ -187,6 +187,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   building; crackle / hiss SFX.
 
 ## Shipped (newest first)
+- "How to play" updated for everything new (tower paths, new buildings, weather, fires, combos, skills & quests, courier) and compacted so the whole guide + button fit one screen even on a 320×568 iPhone SE.
 - Heroes tab: every unlocked hero's card shows skills learned and an XP bar to their next skill point.
 - Balance bot stamps out Fire Imp fires (like a player would): ch7 @L10 42% → 67%, @L7 25% — on target, no retune needed.
 - Fire Imp: ch7 flyer that sets support buildings ablaze until the King stamps the fire out (art, fx, SFX, test).
