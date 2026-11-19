@@ -384,60 +384,29 @@ export class Hub {
       };
       track.append(stop);
     });
-    // Side stop between chapters 1 and 2: the Archery Range mini-game (opens after chapter 1).
-    {
-      const open = (save.stars[1] ?? 0) > 0;
+    // Side stops off the road: mini-games that open after a chapter is cleared.
+    const sides: { key: string; icon: string; name: string; after: number; left: number; at: number; go: () => void }[] = [
+      { key: "archery", icon: "🎯", name: "Archery Range", after: 1, left: 84, at: 0.5, go: () => this.cb.onArchery?.() },
+      { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
+      { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
+    ];
+    for (const sd of sides) {
+      const open = (save.stars[sd.after] ?? 0) > 0;
       const side = el("button", `lgm-side${open ? "" : " locked"}`);
-      side.style.left = "84%";
-      side.style.bottom = `${((0.5 * 10 + 5) / H) * 100}%`;
-      side.append(el("div", "lgm-pin", open ? "🎯" : "?"));
+      side.style.left = `${sd.left}%`;
+      side.style.bottom = `${((sd.at * 10 + 5) / H) * 100}%`;
+      side.append(el("div", "lgm-pin", open ? sd.icon : "?"));
       const lab = el("div", "lgm-label");
-      const st = save.mini.archery?.stars ?? 0;
-      lab.append(el("div", "lgm-name", open ? "Archery Range" : "???"));
+      const rec = save.mini[sd.key];
+      const st = rec?.stars ?? 0;
+      lab.append(el("div", "lgm-name", open ? sd.name : "???"));
       if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
+      if (open && rec?.best) lab.append(el("div", "lgm-best", `best ${rec.best}`));
       side.append(lab);
       side.onclick = () => {
         if (!open) return this.denied(side);
         this.cb.onClick();
-        this.cb.onArchery?.();
-      };
-      track.append(side);
-    }
-    // Side stop between chapters 2 and 3: the Supply Run mini-game (opens after chapter 2).
-    {
-      const open = (save.stars[2] ?? 0) > 0;
-      const side = el("button", `lgm-side${open ? "" : " locked"}`);
-      side.style.left = "12%";
-      side.style.bottom = `${((1.5 * 10 + 5) / H) * 100}%`;
-      side.append(el("div", "lgm-pin", open ? "🛒" : "?"));
-      const lab = el("div", "lgm-label");
-      const st = save.mini.supply?.stars ?? 0;
-      lab.append(el("div", "lgm-name", open ? "Supply Run" : "???"));
-      if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
-      side.append(lab);
-      side.onclick = () => {
-        if (!open) return this.denied(side);
-        this.cb.onClick();
-        this.cb.onSupply?.();
-      };
-      track.append(side);
-    }
-    // Side stop between chapters 4 and 5: Wall Watch (opens after chapter 4).
-    {
-      const open = (save.stars[4] ?? 0) > 0;
-      const side = el("button", `lgm-side${open ? "" : " locked"}`);
-      side.style.left = "11%";
-      side.style.bottom = `${((3.6 * 10 + 5) / H) * 100}%`;
-      side.append(el("div", "lgm-pin", open ? "🛡️" : "?"));
-      const lab = el("div", "lgm-label");
-      const st = save.mini.watch?.stars ?? 0;
-      lab.append(el("div", "lgm-name", open ? "Wall Watch" : "???"));
-      if (open) lab.append(el("div", "lgm-stars", "★".repeat(st) + "☆".repeat(3 - st)));
-      side.append(lab);
-      side.onclick = () => {
-        if (!open) return this.denied(side);
-        this.cb.onClick();
-        this.cb.onWatch?.();
+        sd.go();
       };
       track.append(side);
     }
