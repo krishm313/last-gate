@@ -453,8 +453,8 @@ export class Sfx {
   }
 
   /** Side games: bow twang, target thunk, bullseye ding, wagon crash, pickup. */
-  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup"): void {
-    if (!this.ok(`mini_${kind}`, 0.05)) return;
+  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star"): void {
+    if (!this.ok(`mini_${kind}`, kind === "star" ? 0.2 : 0.05)) return;
     if (kind === "twang") {
       this.tone("triangle", 330, 180, 0.12, 0.07);
       this.noise(0.05, 0.06, "highpass", 2500);
@@ -468,6 +468,8 @@ export class Sfx {
     } else if (kind === "crash") {
       this.noise(0.25, 0.3, "lowpass", 700);
       this.tone("sawtooth", 140, 60, 0.2, 0.08);
+    } else if (kind === "star") {
+      for (const [i, f] of [988, 1319, 1760].entries()) this.tone("triangle", f, f, 0.22, 0.06, i * 0.05);
     } else {
       this.tone("sine", 1320, 1360, 0.08, 0.06);
       this.tone("sine", 1760, 1800, 0.1, 0.05, 0.05);

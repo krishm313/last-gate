@@ -1,4 +1,5 @@
 import { createWatch, stepWatch, tap, WATCH_GAME, watchStars, type Climber, type WatchState } from "./wallwatch";
+import { showEndPanel, type MiniResult } from "./endPanel";
 
 /**
  * Wall Watch screen: a full-screen canvas over the game. Tap goblins on the ladders to knock them
@@ -7,12 +8,7 @@ import { createWatch, stepWatch, tap, WATCH_GAME, watchStars, type Climber, type
  */
 const STEP = 1 / 60;
 
-export interface WatchResult {
-  score: number;
-  stars: number;
-  gold: number;
-  newStars: number;
-}
+export type WatchResult = MiniResult;
 
 export class WallWatchView {
   private root = document.createElement("div");
@@ -106,27 +102,18 @@ export class WallWatchView {
   }
 
   private showEnd(r: WatchResult): void {
-    const box = document.createElement("div");
-    box.className = "panel pop-in lgw-end";
-    const h = document.createElement("h1");
-    h.className = "title";
-    h.textContent = this.s.lost ? "They got over!" : "The wall holds!";
-    const p = document.createElement("p");
-    p.className = "sub";
-    p.textContent = `Score ${r.score} · best combo ${this.s.bestCombo} · ${"★".repeat(r.stars)}${"☆".repeat(3 - r.stars)} · +${r.gold} gold${r.newStars ? ` · ${r.newStars} new star${r.newStars > 1 ? "s" : ""}!` : ""}`;
-    const again = document.createElement("button");
-    again.className = "btn";
-    again.textContent = "Watch again";
-    again.onclick = () => this.open((Date.now() >>> 0) ^ 0x3a7);
-    const back = document.createElement("button");
-    back.className = "btn btn-ghost";
-    back.textContent = "Back to the map";
-    back.onclick = () => {
-      this.close();
-      this.onExit();
-    };
-    box.append(h, p, again, back);
-    this.root.append(box);
+    showEndPanel(this.root, {
+      cls: "lgw-end",
+      title: this.s.lost ? "They got over!" : "The wall holds!",
+      r,
+      extra: `best combo ${this.s.bestCombo}`,
+      again: "Watch again",
+      onAgain: () => this.open((Date.now() >>> 0) ^ 0x3a7),
+      onBack: () => {
+        this.close();
+        this.onExit();
+      },
+    });
   }
 
   private draw(): void {

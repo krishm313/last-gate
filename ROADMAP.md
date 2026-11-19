@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Mini-game end panels unified (src/mini/endPanel.ts): big stars with newly earned ones popping in one by one plus a rising chime each, the gold line notes "🎪 Fair day 2×!" when it applied. Fair day now doubles only the score gold, not the one-time star bonuses.
 - Fair day: each day one of your open mini-games pays double gold (date-picked among opened side stops; src/mini/fair.ts + tests). Its map stop wears a pink "2× GOLD" flag. Autoplay sweep (ch7 Lancer, ch9 Cleric, ch3 Engineer on iPhone SE): no errors.
 - Catapult Toss (mini-game #4): 🪨 side stop beside chapters 6–7 (opens after chapter 6). Siege towers (3 hits) and battering rams (1 hit) roll down the field; tap to lob a stone — it lands after a flight time that grows with distance, so lead the target; splash hits everything nearby; combos ×2/×3. 3 engines at the wall = lost; 60 s. Stars 100/200/300, gold = score/3 + first-time star bonuses (save.mini.catapult). New achievement Siegebreaker (3★); Champion of the Fair now needs all 12 mini-game stars (600 gold). scripts/catsim.ts: perfect-lead bot ~360, 40 px error ~290, 60 px error loses.
 - Siege Lord deck art: Bats and Fire Imps cards use the in-game sprites instead of emoji.

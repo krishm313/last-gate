@@ -1,4 +1,5 @@
 import { createRun, ROAD, steer, stepRun, supplyStars, type SupplyState, type Thing } from "./supply";
+import { showEndPanel, type MiniResult } from "./endPanel";
 
 /**
  * Supply Run screen: a full-screen canvas over the game. Tap the left or right half of the screen
@@ -7,12 +8,7 @@ import { createRun, ROAD, steer, stepRun, supplyStars, type SupplyState, type Th
  */
 const STEP = 1 / 60;
 
-export interface SupplyResult {
-  score: number;
-  stars: number;
-  gold: number;
-  newStars: number;
-}
+export type SupplyResult = MiniResult;
 
 export class SupplyView {
   private root = document.createElement("div");
@@ -115,27 +111,17 @@ export class SupplyView {
   }
 
   private showEnd(r: SupplyResult): void {
-    const box = document.createElement("div");
-    box.className = "panel pop-in lgr-end";
-    const h = document.createElement("h1");
-    h.className = "title";
-    h.textContent = this.s.crashed ? "The wagon broke down!" : "Supplies delivered!";
-    const p = document.createElement("p");
-    p.className = "sub";
-    p.textContent = `Score ${r.score} · ${"★".repeat(r.stars)}${"☆".repeat(3 - r.stars)} · +${r.gold} gold${r.newStars ? ` · ${r.newStars} new star${r.newStars > 1 ? "s" : ""}!` : ""}`;
-    const again = document.createElement("button");
-    again.className = "btn";
-    again.textContent = "Ride again";
-    again.onclick = () => this.open((Date.now() >>> 0) ^ 0x5a9);
-    const back = document.createElement("button");
-    back.className = "btn btn-ghost";
-    back.textContent = "Back to the map";
-    back.onclick = () => {
-      this.close();
-      this.onExit();
-    };
-    box.append(h, p, again, back);
-    this.root.append(box);
+    showEndPanel(this.root, {
+      cls: "lgr-end",
+      title: this.s.crashed ? "The wagon broke down!" : "Supplies delivered!",
+      r,
+      again: "Ride again",
+      onAgain: () => this.open((Date.now() >>> 0) ^ 0x5a9),
+      onBack: () => {
+        this.close();
+        this.onExit();
+      },
+    });
   }
 
   private draw(): void {

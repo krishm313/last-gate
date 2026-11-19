@@ -1,4 +1,5 @@
 import { CAT, catStars, createCatapult, lob, stepCatapult, type CatState, type Engine } from "./catapult";
+import { showEndPanel, type MiniResult } from "./endPanel";
 
 /**
  * Catapult Toss screen: a full-screen canvas over the game. Tap the field to lob a stone there —
@@ -7,12 +8,7 @@ import { CAT, catStars, createCatapult, lob, stepCatapult, type CatState, type E
  */
 const STEP = 1 / 60;
 
-export interface CatResult {
-  score: number;
-  stars: number;
-  gold: number;
-  newStars: number;
-}
+export type CatResult = MiniResult;
 
 export class CatapultView {
   private root = document.createElement("div");
@@ -96,27 +92,18 @@ export class CatapultView {
   }
 
   private showEnd(r: CatResult): void {
-    const box = document.createElement("div");
-    box.className = "panel pop-in lgc-end";
-    const h = document.createElement("h1");
-    h.className = "title";
-    h.textContent = this.s.lost ? "The engines broke through!" : "The siege is broken!";
-    const p = document.createElement("p");
-    p.className = "sub";
-    p.textContent = `Score ${r.score} · best combo ${this.s.bestCombo} · ${"★".repeat(r.stars)}${"☆".repeat(3 - r.stars)} · +${r.gold} gold${r.newStars ? ` · ${r.newStars} new star${r.newStars > 1 ? "s" : ""}!` : ""}`;
-    const again = document.createElement("button");
-    again.className = "btn";
-    again.textContent = "Throw again";
-    again.onclick = () => this.open((Date.now() >>> 0) ^ 0xca7);
-    const back = document.createElement("button");
-    back.className = "btn btn-ghost";
-    back.textContent = "Back to the map";
-    back.onclick = () => {
-      this.close();
-      this.onExit();
-    };
-    box.append(h, p, again, back);
-    this.root.append(box);
+    showEndPanel(this.root, {
+      cls: "lgc-end",
+      title: this.s.lost ? "The engines broke through!" : "The siege is broken!",
+      r,
+      extra: `best combo ${this.s.bestCombo}`,
+      again: "Throw again",
+      onAgain: () => this.open((Date.now() >>> 0) ^ 0xca7),
+      onBack: () => {
+        this.close();
+        this.onExit();
+      },
+    });
   }
 
   private draw(): void {

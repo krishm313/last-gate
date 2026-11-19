@@ -1,4 +1,5 @@
 import { createRange, RANGE, rangeReward, shoot, starsFor, stepRange, type RangeState } from "./archery";
+import { showEndPanel, type MiniResult } from "./endPanel";
 
 /**
  * Archery Range screen: a full-screen canvas over the game. Drag back from the bow (anywhere in the
@@ -7,12 +8,7 @@ import { createRange, RANGE, rangeReward, shoot, starsFor, stepRange, type Range
  */
 const STEP = 1 / 60;
 
-export interface RangeResult {
-  score: number;
-  stars: number;
-  gold: number;
-  newStars: number;
-}
+export type RangeResult = MiniResult;
 
 export class ArcheryView {
   private root = document.createElement("div");
@@ -118,27 +114,17 @@ export class ArcheryView {
   }
 
   private showEnd(r: RangeResult): void {
-    const box = document.createElement("div");
-    box.className = "panel pop-in lga-end";
-    const h = document.createElement("h1");
-    h.className = "title";
-    h.textContent = r.stars ? "Fine shooting!" : "Time's up";
-    const p = document.createElement("p");
-    p.className = "sub";
-    p.textContent = `Score ${r.score} · ${"★".repeat(r.stars)}${"☆".repeat(3 - r.stars)} · +${r.gold} gold${r.newStars ? ` · ${r.newStars} new star${r.newStars > 1 ? "s" : ""}!` : ""}`;
-    const again = document.createElement("button");
-    again.className = "btn";
-    again.textContent = "Shoot again";
-    again.onclick = () => this.open((Date.now() >>> 0) ^ 0xa11);
-    const back = document.createElement("button");
-    back.className = "btn btn-ghost";
-    back.textContent = "Back to the map";
-    back.onclick = () => {
-      this.close();
-      this.onExit();
-    };
-    box.append(h, p, again, back);
-    this.root.append(box);
+    showEndPanel(this.root, {
+      cls: "lga-end",
+      title: r.stars ? "Fine shooting!" : "Time's up",
+      r,
+      again: "Shoot again",
+      onAgain: () => this.open((Date.now() >>> 0) ^ 0xa11),
+      onBack: () => {
+        this.close();
+        this.onExit();
+      },
+    });
   }
 
   private draw(): void {

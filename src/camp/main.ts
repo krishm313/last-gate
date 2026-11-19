@@ -375,8 +375,12 @@ function showMenuSettings() {
 }
 
 /** Fair day: today's featured mini-game pays double gold. */
-function fairGold(key: string, gold: number): number {
-  return fairPick(fairDate(), openMinis(save.stars)) === key ? gold * 2 : gold;
+function isFair(key: string): boolean {
+  return fairPick(fairDate(), openMinis(save.stars)) === key;
+}
+/** New stars on a mini-game end panel: a rising chime as each one pops in. */
+function starChimes(n: number): void {
+  for (let i = 0; i < n; i++) window.setTimeout(() => sfx.mini("star"), 350 + i * 300);
 }
 
 // ---- Archery Range (side stop on the map). ----
@@ -386,11 +390,13 @@ const archery = new ArcheryView(
     const prev = save.mini.archery ?? { best: 0, stars: 0 };
     const r = rangeReward(score, prev.stars);
     save.mini.archery = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
-    r.gold = fairGold("archery", r.gold);
+    const fair = isFair("archery");
+    if (fair) r.gold += rangeReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
-    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
   },
   () => hub.showHub(save, "battle"),
   (kind) => sfx.mini(kind),
@@ -403,11 +409,13 @@ const supply = new SupplyView(
     const prev = save.mini.supply ?? { best: 0, stars: 0 };
     const r = supplyReward(score, prev.stars);
     save.mini.supply = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
-    r.gold = fairGold("supply", r.gold);
+    const fair = isFair("supply");
+    if (fair) r.gold += supplyReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
-    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
   },
   () => hub.showHub(save, "battle"),
   (kind) => sfx.mini(kind),
@@ -420,11 +428,13 @@ const wallWatch = new WallWatchView(
     const prev = save.mini.watch ?? { best: 0, stars: 0 };
     const r = watchReward(score, prev.stars);
     save.mini.watch = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
-    r.gold = fairGold("watch", r.gold);
+    const fair = isFair("watch");
+    if (fair) r.gold += watchReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
-    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
   },
   () => hub.showHub(save, "battle"),
   (kind) => sfx.mini(kind),
@@ -437,11 +447,13 @@ const catapult = new CatapultView(
     const prev = save.mini.catapult ?? { best: 0, stars: 0 };
     const r = catReward(score, prev.stars);
     save.mini.catapult = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
-    r.gold = fairGold("catapult", r.gold);
+    const fair = isFair("catapult");
+    if (fair) r.gold += catReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
-    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars };
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
   },
   () => hub.showHub(save, "battle"),
   (kind) => sfx.mini(kind),
