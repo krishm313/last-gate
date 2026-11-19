@@ -193,6 +193,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Normal ch4 but at a coin-flip — a fair risk premium, not a farm. No change.
 
 ## Shipped (newest first)
+- Hawkeye (legendary combo: Eagle Towers + a built Watchtower): towers in the Watchtower's reach deal +10% and crit 15% of the time — the first way towers can crit (test).
 - Trophies "Warden of the Woods" (snare 200 foes) and "Firefighter" (stamp out 25 fires); Fire Imps join Endless waves.
 - "How to play" updated for everything new (tower paths, new buildings, weather, fires, combos, skills & quests, courier) and compacted so the whole guide + button fit one screen even on a 320×568 iPhone SE.
 - Heroes tab: every unlocked hero's card shows skills learned and an XP bar to their next skill point.

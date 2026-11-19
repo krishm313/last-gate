@@ -825,3 +825,34 @@ describe("Fire Imp", () => {
     expect(drainEvents(c).some((e) => e.type === "fireOut")).toBe(true);
   });
 });
+
+describe("Hawkeye combo", () => {
+  it("lets towers in the Watchtower's reach crit, and only once it stands with Eagle Towers", async () => {
+    const { rollBlessings, BLESSING_BY_ID } = await import("../src/camp/blessings");
+    const { createRng } = await import("../src/core/rng");
+    const offered = (owned: Record<string, number>, built: string[]) => {
+      for (let i = 0; i < 300; i++) if (rollBlessings(createRng(i), 6, owned, 3, new Set(built)).some((b) => b.id === "hawkeye")) return true;
+      return false;
+    };
+    expect(offered({}, ["watch"])).toBe(false);
+    expect(offered({ eagle: 1 }, [])).toBe(false);
+    expect(offered({ eagle: 1 }, ["watch"])).toBe(true);
+    const c = createCamp(9);
+    c.phase = "wave";
+    c.queue = [];
+    BLESSING_BY_ID.hawkeye!.apply(c.mods);
+    c.plots.find((p) => p.kind === "watch")!.level = 1;
+    const t = c.plots.find((p) => p.id === "tower-3")!;
+    t.level = 2;
+    for (const p of c.plots) if (p.kind === "tower" && p !== t) p.level = 0;
+    c.hero.x = 360; c.hero.y = 1100;
+    const e = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 50, lane: null }, { x: t.x, y: t.y - 120 });
+    e.stunTime = 1e9;
+    let crits = 0;
+    for (let i = 0; i < 60 * 30; i++) {
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      for (const ev of drainEvents(c)) if (ev.type === "hit" && ev.owner === "tower" && ev.crit) crits++;
+    }
+    expect(crits).toBeGreaterThan(0);
+  });
+});

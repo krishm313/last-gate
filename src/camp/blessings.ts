@@ -41,13 +41,15 @@ export interface CampMods {
   spikeDamage: number;
   /** Bounty Hunter: coin multiplier for elites and bosses. */
   bigGold: number;
+  /** Hawkeye (combo): crit chance for towers in the Watchtower's reach (0 = off). */
+  hawkeye: number;
 }
 
 export function baseMods(): CampMods {
   return {
     heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, carry: 0, towerDamage: 1, towerRate: 1,
     towerRange: 1, wallHp: 1, income: 1, drops: 1, burn: 0, burnMult: 1, slow: 0, hallDamage: 1, repairAfterWave: 0, magnet: 1, rerolls: 1,
-    allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1,
+    allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1, hawkeye: 0,
   };
 }
 
@@ -86,6 +88,7 @@ export const BLESSINGS: Blessing[] = [
   { id: "arcane", name: "Arcane Focus", desc: "Mage Tower +30% damage, lightning hops to 1 more foe", icon: "🔮", rarity: "rare", max: 2, needsBuilding: "mage", apply: (m) => { m.mageDamage *= 1.3; m.mageChains += 1; } },
   { id: "medic", name: "Field Medic", desc: "Healer's Tent reaches 30% farther and heals 40% more", icon: "💚", rarity: "common", max: 2, needsBuilding: "healer", apply: (m) => { m.healerPower *= 1.3; } },
   { id: "stakes", name: "Cruel Stakes", desc: "Spike trap deals 60% more damage", icon: "🪤", rarity: "common", max: 2, needsBuilding: "spikes", apply: (m) => { m.spikeDamage *= 1.6; } },
+  { id: "hawkeye", name: "Hawkeye", desc: "Towers the Watchtower watches over: +10% damage and 15% critical hits", icon: "🦅", rarity: "legendary", max: 1, requires: "eagle", needsBuilding: "watch", apply: (m) => { m.hawkeye = 0.15; } },
   { id: "hunter", name: "Bounty Hunter", desc: "Bosses and elites drop double coins", icon: "🏹", rarity: "rare", max: 1, apply: (m) => { m.bigGold *= 2; } },
   { id: "smith", name: "Master Smith", desc: "The forge works twice as fast", icon: "⚒️", rarity: "common", max: 1, needsBuilding: "forge", apply: (m) => { m.forgeSpeed *= 2; } },
   { id: "fire", name: "Fire Arrows", desc: "All arrows set enemies ablaze", icon: "🔥", rarity: "epic", max: 2, apply: (m) => { m.burn += 0.5; } },

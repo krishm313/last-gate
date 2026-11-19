@@ -252,6 +252,8 @@ export interface Arrow {
   angle: number;
   /** Fired by a specialised tower: applies its effect on hit. */
   spec?: TowerSpec;
+  /** Hawkeye: chance this tower arrow crits (towers normally can't). */
+  crit?: number;
 }
 
 export interface Bolt {
@@ -1016,8 +1018,8 @@ function updateWorkers(c: Camp): void {
 // ---------------------------------------------------------------------------------------------
 // Towers & arrows
 
-function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec): void {
-  c.arrows.push({ id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec });
+function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec, crit?: number): void {
+  c.arrows.push({ id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}) });
   c.events.push({ type: "shoot", owner, x: from.x, y: from.y });
 }
 
@@ -1053,9 +1055,11 @@ function updateTowers(c: Camp): void {
     p.facing = Math.atan2(best.y - p.y, best.x - p.x);
     p.cooldown += 1 / st.rate;
     p.fired = 0;
-    const dmg = st.damage * c.mods.towerDamage * towerScale(c) * (1 + BOW_DAMAGE * p.bows);
+    // Hawkeye (combo): towers the Watchtower watches over hit harder and can crit.
+    const hawk = wb.clear && c.mods.hawkeye > 0;
+    const dmg = st.damage * c.mods.towerDamage * towerScale(c) * (1 + BOW_DAMAGE * p.bows) * (hawk ? 1.1 : 1);
     const from = { x: p.x, y: p.y - 18 };
-    fireArrow(c, from, best, p.spec === "frost" ? dmg * SPEC.frostDmg : dmg, "tower", p.spec);
+    fireArrow(c, from, best, p.spec === "frost" ? dmg * SPEC.frostDmg : dmg, "tower", p.spec, hawk ? c.mods.hawkeye : undefined);
     if (p.spec === "volley") {
       // Volley: the same shot also looses arrows at the nearest other foes in range.
       const others = c.enemies
@@ -1229,7 +1233,7 @@ function updateArrows(c: Camp): void {
     a.x += Math.cos(a.angle) * CAMP.arrowSpeed * STEP;
     a.y += Math.sin(a.angle) * CAMP.arrowSpeed * STEP;
     if (t && (t.x - a.x) ** 2 + (t.y - a.y) ** 2 < (t.def.radius + 4) ** 2) {
-      const crit = a.owner === "hero" && chance(c.rng, c.crit);
+      const crit = a.owner === "hero" ? chance(c.rng, c.crit) : !!a.crit && chance(c.rng, a.crit);
       // Shieldbearers block arrows that hit them head-on (flying almost straight up the map).
       const blocked = t.def.shield && Math.sin(a.angle) < -0.85 ? SHIELD_BLOCK : 1;
       damageEnemy(c, t, a.damage * (crit ? 2 : 1) * blocked, a.owner, crit);
