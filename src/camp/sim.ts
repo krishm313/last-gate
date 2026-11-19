@@ -545,7 +545,7 @@ export function deploy(c: Camp, id: EnemyId, lane: number): boolean {
 /** The Cleric's Sanctuary: share of max HP restored to the hall and to each standing wall section. */
 export const SANCTUARY = { hall: 0.05, wall: 0.12 };
 /** The Lancer's Piercing Lance: a line this long and this wide (plus the foe's radius). */
-export const LANCE = { length: 420, width: 26, damage: 3.5, push: 60 };
+export const LANCE = { length: 480, width: 30, damage: 4.5, push: 60 };
 /** The Warden's Snare Field. */
 export const SNARE = { radius: 240, time: 3, bossTime: 1, vuln: 1.3 };
 /** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
@@ -1242,7 +1242,7 @@ function useAbility(c: Camp): void {
       c.events.push({ type: "boom", x: h.x, y: h.y, r: 150, kind: "nova" });
       break;
     case "overclock":
-      c.overclock = 6;
+      c.overclock = 5;
       break;
     case "snare": {
       // Snare Field: vines root everything near the Warden; rooted foes are easier to hurt.

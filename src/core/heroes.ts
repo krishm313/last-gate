@@ -34,7 +34,7 @@ export const HEROES: HeroDef[] = [
   },
   {
     id: "engineer", name: "Engineer", title: "Master of Engines", color: "#c08a3a",
-    ability: "overclock", abilityName: "Overclock", abilityDesc: "All towers fire 2.5× faster for 6s.",
+    ability: "overclock", abilityName: "Overclock", abilityDesc: "All towers fire 2.5× faster for 5s.",
     cooldown: 22, starsToUnlock: 10,
   },
   {

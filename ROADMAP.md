@@ -286,6 +286,8 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Hero balance (campsim ch7 L10, 20 runs): Lancer buffed — Piercing Lance longer (420→480), wider (26→30), harder (3.5→4.5×): 50%→65%. Engineer trimmed — Overclock 6s→5s: 95%→85%. (King 50%, Knight 70%, Cleric 90%, Warden 50%.)
+- What's-new card for 2026-11-20 (shows from 00:00 UTC that day, once): campaign map, Siege Lord, Archery Range & Supply Run, the Cleric and the Bestiary.
 - Siege Lord: 3 new war cards that open as you win sieges — War Ravens ×3 (💰3, tower hunters; win 1 siege), Diggers ×2 (💰6, tunnel under the wall; win 2), Fire Imps ×3 (💰5, flying arsonists; win 3). Deck grows to a 6-wide grid; locked cards show "🔒 Win N". siegesim takes a 5th arg (sieges won). Pair tests (with footmen, defenders L3): diggers 90%, imps 50%, ravens 0% alone (utility), brute/ram 100%, bats 0%.
 - Side-game polish: the King holds a longbow on the Archery Range that turns toward the aim, with the string pulling back as you draw and an arrow nocked when ready. New sounds: bow twang, target thunk, bullseye ding (Archery); crash and pickup chimes (Supply Run).
 - Supply Run PLAYABLE: 🛒 side stop on the map beside chapters 2–3 (opens after chapter 2). Full-screen road view (src/mini/supplyView.ts): tap left/right half or swipe (arrow keys on desktop) to change lane; horse-drawn wagon, rocks, logs, goblin ambushes, coin bags and crates; hearts, timer and star targets; end panel pays gold = score/4 + first-time star bonuses into save.mini.supply. Verified on iPhone SE screenshots.
