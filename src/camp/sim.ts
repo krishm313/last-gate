@@ -60,7 +60,7 @@ export const CAMP = {
 };
 
 /** Camp-mode per-chapter enemy HP tuning (the chapter tables are shared with the old gate mode). */
-export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.2, 99: 1 };
+export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 99: 1 };
 
 export const TOWER_LEVELS = [
   // level 1..4
@@ -315,6 +315,7 @@ export type CampEvent =
   | { type: "bossSlam"; x: number; y: number; r: number }
   | { type: "warcry"; x: number; y: number; r: number }
   | { type: "curse"; x: number; y: number; r: number }
+  | { type: "tide"; y: number; h: number }
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
@@ -394,6 +395,8 @@ export interface Camp {
   lobs: { x: number; y: number; plot: string; t: number; dur: number; stun: number }[];
   /** Lava pools from the Magma Titan's eruptions: burn whoever stands in them (hero, soldiers, foes). */
   pools: { x: number; y: number; r: number; t: number; dur: number; dps: number }[];
+  /** Drowned King's tides: a band of water (y..y+h) that slows everyone wading through it. */
+  tides: { y: number; h: number; t: number; dur: number; slow: number }[];
   incomePile: number;
   incomeTimer: number;
   /** Royal courier: time banked toward the next coin sent from the hall's pile to the King. */
@@ -574,6 +577,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     bolts: [],
     lobs: [],
     pools: [],
+    tides: [],
     incomePile: 6,
     incomeTimer: 0,
     courierTimer: 0,
@@ -699,7 +703,7 @@ function updateHero(c: Camp, input: CampInput): void {
   h.moving = len > 0.05;
   if (h.moving) {
     const k = Math.min(1, len);
-    const spd = CAMP.heroSpeed * c.mods.heroSpeed;
+    const spd = CAMP.heroSpeed * c.mods.heroSpeed * tideSlow(c, h.y);
     const vx = (input.move.x / len) * k * spd * STEP;
     const vy = (input.move.y / len) * k * spd * STEP;
     // Side bounds keep the hero out of the trunks of the tree line down both edges.
@@ -1326,7 +1330,7 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
 function enemySpeed(c: Camp, e: Enemy): number {
   if (e.stunTime > 0) return 0;
   const slow = e.slowTime > 0 ? e.slowPct * (e.def.slowResist ?? 1) : 0;
-  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
+  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (e.def.boss ? 1 : tideSlow(c, e.y)) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1);
 }
 
 function moveToward(c: Camp, e: Enemy, tx: number, ty: number): number {
@@ -1467,6 +1471,14 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     // War cry: every foe in earshot is rallied (faster, tougher) for a while.
     for (const o of c.enemies) if (o !== e && !o.def.boss && near(o.x, o.y)) o.warcry = p2.power;
     c.events.push({ type: "warcry", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "tide") {
+    // The tide: a band of water across the field, centred between the boss and the hero.
+    const h = 170;
+    const cy = Math.max(WALL_Y - 120, Math.min(WALL_Y + 260, (e.y + c.hero.y) / 2));
+    c.tides.push({ y: cy - h / 2, h, t: 0, dur: 4, slow: p2.power });
+    // The water douses any building fire it covers.
+    for (const p of c.plots) if ((p.fire ?? 0) > 0 && p.y > cy - h / 2 && p.y < cy + h / 2) { p.fire = 0; c.events.push({ type: "fireOut", x: p.x, y: p.y - 10 }); }
+    c.events.push({ type: "tide", y: cy - h / 2, h });
   } else if (p2.kind === "eruption") {
     // Eruption: three lava pools — one under the hero if close, the rest just inside the wall ahead.
     const spots: Vec[] = [];
@@ -1489,6 +1501,18 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
       c.events.push({ type: "boulderThrow", x: e.x, y: e.y - 20, tx: t.x, ty: t.y - 30, dur });
     }
   }
+}
+
+/** Slow factor from tides at a height (1 = dry). */
+export function tideSlow(c: Camp, y: number): number {
+  let k = 1;
+  for (const t of c.tides) if (y >= t.y && y <= t.y + t.h) k = Math.min(k, 1 - t.slow);
+  return k;
+}
+function updateTides(c: Camp): void {
+  if (!c.tides.length) return;
+  for (const t of c.tides) t.t += STEP;
+  c.tides = c.tides.filter((t) => t.t < t.dur);
 }
 
 function updatePools(c: Camp): void {
@@ -2042,6 +2066,7 @@ export function step(c: Camp, input: CampInput): void {
   updateBolts(c);
   updateLobs(c);
   updatePools(c);
+  updateTides(c);
   updateArrows(c);
   updateStrikes(c);
   reap(c);

@@ -202,7 +202,16 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   imps; Swamp Hag mid-boss (×0.5), Colossus finale for now. CAMP_CHAPTER_HP 8: 2.2 → campsim @L7 33%,
   @L10 58%. Next: Drowned King boss (tide), sunken props.
 
+- **The Drowned King** (ch8 finale) — armoured walker (3200 HP) that calls shield-bearers (wraiths
+  once enraged). Phase 2: every 7 s THE TIDE — a 170-high band of sea water across the whole field,
+  centred between him and the hero, for 4 s: everyone wading in it (foes, the hero) moves at half
+  speed, and it douses building fires. Translucent teal sheet with rolling foam edges and ripples,
+  sea-green glow + drips on the boss, wave SFX, 🔱 on the hub. ch8 hpMult 3.9 (chapters must strictly
+  increase — a test caught it after I'd pushed 3.8: always rerun tests after a late balance tweak).
+  campsim ch8 @L7 25%, @L10 42% — the hardest chapter, as the finale should be.
+
 ## Shipped (newest first)
+- The Drowned King: ch8 boss whose phase-2 tide slows everyone it covers and puts out fires (fx, SFX, test).
 - Chapter 8 "Sunken Citadel": drowned-ruins map, sea mist and drizzle, rainy nights, achievement (balance-tuned).
 - Chapter cards on Hard / Nightmare show that difficulty's progress ("💀 Best: night 6" / "💀 Cleared"); best night per chapter+difficulty saved (test).
 - "Best Endless sieges" board on Trophies: top 5 Endless runs ever (nights, hero, date), kept apart from the 20-run history; existing records seed it (test).

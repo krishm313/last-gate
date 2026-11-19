@@ -318,6 +318,11 @@ export class Sfx {
       case "fireOut":
         this.noise(0.35, 0.25, "highpass", 2500, 1, 0, 800);
         break;
+      case "tide":
+        if (!this.ok("tide", 1)) return;
+        this.noise(1.6, 0.4, "lowpass", 400, 1, 0, 1600);
+        this.noise(1.2, 0.2, "bandpass", 1200, 1, 0.3, 500);
+        break;
       case "eruption":
         if (!this.ok("erupt", 0.6)) return;
         this.tone("sine", 70, 28, 0.9, 0.6);

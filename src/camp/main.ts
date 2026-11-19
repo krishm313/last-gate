@@ -633,6 +633,7 @@ function playSfx(ev: CampEvent, c: Camp) {
   switch (ev.type) {
     case "frostNova":
     case "eruption":
+    case "tide":
     case "bossSlam":
       sfx.event(ev.type);
       buzz(settings, 60);

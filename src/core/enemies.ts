@@ -19,6 +19,7 @@ export type EnemyId =
   | "warlord"
   | "frostwyrm"
   | "magma"
+  | "drowned"
   | "hag"
   | "golem"
   | "dragon"
@@ -95,7 +96,7 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
-  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption"; every: number; radius: number; power: number };
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -150,6 +151,11 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     cost: 0, slowResist: 0.2, boss: true, armor: 0.25, behavior: "summoner", summon: { enemy: "brute", count: 1, interval: 10, enraged: "sapper" },
     phase2: { kind: "eruption", every: 6, radius: 300, power: 16 },
   },
+  drowned: {
+    ...base, id: "drowned", name: "The Drowned King", hp: 3200, speed: 14, radius: 36, gateDamage: 65, attackInterval: 2, gold: 280, color: "#2a7a8a",
+    cost: 0, slowResist: 0.2, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "shield", count: 2, interval: 9, enraged: "wraith" },
+    phase2: { kind: "tide", every: 7, radius: 0, power: 0.5 },
+  },
   warlord: {
     ...base, id: "warlord", name: "The Warlord", hp: 1300, speed: 15, radius: 32, gateDamage: 45, attackInterval: 1.6, gold: 60, color: "#5a1a1a",
     cost: 0, slowResist: 0.3, boss: true, behavior: "summoner", summon: { enemy: "footman", count: 3, interval: 5.5, enraged: "runner" }, phase2: { kind: "warcry", every: 10, radius: 260, power: 6 },
@@ -169,6 +175,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.arsonist) t.push("sets buildings ablaze");
   if (d.frostNova) t.push("freezes towers when hurt");
   if (d.phase2?.kind === "eruption") t.push("erupts lava when hurt");
+  if (d.phase2?.kind === "tide") t.push("calls the tide when hurt");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");

@@ -968,6 +968,11 @@ fx.shake(0.15);
           fx.burst(ev.x, ev.y, "rgba(220,220,230,0.8)", 16, 120, { max: 0.8, size: 4, gravity: -60, drag: 2 });
           fx.number(ev.x, ev.y - 30, "Fire out!", "#cfe8ff", 14, 1);
           break;
+        case "tide":
+          fx.burst(MAP_W / 2, ev.y + ev.h / 2, "#bfefff", 30, 300, { max: 0.7, size: 3, gravity: 200, shape: "chunk" });
+          fx.number(this.cam.x, ev.y + ev.h / 2 - 20, "THE TIDE!", "#9ae6ff", 17, 1);
+          fx.shake(0.3);
+          break;
         case "eruption":
           fx.rings.push({ x: ev.x, y: ev.y, r: 90, color: "#ff7a2a", life: 0.6, max: 0.6, width: 6 });
           fx.burst(ev.x, ev.y - 20, "#ff8a3a", 26, 260, { max: 0.8, size: 3.4, gravity: 200, shape: "chunk" });
@@ -1260,6 +1265,7 @@ fx.shake(0.15);
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
+    for (const t of c.tides) items.push({ y: -1e6 + 2, draw: () => this.drawTide(ctx, t) });
     for (const p of c.plots) if ((p.fire ?? 0) > 0) items.push({ y: p.y + 40, draw: () => this.drawBurning(ctx, p) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
@@ -3912,6 +3918,7 @@ fx.shake(0.15);
     // Fresh spawns fade in out of the dark of the woods rather than popping into existence.
     if (e.elite) this.drawEliteRing(ctx, c, e);
     if (e.def.id === "magma") this.drawMagmaAura(ctx, c, e);
+    if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
     if (e.age < 0.5 && !e.def.boss) {
       ctx.save();
       ctx.globalAlpha *= e.age / 0.5;
@@ -3979,6 +3986,56 @@ fx.shake(0.15);
     this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), l.x, l.y, r * 1.5, r * 0.8, 0.35 * cool * grow + this.night * 0.3 * cool);
     ctx.restore();
     if (cool > 0.5 && Math.floor(this.time * 8 + l.x) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(l.x + Math.sin(this.time * 13 + l.y) * r * 0.5, l.y, "#ffa040", 1, 30, { max: 0.6, size: 2.4, gravity: -70, shape: "dot" });
+  }
+
+  /** The Drowned King's tide: a sheet of sea water across the field with a foaming, rippling edge. */
+  private drawTide(ctx: CanvasRenderingContext2D, t: { y: number; h: number; t: number; dur: number }): void {
+    const inK = Math.min(1, t.t / 0.4), outK = Math.min(1, (t.dur - t.t) / 0.6);
+    const a = Math.min(inK, outK);
+    ctx.save();
+    const g = ctx.createLinearGradient(0, t.y, 0, t.y + t.h);
+    g.addColorStop(0, `rgba(120,210,220,${0.35 * a})`);
+    g.addColorStop(0.5, `rgba(40,140,170,${0.5 * a})`);
+    g.addColorStop(1, `rgba(120,210,220,${0.35 * a})`);
+    ctx.fillStyle = g;
+    // Wavy edges that roll sideways.
+    ctx.beginPath();
+    const W = MAP_W;
+    ctx.moveTo(0, t.y);
+    for (let x = 0; x <= W; x += 24) ctx.lineTo(x, t.y + Math.sin(x * 0.03 + this.time * 3) * 6);
+    for (let x = W; x >= 0; x -= 24) ctx.lineTo(x, t.y + t.h + Math.sin(x * 0.03 - this.time * 3 + 1) * 6);
+    ctx.closePath();
+    ctx.fill();
+    // Foam lines along both edges and a few ripples.
+    ctx.strokeStyle = `rgba(235,250,255,${0.75 * a})`;
+    ctx.lineWidth = 3;
+    for (const edge of [0, 1]) {
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 18) {
+        const y = t.y + edge * t.h + Math.sin(x * 0.03 + this.time * 3 * (edge ? -1 : 1) + edge) * 6;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = `rgba(220,245,255,${0.4 * a})`;
+    for (let i = 0; i < 7; i++) {
+      const ph = (this.time * 0.8 + i * 0.37) % 1;
+      const x = (i * 113 + 40) % W, y = t.y + t.h * (0.25 + ((i * 0.31) % 0.5));
+      ctx.beginPath(); ctx.ellipse(x, y, 10 + ph * 26, 3 + ph * 7, 0, 0, Math.PI * 2); ctx.globalAlpha = (1 - ph); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  /** The Drowned King: a cold sea-green glow and water dripping off it as it walks. */
+  private drawDrownedAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.2 + e.id);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("seaglow", [[0, "rgba(90,220,230,0.85)"], [1, "rgba(20,120,160,0)"]]), e.x, e.y - r * 0.5, r * (2 + pulse * 0.3), r * (1.6 + pulse * 0.2), (e.enraged ? 0.5 : 0.32) + this.night * 0.25);
+    ctx.restore();
+    if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * 0.6, Math.sin(c.time * 29) > 0 ? "#9ae6ff" : "#4ab0d0", 1, 30, { max: 0.6, size: 2.4, gravity: 220, shape: "dot" });
   }
 
   /** The Magma Titan glows from within: a molten halo and embers shed as it walks; brighter once it erupts. */

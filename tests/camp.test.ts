@@ -856,3 +856,31 @@ describe("Hawkeye combo", () => {
     expect(crits).toBeGreaterThan(0);
   });
 });
+
+describe("Drowned King", () => {
+  it("calls a tide in phase 2 that slows foes and the hero and douses fires", async () => {
+    const { tideSlow } = await import("../src/camp/sim");
+    const c = createCamp(12);
+    c.phase = "wave";
+    c.queue = [];
+    const b = spawnEnemy(c, { at: 0, enemy: "drowned", hpMult: 1, lane: null }, { x: 360, y: WALL_Y - 100 });
+    b.hp = b.maxHp * 0.45;
+    const keep = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 9, lane: null }, { x: 40, y: 80 });
+    keep.stunTime = 1e9;
+    const cat = c.plots.find((p) => p.id === "cat-1")!;
+    cat.level = 1;
+    cat.fire = 5;
+    c.hero.x = cat.x + 100; c.hero.y = cat.y; // the tide centres between boss and hero
+    drainEvents(c);
+    let tide = false;
+    for (let i = 0; i < 60 * 3 && !tide; i++) {
+      b.x = 360; b.y = WALL_Y - 100; b.stunTime = 0;
+      step(c, { move: { x: 0, y: 0 } } as CampInput);
+      tide = drainEvents(c).some((e) => e.type === "tide");
+    }
+    expect(tide).toBe(true);
+    const t = c.tides[0]!;
+    expect(tideSlow(c, t.y + t.h / 2)).toBeCloseTo(0.5);
+    expect(tideSlow(c, t.y - 50)).toBe(1);
+  });
+});
