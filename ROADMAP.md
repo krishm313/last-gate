@@ -244,6 +244,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- How to play: checked every line is still accurate; added "👑 Bosses enrage at half health and gain a new move" (still fits one iPhone SE screen).
 - Loss tip for the blood moon: after 2+ flares, the end screen says to fall back near the hall during a flare (its archers hit harder) and save the ability for the rush. Flares counted in runStats.
 - Victory fanfare for chapters 8 and 9 (own keys; the Moors in a minor key with a slow double heartbeat and a deep gong). Checked the hub chapter list on iPhone SE with 9 chapters + Endless (clean).
 - Chapter 9 boss (slice 3): **The Blood Moon Warlord** — crimson-haloed summoner (knights, runners when enraged); phase 2 flares the blood moon every 12 s: all foes +35% speed and attack 25% faster for 5 s, the hall's arrows +25%, the field washes red with "BLOOD MOON!". Joins Endless's boss rotation; "Moonbreaker" trophy; 🌕 on the chapter card. bossHpMult 0.7 in ch9 → campsim L10 50% (was 0% at full HP). Test included.

@@ -105,6 +105,7 @@ const HOW_MORE: [string, string][] = [
   ["🌙", "Start the night early for bonus coins · tap NEXT to see who's coming"],
   ["✨", "After each night, pick 1 of 3 blessings — some combine into combos"],
   ["✦", "Your hero's ability charges up — tap it when the horde is thick"],
+  ["👑", "Bosses enrage at half health and gain a new move — the warning text tells you what's coming"],
   ["🏛️", "Every run earns gold for the Armory; heroes learn skills; quests pay extra"],
 ];
 
