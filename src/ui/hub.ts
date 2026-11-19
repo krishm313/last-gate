@@ -1,4 +1,5 @@
-import { getJson, setItem } from "./store";
+import { getJson, removeItem, setItem } from "./store";
+import { HINT_FLAGS } from "./save";
 import { canVibrate } from "./settings";
 import { exportSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
@@ -977,6 +978,12 @@ export class Hub {
     box.append(grid);
     const col = el("div", "btn-col");
     col.append(this.button("How to play", "btn btn-ghost", onHowTo));
+    const replay = this.button("↺ Replay tutorial & hints", "btn btn-ghost btn-small2", () => {
+      for (const k of HINT_FLAGS) removeItem(k);
+      replay.textContent = "✔ They'll show again";
+      replay.disabled = true;
+    });
+    col.append(replay);
     if (canPromptInstall())
       col.append(
         this.button("📲 Install app", "btn btn-ghost", () => {

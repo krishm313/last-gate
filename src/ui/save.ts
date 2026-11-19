@@ -38,7 +38,9 @@ export function importSave(code: string): SaveData | null {
 }
 
 /** One-time "seen it" flags that belong to a playthrough (settings and mute are kept on reset). */
-const PROGRESS_FLAGS = ["lastgate.tutorial", "lastgate.tipPreview", "lastgate.seenChapters", "lastgate.seenTitle"];
+const PROGRESS_FLAGS = ["lastgate.tutorial", "lastgate.tipPreview", "lastgate.seenChapters", "lastgate.seenTitle", "lastgate.hints", "lastgate.seenHeroes"];
+/** Flags that make the tutorial and hint bubbles play again (Settings → Replay tutorial). */
+export const HINT_FLAGS = ["lastgate.tutorial", "lastgate.tipPreview", "lastgate.hints"];
 
 export function resetSave(): SaveData {
   // A reset is a fresh start: the tutorial, hints and chapter reveals should play again.
