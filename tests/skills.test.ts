@@ -174,3 +174,34 @@ describe("the Lancer", async () => {
     expect(c.abilityCharge).toBe(1);
   });
 });
+
+describe("the Cleric", async () => {
+  const { createCamp, spawnEnemy, step, drainEvents } = await import("../src/camp/sim");
+  it("Sanctuary heals the hall, walls, soldiers and hero — and keeps its charge when all is well", () => {
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 1 }; // 22 stars
+    const setup = campSetupFromSave(s, "cleric");
+    expect(setup.ability).toBe("sanctuary");
+    expect(setup.mods!.hallDamage).toBeCloseTo(campSetupFromSave(s, "ranger").mods!.hallDamage * 1.3);
+    const c = createCamp(3, undefined, setup);
+    c.phase = "wave";
+    c.queue = [];
+    const keep = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 50, lane: null }, { x: 40, y: 80 });
+    keep.stunTime = 1e9;
+    // Nothing hurt: the charge is kept.
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    expect(drainEvents(c).some((e) => e.type === "noTarget")).toBe(true);
+    expect(c.abilityCharge).toBe(1);
+    // Hurt the hall, a wall section and the hero, then heal.
+    c.hallHp = c.hallMaxHp * 0.5;
+    c.segments[0]!.hp = c.segments[0]!.maxHp * 0.5;
+    c.hero.hp = c.hero.maxHp * 0.3;
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    expect(drainEvents(c).some((e) => e.type === "sanctuary")).toBe(true);
+    expect(c.hallHp).toBeCloseTo(c.hallMaxHp * 0.6, 0);
+    expect(c.segments[0]!.hp).toBeCloseTo(c.segments[0]!.maxHp * 0.7, 0);
+    expect(c.hero.hp).toBeCloseTo(c.hero.maxHp, 0);
+  });
+});

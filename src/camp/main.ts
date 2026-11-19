@@ -643,6 +643,7 @@ function trackStats(ev: CampEvent) {
     if (ev.enemy.id === "bloodlord") add("bloodlord");
   } else if (ev.type === "boom" && ev.kind === "snare" && ev.n) add("snared", ev.n);
   else if (ev.type === "lance" && ev.n) add("lanced", ev.n);
+  else if (ev.type === "sanctuary") add("sanctified", ev.healed);
   else if (ev.type === "fireOut") add("firesOut");
 }
 

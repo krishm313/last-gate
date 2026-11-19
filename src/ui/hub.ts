@@ -27,6 +27,7 @@ const HERO_PORTRAIT: Record<string, string> = {
   engineer: "./sprites/portraits/engineer.png",
   warden: "./sprites/portraits/huntress.png",
   lancer: "./sprites/portraits/lancer.png",
+  cleric: "./sprites/portraits/cleric.png",
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
@@ -1267,4 +1268,4 @@ const FOE_EMOJI: Record<string, string> = {
 };
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */
-const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱" };
+const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱", sanctuary: "✨" };

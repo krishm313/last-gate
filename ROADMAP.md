@@ -30,7 +30,7 @@ Polish between features: anything chunky, unreadable at night, overlapping, or n
 Big features land in safe slices (sim + test first, then visuals), each slice shippable.
 
 ## Design notes
-- **7th hero: The Cleric** — a support hero (every painted figure is taken, so the art is the mage
+- **7th hero: The Cleric** — ✅ SHIPPED (slices 1–2; daily pool later). a support hero (every painted figure is taken, so the art is the mage
   sprite recoloured white-and-gold with PIL, like the moor props; portrait cut from it). Unlocks at
   22★ (of 27). Passive "Blessed hall": the hall's archers hit 30% harder (hallDamage mod). Ability
   **Sanctuary** (cd 22 s): heals the hall 10% of max HP, every standing wall section 20%, the
@@ -260,6 +260,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- New hero **The Cleric** (22★): the hall's archers hit 30% harder; Sanctuary (22 s) heals the hall 10%, every standing wall section 20%, the hero to full and all soldiers (keeps its charge when all is well). White-and-gold recolour of the mage art + portrait, ✨ icon, golden ring fx, "Light of the Gate" trophy (heal 5,000). Test included.
 - One-time hint bubble under Trophies once 5 foe kinds are slain: "📖 New foes in your Bestiary!" (same coachmark system as quests / skills / flair).
 - Bestiary: tap a slain foe for its card — portrait, traits, health / speed / hit / coins, and the chapters it marches in; Back returns to the grid. Checked on SE.
 - In-run: the first kill of each foe kind shows "📖 New in the Bestiary: <name>" (bosses keep their own defeat banner), tying the Bestiary to play.

@@ -4,7 +4,7 @@
 // procedural units until an image has loaded (and always in Node tests).
 
 export type SpriteName =
-  | "king" | "swordsman" | "spearman" | "archer" | "crossbowman" | "knight" | "mage"
+  | "king" | "swordsman" | "spearman" | "archer" | "crossbowman" | "knight" | "mage" | "cleric"
   | "horde_sword" | "horde_brute" | "horde_archer" | "elite_horned" | "elite_shield" | "elite_mage" | "boss" | "castle" | "wraith" | "sapper" | "goblin" | "goblin_mob" | "goblin_thief";
 
 interface Entry {
@@ -33,7 +33,7 @@ function entry(name: SpriteName): Entry | null {
 
 /** Preload every sprite (call once at startup so the first wave already shows the art). */
 export function preloadSprites(): void {
-  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "archer", "spearman", "castle"] as SpriteName[])) entry(n);
+  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "archer", "spearman", "cleric", "castle"] as SpriteName[])) entry(n);
 }
 
 /** A white silhouette of the sprite for hit flashes (built once per sprite). */

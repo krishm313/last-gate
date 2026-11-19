@@ -1,5 +1,5 @@
-export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer";
-export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance";
+export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer" | "cleric";
+export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance" | "sanctuary";
 
 export interface HeroDef {
   id: HeroId;
@@ -46,6 +46,11 @@ export const HEROES: HeroDef[] = [
     id: "lancer", name: "The Lancer", title: "Spear of the northern march", color: "#b8483a",
     ability: "lance", abilityName: "Piercing Lance", abilityDesc: "Hurl a lance that skewers every foe in a line and knocks them back.",
     cooldown: 16, starsToUnlock: 18,
+  },
+  {
+    id: "cleric", name: "The Cleric", title: "Lantern of the high chapel", color: "#e8d27a",
+    ability: "sanctuary", abilityName: "Sanctuary", abilityDesc: "Heal the hall, every wall section, your soldiers and yourself.",
+    cooldown: 22, starsToUnlock: 22,
   },
 ];
 

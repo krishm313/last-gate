@@ -354,7 +354,8 @@ export type CampEvent =
   | { type: "thiefEscaped" }
   | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
   | { type: "lance"; x: number; y: number; x2: number; y2: number; n: number }
-  | { type: "noTarget"; x: number; y: number }
+  | { type: "noTarget"; x: number; y: number; text?: string }
+  | { type: "sanctuary"; x: number; y: number; healed: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -479,6 +480,8 @@ export interface Ally {
 }
 
 export const BARRACKS = { x: 620, y: 715 };
+/** The Cleric's Sanctuary: share of max HP restored to the hall and to each standing wall section. */
+export const SANCTUARY = { hall: 0.1, wall: 0.2 };
 /** The Lancer's Piercing Lance: a line this long and this wide (plus the foe's radius). */
 export const LANCE = { length: 420, width: 26, damage: 3.5, push: 60 };
 /** The Warden's Snare Field. */
@@ -1184,6 +1187,22 @@ function useAbility(c: Camp): void {
         n++;
       }
       c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
+      break;
+    }
+    case "sanctuary": {
+      // Heal everything on our side; keep the charge if nothing is hurt.
+      let healed = 0;
+      const mend = (hp: number, max: number, amt: number) => { const n = Math.min(max - hp, amt); healed += n; return hp + n; };
+      c.hallHp = mend(c.hallHp, c.hallMaxHp, c.hallMaxHp * SANCTUARY.hall);
+      for (const sg of c.segments) if (sg.hp > 0) sg.hp = mend(sg.hp, sg.maxHp, sg.maxHp * SANCTUARY.wall);
+      h.hp = mend(h.hp, h.maxHp, h.maxHp);
+      for (const a of c.allies) if (a.respawn <= 0) a.hp = mend(a.hp, a.maxHp, a.maxHp);
+      if (healed < 1) {
+        c.abilityCharge = 1;
+        c.events.push({ type: "noTarget", x: h.x, y: h.y, text: "All is well" });
+        return;
+      }
+      c.events.push({ type: "sanctuary", x: h.x, y: h.y, healed: Math.round(healed) });
       break;
     }
     case "lance": {

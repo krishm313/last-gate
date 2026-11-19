@@ -816,7 +816,14 @@ fx.shake(0.15);
           fx.burst(ev.x, ev.y, "#c0a080", 3, 100, { max: 0.4, size: 3, gravity: 300, shape: "chunk" });
           break;
         case "noTarget":
-          fx.number(ev.x, ev.y - 92, "Out of reach!", "#ffe0a0", 14, 0.9);
+          fx.number(ev.x, ev.y - 92, ev.text ?? "Out of reach!", "#ffe0a0", 14, 0.9);
+          break;
+        case "sanctuary":
+          // A golden ring of light from the Cleric and motes rising over the hall and walls.
+          fx.rings.push({ x: ev.x, y: ev.y, r: 220, color: "#ffe9a0", life: 0.7, max: 0.7, width: 7 });
+          fx.rings.push({ x: ev.x, y: ev.y, r: 130, color: "#fff6d0", life: 0.5, max: 0.5, width: 4 });
+          fx.burst(ev.x, ev.y, "#ffe27a", 36, 200, { max: 1.1, size: 3.4, gravity: -90, drag: 1.5, shape: "spark" });
+          fx.number(ev.x, ev.y - 92, `SANCTUARY! +${ev.healed}`, "#fff0b0", 16, 1.1);
           break;
         case "lance": {
           this.lances.push({ x: ev.x, y: ev.y - 20, x2: ev.x2, y2: ev.y2 - 20, t: this.time });
@@ -5427,7 +5434,7 @@ fx.shake(0.15);
       heroFrame = (1 - h.cooldown / 0.16) * 3.2;
     }
     // Other heroes: their painted figure from the character sheet with procedural motion.
-    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman" };
+    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman", hero_cleric: "cleric" };
     const alt = altHero[c.heroLook];
     const kingDrawn = alt
       // The spearman's raised spear takes up the top of its art, so it's drawn taller to match the others' bodies.
