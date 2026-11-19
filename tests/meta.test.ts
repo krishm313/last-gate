@@ -227,7 +227,7 @@ describe("enemyTraits", () => {
 
 describe("sanitizeSave hardening", () => {
   it("drops stars for chapters that don't exist and clamps gold", () => {
-    const s = sanitizeSave({ gold: 1e308, stars: { 1: 99, 7: 3, 0: 2 }, best: { 99: 12, 42: 5 } });
+    const s = sanitizeSave({ gold: 1e308, stars: { 1: 99, 17: 3, 0: 2 }, best: { 99: 12, 42: 5 } });
     expect(s.gold).toBeLessThanOrEqual(9_999_999);
     expect(s.stars).toEqual({ 1: 3 });
     expect(s.best).toEqual({ 99: 12 });

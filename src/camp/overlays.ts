@@ -132,6 +132,14 @@ export function drawMood(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, mood: n
     ctx.fillStyle = "rgba(150,185,230,0.14)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     drawSnow(ctx, time);
+  } else if (mood === 7) {
+    // Ashen Caldera: a hot red haze rising from below, embers drifting up, ash drifting down.
+    const g = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+    g.addColorStop(0, "rgba(60,20,20,0.18)");
+    g.addColorStop(1, "rgba(220,70,20,0.16)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    drawEmbers(ctx, time);
   } else if (mood === 99) {
     ctx.fillStyle = "rgba(90,40,120,0.12)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
@@ -159,6 +167,31 @@ function drawSnow(ctx: CanvasRenderingContext2D, time: number): void {
       ctx.arc(x, y, L.size, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+  ctx.restore();
+}
+
+/** Embers rising (orange, flickering) and grey ash falling, for the volcano chapter. */
+function drawEmbers(ctx: CanvasRenderingContext2D, time: number): void {
+  ctx.save();
+  for (let i = 0; i < 26; i++) {
+    const seed = (i * 131) % 997;
+    const x = ((seed * 5.3 + Math.sin(time * 0.7 + seed) * 30) % VIEW_W + VIEW_W) % VIEW_W;
+    const y = VIEW_H + 10 - ((seed * 2.9 + time * (30 + (i % 4) * 12)) % (VIEW_H + 20));
+    const flick = 0.55 + 0.45 * Math.sin(time * 9 + seed);
+    ctx.globalAlpha = 0.75 * flick;
+    ctx.fillStyle = i % 3 ? "#ffb04a" : "#ff6a2a";
+    ctx.beginPath();
+    ctx.arc(x, y, 1.6 + (i % 3) * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#b8b0a8";
+  for (let i = 0; i < 14; i++) {
+    const seed = (i * 89 + 400) % 997;
+    const x = ((seed * 4.1 + time * 8 + Math.sin(time * 0.5 + seed) * 20) % VIEW_W + VIEW_W) % VIEW_W;
+    const y = ((seed * 3.3 + time * 22) % (VIEW_H + 20)) - 10;
+    ctx.globalAlpha = 0.45;
+    ctx.fillRect(x, y, 2.2, 2.2);
   }
   ctx.restore();
 }

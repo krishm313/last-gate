@@ -161,7 +161,14 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   (elites 12% from night 1, coins +20%), Hero's Week (hero +40%, towers −20%). Shown on the Endless
   card and as a toast when a siege starts.
 
+- **Chapter 7: Ashen Caldera** (slice 1) — unlocked after chapter 6. Basalt ground recoloured from
+  ground_1 with glowing orange cracks (ground_7.webp); mood 7 = red heat haze + rising embers +
+  falling ash; smoky nights (fog 38%, storm 8% — storms help the player, so volcano storms were cut);
+  every enemy type in the mix; Bone Dragon mid-boss, Colossus finale for now. CAMP_CHAPTER_HP 7: 2.5
+  → campsim ch7 @L7 33%, @L10 75% (ch6 @L10 58–75%). Next: Magma Titan boss, charred "ash" props.
+
 ## Shipped (newest first)
+- Chapter 7 "Ashen Caldera": volcanic ground, heat haze, embers and ash, smoky nights, achievement (balance-tuned).
 - Endless weekly twists: 6 rotating rules (Iron Horde, Gold Rush, Storm Season, Glass Walls, Elite Week, Hero's Week) on the Endless card (tests).
 - Cheaper Mage Tower / Healer's Tent / Watchtower (stronger Watchtower) after A/B balance runs showed they were overpriced.
 - Watchtower: new building that extends and speeds up nearby archer towers and cuts through fog (art, reach ring, info card, test).

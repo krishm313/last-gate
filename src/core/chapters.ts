@@ -135,6 +135,29 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 2, shield: 1, knight: 1.2, wraith: 1, crossbow: 1, brute: 0.8, banner: 0.6, raven: 0.6 }, boss: "frostwyrm" },
     ],
   },
+  {
+    id: 7,
+    name: "Ashen Caldera",
+    blurb: "The mountain burns. Something vast stirs in the fire below.",
+    hpMult: 3.8,
+    speedMult: 1.14,
+    gateDamageMult: 1.35,
+    affixes: ["Ashfall: choking smoke shortens your towers' sight", "Scorched earth: the horde hits the gate 35% harder"],
+    ground: ["#4a2a22", "#5e3428"],
+    weatherOdds: { rain: 0, fog: 0.38, storm: 0.08 },
+    waves: [
+      { mix: { footman: 2, runner: 2, shield: 1, brute: 0.5, banner: 0.4 } },
+      { mix: { knight: 1, wraith: 1, crossbow: 1, bat: 2, raven: 0.6 } },
+      { mix: { shield: 2, brute: 1, ram: 0.6, sapper: 1.2, tunneler: 0.6, shaman: 0.6 } },
+      { mix: { runner: 3, bat: 2, raven: 1, goblin: 1 }, breather: true },
+      { mix: { knight: 1.4, wraith: 1.5, brute: 1, crossbow: 1, banner: 0.6 }, boss: "dragon", bossHpMult: 0.6 },
+      { mix: { footman: 2, shield: 2, brute: 1, ram: 0.8, sapper: 1.2, tunneler: 0.8, raven: 0.6 } },
+      { mix: { knight: 1.6, wraith: 1.6, crossbow: 1.5, brute: 1, shaman: 0.8, banner: 0.8 } },
+      { mix: { runner: 3, goblin: 3, bat: 2, raven: 1.2 }, breather: true },
+      { mix: { shield: 2, knight: 1.6, wraith: 1.6, crossbow: 1.2, ram: 0.8, brute: 1.2, sapper: 1, shaman: 0.8, banner: 0.8, tunneler: 0.8 } },
+      { mix: { footman: 2, shield: 1, knight: 1.4, wraith: 1.2, crossbow: 1, brute: 1, banner: 0.8, raven: 0.8 }, boss: "colossus" },
+    ],
+  },
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */
