@@ -595,6 +595,31 @@ function trackStats(ev: CampEvent) {
 }
 
 function playSfx(ev: CampEvent, c: Camp) {
+  // Newer event types: synthesised in sfx.event (rate-limited there), plus a buzz for the big hits.
+  switch (ev.type) {
+    case "frostNova":
+    case "bossSlam":
+      sfx.event(ev.type);
+      buzz(settings, 60);
+      return;
+    case "towerStunned":
+      sfx.event(ev.frozen ? "towerFrozen" : "towerStunned");
+      buzz(settings, 25);
+      return;
+    case "warcry":
+    case "curse":
+    case "boulderThrow":
+    case "eliteSpawn":
+    case "shieldBreak":
+    case "mageZap":
+    case "stormBolt":
+    case "spikeHit":
+    case "burrow":
+    case "emerge":
+    case "specChosen":
+      sfx.event(ev.type);
+      return;
+  }
   switch (ev.type) {
     case "courier": {
       // The hall's steady trickle shouldn't chime every second all day: a soft coin now and then.

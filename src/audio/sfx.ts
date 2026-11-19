@@ -292,6 +292,81 @@ export class Sfx {
     this.tone("sawtooth", 180, 90, 0.18, 0.08);
   }
 
+  /** Camp events added after the original set (new enemies, bosses, buildings, weather). Rate-limited. */
+  event(type: string): void {
+    switch (type) {
+      case "frostNova":
+        if (!this.ok("nova", 0.5)) return;
+        this.noise(0.7, 0.35, "highpass", 2500, 1, 0, 6000);
+        for (const [i, f] of [1568, 2093, 2637, 3136].entries()) this.tone("sine", f, f * 1.01, 0.5, 0.04, i * 0.05);
+        this.tone("triangle", 300, 90, 0.5, 0.18);
+        break;
+      case "towerFrozen":
+        if (!this.ok("frozen", 0.12)) return;
+        this.noise(0.18, 0.25, "bandpass", 3500, 4);
+        this.tone("square", 1200, 600, 0.08, 0.03);
+        break;
+      case "towerStunned":
+        if (!this.ok("stun", 0.15)) return;
+        this.tone("triangle", 220, 70, 0.2, 0.28);
+        this.noise(0.15, 0.25, "lowpass", 700);
+        break;
+      case "bossSlam":
+        if (!this.ok("slam", 0.4)) return;
+        this.tone("sine", 90, 30, 0.6, 0.6);
+        this.noise(0.5, 0.45, "lowpass", 400, 1, 0, 80);
+        break;
+      case "warcry":
+        if (!this.ok("warcry", 1)) return;
+        // A war horn: two low brassy notes.
+        this.tone("sawtooth", 146.8, 146.8, 0.45, 0.12);
+        this.tone("sawtooth", 196, 196, 0.6, 0.12, 0.4);
+        this.tone("sawtooth", 98, 98, 1.0, 0.08);
+        break;
+      case "curse":
+        if (!this.ok("curse", 1)) return;
+        for (const [i, f] of [880, 830, 784, 740, 698].entries()) this.tone("triangle", f, f * 0.94, 0.3, 0.05, i * 0.08);
+        this.noise(0.9, 0.12, "bandpass", 600, 3, 0, 200);
+        break;
+      case "boulderThrow":
+        if (!this.ok("boulder", 0.3)) return;
+        this.noise(0.6, 0.18, "bandpass", 300, 2, 0, 900);
+        break;
+      case "eliteSpawn":
+        if (!this.ok("elite", 0.6)) return;
+        this.tone("square", 392, 392, 0.09, 0.05);
+        this.tone("square", 587, 587, 0.14, 0.05, 0.08);
+        break;
+      case "shieldBreak":
+        if (!this.ok("shield", 0.15)) return;
+        this.noise(0.3, 0.3, "highpass", 3000);
+        for (let i = 0; i < 4; i++) this.tone("sine", this.jitter(2600 + i * 400), 1800, 0.12, 0.03, i * 0.03);
+        break;
+      case "mageZap":
+        if (!this.ok("zap", 0.2)) return;
+        this.tone("sawtooth", 1800, 400, 0.12, 0.05);
+        this.noise(0.12, 0.15, "highpass", 4000);
+        break;
+      case "stormBolt":
+        if (!this.ok("thunder", 0.8)) return;
+        this.noise(0.08, 0.5, "highpass", 2000);
+        this.noise(1.4, 0.4, "lowpass", 300, 1, 0.05, 60);
+        break;
+      case "spikeHit":
+        if (!this.ok("spike", 0.35)) return;
+        this.tone("triangle", 600, 300, 0.05, 0.04);
+        break;
+      case "burrow":
+      case "emerge":
+        if (!this.ok("dig", 0.4)) return;
+        this.noise(0.3, 0.2, "lowpass", 500, 1, 0, 200);
+        break;
+      case "specChosen":
+        for (const [i, f] of [392, 523, 659, 784].entries()) this.tone("triangle", f, f, 0.3, 0.07, i * 0.06);
+        break;
+    }
+  }
+
   /** New building unlocked. */
   unlockChime(): void {
     this.noise(0.4, 0.15, "bandpass", 800, 2, 0, 3000);

@@ -11,7 +11,7 @@ Goal: a game that keeps getting better — new features and content first, polis
 | 2 | **New content** ✅ DONE | New enemies (sappers that dig under, flyers that hit towers, shield-bearers that cover others) · Weather that changes play (rain, snow, storm) · Chapter 6 with a new boss |
 | 3 | **Reasons to come back** ✅ DONE | Daily / weekly quests · Endless records board + milestone rewards · Hero skill trees · Unlockable hero looks · Run history / stats page |
 | 4 | **Optional challenge** ✅ DONE | Hard / Nightmare modes with better rewards · Elite enemies with modifiers · Bosses with a second phase |
-| 5 | **Sound & feel** | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
+| 5 | **Sound & feel** ✅ DONE | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
 
 Polish between features: anything chunky, unreadable at night, overlapping, or not visible when it fires.
 
@@ -137,6 +137,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   toward the target (~2 s) so layers swell instead of switching.
 
 ## Shipped (newest first)
+- SFX for the new content: frost nova shimmer, frozen-tower crack, boss slam boom, war horn, curse, boulder whoosh, elite sting, shield shatter, mage zap, storm thunder, spike ticks, digging, spec chord; haptic buzz on slams/novas/stuns (all rate-limited).
 - Adaptive music: calm by day, drums at nightfall, builds through the night and in danger, boss brass layer (test).
 - Boss second phases: Ogre slam, Warlord war cry, Golem boulder toss, Hag curse (fx at night, tests).
 - Elite enemies: 5 modifiers on Hard/Nightmare and deep Endless (rings, badges, shield bubble; tests).
