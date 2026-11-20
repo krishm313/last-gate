@@ -139,9 +139,10 @@ const portraits = new Map<string, string>();
 /** Painted portraits cut from the owner's character art (enemies that have one). */
 const PAINTED: Partial<Record<string, string>> = {
   footman: "enemy_footman", runner: "enemy_footman", brute: "enemy_brute", crossbow: "enemy_crossbow",
-  shield: "enemy_shield", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", wraith: "enemy_wraith", stalker: "enemy_stalker", sapper: "enemy_sapper", knight: "enemy_knight", shaman: "enemy_shaman", hag: "elite_mage",
+  shield: "enemy_shield", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", wraith: "enemy_wraith", stalker: "enemy_stalker", sapper: "enemy_sapper", tunneler: "enemy_sapper", banner: "enemy_footman", knight: "enemy_knight", shaman: "enemy_shaman", hag: "elite_mage",
   ogre: "boss", troll: "boss", warlord: "boss", golem: "boss", colossus: "boss", magma: "boss", drowned: "boss", hollowking: "hollowking",
 };
+const FLYER_EMOJI: Partial<Record<string, string>> = { raven: "🐦‍⬛", imp: "👺" };
 function portrait(id: EnemyId): string {
   const painted = PAINTED[id];
   if (painted) return `./sprites/portraits/${painted}.png`;
@@ -156,6 +157,15 @@ function portrait(id: EnemyId): string {
     const ctx = cv.getContext("2d")!;
     ctx.scale(2, 2);
     drawBat(ctx, 16, 16, 7, 0.3, false);
+  } else if (FLYER_EMOJI[id]) {
+    // Flyers without a painted portrait or a unit look: the same emoji as the Bestiary.
+    cv = document.createElement("canvas");
+    cv.width = cv.height = 72;
+    const ctx = cv.getContext("2d")!;
+    ctx.font = "48px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(FLYER_EMOJI[id]!, 36, 40);
   } else {
     // Crop the padded sprite to the figure itself.
     const src = unitSprite(LOOKS[id] ? id : "footman", 12, 0, false, 0, Math.PI / 2 - 0.4);
