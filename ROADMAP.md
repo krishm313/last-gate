@@ -555,3 +555,4 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   Rule now: gate commits on `grep -q "N passed"`. This hour, from the owner's requests: auto-update
   (the phone was stuck on a pre-chapter-6 build), the campaign map, Siege Lord (sim → playable →
   polish), Archery Range (logic → playable). 175 tests.
+- **05:04** — Deploys runs 270–281 all green (273 "Trophies fold" was cancelled because the roadmap commit 20 s later superseded it — 274 deployed the same code). Shipped this hour: Trophies claimed fold, Heroes tab scroll-to-picked, Royal Gift daily chest (+ badge, Loyal Subject), 3 new flairs, Royal Forge (7th side game) + anvil sounds. Tests 211 → 219. Watch: Royal Gift relies on the device's local date (same as the daily challenge) — fine; Forge balance from a bot only, revisit if real scores cluster at 0–1★. Next: a new daily/Endless twist gated to a future date, then Siege Lord content.
