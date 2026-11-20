@@ -1159,7 +1159,9 @@ function frame(now: number) {
     renderer.draw(c, realDt);
     interp.restore(c);
   } else if (c) renderer.draw(c, 0);
-  else {
+  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2")) {
+    // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
+  } else {
     // Attract mode: the bot defends a camp behind the menus.
     attractAcc += realDt;
     while (attractAcc >= STEP) {
