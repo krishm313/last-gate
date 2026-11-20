@@ -230,6 +230,7 @@ export class Hub {
       if (id === "trophies" && ready) t.append(el("span", "tab-badge", String(ready)));
       const affordable = PERMS.filter((p) => canBuy(save, p.id)).length;
       if (id === "armory" && affordable) t.append(el("span", "tab-badge", String(affordable)));
+      if (id === "battle" && tab !== "battle" && (save.stars[1] ?? 0) > 0 && giftView(save.stats, todayString()).ready) t.append(el("span", "tab-badge", "🎁"));
       if (id === "heroes" && freshHeroes(save).length) t.append(el("span", "tab-badge", "NEW"));
       else if (id === "heroes" && HEROES.some((h) => heroUnlocked(save, h.id) && freePoints(save.heroes[h.id]) > 0)) t.append(el("span", "tab-badge", "⭐"));
       t.setAttribute("aria-label", `${names[id]}${extra}${id === "armory" && affordable ? `, ${affordable} affordable` : ""}`);
