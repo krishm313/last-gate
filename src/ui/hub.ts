@@ -594,6 +594,7 @@ export class Hub {
     // Saw an earlier card today: just the newest bits. Otherwise the whole update.
     const lines = NEWS === "2026-11-21" && seen === "2026-11-20"
       ? [
+          "💀 Chapter 10: The Hollow Throne — a starless keep, and the Hollow King who raises the dead",
           "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Blood Moon Warlord",
           "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
           "🐉 Dragon Dodge (after chapter 8) & 🪨 Catapult Toss (after chapter 6): two more mini-games",
@@ -605,7 +606,7 @@ export class Hub {
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 4 sieges, new cards as you win",
           "🎪 5 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
-          ...(NEWS === "2026-11-21" ? ["👑 Boss Rush: a boss every night · 📯 The Marshal (new hero, 25★) calls militia to arms"] : []),
+          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [
