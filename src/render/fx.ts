@@ -194,14 +194,18 @@ export class Fx {
     }
   }
 
+  /** Siege Lord's flipped view: "up" on screen is +y in the world, so rising things (smoke, numbers) invert. */
+  flip = false;
+
   update(dt: number): void {
+    const up = this.flip ? -1 : 1;
     this.trauma = Math.max(0, this.trauma - dt * 1.6);
     this.flash = Math.max(0, this.flash - dt * 2);
     this.heroKick = Math.max(0, this.heroKick - dt * 9);
     this.gateHit = Math.max(0, this.gateHit - dt * 6);
     this.slowmo = Math.max(0, this.slowmo - dt);
     for (const p of this.particles) {
-      p.vy += p.gravity * dt;
+      p.vy += p.gravity * up * dt;
       const k = Math.exp(-p.drag * dt);
       p.vx *= k;
       p.vy *= k;
@@ -216,7 +220,7 @@ export class Fx {
     this.zaps = this.zaps.filter((z) => z.life > 0);
     for (const n of this.nums) {
       n.x += n.vx * dt;
-      n.y += n.vy * dt;
+      n.y += n.vy * up * dt;
       n.vx *= Math.exp(-4 * dt);
       if (n.max < 1) {
         n.vy += 260 * dt; // gravity: the number rises, hangs, and drops a touch as it fades
@@ -341,7 +345,7 @@ export class Fx {
       c.save();
       c.translate(n.x + shake, n.y);
       c.rotate(n.rot * (1 - Math.min(1, t * 2)) + n.rot * 0.3);
-      c.scale(scale, scale);
+      c.scale(scale, this.flip ? -scale : scale);
       c.font = `900 ${n.size}px ${FONT}`;
       c.lineJoin = "round";
       c.lineWidth = n.crit ? 5 : 4;

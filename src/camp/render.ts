@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { ACID, ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
+import { ACID, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -535,9 +535,100 @@ export class CampRenderer {
     return scale;
   }
 
+  /** Siege Lord: the world is drawn mirrored top-to-bottom (castle at the top, your horde marching up). */
+  flip = false;
+
+  /** World → screen: the camera offset (and shake), mirrored vertically in the flipped view. */
+  worldTransform(ctx: CanvasRenderingContext2D, o: Vec, sh: Vec): void {
+    if (this.zoom !== 1) ctx.scale(this.zoom, this.zoom);
+    if (this.flip) {
+      ctx.translate(-o.x + sh.x, this.vh + o.y + sh.y);
+      ctx.scale(1, -1);
+    } else ctx.translate(-o.x + sh.x, -o.y + sh.y);
+  }
+
+  /** In the flipped view, draw something upright about its base line y (a no-op otherwise). */
+  upright(ctx: CanvasRenderingContext2D, y: number, draw: () => void): void {
+    if (!this.flip) return draw();
+    ctx.save();
+    ctx.translate(0, 2 * y);
+    ctx.scale(1, -1);
+    draw();
+    ctx.restore();
+  }
+
+  /** Siege Lord: which lane (0–2) a tap at view x lands in (the nearest lane to that point of the field). */
+  laneAt(viewX: number): number {
+    const wx = this.camOrigin().x + viewX / this.zoom;
+    let best = 0;
+    for (let i = 1; i < LANES_X.length; i++) if (Math.abs(LANES_X[i]! - wx) < Math.abs(LANES_X[best]! - wx)) best = i;
+    return best;
+  }
+  /** A group was just sent down lane i (its marker flashes). */
+  laneFlash(i: number): void {
+    this.laneFlashAt[i] = this.time;
+  }
+  private laneFlashAt = [-9, -9, -9];
+  /** Siege Lord: a card is picked (lane markers glow), and nothing sent yet (they pulse to coach). */
+  siegePicked = false;
+  siegeCoach = false;
+
+  /** Siege Lord lane markers: three soft columns rising from the horde's edge of the field, in view space. */
+  private drawLanes(ctx: CanvasRenderingContext2D, o: Vec): void {
+    const bottom = VIEW_H - 236; // just above the card deck
+    for (let i = 0; i < LANES_X.length; i++) {
+      const x = this.screenX(LANES_X[i]!, o);
+      const hw = (LANES_X[1]! - LANES_X[0]!) * this.zoom * 0.44;
+      const fl = Math.max(0, 1 - (this.time - this.laneFlashAt[i]!) / 0.5);
+      const pulse = this.siegeCoach ? 0.5 + 0.5 * Math.sin(this.time * 5) : 0;
+      // A soft glow rising from the lane's foot (an ellipse, not a hard-edged column).
+      const a = pulse * 0.16 + fl * 0.4 + (this.siegePicked ? 0.05 : 0);
+      if (a > 0.01) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        this.drawBlob(ctx, this.blob("lane", [[0, "rgba(255,216,74,0.9)"], [1, "rgba(255,216,74,0)"]]), x, bottom - 40, hw, 120, a);
+        ctx.restore();
+      }
+      // A chevron pointing up the lane, toward the castle.
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (this.siegePicked ? 0.75 : 0.35) + pulse * 0.25 + fl * 0.4);
+      ctx.strokeStyle = "#ffe27a";
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      const cy = bottom - 34 - fl * 12;
+      for (const dy of [0, 16]) {
+        ctx.beginPath();
+        ctx.moveTo(x - 16, cy - dy + 10);
+        ctx.lineTo(x, cy - dy - 4);
+        ctx.lineTo(x + 16, cy - dy + 10);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  /** World units per view unit (Siege Lord zooms out so all three lanes are on screen). */
+  zoom = 1;
+  /** Visible world width / height at the current zoom. */
+  get vw(): number { return VIEW_W / this.zoom; }
+  get vh(): number { return VIEW_H / this.zoom; }
+
   /** Camera top-left in world space. */
   camOrigin(): Vec {
-    return { x: this.cam.x - VIEW_W / 2, y: this.cam.y - VIEW_H / 2 };
+    return { x: this.cam.x - this.vw / 2, y: this.cam.y - this.vh / 2 };
+  }
+
+  /** Screen (view) position of a world point — for code that maps lights and overlays by hand. */
+  screenX(x: number, o: Vec): number {
+    return (x - o.x) * this.zoom;
+  }
+  screenY(y: number, o: Vec): number {
+    return (this.flip ? this.vh - (y - o.y) : y - o.y) * this.zoom;
+  }
+  /** Where a point drawn at y inside an object standing on `base` really appears (objects are drawn upright in the flipped view). */
+  uprightY(y: number, base: number): number {
+    return this.flip ? 2 * base - y : y;
   }
 
   private pickupBatch = 0;
@@ -919,6 +1010,7 @@ fx.shake(0.15);
           fx.burst(INCOME_PILE.x, INCOME_PILE.y - 10, "#ffd84a", 10, 120, { max: 0.6, size: 3, gravity: 200 });
           break;
         case "levelUp":
+          if (this.flip) break; // Siege Lord: the defending hero levelling up is noise for the attacker
           this.levelUpAt = this.time;
           this.say(["For the crown!", "Stronger!", "Feel that?", "Ha! Come on!"], 0.9);
           // Above the coin stack and the King's quip bubble, so the two never overlap.
@@ -1121,6 +1213,7 @@ fx.shake(0.15);
         this.fx.rings.push({ x, y, r: 60, color: col, life: 0.5, max: 0.5, width: 3 });
       }
     }
+    if (c.reverse) this.pickupBatch = 0; // the defenders' coin pickups aren't the attacker's business
     if (this.pickupBatch > 0 && this.pickupTimer > 0.25 && !c.hero.dead) {
       // Off to the King's side at shoulder height, clear of the coin stack and its count tag.
       // While the last "+N" is still young, fold the new coins into it (re-popping it) instead of
@@ -1199,10 +1292,12 @@ fx.shake(0.15);
     const fell = this.heroFell && this.time - this.heroFell.t < 1.4 ? this.heroFell : null;
     let target = c.hero.dead ? (fell ? { x: fell.x, y: fell.y - 60 } : { x: HALL.x, y: HALL.y - 120 }) : { x: c.hero.x, y: c.hero.y - 60 };
     // Siege Lord: the camera rides with your horde's front line (the wall when nobody is out).
+    // (Zoomed out to show all three lanes; centred across the map so no lane is ever off screen.)
+    this.zoom = c.reverse && !this.ambient ? 0.8 : 1;
     if (c.reverse) {
       let front: Enemy | null = null;
       for (const e of c.enemies) if (!e.def.flying && (!front || e.y > front.y)) front = e;
-      target = front ? { x: front.x, y: Math.max(WALL_Y - 120, front.y - 40) } : { x: MAP_W / 2, y: WALL_Y - 60 };
+      target = { x: MAP_W / 2, y: front ? Math.max(WALL_Y - 140, front.y - 60) : WALL_Y - 80 };
     }
     if (this.focus) {
       this.focus.t -= dt;
@@ -1223,12 +1318,12 @@ fx.shake(0.15);
     const k = 1 - Math.exp(-dt * (this.focus ? 3.5 : this.reveal > 0 ? 2.6 : 6));
     this.cam.x += (target.x - this.cam.x) * k;
     this.cam.y += (target.y - this.cam.y) * k;
-    this.cam.x = Math.max(VIEW_W / 2, Math.min(MAP_W - VIEW_W / 2, this.cam.x));
+    this.cam.x = Math.max(this.vw / 2, Math.min(MAP_W - this.vw / 2, this.cam.x));
     // Normally stop 60 short of the map's bottom edge, so the top row of plots clears the HUD when the hero
     // stands by the hall; only follow further down if the hero walks low enough to slip under the bottom buttons.
     const heroLow = c.hero.dead ? 0 : c.hero.y - VIEW_H / 2 + 140;
-    const maxY = Math.min(MAP_H - VIEW_H / 2, Math.max(MAP_H - VIEW_H / 2 - 60, heroLow));
-    this.cam.y = Math.max(VIEW_H / 2 - 160, Math.min(maxY, this.cam.y));
+    const maxY = Math.min(MAP_H - this.vh / 2, Math.max(MAP_H - this.vh / 2 - 60, heroLow));
+    this.cam.y = Math.max(this.vh / 2 - 160, Math.min(maxY, this.cam.y));
     const o = this.camOrigin();
     const sh = this.fx.shakeOffset(this.time);
 
@@ -1240,7 +1335,9 @@ fx.shake(0.15);
     ctx.fillStyle = "#24361c";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     this.lateBars.length = 0; // (never carried across frames, even if a frame skipped the flush)
-    ctx.translate(-o.x + sh.x, -o.y + sh.y);
+    this.flip = !!c.reverse && !this.ambient;
+    this.fx.flip = this.flip;
+    this.worldTransform(ctx, o, sh);
 
     this.drawGround(ctx);
     this.drawImpacts(ctx, "ground");
@@ -1288,9 +1385,10 @@ fx.shake(0.15);
     this.drawCoins(ctx, c);
 
     // Depth-sorted actors and props.
-    type Item = { y: number; draw: () => void };
+    // a: the base line an object stands on (defaults to y), used to draw it upright in the flipped view.
+    type Item = { y: number; a?: number; draw: () => void };
     const items: Item[] = [];
-    for (const t of this.trees) if (t.y > o.y - 20 && t.y < o.y + VIEW_H + 110 && t.x > o.x - 50 && t.x < o.x + VIEW_W + 50) items.push({ y: t.y, draw: () => this.drawTree(ctx, t, this.hidesUnit(c, t)) });
+    for (const t of this.trees) if (t.y > o.y - 20 && t.y < o.y + this.vh + 110 && t.x > o.x - 50 && t.x < o.x + this.vw + 50) items.push({ y: t.y, draw: () => this.drawTree(ctx, t, this.hidesUnit(c, t)) });
     items.push({ y: WALL_Y, draw: () => this.drawWall(ctx, c) });
     // Lit openings sit right in front of their building, so units in front still cover them.
     if (this.night > 0.02)
@@ -1318,26 +1416,26 @@ fx.shake(0.15);
     // Spike trap before the gate: three staggered rows of stakes, each row depth-sorted with the foes.
     const spikePlot = c.plots.find((q) => q.kind === "spikes");
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
-    for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
-    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
+    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
     for (const a of c.acid) items.push(a.delay > 0 ? { y: 1e6, draw: () => this.drawFlask(ctx, a) } : { y: -1e6 + 1, draw: () => this.drawAcidPool(ctx, a) });
     for (const t of c.tides) items.push({ y: -1e6 + 2, draw: () => this.drawTide(ctx, t) });
     for (const p of c.plots) if ((p.fire ?? 0) > 0) items.push({ y: p.y + 40, draw: () => this.drawBurning(ctx, p) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
-      items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
+      items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
     }
-    for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
-    for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
+    for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
     for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => this.drawAlly(ctx, c, a) });
-    for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 34, 60, () => drawCatapult(this, ctx, p)) });
-    for (const p of c.plots) if (p.kind === "lumber" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawLumberCamp(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => drawCatapult(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "lumber" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawLumberCamp(this, ctx, p)) });
     for (const p of c.plots)
       if (p.kind === "forge" && p.level > 0) {
-        items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 50, 70, () => drawForge(this, ctx, c, p)) });
+        items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawForge(this, ctx, c, p)) });
         items.push({ y: FORGE_IN.y, draw: () => drawForgeZones(this, ctx, c) });
       }
     GROVE.forEach((g, i) => items.push({ y: g.y, draw: () => this.drawGroveTree(ctx, c, g, i) }));
@@ -1412,9 +1510,15 @@ fx.shake(0.15);
         },
       });
     }
-    items.sort((a, b) => a.y - b.y);
+    // Flipped view (Siege Lord): nearer means higher world y is now further UP the screen, so the
+    // order reverses; each object is drawn upright about its own base (flat ground decals at ±1e6 aren't).
+    if (this.flip) items.sort((a, b) => b.y - a.y);
+    else items.sort((a, b) => a.y - b.y);
     this.heroBehind = false;
-    for (const it of items) it.draw();
+    for (const it of items) {
+      if (this.flip && Math.abs(it.y) < 1e5) this.upright(ctx, it.a ?? it.y, it.draw);
+      else it.draw();
+    }
     // Hero tucked behind a building: draw them again on top, a bit see-through, so they never get lost.
     if (this.heroBehind && !c.hero.dead) {
       ctx.globalAlpha = 0.85;
@@ -1484,7 +1588,7 @@ fx.shake(0.15);
     for (const draw of this.lateBars) draw(ctx);
     this.lateBars.length = 0;
     ctx.save();
-    ctx.translate(-o.x + sh.x, -o.y + sh.y);
+    this.worldTransform(ctx, o, sh);
     this.fx.drawNumbers(ctx);
     ctx.restore();
     if (this.focus && !this.ambient) drawBossCard(ctx, this.focus.name, this.focus.t);
@@ -1501,7 +1605,9 @@ fx.shake(0.15);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     }
-    if (!this.ambient) {
+    if (this.flip) this.drawLanes(ctx, o);
+    // (Siege Lord: the castle's hero is the bot, so its arrows and kill streak would only be noise.)
+    if (!this.ambient && !c.reverse) {
       this.drawIndicators(ctx, c, o);
       this.drawCombo(ctx, c);
     }
@@ -1545,8 +1651,8 @@ fx.shake(0.15);
     const pad = 20;
     const sx = Math.max(0, (o.x - pad - TERRAIN_X) * k);
     const sy = Math.max(0, (o.y - pad - TERRAIN_Y) * k);
-    const sw = Math.min(this.terrain.width - sx, (VIEW_W + pad * 2) * k);
-    const sh = Math.min(this.terrain.height - sy, (VIEW_H + pad * 2) * k);
+    const sw = Math.min(this.terrain.width - sx, (this.vw + pad * 2) * k);
+    const sh = Math.min(this.terrain.height - sy, (this.vh + pad * 2) * k);
     ctx.drawImage(this.terrain, sx, sy, sw, sh, TERRAIN_X + sx / k, TERRAIN_Y + sy / k, sw / k, sh / k);
   }
 
@@ -2626,7 +2732,8 @@ fx.shake(0.15);
     const h = c.hero;
     const pdt = Math.min(0.05, Math.max(0, this.time - this.plotUiT));
     this.plotUiT = this.time;
-    for (const p of c.plots) {
+    // Each plot is drawn upright about its own base (a no-op unless the view is flipped).
+    for (const p of c.plots) this.upright(ctx, p.y, () => {
       // A fully upgraded workshop shows a small gold "★ MAX" ribbon where its price plate was.
       if (plotMaxed(p) && !p.locked && (p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer" || p.kind === "watch")) {
         const bob = Math.sin(this.time * 2 + p.x * 0.05) * 1;
@@ -2647,12 +2754,14 @@ fx.shake(0.15);
         ctx.restore();
         };
         // Like the price plates: above the darkness at night.
-        if (this.night > 0.3) {
+        if (this.flip) {
+          /* Siege Lord: no ribbons */
+        } else if (this.night > 0.3) {
           const m = ctx.getTransform();
           this.lateBars.push((ctx) => { ctx.save(); ctx.setTransform(m); ribbon(ctx); ctx.restore(); });
         } else ribbon(ctx);
       }
-      if (plotMaxed(p) || p.locked) continue;
+      if (plotMaxed(p) || p.locked) return;
       const near = !h.dead && this.nearPlot(h, p);
       const built = (p.kind === "tower" || p.kind === "lumber" || p.kind === "forge" || p.kind === "catapult" || p.kind === "barracks" || p.kind === "mage" || p.kind === "healer" || p.kind === "watch") && p.level > 0;
       const half = built ? CAMP.plotHalf * 0.8 : CAMP.plotHalf;
@@ -2661,7 +2770,7 @@ fx.shake(0.15);
       const affordable = h.coins >= cost - p.paid && h.logs >= logCost - p.paidLogs;
       if (p.kind === "repair" && !repairNeeded(c)) {
         this.drawIdleRepair(ctx, p);
-        continue;
+        return;
       }
       // Stepping on/off eases the highlight in and out instead of snapping it.
       let ui = this.plotUi.get(p.id);
@@ -2812,7 +2921,10 @@ fx.shake(0.15);
         const caption = p.kind === "watch" ? (built ? `▲ Lv ${p.level + 1}` : "Watchtower") : p.kind === "healer" ? (built ? `▲ Lv ${p.level + 1}` : "Healer's Tent") : p.kind === "mage" ? (built ? `▲ Lv ${p.level + 1}` : "Mage Tower") : p.kind === "barracks" ? (built ? `▲ Lv ${p.level + 1}` : "Barracks") : p.kind === "catapult" ? (built ? `▲ Lv ${p.level + 1}` : "Catapult") : p.kind === "hall" ? ["Upgrade Hall", "Grand Hall"][p.level]! : p.kind === "forge" ? (built ? `▲ Lv ${p.level + 1}` : "Forge") : p.kind === "lumber" ? (built ? `▲ Lv ${p.level + 1}` : "Lumber Camp") : p.kind === "tower" ? (built ? `▲ Lv ${p.level + 1}` : "Archer Tower") : p.kind === "fortify" ? ["Banded Wall", "Stone Wall", "Battlements"][p.level]! : p.label;
         outlined(ctx, caption, 0, built ? -18 : -half - 9, 10.5);
       };
-      if (this.night > 0.3) {
+      // (Siege Lord: the castle's price plates and captions are the bot's business, not the attacker's.)
+      if (this.flip) {
+        /* no plot labels */
+      } else if (this.night > 0.3) {
         const m = ctx.getTransform(), ga = ctx.globalAlpha, ta = ctx.textAlign, tb = ctx.textBaseline;
         this.lateBars.push((ctx) => {
           ctx.save();
@@ -2822,7 +2934,7 @@ fx.shake(0.15);
         });
       } else labels(ctx);
       ctx.restore();
-    }
+    });
   }
 
   /** Draw a building see-through while the hero stands behind it (within halfW, up to `height` above its base). */
@@ -2956,7 +3068,9 @@ fx.shake(0.15);
     ctx.textBaseline = "middle";
     ctx.globalAlpha = 0.85;
     // Like the other plot captions: after the darkness at night, so it reads in Hollow Night.
-    if (this.night > 0.3) {
+    if (this.flip) {
+      /* Siege Lord: no captions */
+    } else if (this.night > 0.3) {
       const m = ctx.getTransform();
       this.lateBars.push((ctx) => {
         ctx.save();
@@ -3034,25 +3148,26 @@ fx.shake(0.15);
   private nightLayer: HTMLCanvasElement | null = null;
 
   /** World-space light sources at night: the hero's lantern, the hall, built plots, wall torches. */
-  private nightLights(c: Camp): { x: number; y: number; r: number; f?: number }[] {
+  /** b: the base line of the object the light belongs to (where it stands), so the pool lands right when the view is flipped. */
+  private nightLights(c: Camp): { x: number; y: number; r: number; f?: number; b?: number }[] {
     // `f` marks an open flame: its pool flickers and wobbles (lanterns and the hall burn steadier).
-    const out: { x: number; y: number; r: number; f?: number }[] = [];
-    if (!c.hero.dead) out.push({ x: c.hero.x, y: c.hero.y, r: 135 });
-    out.push({ x: HALL.x, y: HALL.y - 10, r: 175 });
-    for (const pp of PLAZA_PROPS) if (pp.n === "lantern1") out.push({ x: pp.x + (pp.flip ? -1 : 1) * 6 * pp.s, y: pp.y - 14 * pp.s, r: 70 });
-    for (const p of c.plots) if (p.level > 0) out.push({ x: p.x, y: p.y - 10, r: p.kind === "tower" ? 95 + p.level * 12 : 72, f: 0.4 });
-    for (let i = 1; i <= 5; i++) out.push({ x: (MAP_W * i) / 6, y: WALL_Y + WALL_THICK, r: 68, f: 1 });
+    const out: { x: number; y: number; r: number; f?: number; b?: number }[] = [];
+    if (!c.hero.dead) out.push({ x: c.hero.x, y: c.hero.y, r: 135, b: c.hero.y });
+    out.push({ x: HALL.x, y: HALL.y - 10, r: 175, b: HALL.y + 38 });
+    for (const pp of PLAZA_PROPS) if (pp.n === "lantern1") out.push({ x: pp.x + (pp.flip ? -1 : 1) * 6 * pp.s, y: pp.y - 14 * pp.s, r: 70, b: pp.y });
+    for (const p of c.plots) if (p.level > 0) out.push({ x: p.x, y: p.y - 10, r: p.kind === "tower" ? 95 + p.level * 12 : 72, f: 0.4, b: p.y });
+    for (let i = 1; i <= 5; i++) out.push({ x: (MAP_W * i) / 6, y: WALL_Y + WALL_THICK, r: 68, f: 1, b: WALL_Y });
     // Bosses are never lost in the dark; the treasure goblin glitters, a lure worth chasing.
     for (const e of c.enemies) {
-      if (e.def.boss) out.push({ x: e.x, y: e.y - e.def.radius, r: e.def.radius * 4.2 });
-      else if (e.def.id === "thief") out.push({ x: e.x, y: e.y - 6, r: 64 + Math.sin(this.time * 8) * 6 });
+      if (e.def.boss) out.push({ x: e.x, y: e.y - e.def.radius, r: e.def.radius * 4.2, b: e.y });
+      else if (e.def.id === "thief") out.push({ x: e.x, y: e.y - 6, r: 64 + Math.sin(this.time * 8) * 6, b: e.y });
     }
     this.groundFires = this.groundFires.filter((f) => this.time - f.t < 3);
     for (const f of this.groundFires) out.push({ x: f.x, y: f.y, r: 54 * (1 - (this.time - f.t) / 3) + 10, f: 1.3 });
     // Torch-bearers in the horde: moving pools of light in the dark.
-    for (const e of this.torchBearers(c)) out.push({ x: e.x + 8, y: e.y - 10, r: 62, f: 1 });
+    for (const e of this.torchBearers(c)) out.push({ x: e.x + 8, y: e.y - 10, r: 62, f: 1, b: e.y });
     // Barracks soldiers carry a lantern, so your own men read in a night brawl at the gate.
-    for (const a of c.allies.slice(0, 12)) out.push({ x: a.x, y: a.y - 8, r: 52 });
+    for (const a of c.allies.slice(0, 12)) out.push({ x: a.x, y: a.y - 8, r: 52, b: a.y });
     // Fire Nova lights up the night: a burst of firelight swells with the ring and dies away.
     for (const w of this.shockwaves) {
       const u = (this.time - w.t) / 0.7;
@@ -3144,8 +3259,8 @@ fx.shake(0.15);
     g.globalCompositeOperation = "destination-out";
     const cut = this.blob("cut", [[0, "rgba(0,0,0,0.95)"], [0.5, "rgba(0,0,0,0.62)"], [1, "rgba(0,0,0,0)"]]);
     for (const l of lights) {
-      const x = l.x - o.x + sh.x;
-      const y = l.y - o.y + sh.y;
+      const x = this.screenX(l.x, o) + sh.x;
+      const y = this.screenY(l.b !== undefined ? this.uprightY(l.y, l.b) : l.y, o) + sh.y;
       if (x < -l.r || x > VIEW_W + l.r || y < -l.r || y > VIEW_H + l.r) continue;
       // Flicker from a few incommensurate sines (no visible beat), plus occasional gutters; flames
       // also sway their pool a pixel or two as the fire leans.
@@ -3162,7 +3277,7 @@ fx.shake(0.15);
     // readable out in the black instead of melting into the grass (their own colours show dimly).
     for (const e of c.enemies) {
       const r = e.def.radius;
-      const x = e.x - o.x + sh.x, y = e.y - r * 0.5 - o.y + sh.y - (e.def.flying ? 10 : 0);
+      const x = this.screenX(e.x, o) + sh.x, y = this.screenY(this.uprightY(e.y - r * 0.5 - (e.def.flying ? 10 : 0), e.y), o) + sh.y;
       if (x < -40 || x > VIEW_W + 40 || y < -40 || y > VIEW_H + 40) continue;
       this.drawBlob(g, cut, x, y, r * 1.7, r * 2.1, 0.5);
     }
@@ -3172,8 +3287,8 @@ fx.shake(0.15);
     ctx.save();
     ctx.globalAlpha = Math.min(1, ease * 1.2);
     for (let i = 1; i <= 5; i++) {
-      const tx = (MAP_W * i) / 6 - o.x + sh.x;
-      const ty = WALL_Y + WALL_THICK - 14 - o.y + sh.y;
+      const tx = this.screenX((MAP_W * i) / 6, o) + sh.x;
+      const ty = this.screenY(this.uprightY(WALL_Y + WALL_THICK - 14, WALL_Y), o) + sh.y;
       if (tx < -20 || tx > VIEW_W + 20 || ty < -20 || ty > VIEW_H + 30) continue;
       const pole = ctx.createLinearGradient(0, ty + 4, 0, ty + 22);
       pole.addColorStop(0, "#b0743a");
@@ -3198,8 +3313,8 @@ fx.shake(0.15);
     }
     // Torch flames on the wall (the wall lights above), flickering.
     for (let i = 1; i <= 5; i++) {
-      const tx = (MAP_W * i) / 6 - o.x + sh.x;
-      const ty = WALL_Y + WALL_THICK - 14 - o.y + sh.y;
+      const tx = this.screenX((MAP_W * i) / 6, o) + sh.x;
+      const ty = this.screenY(this.uprightY(WALL_Y + WALL_THICK - 14, WALL_Y), o) + sh.y;
       // At nightfall the torches catch one after another from the gate outwards: each flares big
       // with a puff of embers, then settles to a steady burn.
       const lightAt = this.waveAt + 0.35 + Math.abs(i - 3) * 0.2;

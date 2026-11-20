@@ -264,6 +264,12 @@ function toView(ev: PointerEvent): Vec {
   return { x: ((ev.clientX - r.left) / r.width) * VIEW_W, y: ((ev.clientY - r.top) / r.height) * VIEW_H };
 }
 canvas.addEventListener("pointerdown", (ev) => {
+  // Siege Lord: tapping the battlefield sends the picked card down the lane under the finger.
+  if (camp?.reverse && !paused) {
+    const v = toView(ev);
+    siegeBar.tapField(renderer.laneAt(v.x));
+    return;
+  }
   if (joyId !== null) return;
   joyId = ev.pointerId;
   canvas.setPointerCapture(ev.pointerId);
@@ -637,8 +643,13 @@ const siegeBar = new SiegeBar(
   (id, lane) => {
     if (camp?.reverse && deploy(camp, id as never, lane)) {
       sfx.warDrums();
+      buzz(settings, 12);
       save.stats.deployed = (save.stats.deployed ?? 0) + (WAR_CARDS.find((k) => k.id === id)?.count ?? 1);
+      renderer.laneFlash(lane);
+      return true;
     }
+    if (camp?.reverse) sfx.denied();
+    return false;
   },
   () => setPaused(true),
 );
@@ -681,7 +692,7 @@ function startSiege(i: number) {
   siegeBar.setWon(won);
   siegeBar.show(true);
   music.start();
-  window.setTimeout(() => hud.toast("⚔️ Tap a unit card, then a lane to send them in. Take the hall!"), 600);
+  window.setTimeout(() => hud.toast("⚔️ Tap the field to send your Footmen up that lane — pick other units from the cards. Take the hall!"), 600);
 }
 
 function finishSiege(c: Camp, retreat = false) {
@@ -1352,7 +1363,11 @@ function frame(now: number) {
     }
     renderer.joystick = joyId !== null ? { origin: joyOrigin, knob: { x: joyOrigin.x + joyVec.x * JOY_R, y: joyOrigin.y + joyVec.y * JOY_R } } : null;
     hud.noStars = !!dailyRun;
-    if (c.reverse) siegeBar.update(c);
+    if (c.reverse) {
+      siegeBar.update(c);
+      renderer.siegePicked = !!siegeBar.pickedCard && c.phase === "wave";
+      renderer.siegeCoach = c.reverse.deployed === 0 && c.phase === "wave";
+    }
     else hud.update(c);
     heartbeatTick(c, realDt);
     hud.setTip(c.phase === "build" || c.phase === "wave" ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);

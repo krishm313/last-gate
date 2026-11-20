@@ -36,7 +36,7 @@ export class SiegeBar {
   private picked: string | null = null;
   private won = 0;
 
-  constructor(host: HTMLElement, private onDeploy: (id: string, lane: number) => void, private onPause: () => void) {
+  constructor(host: HTMLElement, private onDeploy: (id: string, lane: number) => boolean, private onPause: () => void) {
     const hall = el("div", "lgs2-hall");
     const bar = el("div", "lgs2-bar");
     bar.append(this.hallFill);
@@ -50,9 +50,7 @@ export class SiegeBar {
     chest.append(el("span", "lgs2-chest-i", "💰"), cbar, this.chestText);
     for (const [i, label] of ["◀ Left", "Middle", "Right ▶"].entries()) {
       const b = el("button", "lgs2-lane", label);
-      b.onclick = () => {
-        if (this.picked) this.onDeploy(this.picked, i);
-      };
+      b.onclick = () => this.send(i);
       this.lanes.append(b);
     }
     for (const card of WAR_CARDS) {
@@ -77,16 +75,18 @@ export class SiegeBar {
         art.append(img);
       } else art.textContent = CARD_EMOJI[card.id] ?? "👹";
       b.append(art, el("div", "lgs2-name", `${CARD_NAME[card.id] ?? ENEMIES[card.id].name}${card.count > 1 ? ` ×${card.count}` : ""}`), el("div", "lgs2-cost", `💰${card.cost}`));
+      // Tapping a card picks it (it stays picked, so you can keep sending it); then tap the field.
       b.onclick = () => {
-        if (!cardOpen(card, this.won)) return;
-        this.picked = this.picked === card.id ? null : card.id;
+        if (!cardOpen(card, this.won)) return this.nope(b);
+        this.picked = card.id;
         this.refreshPick();
       };
       this.cards.set(card.id, b);
       this.deck.append(b);
     }
     const bottom = el("div", "lgs2-bottom");
-    bottom.append(this.lanes, chest, this.deck);
+    // (Lanes are picked by tapping the battlefield itself — see tapField; no buttons over the field.)
+    bottom.append(chest, this.deck);
     this.root.append(this.top, bottom);
     this.root.style.display = "none";
     host.append(this.root);
@@ -95,7 +95,36 @@ export class SiegeBar {
 
   private refreshPick(): void {
     for (const [id, b] of this.cards) b.classList.toggle("on", id === this.picked);
-    this.lanes.classList.toggle("show", !!this.picked);
+  }
+
+  /** The card currently picked (null if none). */
+  get pickedCard(): string | null {
+    return this.picked;
+  }
+
+  /** The battlefield was tapped over lane 0–2: send the picked card there. */
+  tapField(lane: number): boolean {
+    return this.send(lane);
+  }
+
+  private send(lane: number): boolean {
+    if (!this.picked) {
+      this.deck.classList.remove("hint");
+      void this.deck.offsetWidth;
+      this.deck.classList.add("hint");
+      return false;
+    }
+    const ok = this.onDeploy(this.picked, lane);
+    const b = this.cards.get(this.picked);
+    if (!ok && b) this.nope(b);
+    return ok;
+  }
+
+  /** Can't afford / locked: a short shake. */
+  private nope(b: HTMLElement): void {
+    b.classList.remove("nope");
+    void b.offsetWidth;
+    b.classList.add("nope");
   }
 
   /** Which war cards are in the deck (later ones open as sieges are won). */
@@ -114,10 +143,9 @@ export class SiegeBar {
 
   show(v: boolean): void {
     this.root.style.display = v ? "flex" : "none";
-    if (!v) {
-      this.picked = null;
-      this.refreshPick();
-    }
+    // A new siege starts with Footmen picked, so the first tap on the field already sends a group.
+    this.picked = v ? WAR_CARDS[0]!.id : null;
+    this.refreshPick();
   }
 
   update(c: Camp): void {
@@ -131,9 +159,6 @@ export class SiegeBar {
     this.chestFill.style.width = `${(r.chest / REVERSE.cap) * 100}%`;
     this.chestText.textContent = `${Math.floor(r.chest)}`;
     for (const card of WAR_CARDS) this.cards.get(card.id)!.classList.toggle("poor", r.chest < card.cost || c.phase !== "wave");
-    // First steps: until the first group is sent, the deck (then the lanes) pulse to show what to tap.
-    const coach = r.deployed === 0 && c.phase === "wave";
-    this.deck.classList.toggle("coach", coach && !this.picked);
-    this.lanes.classList.toggle("coach", coach && !!this.picked);
+    // (First steps are coached on the battlefield itself: the lane markers pulse until the first send.)
   }
 }

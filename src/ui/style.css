@@ -1362,3 +1362,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Mason's Tower side game. */
 .lgm2 { position: absolute; inset: 0; z-index: 6; background: #1a1a2e; display: flex; align-items: center; justify-content: center; }
 #ui .lgm2, #ui .lgm2 * { pointer-events: auto; }
+/* Siege Lord: a card you can't afford shakes; tapping the field with nothing picked nudges the deck. */
+.lgs2-card.nope { animation: lgs2-nope 0.35s ease-in-out; }
+@keyframes lgs2-nope { 20% { transform: translateX(calc(-4 * var(--u))); } 40% { transform: translateX(calc(4 * var(--u))); } 60% { transform: translateX(calc(-3 * var(--u))); } 80% { transform: translateX(calc(2 * var(--u))); } }
+.lgs2-deck.hint { animation: lgs2-hint 0.4s ease-out; }
+@keyframes lgs2-hint { 30% { transform: translateY(calc(-4 * var(--u))); } }
+@media (prefers-reduced-motion: reduce) { .lgs2-card.nope, .lgs2-deck.hint { animation: none; } }
