@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- "What's new" card describes Siege Lord as it plays now (flipped view, drag a card onto a lane) and mentions the phone polish; it still said "send units down 3 lanes". Checked fine, no change: auto-pause + audio suspend + save on app switch, auto-pause when turned sideways ("Turn your phone upright"), the game starts and plays with storage throwing (private mode / quota), standalone app stays inside the safe area.
 - The hero no longer vanishes behind the gate: standing in the open gate (it's walkable), they sorted behind the gate boards — only the coin stack showed (seen on a chapter 8 night). Inside the gate's depth they now draw in front of the wall. Night readability on chapter 8 otherwise fine (labels, coins, damage numbers).
 - Siege Lord pause button (27×27 on iPhone SE) gets the same bigger invisible tap area; siege cards measured 42×37 (fine). Full siege flow (pause → resume → win → retry → lose) re-checked with real taps.
 - Bigger invisible hit areas on small phones, same look: touch-target audit on iPhone SE found the in-game ▶/II/🔊 buttons at 24×24, hub tabs 24 tall, the gear 26×26, claim buttons 24 tall and "Reset progress" 12 tall — each now has a transparent ::after extending its tap area (kept clear of neighbours). Real-tap audit still clean on every screen.

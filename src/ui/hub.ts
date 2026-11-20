@@ -725,7 +725,8 @@ export class Hub {
       ? [
           "💀 Chapter 10: The Hollow Throne · 👑 Boss Rush — every boss, one per night",
           "📯 The Marshal (25★) & 🧪 The Alchemist (28★): two new heroes · 🎖️ Veteran looks after 25 nights",
-          "⚔️ Siege Lord rebuilt: the view flips so you attack up the field — tap the field to send your horde",
+          "⚔️ Siege Lord rebuilt: the view flips so you attack up the field — drag a unit card onto a lane (or tap the field) to send your horde",
+          "🛠️ Polish everywhere: lighter loading, smoother long nights, clearer hints, easier-to-tap buttons on small phones",
           "⚔️ Siege Lord: three new sieges up to the Alchemist's Tower, new war cards, and a 🗓️ Daily Siege",
           "🌑 Shadowstalker: a new foe in chapters 7–10 that blinks forward through your fire",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
@@ -733,8 +734,8 @@ export class Hub {
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
-          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 6 sieges, new war cards and a 🗓️ Daily Siege",
-          "⚡ Smoother on phones: sprite and interface work cut way down",
+          "⚔️ Siege Lord: play the horde! The view flips — drag unit cards onto a lane to take the castle · 6 sieges, new war cards and a 🗓️ Daily Siege",
+          "⚡ Smoother and lighter on phones: faster loading, less memory, easier-to-tap buttons, clearer hints",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
           ...(NEWS === "2026-11-21" ? ["💀 Chapter 10 · 👑 Boss Rush · 📯 the Marshal & 🧪 the Alchemist (new heroes) · 🎖️ Veteran looks"] : []),
