@@ -31,10 +31,16 @@ export const DAILY_QUESTS: QuestDef[] = [
   { id: "d-elites", icon: "🎖️", desc: "Defeat 5 elite foes", stat: "elites", goal: 5, reward: 80 },
   { id: "d-fires", icon: "🧯", desc: "Stamp out 3 fires", stat: "firesOut", goal: 3, reward: 70 },
   { id: "d-hard", icon: "💀", desc: "Win a run on Hard or Nightmare", stat: "hardWins", goal: 1, reward: 150 },
+  // Side games (from 2026-11-21).
+  { id: "d-mini", icon: "🎪", desc: "Finish 2 mini-game rounds", stat: "miniPlays", goal: 2, reward: 70 },
+  { id: "d-siege", icon: "⚔️", desc: "Send 30 units in Siege Lord", stat: "deployed", goal: 30, reward: 80 },
 ];
 /** Daily quests in the rotation before the newer ones joined (keeps days already played stable). */
 const ORIGINAL_DAILY = 9;
 const QUESTS_EXPANDED_FROM = "2026-11-20";
+/** Daily quests in the rotation from QUESTS_EXPANDED_FROM until the side-game quests joined. */
+const DAILY_SECOND = 12;
+const QUESTS_EXPANDED_2 = "2026-11-21";
 
 export const WEEKLY_QUESTS: QuestDef[] = [
   { id: "w-kills", icon: "💀", desc: "Slay 1,500 foes this week", stat: "kills", goal: 1500, reward: 400 },
@@ -104,12 +110,14 @@ export function questEligible(s: SaveData | null, id: string): boolean {
   if (id === "d-elites" || id === "d-hard" || id === "w-elites") return cleared;
   if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
   if (id === "w-late") return (s.stars[7] ?? 0) > 0; // has beaten chapter 7 once already
+  if (id === "d-mini" || id === "d-siege") return (s.stars[1] ?? 0) > 0; // Archery / Siege Lord open after chapter 1
   return true;
 }
 
 /** The three daily quest ids for a date (distinct, deterministic). */
 export function dailyPicks(date: string, s: SaveData | null = null): string[] {
-  const pool = (date >= QUESTS_EXPANDED_FROM ? DAILY_QUESTS : DAILY_QUESTS.slice(0, ORIGINAL_DAILY)).map((q) => q.id).filter((id) => questEligible(s, id));
+  const size = date >= QUESTS_EXPANDED_2 ? DAILY_QUESTS.length : date >= QUESTS_EXPANDED_FROM ? DAILY_SECOND : ORIGINAL_DAILY;
+  const pool = DAILY_QUESTS.slice(0, size).map((q) => q.id).filter((id) => questEligible(s, id));
   const out: string[] = [];
   let seed = dayNumber(date);
   while (out.length < 3) {

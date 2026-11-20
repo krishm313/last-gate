@@ -401,6 +401,7 @@ const archery = new ArcheryView(
     const fair = isFair("archery");
     if (fair) r.gold += rangeReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -420,6 +421,7 @@ const supply = new SupplyView(
     const fair = isFair("supply");
     if (fair) r.gold += supplyReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -439,6 +441,7 @@ const wallWatch = new WallWatchView(
     const fair = isFair("watch");
     if (fair) r.gold += watchReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -458,6 +461,7 @@ const catapult = new CatapultView(
     const fair = isFair("catapult");
     if (fair) r.gold += catReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -477,6 +481,7 @@ const dragonDodge = new DragonView(
     const fair = isFair("dragon");
     if (fair) r.gold += dragonReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
     save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
     writeSave(save);
@@ -490,7 +495,10 @@ const dragonDodge = new DragonView(
 const siegeBar = new SiegeBar(
   uiRoot,
   (id, lane) => {
-    if (camp?.reverse && deploy(camp, id as never, lane)) sfx.warDrums();
+    if (camp?.reverse && deploy(camp, id as never, lane)) {
+      sfx.warDrums();
+      save.stats.deployed = (save.stats.deployed ?? 0) + (WAR_CARDS.find((k) => k.id === id)?.count ?? 1);
+    }
   },
   () => setPaused(true),
 );

@@ -325,3 +325,17 @@ describe("Bestiary", async () => {
     expect(foesMet(s)).toBe(3);
   });
 });
+
+describe("side-game daily quests", () => {
+  it("join from 2026-11-21 only (earlier days keep their picks) and need chapter 1 cleared", async () => {
+    const { dailyPicks } = await import("../src/core/quests");
+    const { newSave } = await import("../src/core/meta");
+    for (let d = 10; d <= 20; d++) expect(dailyPicks(`2026-11-${d}`).some((id) => id === "d-mini" || id === "d-siege")).toBe(false);
+    const later = Array.from({ length: 40 }, (_, i) => dailyPicks(new Date(Date.UTC(2026, 10, 21 + i)).toISOString().slice(0, 10))).flat();
+    expect(later).toContain("d-mini");
+    expect(later).toContain("d-siege");
+    const fresh = newSave();
+    const freshPicks = Array.from({ length: 40 }, (_, i) => dailyPicks(new Date(Date.UTC(2026, 10, 21 + i)).toISOString().slice(0, 10), fresh)).flat();
+    expect(freshPicks).not.toContain("d-mini");
+  });
+});
