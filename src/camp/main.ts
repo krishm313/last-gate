@@ -1087,7 +1087,8 @@ sideways.addEventListener("change", (e) => {
 let heartTimer = 0;
 function heartbeatTick(c: Camp, dt: number): void {
   const frac = c.hallHp / c.hallMaxHp;
-  if (c.phase !== "wave" || frac >= 0.3 || frac <= 0) {
+  // (Siege Lord: a low hall is the attacker's good news — no danger heartbeat.)
+  if (c.reverse || c.phase !== "wave" || frac >= 0.3 || frac <= 0) {
     heartTimer = 0;
     return;
   }

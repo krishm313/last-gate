@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord: no danger heartbeat when the castle's hall drops under 30% (that's the attacker's good news). Audit of other castle-side cues: campaign banners/stats already skipped in sieges; wall-break and hit buzzes read fine as the attacker's impact feedback; the defender's "Hold the line!" speech stays as an enemy taunt.
 - Siege Lord sounds are on your side: taking the hall played the DEFEAT sound and the castle holding played the victory fanfare (the sim's "lost"/"won" are the castle's) — swapped for the attacker, with the win buzz. The castle's own feel-good sounds (its coin pickups/payments, "built!" chime + buzz, level-ups, ability-ready chime) no longer play for the attacker.
 - Siege Lord loss panel ("The castle held") gives one tip from the run: chest sat full >25 s → keep sending; no wall broken → Rams/Sappers behind Shields; breached but hall above half → pour through before the castle repairs; close → mix in flyers and Diggers. Also on Daily Siege losses.
 - Defeat tips only suggest buildings you could have built: a night-1 loss said "Build the Lumber Camp early" while it was still locked. Locked Lumber Camp / Fortify / Barracks are skipped, early losses get the basics ("Build Archer Towers by the wall before nightfall…"), and "towers to level 3+" waits until logs are possible (else "upgrade your towers").
