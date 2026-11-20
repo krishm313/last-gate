@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Long-session memory (4 min autoplay, chapter 5): JS heap flat at 14 MB, renderer maps all bounded — but canvases kept climbing (50 → 110 MB) as the crisp frame cache filled to 1500. Cap now 800 (canvases level off ~88 MB; rebuilds per minute unchanged), and the prop cache is bounded (300). iOS caps total canvas memory, so this matters on long nights.
 - The in-game "Reduced motion" setting now also quiets the menus (pulsing buttons, sliding panels, confetti) — before, those only stopped when the phone's own Reduce Motion was on; it only removed shake/slow-mo in battle. Also checked: trophy claim with a real tap (+100 gold, badge clears).
 - No tutorial tip while the hero is down ("Drag anywhere to walk" sat over the grey respawn screen); it returns when he rises. Death → respawn otherwise checked: "You fell!" banner, "Respawning in N" chip, rise at the hall.
 - The carry chain is explained once: one-time hints when you first carry logs to a built Forge ("walk your logs past the Forge to feed it") and when its first bows are ready ("pick them up and walk past your towers, +6% damage each"), alongside the log-pile hint (shared oneTip helper, each shows once ever).

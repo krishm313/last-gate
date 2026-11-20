@@ -319,7 +319,9 @@ function atlasHalf(e: AtlasEntry): HTMLCanvasElement {
  * aren't softened by on-the-fly downscaling and sub-pixel resampling every frame. LRU-capped.
  */
 export const crispCache = new Map<string, HTMLCanvasElement>();
-const CRISP_MAX = 1500;
+// ~50 KB each: 800 frames ≈ 40 MB (1500 kept growing past 100 MB of canvases on long nights — iOS caps
+// total canvas memory — with no fewer rebuilds per minute than 800).
+const CRISP_MAX = 800;
 export const crispStats = { built: 0 };
 let crispFrameAt = 0, crispSpent = 0;
 /** Returns null when this frame's build budget (~4 ms) is spent; the caller then draws the old way. */

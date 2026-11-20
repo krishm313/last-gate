@@ -2187,6 +2187,7 @@ fx.shake(0.15);
         g.fillRect(0, 0, cv.width, cv.height);
       }
       this.propCache.set(key, cv);
+      if (this.propCache.size > 300) this.propCache.delete(this.propCache.keys().next().value!); // (bounded: oldest out)
     }
     return { cv, fx: fx * k, fy: fy * k, w: sw * k, h: sh * k };
   }
