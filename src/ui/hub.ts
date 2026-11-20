@@ -5,7 +5,7 @@ import { SIDE_GAMES_ENABLED } from "../core/features";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate } from "./settings";
-import { exportSave } from "./save";
+import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
@@ -1328,7 +1328,7 @@ export class Hub {
    * Save-code panel. Export: shows the code with a Copy button. Import: paste box; `onLoad` returns
    * false for an invalid code, which is reported inline.
    */
-  showSaveCode(mode: "export" | "import", onBack: () => void, opts: { code?: string; onLoad?: (code: string) => boolean }): void {
+  showSaveCode(mode: "export" | "import", onBack: () => void, opts: { code?: string; onLoad?: (code: string) => boolean; current?: SaveData }): void {
     const box = el("div", "panel pop-in");
     box.append(el("h1", "title", mode === "export" ? "Save code" : "Load save"));
     box.append(el("p", "sub", mode === "export" ? "Keep this code somewhere safe — paste it on any device to restore your progress." : "Paste a save code. This replaces your current progress."));
@@ -1353,14 +1353,37 @@ export class Hub {
       );
     else
       col.append(
-        this.button("📥 Load", "btn", () => {
-          const code = area.value.trim();
-          if (!code) return;
-          if (!opts.onLoad?.(code)) {
-            status.textContent = "That doesn't look like a Last Gate save code.";
-            status.classList.add("bad");
-          }
-        }),
+        // Two steps: the first tap shows what's in the code next to your current progress (loading
+        // an older backup by mistake would wipe newer progress for good); the second replaces it.
+        (() => {
+          let armed = "";
+          const load = this.button("📥 Load", "btn", () => {
+            const code = area.value.trim();
+            if (!code) return;
+            const parsed = importSave(code);
+            if (!parsed) {
+              armed = "";
+              load.textContent = "📥 Load";
+              status.textContent = "That doesn't look like a Last Gate save code.";
+              status.classList.add("bad");
+              return;
+            }
+            if (armed !== code) {
+              armed = code;
+              const sum = (sv: SaveData) => `★ ${totalStars(sv)} · ${sv.gold.toLocaleString()} gold · ${sv.runs} runs`;
+              status.classList.remove("bad");
+              status.textContent = `This code: ${sum(parsed)}${opts.current ? `\nYours now: ${sum(opts.current)}` : ""}`;
+              load.textContent = "⚠️ Replace my progress";
+              return;
+            }
+            if (!opts.onLoad?.(code)) {
+              status.textContent = "That doesn't look like a Last Gate save code.";
+              status.classList.add("bad");
+            }
+          });
+          area.addEventListener("input", () => { armed = ""; load.textContent = "📥 Load"; });
+          return load;
+        })(),
       );
     col.append(this.button("Back", "btn btn-ghost", onBack));
     box.append(col);

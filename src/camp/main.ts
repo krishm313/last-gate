@@ -463,6 +463,7 @@ function showMenuSettings() {
       onExport: () => hub.showSaveCode("export", showMenuSettings, { code: exportSave(save) }),
       onImport: () =>
         hub.showSaveCode("import", showMenuSettings, {
+          current: save,
           onLoad: (code) => {
             const loaded = importSave(code);
             if (!loaded) return false;
