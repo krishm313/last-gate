@@ -5549,9 +5549,9 @@ fx.shake(0.15);
           walk: h.moving ? 0.001 + (this.walkPhase("hero", h.x, h.y, 68) * Math.PI) / 4 : 0, time: this.time, seed: 0, flip: Math.cos(faceDir) > 0.15, flash: h.sinceHit < 0.1 ? 1 : 0, lunge: shotK * 0.5,
         })
       : (() => {
-        const v = viewFor("king", heroAnim, faceDir);
+        const v = viewFor(c.heroVet ? "king_vet" : "king", heroAnim, faceDir);
         this.lastHeroFlip = v.flip;
-        const ht = v.name === "king_back" ? 43 : 45;
+        const ht = v.name === "king_back" || v.name === "king_back_vet" ? 43 : 45;
         const ok = drawAnim(ctx, v.name, heroAnim, heroFrame, x, y + 12, ht, { flip: v.flip, flash: h.sinceHit < 0.1 ? 0.6 : 0, key: "hero" });
         if (ok && heroAnim === "attack") this.drawSwordSmear(ctx, x, y + 12 - ht * 0.36, heroFrame, v.flip);
         return ok;

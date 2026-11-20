@@ -61,11 +61,11 @@ export const HEROES: HeroDef[] = [
 
 export const HERO_BY_ID: Record<HeroId, HeroDef> = Object.fromEntries(HEROES.map((h) => [h.id, h])) as Record<HeroId, HeroDef>;
 
-/** Veteran look: a black-and-gold outfit (Golden Cleric for the Cleric) for a hero who has survived this many nights. The King keeps his crown. */
+/** Veteran look: a violet-and-gold outfit (Golden robes for the Cleric, the Crimson King for the King) for a hero who has survived this many nights. */
 export const VET_NIGHTS = 25;
 type LookSave = { heroes: Partial<Record<HeroId, { xp: number }>>; stats: Record<string, number> };
 export function vetLookOpen(s: LookSave, id: HeroId): boolean {
-  return id !== "ranger" && (s.heroes[id]?.xp ?? 0) >= VET_NIGHTS;
+  return (s.heroes[id]?.xp ?? 0) >= VET_NIGHTS;
 }
 /** Wearing it (the choice is kept in stats as look_<hero> = 1). */
 export function vetLookOn(s: LookSave, id: HeroId): boolean {

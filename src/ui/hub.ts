@@ -696,7 +696,7 @@ export class Hub {
           "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
           "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
           "🌑 Shadowstalker: a new foe in chapters 7–10 and Endless that blinks forward through your fire",
-          "🎖️ Veteran looks: survive 25 nights with a hero to unlock a violet-and-gold outfit (Golden robes for the Cleric)",
+          "🎖️ Veteran looks: survive 25 nights with a hero to unlock a new outfit — violet-and-gold, Golden robes for the Cleric, the Crimson King",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
@@ -1143,7 +1143,7 @@ export class Hub {
         };
       else if (!unlocked) card.onclick = () => this.denied(card);
       body.append(card);
-      if (selected && h.id !== "ranger") body.append(this.vetLookRow(save, h.id));
+      if (selected) body.append(this.vetLookRow(save, h.id));
       if (selected) body.append(this.skillPanel(save, h.id));
     }
     this.justPicked = null;
@@ -1154,7 +1154,7 @@ export class Hub {
   private vetLookRow(save: SaveData, id: HeroId): HTMLElement {
     const open = vetLookOpen(save, id), on = vetLookOn(save, id);
     const xp = save.heroes[id]?.xp ?? 0;
-    const name = id === "cleric" ? "Golden robes" : "Veteran look";
+    const name = id === "cleric" ? "Golden robes" : id === "ranger" ? "Crimson King" : "Veteran look";
     const b = el("button", `lgv-row${open ? "" : " locked"}${on ? " on" : ""}`);
     const sw = el("div", "lgv-swatch");
     b.append(sw, el("div", "lgv-text", open ? `🎖️ ${name}` : `🔒 ${name}`), el("div", "lgv-state", open ? (on ? "Wearing ✓" : "Tap to wear") : `${Math.min(xp, VET_NIGHTS)} / ${VET_NIGHTS} nights`));

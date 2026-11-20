@@ -182,7 +182,7 @@ export function drawSprite(ctx: CanvasRenderingContext2D, name: SpriteName, x: n
 export type AnimChar =
   | "king" | "horde_horned" | "brute" | "horde_archer" | "knight_ally" | "knight_ally_back" | "king_back" | "archer_ally"
   // Palette variants of the horde sheets (scripts/anim/recolor.py): same frames, variant colours.
-  | "goblin_anim" | "sapper_anim" | "goblin_mob_anim" | "goblin_thief_anim" | "boss_anim" | "hollowking_anim";
+  | "goblin_anim" | "sapper_anim" | "goblin_mob_anim" | "goblin_thief_anim" | "boss_anim" | "hollowking_anim" | "king_vet" | "king_back_vet";
 export type AnimName = "idle" | "walk" | "attack" | "hit" | "death";
 
 const ROWS: Record<AnimName, { row: number; frames: number }> = {
@@ -210,6 +210,9 @@ const ATLAS: Record<AnimChar, { w: number; h: number; foot: number }> = {
   boss_anim: { w: 219, h: 200, foot: 194 },
   // The Hollow King: the boss sheet recoloured pale and violet (deathly skin, violet armour).
   hollowking_anim: { w: 219, h: 200, foot: 194 },
+  // The Crimson King (Veteran look): the King's sheets recoloured black, crimson and gold.
+  king_vet: { w: 214, h: 200, foot: 194 },
+  king_back_vet: { w: 194, h: 200, foot: 196 },
 };
 
 /** Per-character frame-count overrides (sheets that differ from the standard rows). */
@@ -229,7 +232,7 @@ function storedFrames(name: AnimChar, anim: AnimName): number {
 }
 
 /** Characters that have a back-view atlas (used when moving/facing up the screen). */
-const BACK_OF: Partial<Record<AnimChar, AnimChar>> = { knight_ally: "knight_ally_back", king: "king_back" };
+const BACK_OF: Partial<Record<AnimChar, AnimChar>> = { knight_ally: "knight_ally_back", king: "king_back", king_vet: "king_back_vet" };
 
 /**
  * Pick the view for a facing angle (atan2(dy, dx), screen space): facing up the screen uses the
@@ -269,7 +272,8 @@ function atlas(name: AnimChar): AtlasEntry | null {
 }
 
 export function preloadAnims(): void {
-  for (const n of Object.keys(ATLAS) as AnimChar[]) atlas(n);
+  // Veteran-look sheets load on first use (most players never wear them).
+  for (const n of Object.keys(ATLAS) as AnimChar[]) if (!n.endsWith("_vet")) atlas(n);
 }
 
 function atlasHalf(e: AtlasEntry): HTMLCanvasElement {
