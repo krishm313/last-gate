@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- What's-new card for 2026-11-21 (from 00:00 UTC): Boss Rush, the Marshal, Dragon Dodge + Catapult Toss, Siege 4 and the perf work for players who saw the Nov 20 card; others get the Nov 20 list plus a Boss Rush/Marshal line.
 - Marshal follow-ups: achievement Raise the Levy (call 100 militia, 300 gold; stat levied), war-drum horn sfx + buzz on Call to Arms, joins the daily hero pool from 2026-11-26 (daily output diffed for 60 days: only dates ≥ 11-26 change).
 - 8th hero: The Marshal (25★) — Call to Arms: 4 militia fall in around him for 12 s (fight anything inside the walls or at the gate; no respawn); passive: soldiers +25% HP. Art: the swordsman recoloured crimson and gold with PIL (units/marshal.png + portrait). campsim ch7 L10: 58% (mid-pack). Test: summon count + march-off after 12 s.
 - Boss Rush results: "Bosses slain: N/10" on a loss, "Kingslayer!" on a clear; one-time 🔓 NEW! ribbon on the card. Autoplay sweep of Boss Rush: no errors.

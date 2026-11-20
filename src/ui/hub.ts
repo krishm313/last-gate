@@ -580,19 +580,27 @@ export class Hub {
   /** One-time "What's new" card after a big update (returning players only; dismissed for good). */
   private newsCard(save: SaveData): HTMLElement | null {
     // The 2026-11-20 card waits until that day (the 19th already had a card).
-    const NEWS = Date.now() >= Date.UTC(2026, 10, 20) ? "2026-11-20" : "2026-11-19c";
+    const NEWS = Date.now() >= Date.UTC(2026, 10, 21) ? "2026-11-21" : Date.now() >= Date.UTC(2026, 10, 20) ? "2026-11-20" : "2026-11-19c";
     const seen = getJson<string>("lastgate.seenNews", "");
     if (save.runs === 0 || seen === NEWS) return null;
     const card = el("div", "lgn-card");
     card.append(el("div", "lgn-title", "✨ What's new"));
     const list = el("ul", "lgn-list");
     // Saw an earlier card today: just the newest bits. Otherwise the whole update.
-    const lines = NEWS === "2026-11-20"
+    const lines = NEWS === "2026-11-21" && seen === "2026-11-20"
+      ? [
+          "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Blood Moon Warlord",
+          "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
+          "🐉 Dragon Dodge (after chapter 8) & 🪨 Catapult Toss (after chapter 6): two more mini-games",
+          "🏔️ Siege Lord: a 4th siege, the Frost Citadel · ⚡ smoother menus and mini-games on older phones",
+        ]
+      : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 4 sieges, new cards as you win",
           "🎪 5 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
+          ...(NEWS === "2026-11-21" ? ["👑 Boss Rush: a boss every night · 📯 The Marshal (new hero, 25★) calls militia to arms"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [
