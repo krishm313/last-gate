@@ -16,7 +16,7 @@ for (const p of PERMS) if (!p.capstone) save.perms[p.id] = Math.min(p.max, perm)
 let wins = 0;
 const ended: number[] = [];
 for (let r = 0; r < runs; r++) {
-  const c = createCamp(900 + r, chapter, { ...campSetupFromSave(save, hero), reverse: true, siegesWon: won });
+  const c = createCamp(900 + r, chapter, { ...campSetupFromSave(save, hero), reverse: true, siegesWon: won, hordeHp: Number(process.argv[7] ?? 1) });
   let k = 0;
   for (let i = 0; i < 60 * 60 * 20 && !c.reverse!.result; i++) {
     // Save up, then dump the chest down one lane at a time (what a player tends to do).

@@ -84,10 +84,11 @@ describe("Siege Lord (reverse mode)", () => {
 
 describe("siege ladder", async () => {
   const { SIEGES, siegeStars } = await import("../src/camp/sim");
-  it("has four sieges with rising defences, and stars by push", () => {
-    expect(SIEGES.length).toBe(4);
+  it("has five sieges with rising defences, and stars by push", () => {
+    expect(SIEGES.length).toBe(5);
     for (let i = 1; i < SIEGES.length; i++) expect(SIEGES[i]!.perm).toBeGreaterThan(SIEGES[i - 1]!.perm);
     expect(SIEGES[3]!.needs).toBe(6); // the Frost Citadel waits for chapter 6
+    expect(SIEGES[4]!.needs).toBe(10); // the Hollow Keep waits for chapter 10
     expect([3, 4, 5, 6, 7, 8, 9].map(siegeStars)).toEqual([3, 3, 2, 2, 1, 1, 0]);
   });
 });

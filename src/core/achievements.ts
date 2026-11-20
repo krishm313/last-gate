@@ -64,6 +64,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "bossrush", name: "Kingslayer", desc: "Clear the Boss Rush", icon: "👑", goal: 1, reward: 800, progress: (s) => ((s.stars[98] ?? 0) > 0 ? 1 : 0) },
   { id: "siegelord", name: "Siege Lord", desc: "Take the hall in all three sieges", icon: "⚔️", goal: 3, reward: 500, progress: (s) => [1, 2, 3].filter((i) => (s.mini[`siege${i}`]?.stars ?? 0) > 0).length },
   { id: "frostcitadel", name: "Winter's Fall", desc: "Take the Frost Citadel (Siege 4)", icon: "🏔️", goal: 1, reward: 600, progress: (s) => ((s.mini.siege4?.stars ?? 0) > 0 ? 1 : 0) },
+  { id: "hollowkeep", name: "Breaker of Thrones", desc: "Take the Hollow Keep (Siege 5)", icon: "🏴", goal: 1, reward: 800, progress: (s) => ((s.mini.siege5?.stars ?? 0) > 0 ? 1 : 0) },
   { id: "conqueror", name: "Conqueror", desc: "Earn all 9 Siege Lord stars", icon: "🏴", goal: 9, reward: 700, progress: (s) => [1, 2, 3].reduce((a, i) => a + (s.mini[`siege${i}`]?.stars ?? 0), 0) },
   { id: "marksman", name: "Marksman", desc: "Earn 3 stars at the Archery Range", icon: "🎯", goal: 3, reward: 250, progress: (s) => s.mini.archery?.stars ?? 0 },
   { id: "quartermaster", name: "Quartermaster", desc: "Earn 3 stars on the Supply Run", icon: "🛒", goal: 3, reward: 250, progress: (s) => s.mini.supply?.stars ?? 0 },

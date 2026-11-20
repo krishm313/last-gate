@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord siege 5: "The Hollow Keep" on chapter 10's night ground (opens after siege 4 + chapter 10): max-level walls under the Marshal (who calls militia against you), horde units at 0.96× HP (new SIEGES.hordeHp → CampSetup.hordeHp → ReverseState.hordeHp; siegesim takes a 7th arg). siegesim ch10 L10 won-4 marshal: 55% (without the handicap 75%; 0.8× → 0% — very steep). Achievement Breaker of Thrones (800).
 - Boss Rush finale is now the Hollow King (was the Blood Moon Warlord): campsim ch98 L10 80% → 70%. Card + What's-new text updated. Chapter 10 autoplay sweep (Marshal, King): no errors.
 - Bestiary: the Hollow King's tile and entry use his painted portrait.
 - Hero flair 👻 Grave Wisps (clear chapter 10): a pale-violet pool and lilac wisps rising as the hero walks (a few while standing).

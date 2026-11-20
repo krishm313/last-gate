@@ -519,7 +519,7 @@ function startSiege(i: number) {
   const def = newSave();
   for (const p of PERMS) if (!p.capstone) def.perms[p.id] = Math.min(p.max, s.perm);
   const won = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
-  const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true, siegesWon: won };
+  const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true, siegesWon: won, hordeHp: s.hordeHp };
   const chapter = CHAPTER_BY_ID[s.chapter]!;
   camp = createCamp((Date.now() >>> 0) ^ 0x5e9e, chapter, setup);
   renderer.setGround(chapter.ground, chapter.id);

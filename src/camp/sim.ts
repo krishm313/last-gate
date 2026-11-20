@@ -515,12 +515,14 @@ export function cardOpen(card: { unlock?: number }, won: number): boolean {
   return (card.unlock ?? 0) <= won;
 }
 /** The three sieges: the defenders' upgrade level and hero rise (campaign bot plays them). */
-export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" | "cleric"; needs?: number }[] = [
+export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" | "cleric" | "marshal"; needs?: number; hordeHp?: number }[] = [
   { name: "Raid on the Border Keep", chapter: 1, perm: 0, hero: "ranger" },
   { name: "The Keep Stands Ready", chapter: 1, perm: 2, hero: "ranger" },
   { name: "The Captain's Last Stand", chapter: 1, perm: 3, hero: "knight" },
   /** On Frostpeak's snow (needs chapter 6 cleared); the chapter's horde strength helps the attacker, so the walls are much stronger. */
   { name: "The Frost Citadel", chapter: 6, perm: 6, hero: "cleric", needs: 6 },
+  /** The finale on the Hollow Throne's ground: max-level walls under the Marshal; the horde is a touch frailer there. */
+  { name: "The Hollow Keep", chapter: 10, perm: 10, hero: "marshal", needs: 10, hordeHp: 0.96 },
 ];
 /** Stars for a taken hall: by push 8 / 6 / 4. */
 export function siegeStars(push: number): number {
@@ -536,6 +538,8 @@ export interface ReverseState {
   broken: number;
   /** Sieges already won (opens the later war cards). */
   won: number;
+  /** Health multiplier on the horde's units (late sieges hand the attacker a handicap). */
+  hordeHp: number;
 }
 
 /** Siege Lord: send a war card down a lane. Returns false if it can't be afforded or it isn't a push. */
@@ -545,7 +549,7 @@ export function deploy(c: Camp, id: EnemyId, lane: number): boolean {
   if (!r || !card || !cardOpen(card, r.won) || c.phase !== "wave" || r.chest < card.cost) return false;
   r.chest -= card.cost;
   const x = LANES_X[Math.max(0, Math.min(2, Math.floor(lane)))]!;
-  for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp * (card.hp ?? 1), lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
+  for (let i = 0; i < card.count; i++) spawnEnemy(c, { at: 0, enemy: id, hpMult: REVERSE.unitHp * (card.hp ?? 1) * r.hordeHp, lane: null }, { x: x + (i - (card.count - 1) / 2) * 22, y: SPAWN_Y - i * 8 });
   r.deployed += card.count;
   c.events.push({ type: "deploy", id, lane, count: card.count });
   return true;
@@ -608,6 +612,8 @@ export interface CampSetup {
   reverse?: boolean;
   /** Siege Lord: sieges already won (opens the later war cards). */
   siegesWon?: number;
+  /** Siege Lord: health multiplier on the horde's units (default 1). */
+  hordeHp?: number;
 }
 
 export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, setup: CampSetup = {}): Camp {
@@ -693,7 +699,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     eliteChance: setup.eliteChance ?? 0,
     tideEvery: setup.tideEvery ?? 0,
     classicBlessings: setup.classicBlessings ?? false,
-    reverse: setup.reverse ? { chest: REVERSE.startChest, result: null, deployed: 0, broken: 0, won: setup.siegesWon ?? 0 } : null,
+    reverse: setup.reverse ? { chest: REVERSE.startChest, result: null, deployed: 0, broken: 0, won: setup.siegesWon ?? 0, hordeHp: setup.hordeHp ?? 1 } : null,
     tideTimer: setup.tideEvery ?? 0,
     heroLevel: 1,
     heroXp: 0,

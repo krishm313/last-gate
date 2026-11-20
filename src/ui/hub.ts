@@ -487,10 +487,10 @@ export class Hub {
       const needCh = s.needs && (save.stars[s.needs] ?? 0) === 0;
       const open = (i === 0 || (save.mini[`siege${i}`]?.stars ?? 0) > 0) && !needCh;
       const row = el("button", `chapter lgsl-row${open ? "" : " locked"}`);
-      row.style.setProperty("--g1", ["#7a3a1a", "#6a2a2a", "#5a1a3a", "#2a4a6a"][i] ?? "#5a1a3a");
+      row.style.setProperty("--g1", ["#7a3a1a", "#6a2a2a", "#5a1a3a", "#2a4a6a", "#3a2a5a"][i] ?? "#5a1a3a");
       row.style.setProperty("--g2", "#2a1010");
       const left = el("div", "ch-left");
-      left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain", "the mountain garrison, blessed by the Cleric"][i] ?? "the castle's best"}` : needCh ? `Clear chapter ${s.needs} first` : "Take the previous siege first"));
+      left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain", "the mountain garrison, blessed by the Cleric", "the Marshal's last levy, behind walls of black stone"][i] ?? "the castle's best"}` : needCh ? `Clear chapter ${s.needs} first` : "Take the previous siege first"));
       // The war card a first win here opens (sieges are won in order, so siege N opens unlock N).
       const prize = WAR_CARDS.find((k) => k.unlock === i + 1);
       if (open && prize && !(rec?.stars ?? 0)) left.append(el("div", "ch-affix", `🃏 Win to unlock: ${CARD_NAME[prize.id] ?? ENEMIES[prize.id].name}`));
@@ -598,12 +598,12 @@ export class Hub {
           "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Hollow King",
           "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
           "🐉 Dragon Dodge (after chapter 8) & 🪨 Catapult Toss (after chapter 6): two more mini-games",
-          "🏔️ Siege Lord: a 4th siege, the Frost Citadel · ⚡ smoother menus and mini-games on older phones",
+          "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother menus and mini-games on older phones",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
-          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 4 sieges, new cards as you win",
+          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
           "🎪 5 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
           ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
