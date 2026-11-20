@@ -25,6 +25,22 @@ export class LanternsView {
   private ping: { x: number; y: number; t: number } | null = null;
   /** When each lantern went dark (game time), for the smoke curl. */
   private darkAt: number[] = [];
+  /** Glows pre-rendered once (a fresh radial gradient per wraith per frame was the cost on slow phones). */
+  private glowWraith = LanternsView.glow("rgba(200,190,255,0.35)", "rgba(160,140,255,0)");
+  private glowLamp = LanternsView.glow("rgba(255,210,120,0.55)", "rgba(255,160,60,0)");
+
+  private static glow(inner: string, outer: string): HTMLCanvasElement {
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = 128;
+    const g = cv.getContext("2d");
+    if (!g) return cv;
+    const gr = g.createRadialGradient(64, 64, 2, 64, 64, 64);
+    gr.addColorStop(0, inner);
+    gr.addColorStop(1, outer);
+    g.fillStyle = gr;
+    g.fillRect(0, 0, 128, 128);
+    return cv;
+  }
 
   constructor(
     private host: HTMLElement,
@@ -149,13 +165,9 @@ export class LanternsView {
       const x = LANTERN.xs[i]!, y = LANTERN.y - 30;
       const flick = 0.9 + 0.1 * Math.sin(s.time * 13 + i * 3);
       const rad = (60 + l.oil * 70) * flick + (l.flare < 0.3 ? (0.3 - l.flare) * 120 : 0);
-      const g = c.createRadialGradient(x, y, 4, x, y, rad);
-      g.addColorStop(0, `rgba(255,210,120,${0.55 * (0.4 + 0.6 * l.oil)})`);
-      g.addColorStop(1, "rgba(255,160,60,0)");
-      c.fillStyle = g;
-      c.beginPath();
-      c.arc(x, y, rad, 0, Math.PI * 2);
-      c.fill();
+      c.globalAlpha = 0.4 + 0.6 * l.oil;
+      c.drawImage(this.glowLamp, x - rad, y - rad, rad * 2, rad * 2);
+      c.globalAlpha = 1;
     }
     c.restore();
     // The wall.
@@ -221,13 +233,7 @@ export class LanternsView {
       c.globalAlpha = fade;
       const bob = Math.sin(s.time * 3 + w.id) * 4;
       // A cold glow so they read against the night.
-      const glow = c.createRadialGradient(w.x, w.y - 8 + bob, 2, w.x, w.y - 8 + bob, 30);
-      glow.addColorStop(0, "rgba(200,190,255,0.35)");
-      glow.addColorStop(1, "rgba(160,140,255,0)");
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(w.x, w.y - 8 + bob, 30, 0, Math.PI * 2);
-      c.fill();
+      c.drawImage(this.glowWraith, w.x - 30, w.y - 38 + bob, 60, 60);
       if (this.wraith.complete && this.wraith.naturalWidth) {
         const h = 50;
         const ww = (this.wraith.naturalWidth / this.wraith.naturalHeight) * h;
