@@ -1,3 +1,4 @@
+import { ENEMIES } from "../core/enemies";
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { musicIntensity } from "../audio/intensity";
@@ -14,7 +15,7 @@ import { DragonView } from "../mini/dragonView";
 import { dragonReward } from "../mini/dragon";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
-import { deploy, SIEGES, siegeStars, type CampSetup } from "./sim";
+import { deploy, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
@@ -530,24 +531,36 @@ function finishSiege(c: Camp, retreat = false) {
   const stars = won ? siegeStars(c.wave) : 0;
   const key = `siege${siegeIdx + 1}`;
   const prev = save.mini[key] ?? { best: 0, stars: 0 };
+  const wonBefore = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
   const bonus = [0, 60, 120, 200].slice(prev.stars + 1, stars + 1).reduce((a, b) => a + b, 0);
   const gold = (won ? 100 * (siegeIdx + 1) : 20) + r.broken * 5 + bonus;
   save.mini[key] = { best: Math.max(prev.best, stars), stars: Math.max(prev.stars, stars) };
   save.gold = Math.min(MAX_GOLD, save.gold + gold);
   save.stats.goldEarned = (save.stats.goldEarned ?? 0) + gold;
   writeSave(save);
+  const wonAfter = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
+  const hallLeft = Math.max(0, Math.round((c.hallHp / c.hallMaxHp) * 100));
   camp = null;
   paused = false;
   siegeBar.show(false);
+  // The story of the siege, then what it opened up.
+  const lines = [`⚔️ ${r.deployed} sent · 🧱 ${r.broken} wall${r.broken === 1 ? "" : "s"} broken${won ? ` · taken on push ${c.wave}` : ` · hall at ${hallLeft}%`}`];
+  if (won) lines.push(`${"★".repeat(stars)}${"☆".repeat(3 - stars)}${stars > prev.stars ? " — new best!" : ""}`);
+  lines.push(`+${gold} gold`);
+  const newCards = WAR_CARDS.filter((k) => k.unlock !== undefined && k.unlock > wonBefore && k.unlock <= wonAfter);
+  if (newCards.length) lines.push(`🃏 New war card${newCards.length > 1 ? "s" : ""}: ${newCards.map((k) => ENEMIES[k.id].name).join(", ")}`);
+  const next = SIEGES[siegeIdx + 1];
+  if (won && prev.stars === 0 && next) lines.push(next.needs && !(save.stars[next.needs] ?? 0) ? `🔒 Next: ${next.name} — clear chapter ${next.needs} to open it` : `🔓 Next siege open: ${next.name}`);
+  if (won && stars > prev.stars) for (let i = 0; i < stars - prev.stars; i++) window.setTimeout(() => sfx.mini("star"), 400 + i * 300);
   hud.showMessage(
     won ? `🏴 The hall has fallen!` : retreat ? "You withdrew" : "The castle held",
-    won ? `Taken on push ${c.wave} · ${"★".repeat(stars)}${"☆".repeat(3 - stars)} · +${gold} gold` : `${r.broken} wall section${r.broken === 1 ? "" : "s"} broken · +${gold} gold`,
+    lines.join("\n"),
     "Back to the map",
     () => {
       hud.hideOverlay();
       goHub();
     },
-    won ? "title" : "title",
+    "title",
   );
 }
 

@@ -321,7 +321,9 @@ export class CampHud {
 
   showMessage(title: string, sub: string, button: string, onClick: () => void, cls = "title"): void {
     const box = el("div", "panel pop-in");
-    box.append(el("h1", cls, title), el("p", "sub", sub));
+    const p = el("p", "sub", sub);
+    p.style.whiteSpace = "pre-line"; // multi-line summaries (e.g. Siege Lord results)
+    box.append(el("h1", cls, title), p);
     const b = el("button", "btn", button);
     b.onclick = onClick;
     box.append(b);
