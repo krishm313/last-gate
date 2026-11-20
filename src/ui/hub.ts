@@ -1125,7 +1125,16 @@ export class Hub {
     // Heroes unlocked since the player last opened this tab get a one-time reveal.
     const fresh = new Set(freshHeroes(save));
     setItem(HERO_SEEN_KEY, JSON.stringify(HEROES.filter((h) => heroUnlocked(save, h.id)).map((h) => h.id)));
-    for (const h of HEROES) {
+    // Order: the hero you play (and their look + skill tree), but any hero unlocked since your last
+    // visit comes right under them — the tab's NEW badge used to lead to a hero buried below the whole
+    // skill tree. Everyone else follows in the usual order.
+    const order = [...HEROES].sort((a, b) => rank(a.id) - rank(b.id));
+    function rank(id: HeroId): number {
+      return save.hero === id ? 0 : fresh.has(id) ? 1 : 2;
+    }
+    const lastFresh = order.filter((h) => fresh.has(h.id) && h.id !== save.hero).pop()?.id;
+    let skills: HTMLElement | null = null;
+    for (const h of order) {
       const unlocked = heroUnlocked(save, h.id);
       const selected = save.hero === h.id;
       const card = el("button", `hero${unlocked ? "" : " locked"}${selected ? " selected" : ""}${fresh.has(h.id) ? " fresh" : ""}`);
@@ -1177,8 +1186,11 @@ export class Hub {
       else if (!unlocked) card.onclick = () => this.denied(card);
       body.append(card);
       if (selected) body.append(this.vetLookRow(save, h.id));
-      if (selected) body.append(this.skillPanel(save, h.id));
+      if (selected) skills = this.skillPanel(save, h.id);
+      // The skill tree goes after the selected hero, or after the newly unlocked ones if any.
+      if (skills && (lastFresh ? h.id === lastFresh : selected)) { body.append(skills); skills = null; }
     }
+    if (skills) body.append(skills);
     this.justPicked = null;
     body.append(this.flairPanel(save));
   }

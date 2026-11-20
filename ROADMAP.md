@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Heroes tab: newly unlocked heroes appear right under the hero you play (above the skill tree). The tab's NEW badge led to heroes buried below the whole skill grid — about 1.5 screens down on an iPhone SE. Also checked with real taps: Armory purchase (gold −40, card updates, one tap), Royal Gift (+60, "come back tomorrow"), switching heroes.
 - Siege Lord starts fast: the castle's ~20 s opening build was dead time for the attacker (dimmed cards, frozen chest, "Attack in 20s"). The defenders are now fast-forwarded through it at siege start (same bot, same steps → same castle and balance; its events are dropped so nothing floods) and you get a 5 s countdown. Found in a first-time-player run of Siege 1.
 - Toasts drop below the boss bar while a boss is up ("New in the Bestiary: …" sat right on top of it). Boss sweep, chapters 1–10 (boss nights forced, bars + phase 2 at 40% HP): no errors, names and bars readable.
 - Siege Lord: no danger heartbeat when the castle's hall drops under 30% (that's the attacker's good news). Audit of other castle-side cues: campaign banners/stats already skipped in sieges; wall-break and hit buzzes read fine as the attacker's impact feedback; the defender's "Hold the line!" speech stays as an enemy taunt.
