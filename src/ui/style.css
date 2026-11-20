@@ -1208,7 +1208,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgm-stars { font-size: calc(11 * var(--tu)); color: #ffd84a; line-height: 1.1; }
 .lgm-stop.locked .lgm-label { color: #c8ced8; }
 .lgm-flag { position: absolute; top: calc(-14 * var(--u)); right: calc(-30 * var(--u)); background: linear-gradient(#ffe27a, #f2a83a); color: #2a1606; font-weight: 900; font-size: calc(10 * var(--tu)); padding: 0 calc(6 * var(--u)); border-radius: calc(7 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; }
-.lgm-progress { position: absolute; left: calc(8 * var(--u)); top: calc(8 * var(--u)); z-index: 2; font-size: calc(10.5 * var(--tu)); font-weight: 800; color: #fff; background: #0008; border-radius: calc(8 * var(--u)); padding: 0 calc(8 * var(--u)); white-space: nowrap; }
+#ui .lgm-progress { pointer-events: auto; }
+.lgm-progress { border: 0; position: absolute; left: calc(8 * var(--u)); top: calc(8 * var(--u)); z-index: 2; font-size: calc(10.5 * var(--tu)); font-weight: 800; color: #fff; background: #0008; border-radius: calc(8 * var(--u)); padding: 0 calc(8 * var(--u)); white-space: nowrap; }
 .lgm-sheet { width: min(100%, calc(360 * var(--u))); gap: calc(10 * var(--u)); display: flex; flex-direction: column; }
 @media (prefers-reduced-motion: reduce) { .lgm-stop.next .lgm-pin { animation: none; } }
 /* ---- Siege Lord controls (reverse mode) ---- */

@@ -448,9 +448,16 @@ export class Hub {
       };
       track.append(side);
     }
-    map.append(el("div", "lgm-progress", `${cleared} / ${n} chapters cleared`));
     // Bring the current stop into view once the tab is laid out.
     const target = current ?? map.querySelector<HTMLElement>(".lgm-stop.done:last-of-type");
+    // The counter doubles as a jump back to the next stop (handy after scrolling up the road).
+    const progress = el("button", "lgm-progress", `${cleared} / ${n} chapters cleared${target ? " · ⬇ next" : ""}`);
+    progress.onclick = () => {
+      if (!target) return;
+      this.cb.onClick();
+      (target as HTMLElement).scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    map.append(progress);
     if (target) requestAnimationFrame(() => (target as HTMLElement).scrollIntoView({ block: "center" }));
     return map;
   }
