@@ -525,7 +525,7 @@ export class Hub {
       { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
       { key: "forge", icon: "⚒️", name: "Royal Forge", after: 3, left: 86, at: 2.5, go: () => this.cb.onForge?.() },
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
-      { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.55, go: () => this.cb.onBells?.() },
+      { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.68, go: () => this.cb.onBells?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
       { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
       { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
@@ -698,9 +698,10 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
-          "🎪 6 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
+          "🎪 8 mini-games on the map (all in the 🎪 Fair tile too) — 🎯 Archery, 🛒 Supply Run, ⚒️ Royal Forge, 🛡️ Wall Watch, 🔔 Bell Tower, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
+          "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
-          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)", "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one", "⚒️ Royal Forge & 🔔 Bell Tower: two new mini-games on the map"] : []),
+          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [
