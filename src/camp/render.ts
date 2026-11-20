@@ -572,10 +572,14 @@ export class CampRenderer {
   /** Siege Lord: a card is picked (lane markers glow), and nothing sent yet (they pulse to coach). */
   siegePicked = false;
   siegeCoach = false;
+  /** Drag-and-drop: the lane under the dragged card (null when not dragging / over the deck), and whether a drag is on. */
+  dragLane: number | null = null;
+  dragging = false;
 
   /** Siege Lord lane markers: three soft columns rising from the horde's edge of the field, in view space. */
   private drawLanes(ctx: CanvasRenderingContext2D, o: Vec): void {
     const bottom = VIEW_H - 236; // just above the card deck
+    if (this.dragging) this.drawLaneZones(ctx, o, bottom);
     for (let i = 0; i < LANES_X.length; i++) {
       const x = this.screenX(LANES_X[i]!, o);
       const hw = (LANES_X[1]! - LANES_X[0]!) * this.zoom * 0.44;
@@ -606,6 +610,32 @@ export class CampRenderer {
       }
       ctx.restore();
     }
+  }
+
+  /** While a card is dragged: dashed outlines split the field into the three drop zones (from the
+   *  horde's edge up to the wall); the zone under the finger fills gold. */
+  private drawLaneZones(ctx: CanvasRenderingContext2D, o: Vec, bottom: number): void {
+    const top = Math.max(70, Math.min(bottom - 120, this.screenY(WALL_Y, o) + 24));
+    const edges = [0, (LANES_X[0]! + LANES_X[1]!) / 2, (LANES_X[1]! + LANES_X[2]!) / 2, MAP_W].map((x) => this.screenX(x, o));
+    ctx.save();
+    for (let i = 0; i < 3; i++) {
+      const x0 = Math.max(6, edges[i]! + 5), x1 = Math.min(VIEW_W - 6, edges[i + 1]! - 5);
+      const on = this.dragLane === i;
+      if (on) {
+        ctx.fillStyle = "rgba(255,216,74,0.18)";
+        ctx.beginPath();
+        ctx.roundRect(x0, top, x1 - x0, bottom - top, 14);
+        ctx.fill();
+      }
+      ctx.setLineDash([12, 9]);
+      ctx.lineDashOffset = -this.time * 30;
+      ctx.lineWidth = on ? 3.5 : 2.5;
+      ctx.strokeStyle = on ? "rgba(255,226,122,0.95)" : "rgba(255,255,255,0.55)";
+      ctx.beginPath();
+      ctx.roundRect(x0, top, x1 - x0, bottom - top, 14);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   /** World units per view unit (Siege Lord zooms out so all three lanes are on screen). */

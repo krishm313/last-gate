@@ -36,6 +36,11 @@ export class SiegeBar {
   private picked: string | null = null;
   private won = 0;
 
+  /** Drag-and-drop: maps a screen point to a lane (null over the deck/off the field), and reports the hovered lane. */
+  laneAtClient: (x: number, y: number) => number | null = () => null;
+  onHover: (lane: number | null, card: string | null) => void = () => {};
+  private drag: { id: string; card: HTMLElement; ghost: HTMLElement; x0: number; y0: number; moved: boolean; pointer: number } | null = null;
+
   constructor(host: HTMLElement, private onDeploy: (id: string, lane: number) => boolean, private onPause: () => void) {
     const hall = el("div", "lgs2-hall");
     const bar = el("div", "lgs2-bar");
@@ -75,12 +80,12 @@ export class SiegeBar {
         art.append(img);
       } else art.textContent = CARD_EMOJI[card.id] ?? "👹";
       b.append(art, el("div", "lgs2-name", `${CARD_NAME[card.id] ?? ENEMIES[card.id].name}${card.count > 1 ? ` ×${card.count}` : ""}`), el("div", "lgs2-cost", `💰${card.cost}`));
-      // Tapping a card picks it (it stays picked, so you can keep sending it); then tap the field.
-      b.onclick = () => {
-        if (!cardOpen(card, this.won)) return this.nope(b);
-        this.picked = card.id;
-        this.refreshPick();
-      };
+      // Drag a card onto the field to drop that group in the lane under your finger; a plain tap
+      // picks it instead (it stays picked, so taps on the field keep sending it).
+      b.addEventListener("pointerdown", (ev) => this.dragStart(ev, card.id, b));
+      b.addEventListener("pointermove", (ev) => this.dragMove(ev));
+      b.addEventListener("pointerup", (ev) => this.dragEnd(ev, false));
+      b.addEventListener("pointercancel", (ev) => this.dragEnd(ev, true));
       this.cards.set(card.id, b);
       this.deck.append(b);
     }
@@ -118,6 +123,48 @@ export class SiegeBar {
     const b = this.cards.get(this.picked);
     if (!ok && b) this.nope(b);
     return ok;
+  }
+
+  private dragStart(ev: PointerEvent, id: string, b: HTMLElement): void {
+    const card = WAR_CARDS.find((k) => k.id === id)!;
+    if (!cardOpen(card, this.won)) return this.nope(b);
+    if (this.drag) return;
+    ev.preventDefault();
+    b.setPointerCapture(ev.pointerId);
+    const ghost = el("div", "lgs2-ghost");
+    ghost.append(b.querySelector(".lgs2-art")!.cloneNode(true));
+    ghost.style.display = "none";
+    this.root.append(ghost);
+    this.drag = { id, card: b, ghost, x0: ev.clientX, y0: ev.clientY, moved: false, pointer: ev.pointerId };
+    this.picked = id;
+    this.refreshPick();
+  }
+
+  private dragMove(ev: PointerEvent): void {
+    const d = this.drag;
+    if (!d || ev.pointerId !== d.pointer) return;
+    if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) > 10) {
+      d.moved = true;
+      d.ghost.style.display = "flex";
+      d.card.classList.add("dragging");
+    }
+    if (!d.moved) return;
+    d.ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px)`;
+    const lane = this.laneAtClient(ev.clientX, ev.clientY);
+    d.ghost.classList.toggle("over", lane !== null);
+    this.onHover(lane, d.id);
+  }
+
+  private dragEnd(ev: PointerEvent, cancel: boolean): void {
+    const d = this.drag;
+    if (!d || ev.pointerId !== d.pointer) return;
+    this.drag = null;
+    d.ghost.remove();
+    d.card.classList.remove("dragging");
+    this.onHover(null, null);
+    if (cancel || !d.moved) return; // a tap just picks the card
+    const lane = this.laneAtClient(ev.clientX, ev.clientY);
+    if (lane !== null) this.send(lane);
   }
 
   /** Can't afford / locked: a short shake. */

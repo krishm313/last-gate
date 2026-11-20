@@ -653,6 +653,17 @@ const siegeBar = new SiegeBar(
   },
   () => setPaused(true),
 );
+// Drag-and-drop: a screen point over the battlefield (not the card deck) maps to a lane.
+siegeBar.laneAtClient = (x, y) => {
+  const r = canvas.getBoundingClientRect();
+  const deckTop = (siegeBar.root.querySelector(".lgs2-bottom") as HTMLElement | null)?.getBoundingClientRect().top ?? r.bottom;
+  if (y >= deckTop || y < r.top || x < r.left || x > r.right) return null;
+  return renderer.laneAt(((x - r.left) / r.width) * VIEW_W);
+};
+siegeBar.onHover = (lane, card) => {
+  renderer.dragging = card !== null;
+  renderer.dragLane = lane;
+};
 let siegeIdx = 0;
 
 /** Campaign chapters with at least one star. */
