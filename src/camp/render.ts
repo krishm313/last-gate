@@ -5615,6 +5615,23 @@ fx.shake(0.15);
       drawSprite(ctx, "king", x, y + 12, 40, {
         walk: h.moving ? 0.001 + (this.walkPhase("hero", h.x, h.y, 68) * Math.PI) / 4 : 0, time: this.time, seed: 0, flip: Math.cos(h.facing) > 0.15, flash: h.sinceHit < 0.1 ? 1 : 0, lunge: shotK * 0.5,
       });
+    if (kingDrawn && alt0 === "alchemist") {
+      // The Alchemist carries a glowing green flask in his free hand (so he doesn't read as the Pyromancer).
+      const fx = x + (Math.cos(faceDir) > 0.15 ? 3.5 : -3.5), fy = y - 9 + Math.sin(this.time * 3) * 0.6;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      this.drawBlob(ctx, this.blob("acidglow", [[0, "rgba(150,255,90,0.8)"], [1, "rgba(60,200,40,0)"]]), fx, fy, 9, 9, 0.55 + 0.2 * Math.sin(this.time * 4));
+      ctx.restore();
+      ctx.fillStyle = "#8cf060";
+      ctx.strokeStyle = "#16240c";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(fx, fy + 1, 3.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#c8b090";
+      ctx.fillRect(fx - 1.2, fy - 4.4, 2.4, 2.6);
+    }
     if (!kingDrawn) {
       drawHeroCape(ctx, x, y - bob, h.facing, h.moving, this.time);
       drawUnit(ctx, LOOKS[c.heroLook] ?? LOOKS.hero!, x, y - bob, 11, walk, h.facing, h.sinceHit < 0.1, -shotK * 0.5);
