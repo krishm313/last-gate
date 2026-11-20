@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord result: "Attack again" / "Try again" restarts the same siege straight away (with any cards just unlocked). Autoplay sweep on Hard (ch5, Cleric) and Nightmare (ch3, Lancer): no errors.
 - Siege Lord results: units sent, walls broken, push taken (or hall % left), stars with "new best!" and chimes, gold, newly opened war cards, and the next siege (or what it needs).
 - Trophies: a "Side games — best scores" grid under Records — best score + stars for each mini-game (locked ones stay "???") and Siege Lord stars.
 - Dragon Dodge (mini-game #5): 🐉 side stop beside chapters 8–9 (opens after chapter 8). Drag anywhere and the King runs to just above your finger; the dragon circling overhead marks red circles (and from 20 s, whole breath rows) that burst into fire after a shrinking fuse. Coins +3, +1 per second survived; 3 burns = out; 60 s. Stars 60/100/150, gold = score. Joins Fair day; achievement Dragonheart (3★); Champion of the Fair now needs all 15 stars (700). New src/mini/flyer.ts draws the winged atlas sprites (body + mirrored wings) outside the main renderer — also fixes the Siege Lord Bats/Imps cards, which showed a one-winged atlas. scripts/dragonsim.ts: dodging bot 90–125.

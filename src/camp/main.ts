@@ -529,6 +529,7 @@ function finishSiege(c: Camp, retreat = false) {
   const r = c.reverse!;
   const won = !retreat && r.result === "win";
   const stars = won ? siegeStars(c.wave) : 0;
+  const idx = siegeIdx;
   const key = `siege${siegeIdx + 1}`;
   const prev = save.mini[key] ?? { best: 0, stars: 0 };
   const wonBefore = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
@@ -561,6 +562,7 @@ function finishSiege(c: Camp, retreat = false) {
       goHub();
     },
     "title",
+    { label: won ? "Attack again" : "Try again", onClick: () => { hud.hideOverlay(); startSiege(idx); } },
   );
 }
 

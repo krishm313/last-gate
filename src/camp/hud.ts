@@ -319,7 +319,7 @@ export class CampHud {
     this.mute.textContent = m ? "🔇" : "🔊";
   }
 
-  showMessage(title: string, sub: string, button: string, onClick: () => void, cls = "title"): void {
+  showMessage(title: string, sub: string, button: string, onClick: () => void, cls = "title", alt?: { label: string; onClick: () => void }): void {
     const box = el("div", "panel pop-in");
     const p = el("p", "sub", sub);
     p.style.whiteSpace = "pre-line"; // multi-line summaries (e.g. Siege Lord results)
@@ -327,6 +327,11 @@ export class CampHud {
     const b = el("button", "btn", button);
     b.onclick = onClick;
     box.append(b);
+    if (alt) {
+      const a = el("button", "btn btn-ghost", alt.label);
+      a.onclick = alt.onClick;
+      box.append(a);
+    }
     this.overlay.replaceChildren(box);
     this.overlay.style.display = "flex";
   }
