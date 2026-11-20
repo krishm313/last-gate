@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- No tutorial tip while the hero is down ("Drag anywhere to walk" sat over the grey respawn screen); it returns when he rises. Death → respawn otherwise checked: "You fell!" banner, "Respawning in N" chip, rise at the hall.
 - The carry chain is explained once: one-time hints when you first carry logs to a built Forge ("walk your logs past the Forge to feed it") and when its first bows are ready ("pick them up and walk past your towers, +6% damage each"), alongside the log-pile hint (shared oneTip helper, each shows once ever).
 - New-enemy banners say what the foe does: "New enemy: War Raven — flies over the wall, dives at towers" (first two Bestiary traits). Brute and Battering Ram gained traits ("tough", "smashes the wall") so every introduced foe has one.
 - One-time hint the first time logs pile up at the Lumber Camp while your pockets are empty: "walk over to pick them up" (nothing told new players the pile must be collected). Memory audit (chapter 5 night): live canvases 58 MB — terrain 18.5, crisp frame cache 17 (cap 1500 ≈ 43), half sheets 12 — nothing else large.

@@ -1431,7 +1431,8 @@ function frame(now: number) {
       oneTip("tipForgeIn", !!forge && c.hero.logs > 0 && c.forgeLogs === 0 && c.forgeBows === 0, "⚒️ Walk your logs past the Forge to feed it — it turns them into bows");
       oneTip("tipBows", !!forge && c.forgeBows > 0 && c.hero.bows === 0, "🏹 Bows are ready at the Forge — pick them up and walk past your towers (+6% damage each)");
     }
-    hud.setTip(c.phase === "build" || c.phase === "wave" ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
+    // (No tutorial tip while the hero is down: "drag to walk" means nothing until he rises.)
+    hud.setTip((c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
     renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;
     interp.apply(c, accumulator / STEP);
     renderer.draw(c, realDt);
