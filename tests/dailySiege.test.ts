@@ -34,3 +34,11 @@ describe("daily siege quests", () => {
     expect(later).toContain("d-dsiege");
   });
 });
+
+describe("achievements", () => {
+  it("have unique ids (a shared id would claim two at once)", async () => {
+    const { ACHIEVEMENTS } = await import("../src/core/achievements");
+    const ids = ACHIEVEMENTS.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});

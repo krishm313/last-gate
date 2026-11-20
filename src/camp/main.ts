@@ -1026,6 +1026,7 @@ function trackStats(ev: CampEvent) {
   else if (ev.type === "lance" && ev.n) add("lanced", ev.n);
   else if (ev.type === "sanctuary") add("sanctified", ev.healed);
   else if (ev.type === "callToArms") add("levied", ev.n);
+  else if (ev.type === "ability") add(`ab_${ev.id}`);
   else if (ev.type === "acidSplash") add("acidHits", ev.n);
   else if (ev.type === "fireOut") add("firesOut");
 }
