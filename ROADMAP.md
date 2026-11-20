@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord: world-pinned weather and day-life effects (pond rain rings, puddles, lightning targets, crystal glints, clouds, gusts, butterflies) map through the flipped, zoomed view.
 - Siege Lord flow: the finished siege stays on screen (flipped, effects settling) behind the result panel instead of jumping to the menu backdrop; pause panel speaks the attacker's language (siege name, push n/8, sent, broken, hall %, "Withdraw"); the defender's tower-range preview no longer shows on the attacker's field.
 - Breached wall segments now read at a glance: scorched scar, jagged torn stumps (stone chunks for stone walls) and debris thrown inward, instead of a few faint brown dashes (both the defender and Siege Lord views).
 - Siege Lord: rock-steady attacker camera (no drift under your finger while dragging; leans in only once units breach); torch-bearers' torches, coin glints and dropped fires placed correctly in the flipped view.

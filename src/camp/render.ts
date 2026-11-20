@@ -56,6 +56,7 @@ const WINDOW_GLOW: Partial<Record<string, { base: number; spill: number; pts: [n
 };
 
 /** Defender-side events whose popups are hidden from the attacker in Siege Lord. */
+const NO_SHAKE: Vec = { x: 0, y: 0 };
 const SIEGE_QUIET = new Set(["build", "noTarget", "callToArms", "sanctuary", "heroRespawn", "earlyBonus", "waveClear", "levelUp", "pickup", "unlock", "plotUnlocked", "specChosen"]);
 
 export class CampRenderer {
@@ -3510,7 +3511,7 @@ fx.shake(0.15);
       const span = MAP_W + 700;
       const wx = ((t * (9 + (i % 3) * 2) + i * 430) % span) - 350;
       const wy = ((i * 263 + 120) % MAP_H) + Math.sin(t * 0.05 + i) * 40;
-      const x = wx - o.x + sh.x, y = wy - o.y + sh.y;
+      const [x, y] = this.screenAt(wx, wy, wy, o, sh);
       if (x < -260 || x > VIEW_W + 260 || y < -200 || y > VIEW_H + 200) continue;
       for (let j = 0; j < 3; j++) {
         const cx = x + (j - 1) * 70, cy = y + ((j * 37) % 30) - 15, rx = 110 - j * 12, ry = 55 - j * 6;
@@ -3535,7 +3536,7 @@ fx.shake(0.15);
           const dxF = wx - front;
           if (dxF > 0 || dxF < -140) continue;
           const env = Math.sin((-dxF / 140) * Math.PI); // swells in the middle of the band
-          const x = wx - o.x + sh.x, y = wy - o.y + sh.y;
+          const [x, y] = this.screenAt(wx, wy, wy, o, sh);
           if (x < -10 || x > VIEW_W + 10 || y < -10 || y > VIEW_H + 10) continue;
           const bend = 4 + env * 5;
           ctx.globalAlpha = day * env * 0.45;
@@ -3565,7 +3566,7 @@ fx.shake(0.15);
     for (let i = 0; i < (this.mood === 6 || this.mood === 7 || this.mood === 8 || this.mood === 9 ? 0 : 6); i++) {
       const [wx, wy] = bfPos(i, t);
       const [nx, ny] = bfPos(i, t + 0.15);
-      const x = wx - o.x + sh.x, y = wy - o.y + sh.y;
+      const [x, y] = this.screenAt(wx, wy, wy, o, sh);
       if (x < -10 || x > VIEW_W + 10 || y < -10 || y > VIEW_H + 10) continue;
       // Beat phase with a quick downstroke: warp the phase so the first 40% covers half the cycle.
       const raw = (t * 2.4 + i * 0.37) % 1;
@@ -3714,7 +3715,7 @@ fx.shake(0.15);
       ctx.strokeStyle = "rgba(220,235,255,0.55)";
       ctx.lineWidth = 1;
       for (const pd of this.ponds) {
-        const px = pd.x - o.x, py = pd.y - o.y;
+        const [px, py] = this.screenAt(pd.x, pd.y, pd.y, o, NO_SHAKE);
         if (px < -60 || px > VIEW_W + 60 || py < -40 || py > VIEW_H + 40) continue;
         for (let i = 0; i < 6; i++) {
           const u = (t * 1.6 + i / 6) % 1;
@@ -3778,7 +3779,7 @@ fx.shake(0.15);
       ctx.globalCompositeOperation = "lighter";
       const glow = this.blob("crys", [[0, "rgba(190,220,255,0.9)"], [0.5, "rgba(150,190,255,0.3)"], [1, "rgba(120,160,255,0)"]]);
       this.crystals.forEach((cr, i) => {
-        const px = cr.x - o.x, py = cr.y - o.y;
+        const [px, py] = this.screenAt(cr.x, cr.y, cr.y, o, NO_SHAKE);
         if (px < -30 || px > VIEW_W + 30 || py < -30 || py > VIEW_H + 30) return;
         const ph = (t * 0.35 + i * 0.618) % 1;
         const flare = ph < 0.12 ? Math.sin((ph / 0.12) * Math.PI) : 0;
@@ -3819,7 +3820,7 @@ fx.shake(0.15);
         if (u > 0.6) continue;
         const k = u / 0.6, fade = Math.sin(k * Math.PI);
         const wx = -60 + k * (MAP_W + 120), wy = 300 + d * 420 + Math.sin(k * 6) * 30;
-        const sx = wx - o.x, sy = wy - o.y;
+        const [sx, sy] = this.screenAt(wx, wy, wy, o, NO_SHAKE);
         for (let j = 0; j < 10; j++) {
           const h = j / 9, ang = t * 9 + j * 1.3;
           const rr = 9 + h * 28;
@@ -3836,7 +3837,7 @@ fx.shake(0.15);
       // Will-o'-wisps: pale blue-green lights that rise from the graves, bob, and fade.
       const wisp = this.blob("gwisp", [[0, "rgba(210,255,240,1)"], [0.35, "rgba(120,230,210,0.55)"], [1, "rgba(80,200,190,0)"]]);
       this.graves.forEach((g, i) => {
-        const px = g.x - o.x, py = g.y - o.y;
+        const [px, py] = this.screenAt(g.x, g.y, g.y, o, NO_SHAKE);
         if (px < -40 || px > VIEW_W + 40 || py < -80 || py > VIEW_H + 20) return;
         const u = (t * 0.22 + i * 0.37) % 1;
         if (u > 0.7) return;
@@ -3850,7 +3851,7 @@ fx.shake(0.15);
         const span = MAP_W + 400;
         const wx = ((((i * 173.3 + t * (7 + layer * 5)) % span) + span) % span) - 200;
         const wy = 120 + ((i * 97.7) % (MAP_H - 200)) + Math.sin(t * 0.3 + i) * 10;
-        const sx = wx - o.x, sy = wy - o.y;
+        const [sx, sy] = this.screenAt(wx, wy, wy, o, NO_SHAKE);
         const rw = 110 + layer * 40, rh = 26 + layer * 8;
         if (sx < -rw || sx > VIEW_W + rw || sy < -rh || sy > VIEW_H + rh) continue;
         const field = wy < WALL_Y ? 0.7 : 0.5;
@@ -3878,7 +3879,7 @@ fx.shake(0.15);
         const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
         let sx = 60 + rnd() * (VIEW_W - 120), ex = sx + (rnd() - 0.5) * 140, ey = VIEW_H * (0.45 + rnd() * 0.25);
         // A storm-weather bolt strikes a real foe.
-        if (this.boltTarget) { ex = this.boltTarget.x - o.x; ey = this.boltTarget.y - o.y - 10; sx = ex + (rnd() - 0.5) * 120; }
+        if (this.boltTarget) { [ex, ey] = this.screenAt(this.boltTarget.x, this.boltTarget.y, this.boltTarget.y, o, NO_SHAKE); ey -= 10; sx = ex + (rnd() - 0.5) * 120; }
         const bolt = (x0: number, y0: number, x1: number, y1: number, d: number, out: [number, number][]): void => {
           if (d <= 0) { out.push([x1, y1]); return; }
           const mx = (x0 + x1) / 2 + (rnd() - 0.5) * Math.hypot(x1 - x0, y1 - y0) * 0.35, my = (y0 + y1) / 2;
