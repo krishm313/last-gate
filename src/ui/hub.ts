@@ -166,6 +166,8 @@ export class Hub {
   /** Trophy just claimed (and its reward), celebrated on the next render. */
   /** Trophies tab: whether the claimed section is open. */
   private showClaimed = false;
+  /** Set while a side game opened from the Fair sheet is running. */
+  private backToFair = false;
   private justClaimed: { id: string; reward: number } | null = null;
   /** Hero just picked, celebrated on the next render. */
   private justPicked: string | null = null;
@@ -212,6 +214,12 @@ export class Hub {
   }
 
   showHub(save: SaveData, tab: Tab = this.tab): void {
+    // A side game started from the Fair sheet goes back to the sheet when it's left.
+    if (this.backToFair && tab === "battle") {
+      this.backToFair = false;
+      this.tab = tab;
+      return this.fairSheet(save);
+    }
     this.tab = tab;
     if (refreshQuests(save)) this.cb.onQuestsChanged?.();
     const wrap = el("div", "hub");
@@ -550,11 +558,15 @@ export class Hub {
       row.onclick = () => {
         if (!open) return this.denied(row);
         this.cb.onClick();
+        this.backToFair = true;
         g.go();
       };
       box.append(row);
     }
-    box.append(this.button("Back", "btn btn-ghost", () => this.showHub(save, "battle")));
+    box.append(this.button("Back", "btn btn-ghost", () => {
+      this.backToFair = false;
+      this.showHub(save, "battle");
+    }));
     this.show(box);
   }
 

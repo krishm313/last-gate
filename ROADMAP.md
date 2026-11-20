@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Side games started from the Fair sheet return to the sheet on "Back to the map" (started from the map, they still return to the map). Smoke sweep: all 8 side games, a daily, Endless, Boss Rush and Siege 5 with the new cards — no page errors.
 - Battle tab: a 4th mode tile, 🎪 Fair (mini-game stars x/24), opens a sheet listing all 8 side games in unlock order — best score, stars, today's 2× GOLD flag and PLAY for open ones, "Clear chapter N to open" for the rest. The side-game table moved into hub.sideGames() (shared by the map and the sheet).
 - Bell Tower (8th side game, after chapter 5): four bells ring a tune — ring it back in order; each tune you get adds a note and plays faster; a wrong bell cracks the tower and replays the tune (3 cracks end it); 90 s. Each bell has its own pitch (sfx.bell). Stars 110/230/350 (bellsim: remembering ~7 notes ≈ 1★, ~9 ≈ 2★, 12 ≈ 3★), gold score/2. Achievement Bellringer; Champion of the Fair now 24 stars; Fair day rotation from Nov 21; Trophies grid; What's-new line.
 - Endless: two new weekly twists — Legion Week 🛡️ (soldiers & militia +70%, foes +15% HP) and Swift Week 💨 (hero +30% speed, +20% fire rate, foes +15% HP); twists now use a `since` date and can carry any run mods. Every week until they arrive is unchanged (tested); with the rotation they first come up the weeks of Feb 1 and Feb 8.
