@@ -58,6 +58,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "moonbreaker", name: "Moonbreaker", desc: "Defeat the Blood Moon Warlord", icon: "🌕", goal: 1, reward: 500, progress: stat("bloodlord") },
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
   { id: "scholar", name: "Scholar of War", desc: "Slay every kind of foe (see the Bestiary)", icon: "📖", goal: Object.keys(ENEMIES).length, reward: 800, progress: foesMet },
+  { id: "bossrush", name: "Kingslayer", desc: "Clear the Boss Rush", icon: "👑", goal: 1, reward: 800, progress: (s) => ((s.stars[98] ?? 0) > 0 ? 1 : 0) },
   { id: "siegelord", name: "Siege Lord", desc: "Take the hall in all three sieges", icon: "⚔️", goal: 3, reward: 500, progress: (s) => [1, 2, 3].filter((i) => (s.mini[`siege${i}`]?.stars ?? 0) > 0).length },
   { id: "frostcitadel", name: "Winter's Fall", desc: "Take the Frost Citadel (Siege 4)", icon: "🏔️", goal: 1, reward: 600, progress: (s) => ((s.mini.siege4?.stars ?? 0) > 0 ? 1 : 0) },
   { id: "conqueror", name: "Conqueror", desc: "Earn all 9 Siege Lord stars", icon: "🏴", goal: 9, reward: 700, progress: (s) => [1, 2, 3].reduce((a, i) => a + (s.mini[`siege${i}`]?.stars ?? 0), 0) },

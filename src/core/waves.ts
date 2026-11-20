@@ -41,6 +41,8 @@ export interface ChapterDef {
   /** Night weather odds for this chapter (defaults to the global odds). */
   weatherOdds?: { rain: number; fog: number; storm: number };
   endless?: boolean;
+  /** Multiplier on every wave's enemy budget (default 1), e.g. Boss Rush's full escorts. */
+  budgetMult?: number;
   waves: WaveDef[];
 }
 
@@ -75,6 +77,7 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
   let budget = d.baseBudget + d.budgetPerWave * (wave - 1);
   if (breather) budget *= d.breatherBudgetMult;
   if (def.boss) budget *= wave >= chapter.waves.length ? 0.5 : 0.7;
+  budget *= chapter.budgetMult ?? 1;
   const interval = Math.max(d.minInterval, d.baseInterval * d.intervalDecay ** (wave - 1));
   const hpMult = chapter.hpMult * d.hpGrowth ** (wave - 1);
 

@@ -256,3 +256,22 @@ describe("mini-game records", () => {
     expect(newSave().mini).toEqual({});
   });
 });
+
+describe("Boss Rush", () => {
+  it("opens after chapter 5, pays like chapter 6, and keeps its stars out of the campaign total", async () => {
+    const { applyRun, chapterUnlocked, newSave, totalStars } = await import("../src/core/meta");
+    const { BOSS_RUSH, CHAPTER_BY_ID } = await import("../src/core/chapters");
+    const { CAMP_CHAPTER_HP } = await import("../src/camp/sim");
+    const s = newSave();
+    expect(chapterUnlocked(s, BOSS_RUSH.id)).toBe(false);
+    s.stars[5] = 1;
+    expect(chapterUnlocked(s, BOSS_RUSH.id)).toBe(true);
+    const before = totalStars(s);
+    const r = applyRun(s, { chapter: BOSS_RUSH.id, won: true, wave: 10, gateFrac: 1, goldFromKills: 0, difficulty: "hard" });
+    expect(s.stars[BOSS_RUSH.id]).toBe(3);
+    expect(totalStars(s)).toBe(before);
+    expect(r.gold).toBe(10 * 4 * 6 + 40 * 6 * 2); // always Normal pay, tier 6, first clear doubled
+    expect(CHAPTER_BY_ID[BOSS_RUSH.id]!.waves.every((w) => w.boss)).toBe(true);
+    expect(CAMP_CHAPTER_HP[BOSS_RUSH.id]).toBeGreaterThan(1); // late-campaign strength in the camp sim
+  });
+});

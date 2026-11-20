@@ -232,4 +232,30 @@ export const ENDLESS: ChapterDef = {
   ],
 };
 
-export const CHAPTER_BY_ID: Record<number, ChapterDef> = Object.fromEntries([...CHAPTERS, ENDLESS].map((c) => [c.id, c]));
+/** Boss Rush: ten nights, a boss every night (in campaign order), light escorts. Opens after chapter 5. */
+export const BOSS_RUSH_ID = 98;
+export const BOSS_RUSH: ChapterDef = {
+  id: BOSS_RUSH_ID,
+  name: "Boss Rush",
+  blurb: "Every warlord of the realm, one after another.",
+  hpMult: 3.9,
+  budgetMult: 1.25,
+  speedMult: 1,
+  gateDamageMult: 1,
+  affixes: ["A boss every night", "Late-campaign strength"],
+  ground: ["#5a4a3a", "#665544"],
+  waves: [
+    { mix: { footman: 2, runner: 1, crossbow: 1, sapper: 0.5 }, boss: "ogre", bossHpMult: 0.55 },
+    { mix: { mob: 1.5, bat: 2, raven: 0.8, sapper: 0.6 }, boss: "troll", bossHpMult: 0.6 },
+    { mix: { runner: 2, bat: 2, shaman: 0.6, tunneler: 0.8 }, boss: "hag", bossHpMult: 0.65 },
+    { mix: { shield: 2, crossbow: 1.5, ram: 0.6, sapper: 0.6 }, boss: "golem", bossHpMult: 0.65 },
+    { mix: { wraith: 1, bat: 2, raven: 1, imp: 0.8 }, boss: "dragon", bossHpMult: 0.75 },
+    { mix: { shield: 1.5, crossbow: 1.5, ram: 0.8, tunneler: 0.8, banner: 0.5 }, boss: "colossus", bossHpMult: 0.8 },
+    { mix: { knight: 1, wraith: 1.2, raven: 1, imp: 0.8, sapper: 0.6 }, boss: "frostwyrm", bossHpMult: 0.85 },
+    { mix: { shield: 1.2, knight: 1, crossbow: 1.2, imp: 1, ram: 0.6 }, boss: "magma", bossHpMult: 0.9 },
+    { mix: { wraith: 1.4, knight: 1.2, crossbow: 1.2, tunneler: 0.8, banner: 0.6 }, boss: "drowned", bossHpMult: 0.95 },
+    { mix: { knight: 1.4, wraith: 1.4, banner: 0.8, brute: 1, raven: 0.8, imp: 0.8 }, boss: "bloodlord", bossHpMult: 1 },
+  ],
+};
+
+export const CHAPTER_BY_ID: Record<number, ChapterDef> = Object.fromEntries([...CHAPTERS, ENDLESS, BOSS_RUSH].map((c) => [c.id, c]));

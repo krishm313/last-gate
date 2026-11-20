@@ -4,7 +4,7 @@ import { HINT_FLAGS } from "./save";
 import { canVibrate } from "./settings";
 import { exportSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
-import { CHAPTER_BY_ID, CHAPTERS, ENDLESS } from "../core/chapters";
+import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES, enemyTraits } from "../core/enemies";
@@ -308,6 +308,7 @@ export class Hub {
     else card.onclick = () => this.denied(card);
     // Endless sits above the map, which reads bottom → top with the final boss farthest away.
     body.insertBefore(card, map);
+    body.insertBefore(this.bossRushCard(save), map);
     body.insertBefore(this.siegeCard(save), card);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
   }
@@ -424,6 +425,30 @@ export class Hub {
     const target = current ?? map.querySelector<HTMLElement>(".lgm-stop.done:last-of-type");
     if (target) requestAnimationFrame(() => (target as HTMLElement).scrollIntoView({ block: "center" }));
     return map;
+  }
+
+  /** Boss Rush: every boss in a row (opens after chapter 5). */
+  private bossRushCard(save: SaveData): HTMLElement {
+    const open = chapterUnlocked(save, BOSS_RUSH.id);
+    const card = el("button", `chapter lgbr${open ? "" : " locked"}`);
+    card.style.setProperty("--g1", "#6a3a1a");
+    card.style.setProperty("--g2", "#2a1408");
+    const left = el("div", "ch-left");
+    left.append(el("div", "ch-num", "Challenge"), el("div", "ch-name", `👑 ${BOSS_RUSH.name}`), el("div", "ch-blurb", open ? BOSS_RUSH.blurb : "Clear chapter 5 to unlock"));
+    if (open) left.append(el("div", "ch-affix", "Ten nights · a boss every night · the Blood Moon Warlord last"));
+    const right = el("div", "ch-right");
+    const st = save.stars[BOSS_RUSH.id] ?? 0;
+    right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));
+    const best = save.best[BOSS_RUSH.id] ?? 0;
+    if (open && best) right.append(el("div", "ch-best", st ? "Cleared!" : `Record: boss ${best}/10`));
+    if (open) right.append(el("div", "ch-play", "FIGHT ▶"));
+    card.append(left, right);
+    card.onclick = () => {
+      if (!open) return this.denied(card);
+      this.cb.onClick();
+      this.cb.onPlay(BOSS_RUSH.id);
+    };
+    return card;
   }
 
   /** Siege Lord (reverse mode): lead the horde against the castle. Opens after chapter 1. */

@@ -142,8 +142,9 @@ export function sanitizeSave(raw: unknown): SaveData {
   return d;
 }
 
+/** Campaign stars (Boss Rush and Endless don't count toward unlocks). */
 export function totalStars(s: SaveData): number {
-  return Object.values(s.stars).reduce((a, b) => a + b, 0);
+  return Object.entries(s.stars).reduce((a, [id, v]) => a + (Number(id) < 98 ? v : 0), 0);
 }
 
 export function heroUnlocked(s: SaveData, id: HeroId): boolean {
@@ -152,6 +153,7 @@ export function heroUnlocked(s: SaveData, id: HeroId): boolean {
 
 export function chapterUnlocked(s: SaveData, id: number): boolean {
   if (id === 99) return (s.stars[1] ?? 0) > 0;
+  if (id === 98) return (s.stars[5] ?? 0) > 0; // Boss Rush
   return id === 1 || (s.stars[id - 1] ?? 0) > 0;
 }
 
@@ -223,12 +225,13 @@ export function applyRun(s: SaveData, r: RunResult): RunReward {
   // Late-campaign wins (chapter 7 onward, any difficulty) feed a weekly quest.
   if (r.won && r.chapter >= 7 && r.chapter !== ENDLESS_ID) s.stats.lateWins = (s.stats.lateWins ?? 0) + 1;
   // Endless pays like a mid-campaign chapter per wave held.
-  const diff = DIFF_BY_ID[r.chapter === ENDLESS_ID ? "normal" : r.difficulty ?? "normal"];
+  const diff = DIFF_BY_ID[r.chapter >= 98 ? "normal" : r.difficulty ?? "normal"];
   if (diff.rank > 0) return applyHardRun(s, r, diff.rank, diff.gold);
-  const goldTier = r.chapter === 99 ? 3 : r.chapter;
+  // Endless pays like chapter 3, Boss Rush like chapter 6.
+  const goldTier = r.chapter === 99 ? 3 : r.chapter === 98 ? 6 : r.chapter;
   const waveBonus = Math.max(0, r.wave - (r.won ? 0 : 1)) * 4 * goldTier;
   const firstClear = r.won && (s.stars[r.chapter] ?? 0) === 0;
-  const winBonus = r.won ? 40 * r.chapter * (firstClear ? 2 : 1) : 0;
+  const winBonus = r.won ? 40 * goldTier * (firstClear ? 2 : 1) : 0;
   const stars = starsFor(r.won, r.gateFrac);
   const before = totalStars(s);
   const heroesBefore = HEROES.filter((h) => heroUnlocked(s, h.id)).map((h) => h.id);

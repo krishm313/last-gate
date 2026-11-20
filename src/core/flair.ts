@@ -10,7 +10,7 @@ export interface FlairDef {
   unlocked: (s: SaveData) => boolean;
 }
 
-const stars = (s: SaveData) => Object.values(s.stars).reduce((a, b) => a + b, 0);
+const stars = (s: SaveData) => Object.entries(s.stars).reduce((a, [id, v]) => a + (Number(id) < 98 ? v : 0), 0);
 
 export const FLAIRS: FlairDef[] = [
   { id: "none", name: "None", icon: "▫️", how: "", unlocked: () => true },
