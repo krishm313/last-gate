@@ -5,6 +5,7 @@
 
 export type SpriteName =
   | "king" | "swordsman" | "spearman" | "archer" | "crossbowman" | "knight" | "mage" | "cleric" | "marshal"
+  | "knight_vet" | "mage_vet" | "crossbowman_vet" | "archer_vet" | "spearman_vet" | "cleric_vet" | "marshal_vet"
   | "horde_sword" | "horde_brute" | "horde_archer" | "elite_horned" | "elite_shield" | "elite_mage" | "boss" | "castle" | "wraith" | "stalker" | "sapper" | "goblin" | "goblin_mob" | "goblin_thief";
 
 interface Entry {
@@ -33,7 +34,7 @@ function entry(name: SpriteName): Entry | null {
 
 /** Preload every sprite (call once at startup so the first wave already shows the art). */
 export function preloadSprites(): void {
-  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "archer", "spearman", "cleric", "marshal", "castle"] as SpriteName[])) entry(n);
+  for (const n of Object.keys(ENEMY_SPRITES).map((k) => ENEMY_SPRITES[k]!.name).concat(["king", "swordsman", "knight", "mage", "crossbowman", "archer", "spearman", "cleric", "marshal", "castle", "knight_vet", "mage_vet", "crossbowman_vet", "archer_vet", "spearman_vet", "cleric_vet", "marshal_vet"] as SpriteName[])) entry(n);
 }
 
 /** A white silhouette of the sprite for hit flashes (built once per sprite). */

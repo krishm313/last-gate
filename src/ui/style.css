@@ -1350,3 +1350,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgfair-row .ch-name { font-size: calc(16 * var(--tu)); }
 .lgfair-row { padding-top: calc(9 * var(--u)); padding-bottom: calc(9 * var(--u)); }
 .lgfair-flag { position: static; transform: none; margin-bottom: calc(3 * var(--u)); }
+/* Veteran look toggle under the picked hero. */
+.lgv-row { display: flex; align-items: center; gap: calc(8 * var(--u)); width: 100%; font: inherit; color: #fff; text-align: left; cursor: pointer;
+  padding: calc(8 * var(--u)) calc(10 * var(--u)); border-radius: calc(10 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; background: linear-gradient(90deg, #2a1640, #1a1028); margin-top: calc(-4 * var(--u)); }
+#ui .lgv-row, #ui .lgv-row * { pointer-events: auto; }
+.lgv-row.on { border-color: #ffd84a; box-shadow: 0 0 0 calc(1.5 * var(--u)) #ffd84a66; }
+.lgv-row.locked { filter: grayscale(0.6) brightness(0.8); }
+.lgv-swatch { width: calc(22 * var(--u)); height: calc(22 * var(--u)); border-radius: 50%; background: conic-gradient(#5a3290, #ffd86a, #5a3290); border: calc(2 * var(--u)) solid #1d1208; flex: none; }
+.lgv-text { flex: 1; font-weight: 900; font-size: calc(13 * var(--tu)); }
+.lgv-state { font-weight: 800; font-size: calc(11 * var(--tu)); color: #ffd84a; }

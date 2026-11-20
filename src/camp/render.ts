@@ -5540,10 +5540,12 @@ fx.shake(0.15);
     }
     // Other heroes: their painted figure from the character sheet with procedural motion.
     const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman", hero_cleric: "cleric", hero_marshal: "marshal" };
-    const alt = altHero[c.heroLook];
+    const alt0 = altHero[c.heroLook];
+    // The Veteran look is a recoloured copy of the same painted figure.
+    const alt = alt0 && c.heroVet ? (`${alt0}_vet` as SpriteName) : alt0;
     const kingDrawn = alt
       // The spearman's raised spear takes up the top of its art, so it's drawn taller to match the others' bodies.
-      ? drawSprite(ctx, alt, x, y + 12, alt === "spearman" ? 54 : 42, {
+      ? drawSprite(ctx, alt, x, y + 12, alt0 === "spearman" ? 54 : 42, {
           walk: h.moving ? 0.001 + (this.walkPhase("hero", h.x, h.y, 68) * Math.PI) / 4 : 0, time: this.time, seed: 0, flip: Math.cos(faceDir) > 0.15, flash: h.sinceHit < 0.1 ? 1 : 0, lunge: shotK * 0.5,
         })
       : (() => {

@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Veteran looks: every painted hero (not the King) unlocks a violet-and-gold outfit after 25 nights with them (the Cleric gets Golden robes); toggle under the picked hero on the Heroes tab ("Tap to wear" / "Wearing ✓" / "12 / 25 nights"). Sprites are smooth gradient-map recolours (charcoal → violet → gold, warm skin/wood kept); choice stored in stats.look_<hero>; camp heroVet picks `<sprite>_vet`. Test for unlock/round-trip/setup.
 - New foe: the Shadowstalker (chapters 7–10 + Endless; intro night 6 of ch7) — every 3.8 s out in the field it blinks 64 px toward the wall (not while stunned/snared, never through the wall); HP 32. Shadow-violet recolour of the wraith with glowing eyes + portrait, violet halo, blink puff fx + sound, Bestiary trait "blinks forward". campsim L10 (40 runs ch10): first pass 25% → 15%, so ch10 uses a lighter share (now 25%); ch7 75%, ch8 79%, ch9 58% (24 runs).
 - What's-new card now lists all 8 mini-games (it still said 6) plus the Royal Gift, without repeating lines on the Nov 21 card; Bell Tower's map stop nudged up so its label no longer touches The Last Gate pin.
 - Side games started from the Fair sheet return to the sheet on "Back to the map" (started from the map, they still return to the map). Smoke sweep: all 8 side games, a daily, Endless, Boss Rush and Siege 5 with the new cards — no page errors.

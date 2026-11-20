@@ -428,6 +428,7 @@ export interface Camp {
   heroLook: string;
   /** Cosmetic trail / halo around the hero (render only). */
   heroFlair: string;
+  heroVet: boolean;
   crit: number;
   ability: AbilityId;
   abilityCooldown: number;
@@ -601,6 +602,8 @@ export interface CampSetup {
   /** Hero colour/look id for rendering. */
   heroLook?: string;
   heroFlair?: string;
+  /** Wearing the hero's Veteran look (render only). */
+  heroVet?: boolean;
   critChance?: number;
   ability?: AbilityId;
   abilityCooldown?: number;
@@ -695,6 +698,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     mods,
     heroLook: setup.heroLook ?? "hero",
     heroFlair: setup.heroFlair ?? "none",
+    heroVet: setup.heroVet ?? false,
     ability: setup.ability ?? "arrowRain",
     abilityCooldown: setup.abilityCooldown ?? 18,
     abilityCharge: 0.6,

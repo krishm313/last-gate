@@ -199,6 +199,11 @@ const hub = new Hub(uiRoot, {
     }
     hub.showHub(save, "heroes");
   },
+  onHeroLook: (id, on) => {
+    save.stats[`look_${id}`] = on ? 1 : 0;
+    writeSave(save);
+    hub.showHub(save, "heroes");
+  },
   onDifficulty: (id) => {
     save.difficulty = id;
     writeSave(save);
