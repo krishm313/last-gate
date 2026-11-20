@@ -12,6 +12,9 @@ export interface FlairDef {
 
 const stars = (s: SaveData) => Object.entries(s.stars).reduce((a, [id, v]) => a + (Number(id) < 98 ? v : 0), 0);
 
+/** Stars from the side-stop mini-games (sieges excluded). */
+const miniStars = (s: SaveData) => Object.entries(s.mini).reduce((a, [id, m]) => a + (id.startsWith("siege") ? 0 : m.stars), 0);
+
 export const FLAIRS: FlairDef[] = [
   { id: "none", name: "None", icon: "▫️", how: "", unlocked: () => true },
   { id: "gold", name: "Golden Halo", icon: "✨", how: "Earn 6 stars", unlocked: (s) => stars(s) >= 6 },
@@ -22,6 +25,9 @@ export const FLAIRS: FlairDef[] = [
   { id: "seafoam", name: "Seafoam Trail", icon: "🫧", how: "Clear chapter 8", unlocked: (s) => (s.stars[8] ?? 0) > 0 },
   { id: "bloodmoon", name: "Blood Moon Halo", icon: "🌕", how: "Clear chapter 9", unlocked: (s) => (s.stars[9] ?? 0) > 0 },
   { id: "grave", name: "Grave Wisps", icon: "👻", how: "Clear chapter 10", unlocked: (s) => (s.stars[10] ?? 0) > 0 },
+  { id: "fair", name: "Fairground Lights", icon: "🎪", how: "Earn 9 mini-game stars", unlocked: (s) => miniStars(s) >= 9 },
+  { id: "warlord", name: "Warlord's Smoke", icon: "🚩", how: "Take the Hollow Keep (Siege 5)", unlocked: (s) => (s.mini.siege5?.stars ?? 0) > 0 },
+  { id: "crown", name: "Royal Crown", icon: "👑", how: "Open the Royal Gift 7 days in a row", unlocked: (s) => (s.stats.giftBest ?? 0) >= 7 },
 ];
 
 export const FLAIR_BY_ID: Record<string, FlairDef> = Object.fromEntries(FLAIRS.map((f) => [f.id, f]));

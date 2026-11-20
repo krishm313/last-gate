@@ -4702,14 +4702,54 @@ fx.shake(0.15);
       }
       return;
     }
+    if (f === "crown") {
+      // Royal Crown: three little gold crowns circling the hero's feet, with gold dust when walking.
+      tint("rgba(255,214,90,0.75)", 0.6);
+      ctx.save();
+      for (let i = 0; i < 3; i++) {
+        const a = this.time * 1.8 + (i * Math.PI * 2) / 3;
+        const cx = x + Math.cos(a) * 24, cy = y + 6 + Math.sin(a) * 9 + Math.sin(this.time * 4 + i) * 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 6, cy + 3);
+        ctx.lineTo(cx - 6.5, cy - 3);
+        ctx.lineTo(cx - 3, cy);
+        ctx.lineTo(cx, cy - 5);
+        ctx.lineTo(cx + 3, cy);
+        ctx.lineTo(cx + 6.5, cy - 3);
+        ctx.lineTo(cx + 6, cy + 3);
+        ctx.closePath();
+        ctx.fillStyle = "#ffd23a";
+        ctx.strokeStyle = "#6a3e06";
+        ctx.lineWidth = 1.2;
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const g = this.glintBlob();
+      for (let i = 0; i < 3; i++) {
+        const a = this.time * 1.8 + (i * Math.PI * 2) / 3;
+        this.drawBlob(ctx, g, x + Math.cos(a) * 24, y + 3 + Math.sin(a) * 9, 5, 5, 0.5 + 0.5 * Math.sin(this.time * 5 + i * 2));
+      }
+      ctx.restore();
+      if (moving) this.flairAcc += dt;
+      while (this.flairAcc > 0.09) {
+        this.flairAcc -= 0.09;
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, "#ffe27a", 1, 18, { max: 0.7, size: 2.6, gravity: -24, drag: 2, shape: "spark" });
+      }
+      return;
+    }
     if (f === "ember") tint("rgba(255,110,30,0.75)", 0.55);
+    if (f === "fair") tint("rgba(255,110,210,0.8)", 0.6);
+    if (f === "warlord") tint("rgba(160,20,30,0.75)", 0.6);
     if (f === "frost") tint("rgba(160,220,255,0.8)", 0.6);
     if (f === "shadow") tint("rgba(90,40,160,0.8)", 0.6);
     if (f === "petal") tint("rgba(255,160,200,0.7)", 0.5);
     if (f === "seafoam") tint("rgba(80,210,200,0.75)", 0.55);
     if (f === "grave") tint("rgba(184,154,255,0.7)", 0.55);
     // Trails: shed motes while walking (and a few while standing for the wisps).
-    this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" ? 0.5 : 0.15);
+    this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" || f === "warlord" ? 0.5 : 0.15);
     const every = 0.035;
     while (this.flairAcc > every) {
       this.flairAcc -= every;
@@ -4720,6 +4760,10 @@ fx.shake(0.15);
       else if (f === "petal") this.fx.burst(x + jx, y + 2 + jy, alt ? "#ffb0d0" : "#ff6aa8", 1, 26, { max: 1.3, size: 3.6, gravity: 36, drag: 2.5, shape: "chunk" });
       else if (f === "shadow") this.fx.burst(x + jx * 1.4, y + 8 + jy, alt ? "#5a2a98" : "#2a1448", 1, 16, { max: 1.1, size: 4.6, gravity: -46, drag: 2, shape: "dot" });
       else if (f === "grave") this.fx.burst(x + jx * 1.2, y + 6 + jy, alt ? "#f0eaff" : "#a88aff", 1, 14, { max: 1.4, size: alt ? 3 : 4.4, gravity: -55, drag: 2.2, shape: "dot" });
+      else if (f === "fair") {
+        const cols = ["#ff4a6a", "#ffd23a", "#4ac0ff", "#6ae06a", "#c86aff"];
+        this.fx.burst(x + jx, y + 4 + jy, cols[Math.floor((this.time * 17 + jx) % 5 + 5) % 5]!, 1, 40, { max: 1.0, size: 4.4, gravity: 50, drag: 2, shape: "chunk" });
+      } else if (f === "warlord") this.fx.burst(x + jx * 1.3, y + 8 + jy, alt ? "#ff3a2a" : "#3a1010", 1, 18, { max: 1.2, size: alt ? 2.8 : 5, gravity: -60, drag: 2, shape: "dot" });
       else if (f === "seafoam") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8fffc" : "#6ad8d0", 1, 18, { max: 1.0, size: alt ? 2.6 : 3.8, gravity: -36, drag: 2.4, shape: "dot" });
     }
     if (this.flairAcc > 1) this.flairAcc = 0;
