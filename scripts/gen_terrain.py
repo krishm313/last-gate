@@ -19,7 +19,7 @@ WALL_Y, FOREST_Y = 560, 230
 HALL = (360, 1050)
 TX, TY = -80, -240
 TW, TH = MAP_W + 160, MAP_H + 320
-K = 2.5  # output pixels per world unit (matches TERRAIN_SCALE)
+K = 1.8  # output pixels per world unit (matches TERRAIN_SCALE)
 SS = 2  # supersampling for strokes
 R = K / 1.5  # sizes and densities below were tuned at K = 1.5; R keeps them the same in world terms
 OUT = os.path.join(os.path.dirname(__file__), "..", "static", "sprites", "terrain")

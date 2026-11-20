@@ -21,7 +21,7 @@ const TERRAIN_X = -80;
 const TERRAIN_Y = -240;
 const TERRAIN_W = MAP_W + 160;
 const TERRAIN_H = MAP_H + 320;
-const TERRAIN_SCALE = 2.5;
+const TERRAIN_SCALE = 1.8;
 const TREE_SIZES = [0.7, 0.85, 1, 1.15, 1.3];
 
 /** Top-down camp renderer with a camera that follows the hero. */
