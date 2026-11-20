@@ -52,6 +52,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "titan", name: "Titanfall", desc: "Defeat the Magma Titan", icon: "🌋", goal: 1, reward: 400, progress: stat("magma") },
   { id: "warden", name: "Warden of the Woods", desc: "Snare 200 foes with the Warden", icon: "🕸️", goal: 200, reward: 300, progress: stat("snared") },
   { id: "cleric", name: "Light of the Gate", desc: "Heal 5,000 HP with the Cleric's Sanctuary", icon: "✨", goal: 5000, reward: 300, progress: stat("sanctified") },
+  { id: "marshal", name: "Raise the Levy", desc: "Call 100 militia to arms with the Marshal", icon: "📯", goal: 100, reward: 300, progress: stat("levied") },
   { id: "lancer", name: "Unstoppable", desc: "Skewer 300 foes with the Lancer's lance", icon: "🔱", goal: 300, reward: 300, progress: stat("lanced") },
   { id: "firefighter", name: "Firefighter", desc: "Stamp out 25 fires", icon: "🧯", goal: 25, reward: 250, progress: stat("firesOut") },
   { id: "citadel", name: "Lord of the Tides", desc: "Clear chapter 8, Sunken Citadel", icon: "🌊", goal: 1, reward: 1100, progress: (s) => ((s.stars[8] ?? 0) > 0 ? 1 : 0) },

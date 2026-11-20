@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Marshal follow-ups: achievement Raise the Levy (call 100 militia, 300 gold; stat levied), war-drum horn sfx + buzz on Call to Arms, joins the daily hero pool from 2026-11-26 (daily output diffed for 60 days: only dates ≥ 11-26 change).
 - 8th hero: The Marshal (25★) — Call to Arms: 4 militia fall in around him for 12 s (fight anything inside the walls or at the gate; no respawn); passive: soldiers +25% HP. Art: the swordsman recoloured crimson and gold with PIL (units/marshal.png + portrait). campsim ch7 L10: 58% (mid-pack). Test: summon count + march-off after 12 s.
 - Boss Rush results: "Bosses slain: N/10" on a loss, "Kingslayer!" on a clear; one-time 🔓 NEW! ribbon on the card. Autoplay sweep of Boss Rush: no errors.
 - Boss Rush banner: each night opens with "👑 Boss N/10" and the boss's name; the tenth is "👑 THE LAST BOSS".

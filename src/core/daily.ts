@@ -105,7 +105,10 @@ const ORIGINAL_TWISTS = ["gold-rush", "lone-hero", "engineers", "horde", "glass"
 
 /** The Cleric joins from this date (days before keep the six-hero pool). */
 const CLERIC_FROM = "2026-11-24";
+/** The Marshal joins from this date (earlier days keep their hero). */
+const MARSHAL_FROM = "2026-11-26";
 function heroPool(date: string): HeroId[] {
+  if (date >= MARSHAL_FROM) return [...HEROES, ...NEW_HEROES, "cleric", "marshal"];
   if (date >= CLERIC_FROM) return [...HEROES, ...NEW_HEROES, "cleric"];
   return date >= HEROES_EXPANDED_FROM ? [...HEROES, ...NEW_HEROES] : HEROES;
 }

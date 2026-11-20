@@ -869,12 +869,17 @@ function trackStats(ev: CampEvent) {
   } else if (ev.type === "boom" && ev.kind === "snare" && ev.n) add("snared", ev.n);
   else if (ev.type === "lance" && ev.n) add("lanced", ev.n);
   else if (ev.type === "sanctuary") add("sanctified", ev.healed);
+  else if (ev.type === "callToArms") add("levied", ev.n);
   else if (ev.type === "fireOut") add("firesOut");
 }
 
 function playSfx(ev: CampEvent, c: Camp) {
   // Newer event types: synthesised in sfx.event (rate-limited there), plus a buzz for the big hits.
   switch (ev.type) {
+    case "callToArms":
+      sfx.warDrums();
+      buzz(settings, 40);
+      return;
     case "frostNova":
     case "eruption":
     case "tide":
