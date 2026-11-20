@@ -339,3 +339,13 @@ describe("side-game daily quests", () => {
     expect(freshPicks).not.toContain("d-mini");
   });
 });
+
+describe("side-game weekly quests", () => {
+  it("join from the week of 2026-12-07 only", async () => {
+    const { weeklyPick, weekNumber } = await import("../src/core/quests");
+    const before = [weekNumber("2026-11-16"), weekNumber("2026-11-23"), weekNumber("2026-11-30")].map((w) => weeklyPick(w));
+    expect(before.some((id) => id === "w-minis" || id === "w-siege")).toBe(false);
+    const after = Array.from({ length: 30 }, (_, i) => weeklyPick(weekNumber("2026-12-07") + i));
+    expect(after.some((id) => id === "w-minis" || id === "w-siege")).toBe(true);
+  });
+});

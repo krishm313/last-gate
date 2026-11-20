@@ -54,6 +54,9 @@ export const WEEKLY_QUESTS: QuestDef[] = [
   { id: "w-logs", icon: "🪓", desc: "Deliver 500 logs this week", stat: "logs", goal: 500, reward: 400 },
   // From the week starting Mon 2026-11-30.
   { id: "w-late", icon: "🌋", desc: "Win 2 runs in chapter 7+ this week", stat: "lateWins", goal: 2, reward: 650 },
+  // From the week starting Mon 2026-12-07.
+  { id: "w-minis", icon: "🎪", desc: "Earn 6 new mini-game stars this week", stat: "miniStars", goal: 6, reward: 500 },
+  { id: "w-siege", icon: "⚔️", desc: "Send 250 units in Siege Lord this week", stat: "deployed", goal: 250, reward: 450 },
 ];
 /** Weekly quests in the rotation before the newer ones joined (keeps the current week stable). */
 const ORIGINAL_WEEKLY = 5;
@@ -61,6 +64,9 @@ const WEEKLY_EXPANDED_FROM = "2026-11-23";
 /** Weekly quests in the rotation from WEEKLY_EXPANDED_FROM until the next batch joined. */
 const WEEKLY_SECOND = 8;
 const WEEKLY_EXPANDED_2 = "2026-11-30";
+/** Weekly quests in the rotation from WEEKLY_EXPANDED_2 until the side-game quests joined. */
+const WEEKLY_THIRD = 9;
+const WEEKLY_EXPANDED_3 = "2026-12-07";
 
 const BY_ID: Record<string, QuestDef> = Object.fromEntries([...DAILY_QUESTS, ...WEEKLY_QUESTS].map((q) => [q.id, q]));
 
@@ -110,7 +116,7 @@ export function questEligible(s: SaveData | null, id: string): boolean {
   if (id === "d-elites" || id === "d-hard" || id === "w-elites") return cleared;
   if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
   if (id === "w-late") return (s.stars[7] ?? 0) > 0; // has beaten chapter 7 once already
-  if (id === "d-mini" || id === "d-siege") return (s.stars[1] ?? 0) > 0; // Archery / Siege Lord open after chapter 1
+  if (id === "d-mini" || id === "d-siege" || id === "w-minis" || id === "w-siege") return (s.stars[1] ?? 0) > 0; // Archery / Siege Lord open after chapter 1
   return true;
 }
 
@@ -129,7 +135,7 @@ export function dailyPicks(date: string, s: SaveData | null = null): string[] {
 }
 
 export function weeklyPick(week: number, s: SaveData | null = null): string {
-  const size = week >= weekNumber(WEEKLY_EXPANDED_2) ? WEEKLY_QUESTS.length : week >= weekNumber(WEEKLY_EXPANDED_FROM) ? WEEKLY_SECOND : ORIGINAL_WEEKLY;
+  const size = week >= weekNumber(WEEKLY_EXPANDED_3) ? WEEKLY_QUESTS.length : week >= weekNumber(WEEKLY_EXPANDED_2) ? WEEKLY_THIRD : week >= weekNumber(WEEKLY_EXPANDED_FROM) ? WEEKLY_SECOND : ORIGINAL_WEEKLY;
   const pool = WEEKLY_QUESTS.slice(0, size).filter((q) => questEligible(s, q.id));
   return pool[hash(week * 7919) % pool.length]!.id;
 }
