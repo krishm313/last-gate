@@ -34,7 +34,7 @@ export class DragonView {
     /** Called once when a round ends; returns the reward to show. */
     private onFinish: (score: number) => DragonResult,
     private onExit: () => void,
-    private onSound?: (kind: "crash" | "pickup" | "thunk") => void,
+    private onSound?: (kind: "crash" | "pickup" | "thunk" | "roar") => void,
   ) {
     this.root.className = "lgd2";
     this.canvas.className = "lgd2-canvas";
@@ -90,10 +90,12 @@ export class DragonView {
     this.acc += dt;
     while (this.acc >= STEP) {
       const lives = this.s.lives, score = this.s.score, fired = this.s.blasts.filter((b) => b.fired).length;
+      const lines = this.s.blasts.filter((b) => b.kind === "line").length;
       stepDragon(this.s, STEP);
       if (this.s.lives < lives) this.onSound?.("crash");
       else if (this.s.score - score >= DRAGON.coin) this.onSound?.("pickup");
       else if (this.s.blasts.filter((b) => b.fired).length > fired) this.onSound?.("thunk");
+      if (this.s.blasts.filter((b) => b.kind === "line").length > lines) this.onSound?.("roar");
       this.acc -= STEP;
     }
     this.draw();
@@ -182,7 +184,10 @@ export class DragonView {
       c.save();
       c.translate(s.x, s.y);
       if (flip) c.scale(-1, 1);
-      c.drawImage(this.king, -w / 2, -h + 12, w, h);
+      const moving = Math.hypot(s.tx - s.x, s.ty - s.y) > 2;
+      const bob = moving ? -Math.abs(Math.sin(s.time * 14)) * 4 : 0;
+      c.rotate(moving ? Math.sin(s.time * 14) * 0.05 : 0);
+      c.drawImage(this.king, -w / 2, -h + 12 + bob, w, h);
       c.restore();
     }
     // The dragon circling overhead (shadow on the ground, the beast above it).
@@ -278,6 +283,15 @@ export class DragonView {
       c.beginPath();
       c.arc(b.x, b.y, b.r * (1 + k * 0.2), 0, Math.PI * 2);
       c.fill();
+      // Embers thrown out of the burst (fixed directions per blast, so no randomness).
+      for (let i = 0; i < 10; i++) {
+        const a = i * 2.39996 + b.id;
+        const d = b.r * (0.4 + k * (0.9 + ((i * 37 + b.id * 13) % 10) / 20));
+        c.fillStyle = i % 2 ? "#ffe27a" : "#ff8a3a";
+        c.beginPath();
+        c.arc(b.x + Math.cos(a) * d, b.y + Math.sin(a) * d - k * 18, 2.6 * (1 - k) + 0.6, 0, Math.PI * 2);
+        c.fill();
+      }
     } else {
       const lg = c.createLinearGradient(0, b.y - b.r, 0, b.y + b.r);
       lg.addColorStop(0, "rgba(220,60,20,0)");

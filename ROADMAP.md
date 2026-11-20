@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Dragon Dodge polish: embers fly out of each fire burst (fixed per-blast directions, no randomness), the dragon roars when it draws breath for a row, and the King bobs and sways while running.
 - Perf: the attract-mode camp (bot battle behind the menus) no longer simulates and draws while a full-screen mini-game is open. iPhone 13 profile at 4× CPU throttle: mini-games went from 15–20 fps (median 50–67 ms) to a steady 60 fps (16.7 ms).
 - Siege Lord result: "Attack again" / "Try again" restarts the same siege straight away (with any cards just unlocked). Autoplay sweep on Hard (ch5, Cleric) and Nightmare (ch3, Lancer): no errors.
 - Siege Lord results: units sent, walls broken, push taken (or hall % left), stars with "new best!" and chimes, gold, newly opened war cards, and the next siege (or what it needs).

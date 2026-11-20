@@ -453,7 +453,7 @@ export class Sfx {
   }
 
   /** Side games: bow twang, target thunk, bullseye ding, wagon crash, pickup. */
-  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star"): void {
+  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star" | "roar"): void {
     if (!this.ok(`mini_${kind}`, kind === "star" ? 0.2 : 0.05)) return;
     if (kind === "twang") {
       this.tone("triangle", 330, 180, 0.12, 0.07);
@@ -468,6 +468,11 @@ export class Sfx {
     } else if (kind === "crash") {
       this.noise(0.25, 0.3, "lowpass", 700);
       this.tone("sawtooth", 140, 60, 0.2, 0.08);
+    } else if (kind === "roar") {
+      // The dragon draws breath: a low growl rising into a roar.
+      this.tone("sawtooth", 70, 140, 0.55, 0.12);
+      this.tone("square", 95, 60, 0.6, 0.05, 0.1);
+      this.noise(0.6, 0.25, "lowpass", 500);
     } else if (kind === "star") {
       for (const [i, f] of [988, 1319, 1760].entries()) this.tone("triangle", f, f, 0.22, 0.06, i * 0.05);
     } else {
