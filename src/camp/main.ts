@@ -19,6 +19,8 @@ import { ForgeView } from "../mini/forgeView";
 import { forgeReward } from "../mini/forge";
 import { BellsView } from "../mini/bellsView";
 import { bellsReward } from "../mini/bells";
+import { MasonView } from "../mini/masonView";
+import { masonReward } from "../mini/mason";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
 import { claimGift } from "../core/gift";
@@ -153,6 +155,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     bells.open((Date.now() >>> 0) ^ 0xbe11);
+  },
+  onMason: () => {
+    hub.hide();
+    sfx.unlock();
+    mason.open();
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -567,6 +574,27 @@ const forge = new ForgeView(
     save.mini.forge = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
     const fair = isFair("forge");
     if (fair) r.gold += forgeReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
+    save.stats.miniStars = (save.stats.miniStars ?? 0) + r.newStars;
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
+  },
+  () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
+);
+
+// ---- Mason's Tower (side stop on the map). ----
+const mason = new MasonView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.mason ?? { best: 0, stars: 0 };
+    const r = masonReward(score, prev.stars);
+    save.mini.mason = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    const fair = isFair("mason");
+    if (fair) r.gold += masonReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
     save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.stats.miniStars = (save.stats.miniStars ?? 0) + r.newStars;
@@ -1326,7 +1354,7 @@ function frame(now: number) {
     renderer.draw(c, realDt);
     interp.restore(c);
   } else if (c) renderer.draw(c, 0);
-  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl, .lgf2, .lgb2")) {
+  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl, .lgf2, .lgb2, .lgm2")) {
     // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
   } else {
     // Attract mode: the bot defends a camp behind the menus. On a slow device it updates less often
@@ -1423,6 +1451,7 @@ Object.assign(window, {
   __lanterns: () => lanterns,
   __forge: () => forge,
   __bells: () => bells,
+  __mason: () => mason,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

@@ -1359,3 +1359,6 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgv-swatch { width: calc(22 * var(--u)); height: calc(22 * var(--u)); border-radius: 50%; background: conic-gradient(#5a3290, #ffd86a, #5a3290); border: calc(2 * var(--u)) solid #1d1208; flex: none; }
 .lgv-text { flex: 1; font-weight: 900; font-size: calc(13 * var(--tu)); }
 .lgv-state { font-weight: 800; font-size: calc(11 * var(--tu)); color: #ffd84a; }
+/* Mason's Tower side game. */
+.lgm2 { position: absolute; inset: 0; z-index: 6; background: #1a1a2e; display: flex; align-items: center; justify-content: center; }
+#ui .lgm2, #ui .lgm2 * { pointer-events: auto; }

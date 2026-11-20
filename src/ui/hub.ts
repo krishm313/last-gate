@@ -96,6 +96,8 @@ export interface HubCallbacks {
   onForge?: () => void;
   /** Open the Bell Tower side stop. */
   onBells?: () => void;
+  /** Open the Mason's Tower side stop. */
+  onMason?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -536,6 +538,7 @@ export class Hub {
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
       { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.68, go: () => this.cb.onBells?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
+      { key: "mason", icon: "🧱", name: "Mason's Tower", after: 7, left: 13, at: 6.2, go: () => this.cb.onMason?.() },
       { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
       { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
     ];
@@ -715,7 +718,7 @@ export class Hub {
       ? [
           "💀 Chapter 10: The Hollow Throne · 👑 Boss Rush — every boss, one per night",
           "📯 The Marshal (25★) & 🧪 The Alchemist (28★): two new heroes · 🎖️ Veteran looks after 25 nights",
-          "🎪 Five new mini-games — Royal Forge, Bell Tower, Dragon Dodge, Catapult Toss, Ghost Lanterns — all in the 🎪 Fair tile",
+          "🎪 Six new mini-games — Royal Forge, Bell Tower, Mason's Tower, Dragon Dodge, Catapult Toss, Ghost Lanterns — all in the 🎪 Fair tile",
           "⚔️ Siege Lord: three new sieges up to the Alchemist's Tower, new war cards, and a 🗓️ Daily Siege",
           "🌑 Shadowstalker: a new foe in chapters 7–10 that blinks forward through your fire",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
@@ -724,7 +727,7 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 6 sieges, new war cards and a 🗓️ Daily Siege",
-          "🎪 8 mini-games on the map, all in the 🎪 Fair tile — stars, gold and a daily 2× Fair day",
+          "🎪 9 mini-games on the map, all in the 🎪 Fair tile — stars, gold and a daily 2× Fair day",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
           ...(NEWS === "2026-11-21" ? ["💀 Chapter 10 · 👑 Boss Rush · 📯 the Marshal & 🧪 the Alchemist (new heroes) · 🎖️ Veteran looks"] : []),
@@ -975,7 +978,7 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     // Side games: best score and stars for each mini-game, plus Siege Lord stars.
-    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["bells", "🔔", "Bell Tower"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
+    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["bells", "🔔", "Bell Tower"], ["catapult", "🪨", "Catapult"], ["mason", "🧱", "Mason's Tower"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
     const fun = el("div", "records");
     const opened = openMinis(save.stars);
     for (const [key, icon, label] of minis) {
