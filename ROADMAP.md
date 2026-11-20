@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Bestiary: the Hollow King's tile and entry use his painted portrait.
 - Hero flair 👻 Grave Wisps (clear chapter 10): a pale-violet pool and lilac wisps rising as the hero walks (a few while standing).
 - Chapter 10 follow-ups: Hollow King painted portrait (recoloured boss portrait) on the boss bar; he joins the Endless boss rotation (last, so only night 60+ changes); chapter 10 on the Nov 21 What's-new card.
 - The Hollow King's own look: anim/hollowking_anim.webp = the boss sheet recoloured with numpy (warm skin → pale lilac-grey, browns/reds → deep violet; full walk/attack/hit/death frames).

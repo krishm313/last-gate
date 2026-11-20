@@ -1530,7 +1530,7 @@ const BOSS_ICON: Record<string, string> = { warlord: "⚔️", hag: "🧙", gole
 const FOE_PORTRAIT: Record<string, string> = {
   footman: "enemy_footman", runner: "enemy_footman", banner: "enemy_footman", shield: "enemy_shield", brute: "enemy_brute",
   crossbow: "enemy_crossbow", knight: "enemy_knight", shaman: "enemy_shaman", wraith: "enemy_wraith", sapper: "enemy_sapper",
-  tunneler: "enemy_sapper", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", hag: "elite_mage",
+  tunneler: "enemy_sapper", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", hag: "elite_mage", hollowking: "hollowking",
 };
 const FOE_EMOJI: Record<string, string> = {
   bat: "🦇", raven: "🐦‍⬛", imp: "👺", ram: "🪵", ogre: "👹", troll: "🧌", golem: "🗿", dragon: "🐉", colossus: "🛡️",
