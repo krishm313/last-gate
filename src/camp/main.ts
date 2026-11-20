@@ -1065,7 +1065,7 @@ function frame(now: number) {
       }
       if (ev.type === "waveStart")
         hud.banner(
-          !c.chapter.endless && ev.wave === c.chapter.waves.length ? "🌙 FINAL NIGHT" : ev.boss ? `🌙 Night ${ev.wave} — Boss!` : `🌙 Night ${ev.wave}`,
+          c.chapter.id === 98 ? (ev.wave === c.chapter.waves.length ? "👑 THE LAST BOSS" : `👑 Boss ${ev.wave}/${c.chapter.waves.length}`) : !c.chapter.endless && ev.wave === c.chapter.waves.length ? "🌙 FINAL NIGHT" : ev.boss ? `🌙 Night ${ev.wave} — Boss!` : `🌙 Night ${ev.wave}`,
           ev.boss ?? (ev.intro ? `New enemy: ${ev.intro}` : "The horde comes in the dark"),
           !c.chapter.endless && ev.wave === c.chapter.waves.length ? "red" : undefined,
         );
