@@ -730,6 +730,11 @@ function startSiege(i: number) {
   const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true, siegesWon: won, hordeHp: s.hordeHp };
   const chapter = CHAPTER_BY_ID[s.chapter]!;
   camp = createCamp((Date.now() >>> 0) ^ 0x5e9e, chapter, setup);
+  // The castle's opening build time (~20 s) used to be dead time for the attacker — nothing to do but
+  // watch a countdown. Fast-forward the defenders through it (same bot, same steps, so the same
+  // castle and balance) and leave a short countdown to get your bearings.
+  for (let n = 0; camp.phase === "build" && camp.timer > SIEGE_COUNTDOWN && n < 60 * 120; n++) campBotStep(camp);
+  drainEvents(camp);
   preloadAnimsFor(WAR_CARDS.map((k) => k.id)); // (your horde: every card's look)
   renderer.setGround(chapter.ground, chapter.id);
   lastMood = chapter.id;
@@ -748,6 +753,9 @@ function startSiege(i: number) {
   music.start();
   window.setTimeout(() => hud.toast("⚔️ Drag a unit card onto a lane of the field — or tap the field to send the picked card. Take the hall!"), 600);
 }
+
+/** Seconds of countdown the attacker sees before the first push (the rest is fast-forwarded). */
+const SIEGE_COUNTDOWN = 5;
 
 /** Seconds the War Chest sat full during this siege's pushes (income going to waste). */
 let siegeFullTime = 0;
