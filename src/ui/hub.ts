@@ -92,6 +92,8 @@ export interface HubCallbacks {
   onLanterns?: () => void;
   /** Open the Royal Forge side stop. */
   onForge?: () => void;
+  /** Open the Bell Tower side stop. */
+  onBells?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -442,6 +444,7 @@ export class Hub {
       { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
       { key: "forge", icon: "⚒️", name: "Royal Forge", after: 3, left: 86, at: 2.5, go: () => this.cb.onForge?.() },
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
+      { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.55, go: () => this.cb.onBells?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
       { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
       { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
@@ -637,7 +640,7 @@ export class Hub {
           "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother on older phones",
           "🧭 Siege Lord, Endless & Boss Rush now sit in one row of tiles just above the map",
           "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
-          "⚒️ Royal Forge: a new timing mini-game on the map after chapter 3 · 3 new hero flairs",
+          "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
@@ -645,7 +648,7 @@ export class Hub {
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
           "🎪 6 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
-          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)", "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one", "⚒️ Royal Forge: a new timing mini-game after chapter 3"] : []),
+          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)", "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one", "⚒️ Royal Forge & 🔔 Bell Tower: two new mini-games on the map"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [
@@ -893,7 +896,7 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     // Side games: best score and stars for each mini-game, plus Siege Lord stars.
-    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
+    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["bells", "🔔", "Bell Tower"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
     const fun = el("div", "records");
     const opened = openMinis(save.stars);
     for (const [key, icon, label] of minis) {

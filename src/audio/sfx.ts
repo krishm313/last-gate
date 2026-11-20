@@ -495,6 +495,15 @@ export class Sfx {
     }
   }
 
+  /** Bell Tower: bell i (0–3) rings — a bright strike and a long, gently beating tail. */
+  bell(i: number): void {
+    if (!this.ok(`bell_${i}`, 0.05)) return;
+    const f = [523, 659, 784, 1047][i] ?? 523;
+    this.tone("sine", f, f, 0.9, 0.09);
+    this.tone("sine", f * 2.01, f * 2.01, 0.5, 0.035);
+    this.tone("triangle", f * 3, f * 3, 0.12, 0.03);
+  }
+
   /** UI click. */
   click(): void {
     if (this.ok("click", 0.03)) this.tone("triangle", 700, 500, 0.05, 0.08);

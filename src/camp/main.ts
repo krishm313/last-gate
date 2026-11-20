@@ -17,6 +17,8 @@ import { LanternsView } from "../mini/lanternsView";
 import { lanternReward } from "../mini/lanterns";
 import { ForgeView } from "../mini/forgeView";
 import { forgeReward } from "../mini/forge";
+import { BellsView } from "../mini/bellsView";
+import { bellsReward } from "../mini/bells";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
 import { claimGift } from "../core/gift";
@@ -144,6 +146,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     forge.open((Date.now() >>> 0) ^ 0xf09);
+  },
+  onBells: () => {
+    hub.hide();
+    sfx.unlock();
+    bells.open((Date.now() >>> 0) ^ 0xbe11);
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -562,6 +569,28 @@ const forge = new ForgeView(
     return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
   },
   () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
+);
+
+// ---- Bell Tower (side stop on the map). ----
+const bells = new BellsView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.bells ?? { best: 0, stars: 0 };
+    const r = bellsReward(score, prev.stars);
+    save.mini.bells = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    const fair = isFair("bells");
+    if (fair) r.gold += bellsReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
+    save.stats.miniStars = (save.stats.miniStars ?? 0) + r.newStars;
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
+  },
+  () => hub.showHub(save, "battle"),
+  (i) => sfx.bell(i),
   (kind) => sfx.mini(kind),
 );
 
@@ -1248,7 +1277,7 @@ function frame(now: number) {
     renderer.draw(c, realDt);
     interp.restore(c);
   } else if (c) renderer.draw(c, 0);
-  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl, .lgf2")) {
+  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl, .lgf2, .lgb2")) {
     // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
   } else {
     // Attract mode: the bot defends a camp behind the menus. On a slow device it updates less often
@@ -1344,6 +1373,7 @@ Object.assign(window, {
   __dragon: () => dragonDodge,
   __lanterns: () => lanterns,
   __forge: () => forge,
+  __bells: () => bells,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

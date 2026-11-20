@@ -1340,3 +1340,6 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Royal Forge side game. */
 .lgf2 { position: absolute; inset: 0; z-index: 6; background: #140c08; display: flex; align-items: center; justify-content: center; }
 #ui .lgf2, #ui .lgf2 * { pointer-events: auto; }
+/* Bell Tower side game. */
+.lgb2 { position: absolute; inset: 0; z-index: 6; background: #1a1420; display: flex; align-items: center; justify-content: center; }
+#ui .lgb2, #ui .lgb2 * { pointer-events: auto; }
