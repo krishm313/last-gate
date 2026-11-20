@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Volume sliders are easier to grab: the touch target was 14 px tall on iPhone SE (a finger slightly off missed it) — now 24 px with the same look, and dragging no longer lets the panel scroll. Checked with a finger-style drag: 80% → 17%, saved, panel stays open.
 - Long-session memory (4 min autoplay, chapter 5): JS heap flat at 14 MB, renderer maps all bounded — but canvases kept climbing (50 → 110 MB) as the crisp frame cache filled to 1500. Cap now 800 (canvases level off ~88 MB; rebuilds per minute unchanged), and the prop cache is bounded (300). iOS caps total canvas memory, so this matters on long nights.
 - The in-game "Reduced motion" setting now also quiets the menus (pulsing buttons, sliding panels, confetti) — before, those only stopped when the phone's own Reduce Motion was on; it only removed shake/slow-mo in battle. Also checked: trophy claim with a real tap (+100 gold, badge clears).
 - No tutorial tip while the hero is down ("Drag anywhere to walk" sat over the grey respawn screen); it returns when he rises. Death → respawn otherwise checked: "You fell!" banner, "Respawning in N" chip, rise at the hall.

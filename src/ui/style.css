@@ -657,7 +657,7 @@ html, body, #ui, button { font-family: ui-rounded, "SF Pro Rounded", "Arial Roun
 .vol-row { display: flex; align-items: center; gap: calc(8 * var(--u)); margin: calc(-2 * var(--u)) calc(6 * var(--u)) calc(2 * var(--u)); pointer-events: auto; }
 .vol-label { font-size: calc(11 * var(--tu)); font-weight: 800; opacity: 0.75; }
 .vol-pct { font-size: calc(11 * var(--tu)); font-weight: 900; min-width: calc(32 * var(--u)); text-align: right; }
-input.vol { flex: 1; accent-color: #ffd84a; height: calc(20 * var(--u)); pointer-events: auto; touch-action: auto; }
+input.vol { flex: 1; accent-color: #ffd84a; height: calc(34 * var(--u)); margin: calc(-6 * var(--u)) 0; pointer-events: auto; touch-action: none; } /* tall touch target (the track stays thin); no scroll steal while dragging */
 .toast-host { position: absolute; z-index: 30; top: calc(108 * var(--u)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--u)); pointer-events: none; }
 .toast { background: linear-gradient(#2e5290, #1c355e); color: #fff; font-weight: 900; font-size: calc(13 * var(--tu)); padding: calc(6 * var(--u)) calc(14 * var(--u)); border-radius: calc(12 * var(--u)); border: calc(2.5 * var(--u)) solid #1d1208; box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd56a, 0 calc(3 * var(--u)) 0 #1d1208; animation: toast-in 0.35s cubic-bezier(.2,1.4,.4,1); transition: opacity 0.4s, transform 0.4s; }
 .toast.out { opacity: 0; transform: translateY(calc(-10 * var(--u))); }
