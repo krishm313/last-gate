@@ -1547,7 +1547,10 @@ fx.shake(0.15);
     for (const e of c.enemies) items.push({ y: e.def.flying ? (this.flip ? e.y - 2000 : e.y + 2000) : e.y, a: e.y, draw: () => this.drawEnemy(ctx, c, e) });
     if (!c.hero.dead) {
       this.heroFell = null;
-      items.push({ y: c.hero.y, draw: () => this.drawHero(ctx, c) });
+      // Standing in the open gate (the hero can walk through it), they'd sort behind the gate boards and
+      // vanish; draw them in front of the wall while inside the gate's depth.
+      const inGate = Math.abs(c.hero.y - WALL_Y) < WALL_THICK / 2 + 14;
+      items.push({ y: inGate ? Math.max(c.hero.y, WALL_Y + 0.5) : c.hero.y, a: c.hero.y, draw: () => this.drawHero(ctx, c) });
     } else if (this.heroFell && c.heroLook === "hero") {
       const f = this.heroFell;
       items.push({
