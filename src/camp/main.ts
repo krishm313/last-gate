@@ -75,8 +75,15 @@ sfx.muted = getItem("lastgate.muted") === "1";
 let camp: Camp | null = null;
 /** The finished siege, kept on screen (frozen, its effects settling) behind the result panel. */
 let siegeBackdrop: Camp | null = null;
-/** The log-pile hint has been checked this session (it shows once ever; see lastgate.tipLogs). */
-let logTipShown = false;
+/** One-time hints already checked this session (each shows once ever: lastgate.<key>). */
+const tipsChecked = new Set<string>();
+function oneTip(key: string, when: boolean, text: string): void {
+  if (!when || tipsChecked.has(key)) return;
+  tipsChecked.add(key);
+  if (getItem(`lastgate.${key}`) === "1") return;
+  setItem(`lastgate.${key}`, "1");
+  hud.toast(text);
+}
 let save = loadSave();
 let chapterId = save.lastChapter;
 let paused = false;
@@ -1417,13 +1424,12 @@ function frame(now: number) {
     }
     else hud.update(c);
     heartbeatTick(c, realDt);
-    // One-time hint: the Lumber Camp's logs wait in a pile that you must walk over to pick up.
-    if (!c.reverse && !logTipShown && c.lumberPile >= 3 && c.hero.logs === 0 && (c.phase === "build" || c.phase === "wave")) {
-      logTipShown = true;
-      if (getItem("lastgate.tipLogs") !== "1") {
-        setItem("lastgate.tipLogs", "1");
-        hud.toast("🪵 Logs are piling up at the Lumber Camp — walk over to pick them up");
-      }
+    // One-time hints for the carry chain nobody explains otherwise: log pile → forge → bows → towers.
+    if (!c.reverse && (c.phase === "build" || c.phase === "wave")) {
+      const forge = c.plots.find((p) => p.kind === "forge" && p.level > 0);
+      oneTip("tipLogs", c.lumberPile >= 3 && c.hero.logs === 0, "🪵 Logs are piling up at the Lumber Camp — walk over to pick them up");
+      oneTip("tipForgeIn", !!forge && c.hero.logs > 0 && c.forgeLogs === 0 && c.forgeBows === 0, "⚒️ Walk your logs past the Forge to feed it — it turns them into bows");
+      oneTip("tipBows", !!forge && c.forgeBows > 0 && c.hero.bows === 0, "🏹 Bows are ready at the Forge — pick them up and walk past your towers (+6% damage each)");
     }
     hud.setTip(c.phase === "build" || c.phase === "wave" ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
     renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;
