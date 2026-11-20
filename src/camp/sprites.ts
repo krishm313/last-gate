@@ -309,7 +309,7 @@ function crispFrame(e: AtlasEntry, key: string, sx: number, sy: number, sw: numb
   }
   const t0 = performance.now();
   if (t0 - crispFrameAt > 12) { crispFrameAt = t0; crispSpent = 0; }
-  if (crispSpent > 4) return null;
+  if (crispSpent > 2) return null;
   crispStats.built++;
   const c = document.createElement("canvas");
   c.width = pw;
@@ -324,30 +324,8 @@ function crispFrame(e: AtlasEntry, key: string, sx: number, sy: number, sw: numb
     ssx /= 2; ssy /= 2; ssw /= 2; ssh /= 2;
   }
   g.drawImage(src, ssx, ssy, ssw, ssh, 0, 0, pw, ph);
-  if (!flash) {
-    // Light unsharp mask on colour (alpha untouched, so silhouettes don't halo).
-    const im = g.getImageData(0, 0, pw, ph), d = im.data, o = new Uint8ClampedArray(d);
-    const AMT = 0.45;
-    for (let y = 1; y < ph - 1; y++)
-      for (let x = 1; x < pw - 1; x++) {
-        const i = (y * pw + x) * 4;
-        if (o[i + 3]! < 8) continue;
-        for (let ch = 0; ch < 3; ch++) {
-          let sum = 0, wsum = 0;
-          for (let dy = -1; dy <= 1; dy++)
-            for (let dx = -1; dx <= 1; dx++) {
-              const j = i + (dy * pw + dx) * 4;
-              const a = o[j + 3]!;
-              if (a < 8) continue;
-              sum += o[j + ch]!;
-              wsum++;
-            }
-          const v = o[i + ch]!;
-          d[i + ch] = v + AMT * (v - sum / wsum);
-        }
-      }
-    g.putImageData(im, 0, 0);
-  } else {
+  // (No per-pixel sharpening here: getImageData forces a GPU→CPU readback, which stalls phones.)
+  if (flash) {
     g.globalCompositeOperation = "source-in";
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, pw, ph);
@@ -468,8 +446,10 @@ export function drawAnim(
   const M = ctx.getTransform();
   if (sq === 0 && (opts.xscale ?? 1) === 1 && Math.abs(M.b) < 1e-6 && Math.abs(M.c) < 1e-6 && M.d > 0) {
     // Width and height sized separately (callers may stretch a little, e.g. breathing).
-    const ph = Math.max(6, Math.round(A.h * k * M.d));
-    const pw = Math.max(4, Math.round(A.w * k * Math.abs(M.a)));
+    // Sizes snap to ~3% steps so slightly different enemies (size variety, zoom) share cached frames
+    // instead of each building its own; the frame keeps the sheet's aspect ratio.
+    const ph = Math.max(6, Math.round(Math.pow(2, Math.round(Math.log2(A.h * k * M.d) * 24) / 24)));
+    const pw = Math.max(4, Math.round(A.w * (ph / A.h) * (Math.abs(M.a) / M.d)));
     const body = crispFrame(e, name, sx, sy, A.w, A.h, pw, ph, false);
     const fl = opts.flash && opts.flash > 0 ? crispFrame(e, name, sx, sy, A.w, A.h, pw, ph, true) : null;
     if (body && (fl || !(opts.flash && opts.flash > 0))) {

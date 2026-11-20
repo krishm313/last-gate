@@ -491,15 +491,15 @@ export class CampRenderer {
     this.comboAt = -9;
   }
 
-  /** Pixel-density cap (full 3× on retina phones, for crisp art); lowered automatically on devices
-   *  that can't hold ~24 fps (see perfSample). */
-  maxDpr = 3;
+  /** Pixel-density cap: 2× (indistinguishable from 3× at phone viewing distance, and less than half
+   *  the pixels to fill); lowered automatically on devices that can't keep up (see perfSample). */
+  maxDpr = 2;
   private perfAcc = 0;
   private perfFrames = 0;
 
   /**
-   * Adaptive quality: feed real frame times; if ~4 s of frames average slower than 24 fps, render the
-   * canvas at a lower pixel density (3 → 2 → 1.5 → 1). Only ever steps down; affects drawing, never the sim.
+   * Adaptive quality: feed real frame times; if ~4 s of frames average slower than 40 fps, render the
+   * canvas at a lower pixel density (2 → 1.5 → 1). Only ever steps down; affects drawing, never the sim.
    */
   perfSample(realDt: number): void {
     if (this.maxDpr <= 1 || (window.devicePixelRatio || 1) <= 1) return;
@@ -509,9 +509,10 @@ export class CampRenderer {
     const avg = this.perfAcc / this.perfFrames;
     this.perfAcc = 0;
     this.perfFrames = 0;
-    // 24 fps, not 30: iPhones in Low Power Mode cap rAF at 30 fps, which isn't a reason to blur the game.
-    if (avg > 1 / 24) {
-      this.maxDpr = this.maxDpr > 2 ? 2 : this.maxDpr > 1.5 ? 1.5 : 1;
+    // Below ~40 fps on average, drop a density step (smoothness matters more than the last bit of
+    // sharpness; Low Power Mode's 30 fps cap also lands here, which saves battery too).
+    if (avg > 1 / 40) {
+      this.maxDpr = this.maxDpr > 1.5 ? 1.5 : 1;
       this.fit();
     }
   }
