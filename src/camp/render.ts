@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
+import { ACID, ELITE_INFO, HEALER_LEVELS, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -732,6 +732,10 @@ export class CampRenderer {
           fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
           for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
           break;
+        case "acidSplash":
+          fx.burst(ev.x, ev.y, "#8ae05a", 18, 160, { max: 0.6, size: 3.4, gravity: 220, shape: "dot" });
+          fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#b8ff80", life: 0.35, max: 0.35, width: 3 });
+          break;
         case "blink":
           // A puff of shadow where it vanished, a streak, and another where it steps out.
           fx.burst(ev.x0, ev.y0, "#2a1a40", 10, 90, { max: 0.5, size: 4, gravity: -40, drag: 2, shape: "dot" });
@@ -1317,6 +1321,7 @@ fx.shake(0.15);
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
     for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
+    for (const a of c.acid) items.push(a.delay > 0 ? { y: 1e6, draw: () => this.drawFlask(ctx, a) } : { y: -1e6 + 1, draw: () => this.drawAcidPool(ctx, a) });
     for (const t of c.tides) items.push({ y: -1e6 + 2, draw: () => this.drawTide(ctx, t) });
     for (const p of c.plots) if ((p.fire ?? 0) > 0) items.push({ y: p.y + 40, draw: () => this.drawBurning(ctx, p) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
@@ -4087,6 +4092,55 @@ fx.shake(0.15);
     if (cool > 0.5 && Math.floor(this.time * 8 + l.x) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(l.x + Math.sin(this.time * 13 + l.y) * r * 0.5, l.y, "#ffa040", 1, 30, { max: 0.6, size: 2.4, gravity: -70, shape: "dot" });
   }
 
+  /** The Alchemist's flask in flight: a spinning green bottle on a high arc to where the pool will form. */
+  private drawFlask(ctx: CanvasRenderingContext2D, a: { x: number; y: number; delay: number; fromX: number; fromY: number }): void {
+    const k = Math.max(0, Math.min(1, 1 - a.delay / ACID.flight));
+    const x = a.fromX + (a.x - a.fromX) * k;
+    const y = a.fromY + (a.y - a.fromY) * k - Math.sin(k * Math.PI) * 120;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(k * 9);
+    ctx.fillStyle = "#7ae05a";
+    ctx.strokeStyle = "#1d2a12";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#c8b090";
+    ctx.fillRect(-2.5, -8, 5, 6);
+    ctx.strokeRect(-2.5, -8, 5, 6);
+    ctx.restore();
+  }
+
+  /** An acid pool: a bubbling green slick that fades as it dries up. */
+  private drawAcidPool(ctx: CanvasRenderingContext2D, a: { x: number; y: number; r: number; t: number }): void {
+    const life = Math.min(1, a.t / 0.8);
+    const grow = Math.min(1, (ACID.life - a.t) / 0.25);
+    const r = a.r * (0.55 + 0.45 * grow);
+    ctx.save();
+    ctx.fillStyle = `rgba(20,40,10,${0.55 * life})`;
+    ctx.beginPath(); ctx.ellipse(a.x, a.y, r * 1.08, r * 0.48, 0, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createRadialGradient(a.x, a.y, 2, a.x, a.y, r);
+    g.addColorStop(0, `rgba(190,255,110,${0.85 * life})`);
+    g.addColorStop(0.65, `rgba(90,200,60,${0.7 * life})`);
+    g.addColorStop(1, `rgba(40,110,30,${0.35 * life})`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(a.x, a.y, r, r * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = `rgba(230,255,190,${0.85 * life})`;
+    for (let k = 0; k < 6; k++) {
+      const ph = (this.time * 2.1 + k * 0.23 + a.x * 0.01) % 1;
+      const ang = k * 1.9 + a.y;
+      ctx.beginPath(); ctx.arc(a.x + Math.cos(ang) * r * 0.6, a.y + Math.sin(ang) * r * 0.22, 1.2 + ph * 3.2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("acidglow", [[0, "rgba(150,255,90,0.8)"], [1, "rgba(60,200,40,0)"]]), a.x, a.y, r * 1.4, r * 0.75, 0.3 * life + this.night * 0.3 * life);
+    ctx.restore();
+    if (life > 0.4 && Math.floor(this.time * 10 + a.x) % 3 === 0 && this.fx.particles.length < 400) this.fx.burst(a.x + Math.sin(this.time * 11 + a.y) * r * 0.5, a.y, "#a8f070", 1, 26, { max: 0.6, size: 2.2, gravity: -60, shape: "dot" });
+  }
+
   /** The Drowned King's tide: a sheet of sea water across the field with a foaming, rippling edge. */
   private drawTide(ctx: CanvasRenderingContext2D, t: { y: number; h: number; t: number; dur: number }): void {
     const inK = Math.min(1, t.t / 0.4), outK = Math.min(1, (t.dur - t.t) / 0.6);
@@ -5539,7 +5593,7 @@ fx.shake(0.15);
       heroFrame = (1 - h.cooldown / 0.16) * 3.2;
     }
     // Other heroes: their painted figure from the character sheet with procedural motion.
-    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman", hero_cleric: "cleric", hero_marshal: "marshal" };
+    const altHero: Record<string, SpriteName> = { hero_knight: "knight", hero_pyro: "mage", hero_engineer: "crossbowman", hero_warden: "archer", hero_lancer: "spearman", hero_cleric: "cleric", hero_marshal: "marshal", hero_alchemist: "alchemist" };
     const alt0 = altHero[c.heroLook];
     // The Veteran look is a recoloured copy of the same painted figure.
     const alt = alt0 && c.heroVet ? (`${alt0}_vet` as SpriteName) : alt0;

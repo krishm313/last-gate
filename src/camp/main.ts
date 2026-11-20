@@ -1020,6 +1020,8 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "burrow":
     case "emerge":
     case "blink":
+    case "flask":
+    case "acidSplash":
     case "specChosen":
     case "ablaze":
     case "fireOut":

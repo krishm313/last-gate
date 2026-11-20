@@ -22,3 +22,11 @@ describe("daily twists", () => {
     for (const t of TWISTS) for (const k of Object.keys(t.mods ?? {})) expect(keys).toContain(k);
   });
 });
+
+describe("daily heroes", () => {
+  it("the Alchemist only joins the daily hero pool from Dec 3", () => {
+    for (let i = 0; i < 45; i++) expect(dailyFor(day("2026-10-19", i)).hero).not.toBe("alchemist");
+    const later = Array.from({ length: 90 }, (_, i) => dailyFor(day("2026-12-03", i)).hero);
+    expect(later).toContain("alchemist");
+  });
+});

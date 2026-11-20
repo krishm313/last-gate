@@ -229,3 +229,36 @@ describe("The Marshal", () => {
     expect(c.allies.length).toBe(before);
   });
 });
+
+describe("The Alchemist", () => {
+  it("Acid Flask lands on the thickest knot of foes, eats at them and makes them take more damage", async () => {
+    const { createCamp, drainEvents, spawnEnemy, step, ACID } = await import("../src/camp/sim");
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 1 }; // 28 stars
+    const setup = campSetupFromSave(s, "alchemist");
+    expect(setup.ability).toBe("acidFlask");
+    const c = createCamp(4, undefined, setup);
+    c.phase = "wave";
+    c.queue = [];
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    spawnEnemy(c, { at: 0, enemy: "golem", hpMult: 500, lane: null }, { x: 100, y: 40 });
+    const lone = spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 20, lane: null }, { x: 600, y: 300 });
+    const pack = [0, 1, 2].map((i) => spawnEnemy(c, { at: 0, enemy: "brute", hpMult: 20, lane: null }, { x: 250 + i * 20, y: 320 }));
+    for (const e of [lone, ...pack]) e.stunTime = 99;
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    const fl = drainEvents(c).find((e) => e.type === "flask") as { x: number } | undefined;
+    expect(fl).toBeDefined();
+    expect(Math.abs(fl!.x - 270)).toBeLessThan(30);
+    const hp0 = pack.map((e) => e.hp), loneHp = lone.hp;
+    for (let i = 0; i < 60 * 2; i++) step(c, { move: { x: 0, y: 0 } } as never);
+    pack.forEach((e, i) => expect(e.hp).toBeLessThan(hp0[i]!));
+    expect(pack[0]!.corroded).toBeGreaterThan(0);
+    expect(lone.hp).toBe(loneHp);
+    // The pool dries up.
+    for (let i = 0; i < 60 * (ACID.life + 1); i++) step(c, { move: { x: 0, y: 0 } } as never);
+    expect(c.acid.length).toBe(0);
+  });
+});

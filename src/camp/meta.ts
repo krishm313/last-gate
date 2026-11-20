@@ -17,6 +17,7 @@ export const CAMP_HEROES: Record<HeroId, { look: string; passive: string; apply:
   knight: { look: "hero_knight", passive: "+60% HP, +25% damage, walls +15%.", apply: (s) => { s.mods!.heroHp *= 1.6; s.mods!.heroDamage *= 1.25; s.mods!.wallHp *= 1.15; } },
   pyro: { look: "hero_pyro", passive: "Every arrow burns.", apply: (s) => { s.mods!.burn += 0.5; } },
   marshal: { look: "hero_marshal", passive: "Soldiers have 25% more health.", apply: (s) => { s.mods!.allyPower *= 1.25; } },
+  alchemist: { look: "hero_alchemist", passive: "Foes drop 15% more coins.", apply: (s) => { s.mods!.drops *= 1.15; } },
   cleric: { look: "hero_cleric", passive: "The hall's archers hit 15% harder.", apply: (s) => { s.mods!.hallDamage *= 1.15; } },
   lancer: { look: "hero_lancer", passive: "Shoots 30% farther.", apply: (s) => { s.mods!.heroRange *= 1.3; } },
   warden: { look: "hero_warden", passive: "Every shot hits 1 extra target.", apply: (s) => { s.mods!.heroMultishot += 1; } },

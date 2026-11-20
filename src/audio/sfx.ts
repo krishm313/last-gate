@@ -386,6 +386,13 @@ export class Sfx {
         if (!this.ok("dig", 0.4)) return;
         this.noise(0.3, 0.2, "lowpass", 500, 1, 0, 200);
         break;
+      case "flask":
+        this.tone("triangle", 500, 900, 0.18, 0.04);
+        break;
+      case "acidSplash":
+        this.noise(0.3, 0.16, "lowpass", 1200);
+        this.tone("sine", 300, 120, 0.25, 0.05);
+        break;
       case "blink":
         if (!this.ok("blink", 0.25)) return;
         this.noise(0.12, 0.08, "highpass", 1800);

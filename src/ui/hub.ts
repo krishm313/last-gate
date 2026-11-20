@@ -33,6 +33,7 @@ const HERO_PORTRAIT: Record<string, string> = {
   lancer: "./sprites/portraits/lancer.png",
   cleric: "./sprites/portraits/cleric.png",
   marshal: "./sprites/portraits/marshal.png",
+  alchemist: "./sprites/portraits/alchemist.png",
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
@@ -696,6 +697,7 @@ export class Hub {
           "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
           "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
           "🌑 Shadowstalker: a new foe in chapters 7–10 and Endless that blinks forward through your fire",
+          "🧪 The Alchemist (9th hero, 28★): an Acid Flask pools on the thickest knot of foes — they burn and take 25% more damage",
           "🎖️ Veteran looks: survive 25 nights with a hero to unlock a new outfit — violet-and-gold, Golden robes for the Cleric, the Crimson King",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
@@ -1707,7 +1709,7 @@ const FOE_EMOJI: Record<string, string> = {
 };
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */
-const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱", sanctuary: "✨", callToArms: "📯" };
+const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱", sanctuary: "✨", callToArms: "📯", acidFlask: "🧪" };
 
 /** Scroll `node` near the top of its scrolling ancestor by layout position (ignores entrance-animation transforms). */
 function scrollToLayout(node: HTMLElement): void {

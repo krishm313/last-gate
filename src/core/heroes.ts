@@ -1,5 +1,5 @@
-export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer" | "cleric" | "marshal";
-export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance" | "sanctuary" | "callToArms";
+export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer" | "cleric" | "marshal" | "alchemist";
+export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance" | "sanctuary" | "callToArms" | "acidFlask";
 
 export interface HeroDef {
   id: HeroId;
@@ -56,6 +56,11 @@ export const HEROES: HeroDef[] = [
     id: "marshal", name: "The Marshal", title: "Captain of the levy", color: "#c8384a",
     ability: "callToArms", abilityName: "Call to Arms", abilityDesc: "Summon 4 militia at your side for 12 s — they fight anything inside the walls or at the gate.",
     cooldown: 24, starsToUnlock: 25,
+  },
+  {
+    id: "alchemist", name: "The Alchemist", title: "Brewer of the green fire", color: "#5ab04a",
+    ability: "acidFlask", abilityName: "Acid Flask", abilityDesc: "Lob a flask at the thickest knot of foes: an acid pool eats at them for 5 s, and they take 25% more damage while they stand in it.",
+    cooldown: 18, starsToUnlock: 28,
   },
 ];
 

@@ -95,6 +95,8 @@ export interface Enemy {
   enraged: boolean;
   /** Snare Field: seconds left rooted by the Warden (takes extra damage meanwhile). */
   snared?: number;
+  /** Standing in acid: seconds left of the damage-taken bonus. */
+  corroded?: number;
   /** Elite modifier (if any) and the Shielded elite's remaining shield. */
   elite?: EliteMod;
   shield?: number;
@@ -326,6 +328,8 @@ export type CampEvent =
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "blink"; x0: number; y0: number; x: number; y: number }
+  | { type: "flask"; x: number; y: number }
+  | { type: "acidSplash"; x: number; y: number; r: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
@@ -450,6 +454,8 @@ export interface Camp {
   /** Run stats for the end screen / loss tips. */
   runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number; casts?: number; flares?: number };
   strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
+  /** Acid pools (the Alchemist): `delay` until the flask lands, then `t` seconds left. */
+  acid: { x: number; y: number; r: number; t: number; delay: number; dps: number; fromX: number; fromY: number }[];
   owned: Record<string, number>;
   offers: Blessing[];
   rerollsUsed: number;
@@ -567,6 +573,8 @@ export const SANCTUARY = { hall: 0.05, wall: 0.12 };
 export const LANCE = { length: 480, width: 30, damage: 4.5, push: 60 };
 /** The Warden's Snare Field. */
 export const SNARE = { radius: 240, time: 3, bossTime: 1, vuln: 1.3 };
+/** The Alchemist's Acid Flask: flight time, pool radius and life, damage per second (× hero damage), damage-taken bonus inside. */
+export const ACID = { flight: 0.55, radius: 95, life: 5, dps: 2.6, vuln: 1.25 };
 /** Watchtower: archer towers within reach shoot farther and faster, and fog/rain don't shorten them. */
 export const WATCH = { x: 480, y: 935 };
 export const WATCH_LEVELS = [
@@ -714,6 +722,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     heroXp: 0,
     runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0, dmg: {} },
     strikes: [],
+    acid: [],
     crit: setup.critChance ?? 0.08,
     owned: {},
     offers: [],
@@ -1283,6 +1292,20 @@ function useAbility(c: Camp): void {
       c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
       break;
     }
+    case "acidFlask": {
+      // Aim at the foe with the most others around it (ground foes only — acid pools on the ground).
+      let best: Enemy | null = null, bestN = -1;
+      for (const e of c.enemies) {
+        if (e.def.flying || e.y < SPAWN_Y + 10) continue;
+        let n = 0;
+        for (const o of c.enemies) if (!o.def.flying && (o.x - e.x) ** 2 + (o.y - e.y) ** 2 < ACID.radius ** 2) n++;
+        if (n > bestN) { bestN = n; best = e; }
+      }
+      const tx = best ? best.x : h.x, ty = best ? best.y + (best.attacking ? 0 : enemySpeed(c, best) * ACID.flight) : h.y - 160;
+      c.acid.push({ x: tx, y: ty, r: ACID.radius, t: ACID.life, delay: ACID.flight, dps: dmg * ACID.dps, fromX: h.x, fromY: h.y - 20 });
+      c.events.push({ type: "flask", x: tx, y: ty });
+      break;
+    }
     case "callToArms": {
       // Militia fall in around the Marshal and hold that spot (they reach over the wall at the gate).
       for (let i = 0; i < MILITIA.count; i++) {
@@ -1398,6 +1421,25 @@ function updateCatapults(c: Camp): void {
   }
 }
 
+function updateAcid(c: Camp): void {
+  for (const p of c.acid) {
+    if (p.delay > 0) {
+      p.delay -= STEP;
+      if (p.delay <= 0) c.events.push({ type: "acidSplash", x: p.x, y: p.y, r: p.r });
+      continue;
+    }
+    p.t -= STEP;
+    for (const e of c.enemies) {
+      if (e.def.flying || (e.burrow && e.burrow > 0) || (e.x - p.x) ** 2 + (e.y - p.y) ** 2 > (p.r + e.def.radius * 0.5) ** 2) continue;
+      e.corroded = 0.25;
+      const d = p.dps * STEP * (1 - reduction(e));
+      e.hp -= d;
+      credit(c, "hero", d);
+    }
+  }
+  c.acid = c.acid.filter((p) => p.delay > 0 || p.t > 0);
+}
+
 function updateStrikes(c: Camp): void {
   for (const st of c.strikes) {
     st.t -= STEP;
@@ -1479,7 +1521,7 @@ const SRC: Record<string, string> = { tower: "towers", hero: "hero", catapult: "
 function damageEnemy(c: Camp, e: Enemy, base: number, owner: string, crit = false, src?: string): void {
   const red = reduction(e);
   if (red >= 1) return;
-  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1) * (e.snared && e.snared > 0 ? SNARE.vuln : 1) * (e.def.boss ? c.mods.bossDamage : 1);
+  const dmg = base * (1 - red) * (e.slowTime > 0 ? c.mods.slowedBonus : 1) * (e.snared && e.snared > 0 ? SNARE.vuln : 1) * (e.corroded && e.corroded > 0 ? ACID.vuln : 1) * (e.def.boss ? c.mods.bossDamage : 1);
   if (e.shield && e.shield > 0) {
     // The Shielded elite's barrier soaks damage first.
     e.shield -= dmg;
@@ -1967,6 +2009,7 @@ function updateEnemies(c: Camp): void {
     e.age += STEP;
     e.flash = Math.max(0, e.flash - STEP);
     if (e.snared) e.snared = Math.max(0, e.snared - STEP);
+    if (e.corroded) e.corroded = Math.max(0, e.corroded - STEP);
     if (e.burnTime > 0) {
       e.burnTime -= STEP;
       const burn = e.burnDps * STEP * (e.slowTime > 0 ? c.mods.thermal : 1);
@@ -2308,6 +2351,7 @@ export function step(c: Camp, input: CampInput): void {
   updateTides(c);
   updateArrows(c);
   updateStrikes(c);
+  updateAcid(c);
   reap(c);
   updateCoins(c);
 
@@ -2350,6 +2394,7 @@ export function step(c: Camp, input: CampInput): void {
     c.events.push({ type: "waveClear", wave: c.wave, bonus });
     c.bolts = [];
     c.strikes = [];
+    c.acid = [];
     if (!c.chapter.endless && c.wave >= c.chapter.waves.length) {
       c.phase = "won";
       c.events.push({ type: "won" });
