@@ -23,6 +23,8 @@ export class LanternsView {
   private oy = 0;
   private ended = false;
   private ping: { x: number; y: number; t: number } | null = null;
+  /** When each lantern went dark (game time), for the smoke curl. */
+  private darkAt: number[] = [];
 
   constructor(
     private host: HTMLElement,
@@ -43,6 +45,7 @@ export class LanternsView {
     this.ended = false;
     this.acc = 0;
     this.ping = null;
+    this.darkAt = [];
     this.root.querySelector(".lgx-end")?.remove();
     this.host.append(this.root);
     this.resize();
@@ -83,9 +86,14 @@ export class LanternsView {
     this.last = now;
     this.acc += dt;
     while (this.acc >= STEP) {
-      const lit = this.s.lamps.filter((l) => l.lit).length;
+      const was = this.s.lamps.map((l) => l.lit);
       stepLanterns(this.s, STEP);
-      if (this.s.lamps.filter((l) => l.lit).length < lit) this.onSound?.("crash");
+      this.s.lamps.forEach((l, i) => {
+        if (was[i] && !l.lit) {
+          this.darkAt[i] = this.s.time;
+          this.onSound?.("crash");
+        }
+      });
       this.acc -= STEP;
     }
     if (this.ping) this.ping.t += dt;
@@ -189,6 +197,18 @@ export class LanternsView {
       c.fillStyle = "#1d1208";
       c.fillRect(x - 12, y - 18, 24, 5);
       c.fillRect(x - 12, y + 9, 24, 4);
+      // Just gone dark: a curl of smoke rising from the glass.
+      if (!l.lit && l.flare >= 0) {
+        const k = Math.min(1, s.time - (this.darkAt[i] ?? s.time));
+        if (k < 1) {
+          c.fillStyle = `rgba(160,150,170,${0.5 * (1 - k)})`;
+          for (let j = 0; j < 3; j++) {
+            c.beginPath();
+            c.arc(x + Math.sin(k * 6 + j) * 6, y - 16 - k * 40 - j * 8, 5 + k * 8, 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+      }
       // Gauge.
       c.fillStyle = "#00000080";
       c.fillRect(x - 16, y + 44, 32, 6);
@@ -200,6 +220,14 @@ export class LanternsView {
       const fade = w.gone >= 0 ? Math.max(0, 1 - w.gone / 0.6) : 0.85;
       c.globalAlpha = fade;
       const bob = Math.sin(s.time * 3 + w.id) * 4;
+      // A cold glow so they read against the night.
+      const glow = c.createRadialGradient(w.x, w.y - 8 + bob, 2, w.x, w.y - 8 + bob, 30);
+      glow.addColorStop(0, "rgba(200,190,255,0.35)");
+      glow.addColorStop(1, "rgba(160,140,255,0)");
+      c.fillStyle = glow;
+      c.beginPath();
+      c.arc(w.x, w.y - 8 + bob, 30, 0, Math.PI * 2);
+      c.fill();
       if (this.wraith.complete && this.wraith.naturalWidth) {
         const h = 50;
         const ww = (this.wraith.naturalWidth / this.wraith.naturalHeight) * h;

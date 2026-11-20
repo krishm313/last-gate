@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Ghost Lanterns polish: a cold glow around each wraith, a curl of smoke when a lantern goes dark; the Nov 21 What's-new card now counts 6 mini-games.
 - Ghost Lanterns (mini-game #6): 🏮 side stop beside chapter 10 (opens after chapter 10). Four lanterns burn down along the wall while wraiths drift toward them — tap a wraith to banish it (more points close to the lantern, combos ×2/×3), tap a lantern to refill it (+1 if it was low). A wraith that reaches a lantern snuffs it; all dark = over; 60 s. Stars 150/280/420, gold score/3. Fair day, achievement Lamplighter, Champion of the Fair now 18 stars (800), Trophies grid, save round-trip test. scripts/lanternsim.ts: perfect bot ~460; 0.7 s reactions lose.
 - Save audit: a round-trip test (tests/saveRoundtrip.test.ts) sets every newer field — chapter 10 + Boss Rush stars/best, the Marshal + his skills, Grave Wisps, all mini-game/siege records, new stats, achievements, side-game quests — and checks sanitizeSave keeps them all. Everything else was already kept; only Boss Rush had been dropped (fixed in cb30a28).
 - BUG FIX: Boss Rush stars and best night were dropped on every reload (sanitizeSave only kept campaign chapter ids + Endless best) — chapter 98 is now kept (test). Trophies side-games grid shows Boss Rush bosses beaten. Test for the siege horde-HP handicap.

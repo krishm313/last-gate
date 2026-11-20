@@ -600,14 +600,14 @@ export class Hub {
           "💀 Chapter 10: The Hollow Throne — a starless keep, and the Hollow King who raises the dead",
           "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Hollow King",
           "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
-          "🐉 Dragon Dodge (after chapter 8) & 🪨 Catapult Toss (after chapter 6): two more mini-games",
+          "🐉 Dragon Dodge, 🪨 Catapult Toss & 🏮 Ghost Lanterns: three more mini-games on the map",
           "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother menus and mini-games on older phones",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
-          "🎪 5 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge — with stars, gold and a daily 2× Fair day",
+          "🎪 6 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
           ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
         ]
