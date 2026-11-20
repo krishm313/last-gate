@@ -261,7 +261,10 @@ interface AtlasEntry {
   ready: boolean;
   flash: HTMLCanvasElement | null;
   /** Half-resolution copy downscaled once at high quality (used when drawn small). */
-  half: HTMLCanvasElement | null;
+  half: HTMLCanvasElement | ImageBitmap | null;
+  /** This run needs the sheet: build its half-size copy off the main thread as soon as it's decoded. */
+  warm?: boolean;
+  halfPending?: boolean;
 }
 const atlases = new Map<AnimChar, AtlasEntry>();
 
@@ -271,7 +274,10 @@ function atlas(name: AnimChar): AtlasEntry | null {
   if (!e) {
     const img = new Image();
     const created: AtlasEntry = { img, ready: false, flash: null, half: null };
-    whenDecoded(img, () => { created.ready = true; });
+    whenDecoded(img, () => {
+      created.ready = true;
+      if (created.warm) warmHalf(created);
+    });
     img.src = `./sprites/anim/${name}.webp`;
     atlases.set(name, created);
     e = created;
@@ -289,18 +295,46 @@ const CORE_ANIMS: AnimChar[] = ["king", "king_back", "knight_ally", "knight_ally
  */
 export function preloadAnims(all = false): void {
   // Veteran-look sheets load on first use (most players never wear them).
-  for (const n of all ? (Object.keys(ATLAS) as AnimChar[]) : CORE_ANIMS) if (!n.endsWith("_vet")) atlas(n);
+  for (const n of all ? (Object.keys(ATLAS) as AnimChar[]) : CORE_ANIMS) if (!n.endsWith("_vet")) warmAtlas(n);
+}
+
+/** Starts loading a sheet and marks it for an off-thread half-size build once decoded. */
+function warmAtlas(name: AnimChar): void {
+  atlas(name);
+  const e = atlases.get(name);
+  if (!e) return;
+  e.warm = true;
+  if (e.ready) warmHalf(e);
 }
 
 /** Preloads the animation sheets these enemy kinds use (call when a run starts, before the first wave). */
 export function preloadAnimsFor(enemyIds: Iterable<string>): void {
   for (const id of enemyIds) {
     const a = ENEMY_ANIMS[id];
-    if (a) atlas(a.name);
+    if (a) warmAtlas(a.name);
   }
 }
 
-function atlasHalf(e: AtlasEntry): HTMLCanvasElement {
+/**
+ * Builds the half-size sheet off the main thread (createImageBitmap with a resize). The first
+ * high-quality downscale of a 3.5k-wide sheet otherwise lands inside a frame — the 70–100 ms hitches
+ * when a new kind of foe first appears. If it isn't ready in time, atlasHalf builds it the old way.
+ */
+function warmHalf(e: AtlasEntry): void {
+  if (e.half || e.halfPending || typeof createImageBitmap !== "function") return;
+  e.halfPending = true;
+  const w = Math.ceil(e.img.naturalWidth / 2), h = Math.ceil(e.img.naturalHeight / 2);
+  createImageBitmap(e.img, { resizeWidth: w, resizeHeight: h, resizeQuality: "high" }).then(
+    (b) => {
+      // (A browser that ignores the resize options returns the full size: keep the canvas route.)
+      if (!e.half && b.width === w && b.height === h) e.half = b;
+      else b.close();
+    },
+    () => {},
+  );
+}
+
+function atlasHalf(e: AtlasEntry): HTMLCanvasElement | ImageBitmap {
   if (e.half) return e.half;
   const c = document.createElement("canvas");
   c.width = Math.ceil(e.img.naturalWidth / 2);
