@@ -662,6 +662,10 @@ export class CampRenderer {
   screenY(y: number, o: Vec): number {
     return (this.flip ? this.vh - (y - o.y) : y - o.y) * this.zoom;
   }
+  /** Screen position (shake included) of a point drawn at (x, y) on an object standing on `base` — for hand-placed overlays. */
+  screenAt(x: number, y: number, base: number, o: Vec, sh: Vec): [number, number] {
+    return [this.screenX(x, o) + sh.x, this.screenY(this.uprightY(y, base), o) + sh.y];
+  }
   /** Where a point drawn at y inside an object standing on `base` really appears (objects are drawn upright in the flipped view). */
   uprightY(y: number, base: number): number {
     return this.flip ? 2 * base - y : y;
@@ -1346,12 +1350,16 @@ fx.shake(0.15);
     if (c.reverse) {
       let front: Enemy | null = null;
       for (const e of c.enemies) if (!e.def.flying && (!front || e.y > front.y)) front = e;
-      target = { x: MAP_W / 2, y: front ? Math.max(WALL_Y - 140, front.y - 60) : WALL_Y - 80 };
+      // Rock-steady while the horde is outside (the drop zones never slide under your finger);
+      // only once someone is through the wall does it lean in toward the hall.
+      target = { x: MAP_W / 2, y: front && front.y > WALL_Y + 20 ? Math.max(WALL_Y - 100, front.y - 140) : WALL_Y - 100 };
     }
     if (this.focus) {
       this.focus.t -= dt;
       if (this.focus.t <= 0) this.focus = null;
       else target = this.focus;
+    } else if (c.reverse) {
+      this.revealPending = this.reveal = 0; // (the attacker's camera never pans away on its own)
     } else if (this.revealPending > 0 && !this.ambient) {
       this.revealPending -= dt;
       if (c.enemies.some((e) => e.y > WALL_Y - 230)) {
@@ -3390,12 +3398,12 @@ fx.shake(0.15);
     // Dropped coins glint and arrows leave a faint glow, so loot and fire read in the dark.
     const glint = this.glintBlob();
     for (const k of c.coins) {
-      const cx = k.x - o.x + sh.x, cy = k.y - k.z - o.y + sh.y;
+      const [cx, cy] = this.screenAt(k.x, k.y - k.z, k.y, o, sh);
       if (cx < -10 || cx > VIEW_W + 10 || cy < -10 || cy > VIEW_H + 10) continue;
       this.drawBlob(ctx, glint, cx, cy, 11, 11, ease * (0.45 + 0.35 * Math.sin(this.time * 6 + k.id)));
     }
     for (const a of c.arrows) {
-      const ax = a.x - o.x + sh.x, ay = a.y - o.y + sh.y;
+      const [ax, ay] = this.screenAt(a.x, a.y, a.y, o, sh);
       if (ax < -10 || ax > VIEW_W + 10 || ay < -10 || ay > VIEW_H + 10) continue;
       this.drawBlob(ctx, glint, ax, ay, 9, 9, ease * 0.5);
     }
@@ -3404,7 +3412,7 @@ fx.shake(0.15);
     // Dropped torches burning out on the ground.
     for (const f of this.groundFires) {
       const k2 = 1 - (this.time - f.t) / 3;
-      const fx = f.x - o.x + sh.x, fy = f.y - o.y + sh.y;
+      const [fx, fy] = this.screenAt(f.x, f.y, f.y, o, sh);
       this.drawFlame(ctx, fx, fy - 3 * k2, 0.25 + 0.7 * k2, f.x * 0.37, ease);
       ctx.strokeStyle = `rgba(70,40,20,${ease})`;
       ctx.lineWidth = 2;
@@ -3419,8 +3427,9 @@ fx.shake(0.15);
       // the march.
       const r = e.def.radius, side = this.enemyMove.get(e.id)?.flip ? 1 : -1;
       const bob = Math.sin(this.time * 9 + e.id) * 1.2;
-      const hx = e.x + side * r * 1.15 - o.x + sh.x, hy = e.y - r * 1.2 - o.y + sh.y + bob;
-      const tx = hx + side * 3, ty = hy - r * 1.05;
+      const [hx, hy0] = this.screenAt(e.x + side * r * 1.15, e.y - r * 1.2, e.y, o, sh);
+      const z = this.zoom, hy = hy0 + bob * z;
+      const tx = hx + side * 3 * z, ty = hy - r * 1.05 * z;
       if (tx < -20 || tx > VIEW_W + 20 || ty < -20 || ty > VIEW_H + 20) continue;
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = `rgba(60,36,18,${ease})`;
