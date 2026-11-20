@@ -97,7 +97,8 @@ const CHOOSE_BEAT_MS = 340;
 
 /** Deeper rules shown when "How to play" is opened from Settings. */
 const HOW_MORE: [string, string][] = [
-  ["🪵", "Build the Lumber Camp — logs unlock tower Lv 3–4, catapults and stone walls"],
+  ["🪵", "Build the Lumber Camp, then walk to its pile to pick up logs — they unlock tower Lv 3–4, catapults and stone walls"],
+  ["⚒️", "The Forge turns logs into bows: walk logs past it, then carry the bows past your towers (+6% damage each)"],
   ["🎯", "At Lv 3 each archer tower picks a path: Fire, Frost or Volley"],
   ["🔮", "Later plots: Mage Tower, Healer's Tent, Spike Trap, Watchtower — each changes how you defend"],
   ["⛈️", "Nights can bring rain, fog or storms — check the icon next to NIGHT"],

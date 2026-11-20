@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- "How to play" covers the carry chain: logs are picked up at the Lumber Camp's pile, and the Forge turns logs into bows you carry to towers (+6% damage each) — neither was mentioned.
 - Loading a save code asks first: the first tap on Load shows what's in the code next to your current progress (★ · gold · runs) and turns the button into "⚠️ Replace my progress"; only the second tap replaces it (pasting an older backup by mistake used to wipe newer progress at once). Bad codes still get "That doesn't look like a Last Gate save code."
 - Heroes tab: newly unlocked heroes appear right under the hero you play (above the skill tree). The tab's NEW badge led to heroes buried below the whole skill grid — about 1.5 screens down on an iPhone SE. Also checked with real taps: Armory purchase (gold −40, card updates, one tap), Royal Gift (+60, "come back tomorrow"), switching heroes.
 - Siege Lord starts fast: the castle's ~20 s opening build was dead time for the attacker (dimmed cards, frozen chest, "Attack in 20s"). The defenders are now fast-forwarded through it at siege start (same bot, same steps → same castle and balance; its events are dropped so nothing floods) and you get a 5 s countdown. Found in a first-time-player run of Siege 1.
