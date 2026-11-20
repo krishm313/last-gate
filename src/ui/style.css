@@ -19,6 +19,9 @@ html, body {
 #ui { --u: calc(var(--s, 1) * 1px); --t: 1; --tu: calc(var(--u) * var(--t)); font-size: calc(16 * var(--tu)); }
 /* Large text (settings): every font grows, the layout doesn't. */
 html.lg-big #ui { --t: 1.15; }
+/* In-game "Reduced motion" quiets the menus too (not only when the OS asks): animations jump to their end state. */
+html.lg-calm #ui *, html.lg-calm #ui *::before, html.lg-calm #ui *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.001s !important; }
+html.lg-calm #ui .confetti { display: none; }
 
 .hud {
   position: absolute; top: calc(10 * var(--u)); left: calc(10 * var(--u)); right: calc(10 * var(--u));

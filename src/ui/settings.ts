@@ -47,7 +47,9 @@ export function buzz(s: Settings, ms: number): void {
 /** Whether this device can vibrate at all (iPhones can't from a web page). */
 export const canVibrate = typeof navigator !== "undefined" && "vibrate" in navigator;
 
-/** Apply the display settings that live outside the canvas (large text). */
+/** Apply the display settings that live outside the canvas (large text, reduced motion for the menus). */
 export function applyDisplaySettings(s: Settings): void {
-  if (typeof document !== "undefined") document.documentElement.classList.toggle("lg-big", s.bigText);
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.toggle("lg-big", s.bigText);
+  document.documentElement.classList.toggle("lg-calm", s.calm);
 }

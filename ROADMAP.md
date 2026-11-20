@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- The in-game "Reduced motion" setting now also quiets the menus (pulsing buttons, sliding panels, confetti) — before, those only stopped when the phone's own Reduce Motion was on; it only removed shake/slow-mo in battle. Also checked: trophy claim with a real tap (+100 gold, badge clears).
 - No tutorial tip while the hero is down ("Drag anywhere to walk" sat over the grey respawn screen); it returns when he rises. Death → respawn otherwise checked: "You fell!" banner, "Respawning in N" chip, rise at the hall.
 - The carry chain is explained once: one-time hints when you first carry logs to a built Forge ("walk your logs past the Forge to feed it") and when its first bows are ready ("pick them up and walk past your towers, +6% damage each"), alongside the log-pile hint (shared oneTip helper, each shows once ever).
 - New-enemy banners say what the foe does: "New enemy: War Raven — flies over the wall, dives at towers" (first two Bestiary traits). Brute and Battering Ram gained traits ("tough", "smashes the wall") so every introduced foe has one.
