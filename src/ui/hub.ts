@@ -343,6 +343,7 @@ export class Hub {
     const tiles: { cls: string; icon: string; name: string; sub: string; open: boolean; fresh: boolean; go: () => void }[] = [
       { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: siegeOpen ? `★ ${siegeTotal}/${SIEGES.length * 3}` : "Clear ch. 1", open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
       { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]} · ${endlessTwistFor().icon}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card) },
+      { cls: "fair", icon: "🎪", name: "Fair", sub: `${openMinis(save.stars).length ? `★ ${Object.entries(save.mini).reduce((a, [k, m]) => a + (k.startsWith("siege") ? 0 : m.stars), 0)}/${this.sideGames().length * 3}` : "Clear ch. 1"}`, open: openMinis(save.stars).length > 0, fresh: false, go: () => this.fairSheet(save) },
       { cls: "rush", icon: "👑", name: "Boss Rush", sub: rushOpen ? (rushStars ? "★".repeat(rushStars) + "☆".repeat(3 - rushStars) : "10 bosses") : "Clear ch. 5", open: rushOpen, fresh: rushFresh, go: () => this.modeSheet(save, rushCard) },
     ];
     const row = el("div", "lgmodes");
@@ -439,16 +440,7 @@ export class Hub {
       track.append(stop);
     });
     // Side stops off the road: mini-games that open after a chapter is cleared.
-    const sides: { key: string; icon: string; name: string; after: number; left: number; at: number; go: () => void }[] = [
-      { key: "archery", icon: "🎯", name: "Archery Range", after: 1, left: 84, at: 0.5, go: () => this.cb.onArchery?.() },
-      { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
-      { key: "forge", icon: "⚒️", name: "Royal Forge", after: 3, left: 86, at: 2.5, go: () => this.cb.onForge?.() },
-      { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
-      { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.55, go: () => this.cb.onBells?.() },
-      { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
-      { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
-      { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
-    ];
+    const sides = this.sideGames();
     const fair = fairPick(todayString(), openMinis(save.stars));
     for (const sd of sides) {
       const open = (save.stars[sd.after] ?? 0) > 0;
@@ -516,6 +508,54 @@ export class Hub {
       this.cb.onPlay(BOSS_RUSH.id);
     };
     return card;
+  }
+
+  /** The side-stop mini-games: where they sit on the map and the chapter that opens each. */
+  private sideGames(): { key: string; icon: string; name: string; after: number; left: number; at: number; go: () => void }[] {
+    return [
+      { key: "archery", icon: "🎯", name: "Archery Range", after: 1, left: 84, at: 0.5, go: () => this.cb.onArchery?.() },
+      { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
+      { key: "forge", icon: "⚒️", name: "Royal Forge", after: 3, left: 86, at: 2.5, go: () => this.cb.onForge?.() },
+      { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
+      { key: "bells", icon: "🔔", name: "Bell Tower", after: 5, left: 85, at: 4.55, go: () => this.cb.onBells?.() },
+      { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
+      { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
+      { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
+    ];
+  }
+
+  /** Every side game in one list (open ones playable, with stars, best and today's 2× gold). */
+  private fairSheet(save: SaveData): void {
+    const box = el("div", "panel pop-in lgm-sheet");
+    const fair = fairPick(todayString(), openMinis(save.stars));
+    box.append(el("h1", "title", "🎪 The Fair"), el("p", "sub", "Every side game in one place. One of them pays double gold each day."));
+    const games = [...this.sideGames()].sort((x, y) => x.after - y.after || x.at - y.at);
+    for (const g of games) {
+      const open = (save.stars[g.after] ?? 0) > 0;
+      const rec = save.mini[g.key];
+      const st = rec?.stars ?? 0;
+      const row = el("button", `chapter lgfair-row${open ? "" : " locked"}`);
+      row.style.setProperty("--g1", open ? "#4a2a6a" : "#3a3440");
+      row.style.setProperty("--g2", "#1a1020");
+      const left = el("div", "ch-left lgfair-left");
+      left.append(el("div", "lgfair-icon", open ? g.icon : "🔒"));
+      const txt = el("div", "");
+      txt.append(el("div", "ch-name", open ? g.name : "???"), el("div", "ch-blurb", open ? (rec?.best ? `Best ${rec.best}` : "Not played yet") : `Clear chapter ${g.after} to open`));
+      left.append(txt);
+      const right = el("div", "ch-right");
+      if (open && fair === g.key) right.append(el("div", "lgm-flag lgm-fair lgfair-flag", "2× GOLD"));
+      right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : ""));
+      if (open) right.append(el("div", "ch-play", "PLAY ▶"));
+      row.append(left, right);
+      row.onclick = () => {
+        if (!open) return this.denied(row);
+        this.cb.onClick();
+        g.go();
+      };
+      box.append(row);
+    }
+    box.append(this.button("Back", "btn btn-ghost", () => this.showHub(save, "battle")));
+    this.show(box);
   }
 
   private siegeSheet(save: SaveData): void {

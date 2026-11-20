@@ -1288,7 +1288,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .trophy-fold { display: block; width: 100%; margin: calc(6 * var(--u)) 0; padding: calc(8 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); background: linear-gradient(#2a3a5a, #1a2640); color: #cfe0ff; font-weight: 900; font-size: calc(12 * var(--tu)); text-align: left; }
 #ui .trophy-fold { pointer-events: auto; }
 /* Modes row above the map: three compact tiles that open their full cards. */
-.lgmodes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(6 * var(--u)); margin: calc(4 * var(--u)) 0 calc(8 * var(--u)); }
+.lgmodes { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(5 * var(--u)); margin: calc(4 * var(--u)) 0 calc(8 * var(--u)); }
 #ui .lgmodes, #ui .lgmodes * { pointer-events: auto; }
 .lgmode { position: relative; border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(12 * var(--u)); padding: calc(7 * var(--u)) calc(4 * var(--u)) calc(6 * var(--u)); color: #fff; text-align: center; box-shadow: inset 0 calc(2 * var(--u)) 0 #ffffff25, 0 calc(3 * var(--u)) 0 #1d1208; outline: calc(1.5 * var(--u)) solid #ffd84a55; }
 .lgmode-siege { background: linear-gradient(#7a2a2a, #3a0e10); }
@@ -1343,3 +1343,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Bell Tower side game. */
 .lgb2 { position: absolute; inset: 0; z-index: 6; background: #1a1420; display: flex; align-items: center; justify-content: center; }
 #ui .lgb2, #ui .lgb2 * { pointer-events: auto; }
+.lgmode-fair { background: linear-gradient(#a83a7a, #4a1440); }
+/* The Fair sheet: every side game in one list. */
+.lgfair-left { display: flex; align-items: center; gap: calc(10 * var(--u)); }
+.lgfair-icon { font-size: calc(28 * var(--tu)); line-height: 1; }
+.lgfair-row .ch-name { font-size: calc(16 * var(--tu)); }
+.lgfair-row { padding-top: calc(9 * var(--u)); padding-bottom: calc(9 * var(--u)); }
+.lgfair-flag { position: static; transform: none; margin-bottom: calc(3 * var(--u)); }
