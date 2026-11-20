@@ -868,21 +868,26 @@ function pauseStatus(c: Camp): string[] {
 function lossTip(c: Camp): string {
   const s = c.runStats;
   const built = (kind: string) => c.plots.some((p) => p.kind === kind && p.level > 0);
+  // Only suggest a building the player could actually have built (not one still locked this run).
+  const open = (kind: string) => c.plots.some((p) => p.kind === kind && !p.locked);
   if ((s.flares ?? 0) >= 2) return "The blood moon flared and the horde ran wild. When the field turns red, fall back near the hall (its archers hit harder) and save your ability for the rush.";
   if ((s.burnTime ?? 0) > 25) return "Fire Imps kept your buildings burning. Walk onto a burning building to stamp the fire out — and shoot imps down early.";
   if ((s.stuns ?? 0) >= 6) return "War Ravens stunned your towers again and again. Upgrade towers so they shoot ravens down first, or build a Mage Tower.";
-  if ((s.tunnelers ?? 0) >= 5 && !built("barracks")) return "Tunnelers dug under the wall. A Barracks (and the King) inside the camp catch them as they surface.";
+  if ((s.tunnelers ?? 0) >= 5 && !built("barracks") && open("barracks")) return "Tunnelers dug under the wall. A Barracks (and the King) inside the camp catch them as they surface.";
   if (s.flyerHallDamage > c.hallMaxHp * 0.3) return "Bats fly over the wall. Upgrade the Hall (stronger hall archers) and fight near it when flyers come.";
-  if (s.breaches >= 3 && !built("fortify")) return "The wall kept breaking. Fortify it into stone, and stand on Repair Wall during the day.";
-  if (s.breaches >= 3 && !built("barracks")) return "Build a Barracks — its soldiers hold breaches while you repair.";
+  if (s.breaches >= 3 && !built("fortify") && open("fortify")) return "The wall kept breaking. Fortify it into stone, and stand on Repair Wall during the day.";
+  if (s.breaches >= 3 && !built("barracks") && open("barracks")) return "Build a Barracks — its soldiers hold breaches while you repair.";
   if (s.heroDeaths >= 2) return "Your hero fell often. Fight from behind the wall, or take Vigor / the Knight Captain.";
   // Barely touched the hero's ability (it recharges every ~20 s, so a night has room for 2–3).
   if (c.wave >= 3 && (s.casts ?? 0) < c.wave) {
     const ab = Object.values(HERO_BY_ID).find((h) => h.ability === c.ability);
     if (ab) return `${ab.abilityName} recharges fast — tap it whenever foes bunch up. You used it ${s.casts ?? 0} time${s.casts === 1 ? "" : "s"} in ${c.wave} nights.`;
   }
-  if (!built("lumber")) return "Build the Lumber Camp early: logs unlock tower levels 3–4 and stone walls.";
-  if (c.plots.filter((p) => p.kind === "tower" && p.level >= 3).length < 2) return "Push a couple of towers to level 3+ — they're your main damage.";
+  // Fell in the first nights: the basics, before any advice about buildings that aren't open yet.
+  if (c.wave <= 2 && c.plots.filter((p) => p.kind === "tower" && p.level > 0).length < 2) return "Build Archer Towers by the wall before nightfall — walk onto a glowing plot — and grab the coins foes drop.";
+  if (!built("lumber") && open("lumber")) return "Build the Lumber Camp early: logs unlock tower levels 3–4 and stone walls.";
+  if (open("lumber") && c.plots.filter((p) => p.kind === "tower" && p.level >= 3).length < 2) return "Push a couple of towers to level 3+ — they're your main damage.";
+  if (c.plots.filter((p) => p.kind === "tower" && p.level >= 2).length < 2) return "Upgrade your Archer Towers — stand on a built tower to level it up. They're your main damage.";
   return "Spend your gold in the Armory, then try again — every run makes you stronger.";
 }
 

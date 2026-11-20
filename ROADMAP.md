@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Defeat tips only suggest buildings you could have built: a night-1 loss said "Build the Lumber Camp early" while it was still locked. Locked Lumber Camp / Fortify / Barracks are skipped, early losses get the basics ("Build Archer Towers by the wall before nightfall…"), and "towers to level 3+" waits until logs are possible (else "upgrade your towers").
 - Card captions read right: plural cards get plural verbs ("Ravens — fly over the wall, dive at towers"), and the Sapper no longer says "explodes on the wall, smashes the wall" (also fixes its new-enemy banner).
 - Siege Lord says what the picked card does: a caption above the war chest, in the Bestiary's words ("Imps — flies over the wall, sets buildings ablaze", "Knights — armoured", "Footmen — steady infantry"), so Sapper vs Diggers vs Ravens is no longer guesswork. Fits on iPhone SE.
 - Siege Lord tells you about the repair lull: the push pill reads "🔨 Repairs · PUSH n/8 · Ns" during the first 8 s of a push while the wall is damaged, and a mid-push breach adds "Open till the next push" under WALL DOWN! (fits on iPhone SE).
