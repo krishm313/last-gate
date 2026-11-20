@@ -1007,7 +1007,8 @@ function frame(now: number) {
   pollPad(onKey, () => (camp?.phase === "build" || camp?.phase === "wave") && !paused, camp?.phase === "pick");
   const realDt = Math.min(0.1, (now - last) / 1000);
   last = now;
-  if (document.visibilityState === "visible" && !paused) renderer.perfSample(realDt);
+  // Only real play tunes the battle's pixel density (a slow menu backdrop shouldn't blur the game).
+  if (document.visibilityState === "visible" && !paused && camp) renderer.perfSample(realDt);
   const dt = (renderer.fx.slowmo > 0 && !settings.calm ? realDt * 0.3 : realDt) * gameSpeed;
   const c = camp;
   if (c && !paused && !specChoosing) {
@@ -1162,8 +1163,24 @@ function frame(now: number) {
   else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2")) {
     // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
   } else {
-    // Attract mode: the bot defends a camp behind the menus.
+    // Attract mode: the bot defends a camp behind the menus. On a slow device it updates less often
+    // (every 2nd or 4th frame) — it's only a backdrop, and the menus on top should stay smooth.
     attractAcc += realDt;
+    // Pacing from the backdrop's own work time (sim + draw), not the frame interval: a 60 Hz screen
+    // caps intervals at 16.7 ms, so only the work says whether the device is struggling.
+    if (attractWork > 0.02) attractSkip = 4;
+    else if (attractWork > 0.01) attractSkip = Math.max(attractSkip, 2);
+    else if (attractWork < 0.005) attractSkip = 1;
+    attractDt += realDt;
+    attractFrame = (attractFrame + 1) % attractSkip;
+    if (attractFrame !== 0) {
+      requestAnimationFrame(frame);
+      return;
+    }
+    // Catch up at most a short burst of steps (the backdrop doesn't need to be exact); on a slow
+    // device the backdrop battle simply plays a little slower rather than stalling the menus.
+    attractAcc = Math.min(attractAcc, STEP * (attractSkip > 1 ? 3 : 8));
+    const workStart = performance.now();
     while (attractAcc >= STEP) {
       campBotStep(attract);
       attractAcc -= STEP;
@@ -1175,14 +1192,21 @@ function frame(now: number) {
       lastMood = 1;
     }
     renderer.ambient = true;
-    renderer.draw(attract, realDt);
+    renderer.draw(attract, Math.min(0.1, attractDt));
     renderer.ambient = false;
+    attractDt = 0;
+    attractWork += ((performance.now() - workStart) / 1000 - attractWork) * 0.1;
   }
   requestAnimationFrame(frame);
 }
 
 let attract = createCamp(1);
 let attractAcc = 0;
+/** Attract backdrop pacing: smoothed work time (s) per drawn frame, and draw every Nth frame. */
+let attractWork = 0;
+let attractSkip = 1;
+let attractFrame = 0;
+let attractDt = 0;
 let lastMood = 1;
 hud.setVisible(false);
 // The how-to-play title screen is for first launches; returning players go straight to the menu.

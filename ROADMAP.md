@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Perf (menus): (1) adaptive quality now samples only real play — sitting in the menu on a slow phone used to step the battle's pixel density down for good (iPhone 13 at 4× throttle: menu dropped it 3→1.5 before a run started); (2) the attract backdrop paces itself from its own work time: every 2nd/4th frame and a capped catch-up when slow. Menu at 4× throttle: median frame 83 ms → 16.7 ms; battle keeps density 3. Fast devices unchanged.
 - Dragon Dodge polish: embers fly out of each fire burst (fixed per-blast directions, no randomness), the dragon roars when it draws breath for a row, and the King bobs and sways while running.
 - Perf: the attract-mode camp (bot battle behind the menus) no longer simulates and draws while a full-screen mini-game is open. iPhone 13 profile at 4× CPU throttle: mini-games went from 15–20 fps (median 50–67 ms) to a steady 60 fps (16.7 ms).
 - Siege Lord result: "Attack again" / "Try again" restarts the same siege straight away (with any cards just unlocked). Autoplay sweep on Hard (ch5, Cleric) and Nightmare (ch3, Lancer): no errors.
