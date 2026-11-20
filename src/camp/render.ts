@@ -4812,13 +4812,14 @@ fx.shake(0.15);
     if (f === "ember") tint("rgba(255,110,30,0.75)", 0.55);
     if (f === "fair") tint("rgba(255,110,210,0.8)", 0.6);
     if (f === "warlord") tint("rgba(160,20,30,0.75)", 0.6);
+    if (f === "toxic") tint("rgba(150,255,60,0.85)", 0.7);
     if (f === "frost") tint("rgba(160,220,255,0.8)", 0.6);
     if (f === "shadow") tint("rgba(90,40,160,0.8)", 0.6);
     if (f === "petal") tint("rgba(255,160,200,0.7)", 0.5);
     if (f === "seafoam") tint("rgba(80,210,200,0.75)", 0.55);
     if (f === "grave") tint("rgba(184,154,255,0.7)", 0.55);
     // Trails: shed motes while walking (and a few while standing for the wisps).
-    this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" || f === "warlord" ? 0.5 : 0.15);
+    this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" || f === "warlord" || f === "toxic" ? 0.5 : 0.15);
     const every = 0.035;
     while (this.flairAcc > every) {
       this.flairAcc -= every;
@@ -4832,7 +4833,8 @@ fx.shake(0.15);
       else if (f === "fair") {
         const cols = ["#ff4a6a", "#ffd23a", "#4ac0ff", "#6ae06a", "#c86aff"];
         this.fx.burst(x + jx, y + 4 + jy, cols[Math.floor((this.time * 17 + jx) % 5 + 5) % 5]!, 1, 40, { max: 1.0, size: 4.4, gravity: 50, drag: 2, shape: "chunk" });
-      } else if (f === "warlord") this.fx.burst(x + jx * 1.3, y + 8 + jy, alt ? "#ff3a2a" : "#3a1010", 1, 18, { max: 1.2, size: alt ? 2.8 : 5, gravity: -60, drag: 2, shape: "dot" });
+      } else if (f === "toxic") this.fx.burst(x + jx, y + 6 + jy, alt ? "#f4ffb0" : "#b8ff3a", 1, 16, { max: 1.3, size: alt ? 3.2 : 5.2, gravity: -48, drag: 2.4, shape: "dot" });
+      else if (f === "warlord") this.fx.burst(x + jx * 1.3, y + 8 + jy, alt ? "#ff3a2a" : "#3a1010", 1, 18, { max: 1.2, size: alt ? 2.8 : 5, gravity: -60, drag: 2, shape: "dot" });
       else if (f === "seafoam") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8fffc" : "#6ad8d0", 1, 18, { max: 1.0, size: alt ? 2.6 : 3.8, gravity: -36, drag: 2.4, shape: "dot" });
     }
     if (this.flairAcc > 1) this.flairAcc = 0;

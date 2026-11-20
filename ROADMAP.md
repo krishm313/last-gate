@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Flair: Toxic Bubbles (lime bubble trail + green pool) — win a run with the Alchemist.
 - Siege Lord tile reads "🗓️ Daily open" while today's Daily Siege prize is waiting; achievement Raider of the Realm (win 7 Daily Sieges, 500).
 - Daily Siege (Siege Lord sheet, after Siege 1): a castle picked from the date — a chapter you've cleared as the ground, any hero defending, walls ≈0.6 per chapter (a level lower some days; King −1, Pyromancer/Alchemist −2 — they wipe packed pushes in siegesim) — first win of the day pays +250 gold (stats.dsiegeDay/dsiegeWins). No stars or cards; result panel shows the prize. src/core/dailySiege.ts + tests.
 - Scouts report / next-wave preview: Tunneler and Banner-bearer use painted portraits; War Raven and Fire Imp show their Bestiary emoji (they used to fall back to a drawn footman).

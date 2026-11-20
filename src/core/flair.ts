@@ -27,6 +27,7 @@ export const FLAIRS: FlairDef[] = [
   { id: "grave", name: "Grave Wisps", icon: "👻", how: "Clear chapter 10", unlocked: (s) => (s.stars[10] ?? 0) > 0 },
   { id: "fair", name: "Fairground Lights", icon: "🎪", how: "Earn 9 mini-game stars", unlocked: (s) => miniStars(s) >= 9 },
   { id: "warlord", name: "Warlord's Smoke", icon: "🚩", how: "Take the Hollow Keep (Siege 5)", unlocked: (s) => (s.mini.siege5?.stars ?? 0) > 0 },
+  { id: "toxic", name: "Toxic Bubbles", icon: "🧪", how: "Win a run with the Alchemist", unlocked: (s) => (s.stats.won_alchemist ?? 0) > 0 || s.history.some((r) => r.won && r.hero === "alchemist") },
   { id: "crown", name: "Royal Crown", icon: "👑", how: "Open the Royal Gift 7 days in a row", unlocked: (s) => (s.stats.giftBest ?? 0) >= 7 },
 ];
 
