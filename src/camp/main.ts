@@ -22,6 +22,8 @@ import { bellsReward } from "../mini/bells";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
 import { claimGift } from "../core/gift";
+import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
+import type { HeroId } from "../core/heroes";
 import { deploy, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -612,8 +614,14 @@ const siegeBar = new SiegeBar(
 );
 let siegeIdx = 0;
 
+/** The siege to play: one of the ladder's, or (i = -1) today's Daily Siege. */
+function siegeDef(i: number): { name: string; chapter: number; perm: number; hero: HeroId; hordeHp?: number } | undefined {
+  if (i === -1) return dailySiegeFor(fairDate(), Object.keys(save.stars).map(Number).filter((k) => (save.stars[k] ?? 0) > 0));
+  return SIEGES[i];
+}
+
 function startSiege(i: number) {
-  const s = SIEGES[i];
+  const s = siegeDef(i);
   if (!s) return;
   sfx.unlock();
   dailyRun = null;
@@ -644,6 +652,7 @@ function startSiege(i: number) {
 function finishSiege(c: Camp, retreat = false) {
   const r = c.reverse!;
   const won = !retreat && r.result === "win";
+  if (siegeIdx === -1) return finishDailySiege(c, won, retreat);
   const stars = won ? siegeStars(c.wave) : 0;
   const idx = siegeIdx;
   const key = `siege${siegeIdx + 1}`;
@@ -679,6 +688,36 @@ function finishSiege(c: Camp, retreat = false) {
     },
     "title",
     { label: won ? "Attack again" : "Try again", onClick: () => { hud.hideOverlay(); startSiege(idx); } },
+  );
+}
+
+/** Daily Siege result: the day's prize on the first win, a little gold otherwise; no stars or cards. */
+function finishDailySiege(c: Camp, won: boolean, retreat: boolean) {
+  const r = c.reverse!;
+  const prize = won ? claimDailySiege(save.stats, fairDate()) : 0;
+  const gold = (won ? 40 : 20) + r.broken * 5 + prize;
+  save.gold = Math.min(MAX_GOLD, save.gold + gold);
+  save.stats.goldEarned = (save.stats.goldEarned ?? 0) + gold;
+  writeSave(save);
+  const hallLeft = Math.max(0, Math.round((c.hallHp / c.hallMaxHp) * 100));
+  camp = null;
+  paused = false;
+  siegeBar.show(false);
+  const lines = [`⚔️ ${r.deployed} sent · 🧱 ${r.broken} wall${r.broken === 1 ? "" : "s"} broken${won ? ` · taken on push ${c.wave}` : ` · hall at ${hallLeft}%`}`];
+  if (prize) lines.push(`🗓️ Daily Siege taken! +${prize} gold prize`);
+  else if (won) lines.push("Today's prize was already won — a new siege tomorrow");
+  lines.push(`+${gold} gold`);
+  if (prize) window.setTimeout(() => sfx.mini("star"), 400);
+  hud.showMessage(
+    won ? "🏴 The hall has fallen!" : retreat ? "You withdrew" : "The castle held",
+    lines.join("\n"),
+    "Back to the map",
+    () => {
+      hud.hideOverlay();
+      goHub();
+    },
+    "title",
+    { label: won ? "Attack again" : "Try again", onClick: () => { hud.hideOverlay(); startSiege(-1); } },
   );
 }
 

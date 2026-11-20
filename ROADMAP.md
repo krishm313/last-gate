@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Daily Siege (Siege Lord sheet, after Siege 1): a castle picked from the date — a chapter you've cleared as the ground, any hero defending, walls ≈0.6 per chapter (a level lower some days; King −1, Pyromancer/Alchemist −2 — they wipe packed pushes in siegesim) — first win of the day pays +250 gold (stats.dsiegeDay/dsiegeWins). No stars or cards; result panel shows the prize. src/core/dailySiege.ts + tests.
 - Scouts report / next-wave preview: Tunneler and Banner-bearer use painted portraits; War Raven and Fire Imp show their Bestiary emoji (they used to fall back to a drawn footman).
 - Siege Master achievement (all 18 Siege Lord stars, 1200 gold; Conqueror now reads "first three sieges"). The in-run next-wave preview and scouts report show the Shadowstalker's portrait (it fell back to a drawn figure).
 - Siege 6: The Alchemist's Tower (Bloodmoon Moors ground, needs ch10 + Siege 5). The Alchemist's acid shreds clumped pushes (siegesim: 0% at L10 vs the Marshal's 63%), so the walls are L8 and the horde 8% tougher → 47% bot wins (32 runs). Prize: Stalkers ×2 war card (cost 6). Achievement Towerfall (900); Siege Lord stars now x/18.

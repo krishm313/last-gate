@@ -1,4 +1,5 @@
 import { GIFT_GOLD, giftView } from "../core/gift";
+import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
@@ -576,6 +577,25 @@ export class Hub {
   private siegeSheet(save: SaveData): void {
     const box = el("div", "panel pop-in lgm-sheet");
     box.append(el("h1", "title", "⚔️ Siege Lord"), el("p", "sub", "Tap a card, then a lane, to send your horde. Break the walls, take the hall — before the castle holds 8 pushes."));
+    // Today's Daily Siege (once the first siege is taken): a fresh castle every day, with a prize for the first win.
+    if ((save.mini.siege1?.stars ?? 0) > 0) {
+      const today = todayString();
+      const d = dailySiegeFor(today, Object.keys(save.stars).map(Number).filter((k) => (save.stars[k] ?? 0) > 0));
+      const open = dailySiegeOpen(save.stats, today);
+      const row = el("button", "chapter lgsl-row lgsl-daily");
+      row.style.setProperty("--g1", "#b8781e");
+      row.style.setProperty("--g2", "#3a1a08");
+      const left = el("div", "ch-left");
+      left.append(el("div", "ch-num", "🗓️ Daily Siege"), el("div", "ch-name", d.name), el("div", "ch-blurb", `Walls level ${d.perm} · ${open ? `first win: +${DAILY_SIEGE_PRIZE} gold` : `taken today ✓ · new siege in ${timeToNextDaily()}`}`));
+      const right = el("div", "ch-right");
+      right.append(el("div", "ch-stars", open ? "🏰" : "✅"), el("div", "ch-play", "ATTACK ▶"));
+      row.append(left, right);
+      row.onclick = () => {
+        this.cb.onClick();
+        this.cb.onSiege?.(-1);
+      };
+      box.append(row);
+    }
     SIEGES.forEach((s, i) => {
       const rec = save.mini[`siege${i + 1}`];
       const needCh = s.needs && (save.stars[s.needs] ?? 0) === 0;
@@ -698,6 +718,7 @@ export class Hub {
           "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
           "🌑 Shadowstalker: a new foe in chapters 7–10 and Endless that blinks forward through your fire",
           "⚔️ Siege 6: The Alchemist's Tower — take it to unlock the Stalkers war card",
+          "🗓️ Daily Siege: a new castle to storm every day in Siege Lord — +250 gold for the first win",
           "🧪 The Alchemist (9th hero, 28★): an Acid Flask pools on the thickest knot of foes — they burn and take 25% more damage",
           "🎖️ Veteran looks: survive 25 nights with a hero to unlock a new outfit — violet-and-gold, Golden robes for the Cleric, the Crimson King",
         ]
