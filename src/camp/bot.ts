@@ -1,4 +1,4 @@
-import { carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
+import { carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, siegeRepairLocked, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
 import { GATE_SEGMENTS, INCOME_PILE, SEGMENT_W, WALL_Y } from "./world";
 
 const GATE_X = ((GATE_SEGMENTS[0]! + GATE_SEGMENTS[GATE_SEGMENTS.length - 1]! + 1) / 2) * SEGMENT_W;
@@ -50,7 +50,9 @@ export function campBotInput(c: Camp): CampInput {
   );
   let target: Plot | undefined;
   const breached = c.segments.some((sg) => sg.hp <= 0);
-  if (repair && (wallFrac < 0.6 || breached) && h.coins >= plotCost(repair) - repair.paid) target = repair;
+  // (Siege Lord: the castle can't repair mid-push — see updatePaying — so the bot doesn't wait at it.)
+  const canRepair = !siegeRepairLocked(c);
+  if (repair && canRepair && (wallFrac < 0.6 || breached) && h.coins >= plotCost(repair) - repair.paid) target = repair;
   else {
     // Half the bot's runs (by seed) also favour the newer buildings from night 5, so balance runs
     // measure them too (they're pricey and the cheapest-first rule would never reach them).

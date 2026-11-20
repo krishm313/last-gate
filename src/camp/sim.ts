@@ -507,7 +507,7 @@ export const BARRACKS = { x: 620, y: 715 };
  * Siege Lord (reverse mode): the player commands the horde. Each "push" lasts REVERSE.push seconds;
  * between pushes the defenders get their usual build phase. Take the hall within REVERSE.pushes.
  */
-export const REVERSE = { push: 45, pushes: 8, startChest: 20, income: 4, cap: 80, wallBounty: 10, unitHp: 1.4 };
+export const REVERSE = { push: 45, pushes: 8, startChest: 20, income: 4, cap: 80, wallBounty: 10, unitHp: 1.4, repairLull: 8 };
 /** War cards: what a card sends, how many, and its cost from the War Chest. */
 /** `unlock`: how many sieges must be won (with stars) before the card joins the deck. */
 export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: number; hp?: number }[] = [
@@ -536,11 +536,12 @@ export const SIEGES: { name: string; chapter: number; perm: number; hero: "range
   { name: "The Keep Stands Ready", chapter: 1, perm: 2, hero: "ranger" },
   { name: "The Captain's Last Stand", chapter: 1, perm: 3, hero: "knight" },
   /** On Frostpeak's snow (needs chapter 6 cleared); the chapter's horde strength helps the attacker, so the walls are much stronger. */
-  { name: "The Frost Citadel", chapter: 6, perm: 6, hero: "cleric", needs: 6 },
+  { name: "The Frost Citadel", chapter: 6, perm: 6, hero: "cleric", needs: 6, hordeHp: 0.99 },
   /** The finale on the Hollow Throne's ground: max-level walls under the Marshal; the horde is a touch frailer there. */
-  { name: "The Hollow Keep", chapter: 10, perm: 10, hero: "marshal", needs: 10, hordeHp: 0.96 },
+  { name: "The Hollow Keep", chapter: 10, perm: 10, hero: "marshal", needs: 10, hordeHp: 1 },
   /** On the Bloodmoon Moors after the Hollow Keep: the Alchemist's acid melts clumped pushes, so the walls are lower (L8) and the horde a bit tougher. */
-  { name: "The Alchemist's Tower", chapter: 9, perm: 8, hero: "alchemist", needs: 10, hordeHp: 1.08 },
+  // (hordeHp retuned when the castle stopped repairing mid-push: Frost Citadel 1 → 0.99, Hollow Keep 0.96 → 1, Alchemist 1.08 → 1.01.)
+  { name: "The Alchemist's Tower", chapter: 9, perm: 8, hero: "alchemist", needs: 10, hordeHp: 1.01 },
 ];
 /** Stars for a taken hall: by push 8 / 6 / 4. */
 export function siegeStars(push: number): number {
@@ -964,12 +965,20 @@ function updateForge(c: Camp): void {
   }
 }
 
+/** Siege Lord: the castle may only repair in the first REVERSE.repairLull seconds of each push. */
+export function siegeRepairLocked(c: Camp): boolean {
+  return !!c.reverse && c.phase === "wave" && c.waveTime >= REVERSE.repairLull;
+}
+
 function updatePaying(c: Camp): void {
   const h = c.hero;
   const plot = c.plots.find((p) => !p.locked && Math.abs(p.x - h.x) < CAMP.plotHalf && Math.abs(p.y - h.y) < CAMP.plotHalf);
   const needCoins = plot ? plotCost(plot) - plot.paid : 0;
   const needLogs = plot ? plotLogCost(plot) - plot.paidLogs : 0;
-  if (!plot || plotMaxed(plot) || (plot.kind === "repair" && !repairNeeded(c)) || ((h.coins <= 0 || needCoins <= 0) && (h.logs <= 0 || needLogs <= 0))) {
+  // Siege Lord: the defenders can't mend the wall mid-push — a breach you open stays open until the
+  // next push begins (they repair in the first few seconds of each push, the lull).
+  const siegeLock = !!plot && plot.kind === "repair" && siegeRepairLocked(c);
+  if (!plot || siegeLock || plotMaxed(plot) || (plot.kind === "repair" && !repairNeeded(c)) || ((h.coins <= 0 || needCoins <= 0) && (h.logs <= 0 || needLogs <= 0))) {
     h.payTime = 0;
     h.payingPlot = null;
     return;
