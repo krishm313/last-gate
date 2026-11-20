@@ -205,3 +205,27 @@ describe("the Cleric", async () => {
     expect(c.hero.hp).toBeCloseTo(c.hero.maxHp, 0);
   });
 });
+
+describe("The Marshal", () => {
+  it("Call to Arms summons militia that fight, then march off without respawning", async () => {
+    const { createCamp, drainEvents, spawnEnemy, step, MILITIA } = await import("../src/camp/sim");
+    const { STEP } = await import("../src/camp/world");
+    const s = newSave();
+    s.stars = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 1 }; // 25 stars
+    const setup = campSetupFromSave(s, "marshal");
+    expect(setup.ability).toBe("callToArms");
+    const c = createCamp(4, undefined, setup);
+    c.phase = "wave";
+    c.queue = [];
+    // A tough foe far up the field keeps the night going (a cleared night pauses for the blessing pick).
+    spawnEnemy(c, { at: 0, enemy: "golem", hpMult: 500, lane: null }, { x: 100, y: 40 });
+    const before = c.allies.length;
+    c.abilityCharge = 1;
+    drainEvents(c);
+    step(c, { move: { x: 0, y: 0 }, ability: true } as never);
+    expect(drainEvents(c).some((e) => e.type === "callToArms")).toBe(true);
+    expect(c.allies.length).toBe(before + MILITIA.count);
+    for (let i = 0; i < Math.round((MILITIA.life + 0.5) / STEP); i++) step(c, { move: { x: 0, y: 0 } } as never);
+    expect(c.allies.length).toBe(before);
+  });
+});

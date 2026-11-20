@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- 8th hero: The Marshal (25★) — Call to Arms: 4 militia fall in around him for 12 s (fight anything inside the walls or at the gate; no respawn); passive: soldiers +25% HP. Art: the swordsman recoloured crimson and gold with PIL (units/marshal.png + portrait). campsim ch7 L10: 58% (mid-pack). Test: summon count + march-off after 12 s.
 - Boss Rush results: "Bosses slain: N/10" on a loss, "Kingslayer!" on a clear; one-time 🔓 NEW! ribbon on the card. Autoplay sweep of Boss Rush: no errors.
 - Boss Rush banner: each night opens with "👑 Boss N/10" and the boss's name; the tenth is "👑 THE LAST BOSS".
 - Boss Rush (new mode, opens after chapter 5): ten nights, a boss every night in campaign order (Ogre → Blood Moon Warlord) with nasty escorts (sappers, rams, tunnelers, ravens, imps). Always Normal, pays like chapter 6, its stars don't count toward the campaign total; achievement Kingslayer (800). Engine: ChapterDef.budgetMult (escort budget); the camp sim's CAMP_CHAPTER_HP needed an entry (98: 2.3) — without it the mode played at chapter-1 strength (100% bot wins at any level). campsim ch98: L10 80%, L6 50%; ch9 L10 is 25% for reference. Main-campaign profile at 4× throttle: no cheap win (crisp cache warming normally, ~106 ctx.save/frame; most time is raster).

@@ -1,5 +1,5 @@
-export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer" | "cleric";
-export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance" | "sanctuary";
+export type HeroId = "ranger" | "knight" | "pyro" | "engineer" | "warden" | "lancer" | "cleric" | "marshal";
+export type AbilityId = "arrowRain" | "shieldBash" | "fireNova" | "overclock" | "snare" | "lance" | "sanctuary" | "callToArms";
 
 export interface HeroDef {
   id: HeroId;
@@ -51,6 +51,11 @@ export const HEROES: HeroDef[] = [
     id: "cleric", name: "The Cleric", title: "Lantern of the high chapel", color: "#e8d27a",
     ability: "sanctuary", abilityName: "Sanctuary", abilityDesc: "Heal the hall, every wall section, your soldiers and yourself.",
     cooldown: 30, starsToUnlock: 22,
+  },
+  {
+    id: "marshal", name: "The Marshal", title: "Captain of the levy", color: "#c8384a",
+    ability: "callToArms", abilityName: "Call to Arms", abilityDesc: "Summon 4 militia at your side for 12 s — they fight anything inside the walls or at the gate.",
+    cooldown: 24, starsToUnlock: 25,
   },
 ];
 

@@ -357,6 +357,7 @@ export type CampEvent =
   | { type: "noTarget"; x: number; y: number; text?: string }
   | { type: "deploy"; id: EnemyId; lane: number; count: number }
   | { type: "sanctuary"; x: number; y: number; healed: number }
+  | { type: "callToArms"; x: number; y: number; n: number }
   | { type: "blessing"; id: string }
   | { type: "won" }
   | { type: "lost" };
@@ -480,7 +481,12 @@ export interface Ally {
   respawn: number;
   facing: number;
   swinging: number;
+  /** Militia summoned by the Marshal: seconds left before they march off (no respawn). */
+  temp?: number;
 }
+
+/** The Marshal's Call to Arms: militia summoned beside him. */
+export const MILITIA = { count: 4, life: 12, hp: 70 };
 
 export const BARRACKS = { x: 620, y: 715 };
 /**
@@ -1019,9 +1025,12 @@ export function towersAwaitingSpec(c: Camp): Plot[] {
 }
 
 function updateAllies(c: Camp): void {
+  // Summoned militia march off when their time is up (or when they fall).
+  if (c.allies.some((a) => a.temp !== undefined && (a.temp <= 0 || a.hp <= 0))) c.allies = c.allies.filter((a) => a.temp === undefined || (a.temp > 0 && a.hp > 0));
   for (const a of c.allies) {
     a.swinging = Math.max(0, a.swinging - STEP);
-    a.maxHp = Math.round(ALLY.hp * c.mods.allyPower);
+    if (a.temp !== undefined) a.temp -= STEP;
+    else a.maxHp = Math.round(ALLY.hp * c.mods.allyPower);
     if (a.respawn > 0) {
       a.respawn -= STEP;
       if (a.respawn <= 0) {
@@ -1036,7 +1045,7 @@ function updateAllies(c: Camp): void {
     let best = ALLY.aggro ** 2;
     for (const e of c.enemies) {
       if (e.def.flying && e.def.behavior === "ranged") continue;
-      const inReach = e.y > WALL_Y - 10 || !wallIntact(c, segmentIndexAt(e.x));
+      const inReach = e.y > WALL_Y - (a.temp !== undefined ? 40 : 10) || !wallIntact(c, segmentIndexAt(e.x));
       if (!inReach) continue;
       const d = (e.x - a.postX) ** 2 + (e.y - a.postY) ** 2;
       if (d < best) {
@@ -1075,7 +1084,7 @@ function damageAlly(c: Camp, a: Ally, raw: number): void {
   a.hp -= raw;
   if (a.hp <= 0) {
     a.hp = 0;
-    a.respawn = ALLY.respawn;
+    a.respawn = a.temp !== undefined ? 0 : ALLY.respawn;
     c.events.push({ type: "allyDown", x: a.x, y: a.y });
   }
 }
@@ -1256,6 +1265,18 @@ function useAbility(c: Camp): void {
         n++;
       }
       c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
+      break;
+    }
+    case "callToArms": {
+      // Militia fall in around the Marshal and hold that spot (they reach over the wall at the gate).
+      for (let i = 0; i < MILITIA.count; i++) {
+        const a = (i / MILITIA.count) * Math.PI * 2 + Math.PI / 4;
+        const px = Math.max(60, Math.min(MAP_W - 60, h.x + Math.cos(a) * 54));
+        const py = Math.max(WALL_Y + 24, h.y + Math.sin(a) * 36);
+        const hp = Math.round(MILITIA.hp * c.mods.allyPower);
+        c.allies.push({ id: c.nextId++, x: h.x, y: h.y, hp, maxHp: hp, cooldown: i * 0.15, postX: px, postY: py, respawn: 0, facing: -Math.PI / 2, swinging: 0, temp: MILITIA.life });
+      }
+      c.events.push({ type: "callToArms", x: h.x, y: h.y, n: MILITIA.count });
       break;
     }
     case "sanctuary": {
