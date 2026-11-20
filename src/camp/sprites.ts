@@ -279,9 +279,25 @@ function atlas(name: AnimChar): AtlasEntry | null {
   return e.ready ? e : null;
 }
 
-export function preloadAnims(): void {
+/** Sheets every session needs at once: the King, his allies and the first chapter's horde. */
+const CORE_ANIMS: AnimChar[] = ["king", "king_back", "knight_ally", "knight_ally_back", "archer_ally", "horde_horned", "brute", "horde_archer"];
+
+/**
+ * Startup preload: only the core sheets (all 15 were ~8 MB to download and ~190 MB decoded — slow on a
+ * phone's first load and heavy on memory). Each run preloads the rest it can meet (preloadAnimsFor);
+ * anything still missing loads on first use. Pass `all` for modes whose foes aren't known up front.
+ */
+export function preloadAnims(all = false): void {
   // Veteran-look sheets load on first use (most players never wear them).
-  for (const n of Object.keys(ATLAS) as AnimChar[]) if (!n.endsWith("_vet")) atlas(n);
+  for (const n of all ? (Object.keys(ATLAS) as AnimChar[]) : CORE_ANIMS) if (!n.endsWith("_vet")) atlas(n);
+}
+
+/** Preloads the animation sheets these enemy kinds use (call when a run starts, before the first wave). */
+export function preloadAnimsFor(enemyIds: Iterable<string>): void {
+  for (const id of enemyIds) {
+    const a = ENEMY_ANIMS[id];
+    if (a) atlas(a.name);
+  }
 }
 
 function atlasHalf(e: AtlasEntry): HTMLCanvasElement {

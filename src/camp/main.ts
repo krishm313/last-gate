@@ -33,8 +33,9 @@ import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
 import { INCOME_PILE, STEP, VIEW_H, VIEW_W } from "./world";
 import { RenderInterp } from "./interp";
-import { crispCache, crispStats } from "./sprites";
+import { crispCache, crispStats, preloadAnims, preloadAnimsFor } from "./sprites";
 import type { GameEvent } from "../core/events";
+import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
 import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
 import { Hub } from "../ui/hub";
@@ -344,6 +345,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   }
   if (weatherOdds) played = { ...played, weatherOdds };
   camp = createCamp(seed, played, setup);
+  preloadChapterArt(played);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
   // Endless is fought on a different cleared chapter's ground each week (scenery only).
   const scene = chapter.endless ? CHAPTER_BY_ID[endlessSceneryFor(todayString(), clearedChapters())]! : chapter;
@@ -371,6 +373,17 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
 }
 
 let dailyRun: DailyChallenge | null = null;
+
+/** Starts loading the animation sheets this run can meet (its waves' foes and bosses) during the build phase. */
+function preloadChapterArt(ch: ChapterDef) {
+  if (ch.endless || !ch.waves?.length) return preloadAnims(true); // (waves made up as it goes)
+  const ids = new Set<string>();
+  for (const w of ch.waves) {
+    for (const id of Object.keys(w.mix ?? {})) ids.add(id);
+    if (w.boss) ids.add(w.boss);
+  }
+  preloadAnimsFor(ids);
+}
 
 function startDaily() {
   const d = dailyFor(todayString());
@@ -693,6 +706,7 @@ function startSiege(i: number) {
   const setup: CampSetup = { ...campSetupFromSave(def, s.hero), reverse: true, siegesWon: won, hordeHp: s.hordeHp };
   const chapter = CHAPTER_BY_ID[s.chapter]!;
   camp = createCamp((Date.now() >>> 0) ^ 0x5e9e, chapter, setup);
+  preloadAnimsFor(WAR_CARDS.map((k) => k.id)); // (your horde: every card's look)
   renderer.setGround(chapter.ground, chapter.id);
   lastMood = chapter.id;
   accumulator = 0;
