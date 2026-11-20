@@ -3,7 +3,7 @@ import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { musicIntensity } from "../audio/intensity";
 import { Sfx } from "../audio/sfx";
-import { SiegeBar } from "../ui/siegeBar";
+import { CARD_NAME, SiegeBar } from "../ui/siegeBar";
 import { ArcheryView, rangeReward } from "../mini/archeryView";
 import { SupplyView } from "../mini/supplyView";
 import { supplyReward } from "../mini/supply";
@@ -562,7 +562,7 @@ function finishSiege(c: Camp, retreat = false) {
   if (won) lines.push(`${"★".repeat(stars)}${"☆".repeat(3 - stars)}${stars > prev.stars ? " — new best!" : ""}`);
   lines.push(`+${gold} gold`);
   const newCards = WAR_CARDS.filter((k) => k.unlock !== undefined && k.unlock > wonBefore && k.unlock <= wonAfter);
-  if (newCards.length) lines.push(`🃏 New war card${newCards.length > 1 ? "s" : ""}: ${newCards.map((k) => ENEMIES[k.id].name).join(", ")}`);
+  if (newCards.length) lines.push(`🃏 New war card${newCards.length > 1 ? "s" : ""}: ${newCards.map((k) => CARD_NAME[k.id] ?? ENEMIES[k.id].name).join(", ")}`);
   const next = SIEGES[siegeIdx + 1];
   if (won && prev.stars === 0 && next) lines.push(next.needs && !(save.stars[next.needs] ?? 0) ? `🔒 Next: ${next.name} — clear chapter ${next.needs} to open it` : `🔓 Next siege open: ${next.name}`);
   if (won && stars > prev.stars) for (let i = 0; i < stars - prev.stars; i++) window.setTimeout(() => sfx.mini("star"), 400 + i * 300);

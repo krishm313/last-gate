@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord sheet: each unwon siege shows the war card its first win opens ("🃏 Win to unlock: Diggers"); card names now match the deck everywhere (CARD_NAME exported).
 - Side-game weekly quests (from the week of Mon 2026-12-07): "Earn 6 new mini-game stars this week" (stat miniStars) and "Send 250 units in Siege Lord this week". Earlier weeks keep their pick (test). Coin/hall walking: already solved by the Royal courier (hall income flies to the King).
 - Side-game daily quests (from 2026-11-21, once chapter 1 is cleared): "Finish 2 mini-game rounds" (stat miniPlays) and "Send 30 units in Siege Lord" (stat deployed). Earlier days keep their picks (test). Marshal skill tree: generic tree already fits (Rally Cry boosts militia).
 - The Marshal's militia are drawn in his red-and-gold (not as blue barracks knights) and fade out as they march off.

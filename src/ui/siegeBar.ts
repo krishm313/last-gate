@@ -13,7 +13,7 @@ const CARD_ART: Record<string, string> = {
 /** Cards drawn from in-game sprites (full paths). */
 const CARD_SPRITE: Record<string, string> = { bat: "./sprites/props/bat.webp", imp: "./sprites/props/imp.webp" };
 const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
-const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps" };
+export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps" };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const n = document.createElement(tag);

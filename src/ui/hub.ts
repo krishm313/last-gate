@@ -8,7 +8,8 @@ import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
 import { ENEMIES, enemyTraits } from "../core/enemies";
-import { SIEGES } from "../camp/sim";
+import { SIEGES, WAR_CARDS } from "../camp/sim";
+import { CARD_NAME } from "./siegeBar";
 import { ACHIEVEMENTS, claimable, foeMet, foesMet, heroHasWon } from "../core/achievements";
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
@@ -490,6 +491,9 @@ export class Hub {
       row.style.setProperty("--g2", "#2a1010");
       const left = el("div", "ch-left");
       left.append(el("div", "ch-num", `Siege ${i + 1}`), el("div", "ch-name", s.name), el("div", "ch-blurb", open ? `Defenders: ${["fresh recruits", "seasoned guards", "veterans under the Knight Captain", "the mountain garrison, blessed by the Cleric"][i] ?? "the castle's best"}` : needCh ? `Clear chapter ${s.needs} first` : "Take the previous siege first"));
+      // The war card a first win here opens (sieges are won in order, so siege N opens unlock N).
+      const prize = WAR_CARDS.find((k) => k.unlock === i + 1);
+      if (open && prize && !(rec?.stars ?? 0)) left.append(el("div", "ch-affix", `🃏 Win to unlock: ${CARD_NAME[prize.id] ?? ENEMIES[prize.id].name}`));
       const right = el("div", "ch-right");
       const st = rec?.stars ?? 0;
       right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));
