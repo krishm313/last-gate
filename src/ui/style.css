@@ -1397,3 +1397,13 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 @keyframes lgs2-full { 50% { box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd84a, 0 0 calc(12 * var(--u)) #ffd84aaa; } }
 .lgs2-chest-t { min-width: calc(74 * var(--u)); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .lgs2-chest.full { animation: none; } }
+
+/* ---- Bigger invisible hit areas on small phones (the look is unchanged): on an iPhone SE the HUD
+   buttons were 24×24, tabs 24 tall, claim buttons 24 tall and "Reset progress" 12 tall. ---- */
+.hud-btn, .gear-btn, .tab, .btn-claim, .link-btn { position: relative; }
+.hud-btn::after, .gear-btn::after, .tab::after, .btn-claim::after, .link-btn::after { content: ""; position: absolute; }
+.hud-btn::after { inset: calc(-9 * var(--u)) calc(-5 * var(--u)); }
+.gear-btn::after { inset: calc(-8 * var(--u)); border-radius: 50%; }
+.tab::after { inset: calc(-8 * var(--u)) calc(-2 * var(--u)); }
+.btn-claim::after { inset: calc(-8 * var(--u)) calc(-6 * var(--u)); }
+.link-btn::after { inset: calc(-12 * var(--u)) 0; }
