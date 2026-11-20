@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Trophies tab: claimed achievements fold into a "▸ ✔ Claimed (n)" toggle at the bottom, so the goals still open come first.
 - Achievements Iron Crown (clear chapter 10 on Hard, 800) and Nightmare's End (on Nightmare, 1500). The Endless tile shows your record plus this week's twist icon ("Night 14 · 👑").
 - Map quick-jump: the "N / 10 chapters cleared · ⬇ next" counter at the top of the map is a button that smooth-scrolls back down to your next stop.
 - Nov 21 What's-new card: a line pointing at the new modes row above the map.
@@ -456,7 +457,6 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).
-- 2026-11-20 (UUU) Trophies tab: claimed achievements fold into a "Claimed (n)" toggle so open goals come first.
 
 ## Self-reviews
 - 04:06 — Deploys 261–269 all green. This hour: Siege 5 The Hollow Keep (new horde-HP handicap), a real save bug fixed (Boss Rush stars/best were dropped on every reload — sanitizeSave whitelisted only campaign ids) plus a save round-trip test guarding every newer field, Ghost Lanterns (mini-game #6) + polish + glow caching, compact modes row on the Battle tab, What's-new lines. Tests 204→211. Lessons: whitelisting sanitizers silently eat new data — every new mode/stat needs a round-trip test entry (now in place); siege balance knobs can be cliff-steep (horde HP 1.0 → 75%, 0.8 → 0%); profile before optimising (Lanterns: 94% raster, gradients weren't it).
