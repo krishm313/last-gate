@@ -78,6 +78,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "band", name: "Band of Heroes", desc: "Win a run with every hero", icon: "🤝", goal: HEROES.length, reward: 600, progress: heroesWon },
   { id: "untouchable", name: "Untouchable", desc: "Survive 10 nights without the wall or hall taking a hit", icon: "✨", goal: 10, reward: 200, progress: stat("flawlessWaves") },
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
+  { id: "loyal", name: "Loyal Subject", desc: "Open the Royal Gift 7 days in a row", icon: "🎁", goal: 7, reward: 300, progress: stat("giftBest") },
 ];
 
 export function claimable(s: SaveData): Achievement[] {

@@ -1306,3 +1306,34 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgm-side .lgm-fair { top: calc(-16 * var(--u)); right: auto; left: 50%; transform: translateX(-50%); white-space: nowrap; background: linear-gradient(#ff9ad0, #d84a9a); color: #fff; }
 .lgm-side .lgm-best { font-size: calc(8.5 * var(--tu)); font-weight: 800; color: #e8dcc0; line-height: 1.1; }
 .lgm-side .lgm-name { font-size: calc(10 * var(--tu)); }
+
+/* Royal Gift: a daily chest on the Battle tab (7-day ladder). */
+.lgift {
+  display: flex; align-items: center; gap: calc(10 * var(--u)); width: 100%; text-align: left; font: inherit; color: #fff4d6; cursor: pointer;
+  padding: calc(10 * var(--u)) calc(12 * var(--u)); border-radius: calc(14 * var(--u)); border: calc(2 * var(--u)) solid #ffd84a;
+  background: linear-gradient(135deg, #7a2a8a, #4a1660 65%, #2a0f3a); box-shadow: 0 calc(4 * var(--u)) 0 #1a0826, 0 0 calc(16 * var(--u)) #ffd84a55;
+  animation: lgift-glow 1.8s ease-in-out infinite;
+}
+#ui .lgift, #ui .lgift * { pointer-events: auto; }
+.lgift.opened { animation: perm-pop 0.45s cubic-bezier(.2,1.6,.4,1); border-color: #8fd36a; box-shadow: 0 calc(4 * var(--u)) 0 #1a0826; cursor: default; }
+@keyframes lgift-glow { 50% { box-shadow: 0 calc(4 * var(--u)) 0 #1a0826, 0 0 calc(26 * var(--u)) #ffd84aaa; } }
+.lgift-chest { font-size: calc(34 * var(--tu)); line-height: 1; animation: lgift-wiggle 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.lgift.opened .lgift-chest { animation: lgift-burst 0.6s cubic-bezier(.2,1.8,.4,1); }
+@keyframes lgift-wiggle { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-12deg); } 82% { transform: rotate(10deg); } 88% { transform: rotate(-6deg); } }
+@keyframes lgift-burst { 0% { transform: scale(0.4); } 100% { transform: scale(1); } }
+.lgift-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(4 * var(--u)); }
+.lgift-title { font-weight: 800; font-size: calc(15 * var(--tu)); }
+.lgift-sub { font-size: calc(11.5 * var(--tu)); opacity: 0.85; }
+.lgift-pips { display: flex; gap: calc(3 * var(--u)); }
+.lgift-pip {
+  flex: 1; display: flex; flex-direction: column; align-items: center; padding: calc(2 * var(--u)) 0; border-radius: calc(6 * var(--u));
+  background: #00000040; border: calc(1.5 * var(--u)) solid #ffffff22; opacity: 0.6;
+}
+.lgift-pip b { font-size: calc(11 * var(--tu)); line-height: 1.2; }
+.lgift-pip i { font-style: normal; font-size: calc(9 * var(--tu)); color: #ffd84a; }
+.lgift-pip.got { opacity: 1; background: #3f7a2a; border-color: #8fd36a; }
+.lgift-pip.got b::after { content: "✓"; margin-left: calc(1 * var(--u)); }
+.lgift-pip.now { opacity: 1; background: #ffd84a33; border-color: #ffd84a; }
+.lgift-pip.big { flex: 1.3; }
+.lgift-gold { font-weight: 900; font-size: calc(18 * var(--tu)); color: #ffd84a; text-shadow: 0 calc(2 * var(--u)) 0 #00000080; }
+@media (prefers-reduced-motion: reduce) { .lgift, .lgift-chest { animation: none; } }

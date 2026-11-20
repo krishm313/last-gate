@@ -1,3 +1,4 @@
+import { GIFT_GOLD, giftView } from "../core/gift";
 import { fairPick, openMinis } from "../mini/fair";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
@@ -103,6 +104,8 @@ export interface HubCallbacks {
   onFlair?: (id: string) => void;
   /** Picked a campaign difficulty. */
   onDifficulty?: (id: DifficultyId) => void;
+  /** Opened today's Royal Gift chest (Battle tab); returns the gold it held. */
+  onGift?: () => number;
   /** Claimed a finished daily / weekly quest. */
   onClaimQuest: (id: string) => void;
   /** New quests were handed out (the save should be written). */
@@ -250,7 +253,10 @@ export class Hub {
     // Opening Heroes with a later hero picked: bring their card (and skill tree) into view.
     const picked = tabChanged && tab === "heroes" ? body.querySelector<HTMLElement>(".hero.selected") : null;
     if (picked && picked !== body.querySelector(".hero")) requestAnimationFrame(() => scrollToLayout(picked));
-    if (claimedNow) requestAnimationFrame(() => flyCoins(wrap, ".trophy.just", ".res-gold", true));
+    // A gift opened on the Battle tab: keep it in view (the map would otherwise jump to the next stop).
+    const giftEl = wrap.querySelector<HTMLElement>(".lgift.opened");
+    if (giftEl) requestAnimationFrame(() => scrollToLayout(wrap));
+    if (claimedNow) requestAnimationFrame(() => flyCoins(wrap, ".trophy.just, .lgift.opened", ".res-gold", true));
     else if (boughtNow) requestAnimationFrame(() => flyCoins(wrap, ".res-gold", ".perm.just", false));
   }
 
@@ -258,7 +264,11 @@ export class Hub {
     body.append(el("div", "hub-hint", `Hero: ${HERO_BY_ID[save.hero].name} — pick a battlefield`));
     const news = this.newsCard(save);
     if (news) body.append(news);
-    if ((save.stars[1] ?? 0) > 0) body.append(this.dailyCard(save));
+    if ((save.stars[1] ?? 0) > 0) {
+      const gift = this.giftCard(save);
+      if (gift) body.append(gift);
+      body.append(this.dailyCard(save));
+    }
     // Campaign difficulty, once a chapter has been cleared.
     const diff = DIFF_BY_ID[save.difficulty];
     if ((save.stars[1] ?? 0) > 0) {
@@ -622,6 +632,7 @@ export class Hub {
           "🐉 Dragon Dodge, 🪨 Catapult Toss & 🏮 Ghost Lanterns: three more mini-games on the map",
           "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother on older phones",
           "🧭 Siege Lord, Endless & Boss Rush now sit in one row of tiles just above the map",
+          "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
@@ -629,7 +640,7 @@ export class Hub {
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
           "🎪 6 mini-games on the map — 🎯 Archery, 🛒 Supply Run, 🛡️ Wall Watch, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
-          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
+          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)", "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [
@@ -652,6 +663,35 @@ export class Hub {
       card.remove();
     });
     card.append(ok);
+    return card;
+  }
+
+  /** The Royal Gift: a chest that opens once a day, on a 7-day ladder. Hidden once opened (after the reveal). */
+  private giftCard(save: SaveData): HTMLElement | null {
+    const v = giftView(save.stats, todayString());
+    const opened = this.justClaimed?.id === "gift" ? this.justClaimed : null;
+    if (opened) this.justClaimed = null;
+    if (!v.ready && !opened) return null;
+    const card = el("button", `lgift${opened ? " opened" : ""}`);
+    card.append(el("div", "lgift-chest", opened ? "💰" : "🎁"));
+    const mid = el("div", "lgift-mid");
+    mid.append(el("div", "lgift-title", opened ? `Day ${v.day} gift opened!` : `Royal Gift · Day ${v.day}`));
+    const pips = el("div", "lgift-pips");
+    GIFT_GOLD.forEach((g, i) => {
+      const d = i + 1;
+      const pip = el("div", `lgift-pip${d < v.day || (opened && d === v.day) ? " got" : d === v.day ? " now" : ""}${d === GIFT_GOLD.length ? " big" : ""}`);
+      pip.append(el("b", "", d === GIFT_GOLD.length ? "👑" : String(d)), el("i", "", String(g)));
+      pips.append(pip);
+    });
+    const nextDay = (v.day % GIFT_GOLD.length) + 1;
+    mid.append(pips, el("div", "lgift-sub", opened ? `Come back tomorrow for day ${nextDay} (+${GIFT_GOLD[nextDay - 1]})` : v.streak > 1 ? `🔥 ${v.streak} days in a row — tap to open` : "Open one every day — miss a day and it starts over"));
+    card.append(mid, el("div", "lgift-gold", `+${opened ? opened.reward : v.gold}`));
+    if (!opened)
+      card.onclick = () => {
+        const gold = this.cb.onGift?.() ?? 0;
+        if (gold > 0) this.justClaimed = { id: "gift", reward: gold };
+        this.showHub(save, "battle");
+      };
     return card;
   }
 

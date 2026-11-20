@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Royal Gift: a chest at the top of the Battle tab opens once a day for gold on a 7-day ladder (60 → 350, a missed day restarts it); coins fly to the counter; achievement Loyal Subject (7 days in a row, 300); What's-new line. Lives in save stats (giftDay/giftStreak/giftBest/gifts) so no save-format change.
 - Heroes tab: opening it with a later hero picked (e.g. the Marshal) scrolls straight to their card and skill tree instead of the top of the list.
 - Trophies tab: claimed achievements fold into a "▸ ✔ Claimed (n)" toggle at the bottom, so the goals still open come first.
 - Achievements Iron Crown (clear chapter 10 on Hard, 800) and Nightmare's End (on Nightmare, 1500). The Endless tile shows your record plus this week's twist icon ("Night 14 · 👑").

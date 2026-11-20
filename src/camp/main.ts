@@ -17,6 +17,7 @@ import { LanternsView } from "../mini/lanternsView";
 import { lanternReward } from "../mini/lanterns";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
+import { claimGift } from "../core/gift";
 import { deploy, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
@@ -158,6 +159,16 @@ const hub = new Hub(uiRoot, {
       sfx.built();
     }
     hub.showHub(save, "trophies");
+  },
+  onGift: () => {
+    const gold = claimGift(save.stats, fairDate());
+    if (gold > 0) {
+      save.gold = Math.min(MAX_GOLD, save.gold + gold);
+      writeSave(save);
+      sfx.mini("star");
+      buzz(settings, 20);
+    }
+    return gold;
   },
   onClaimQuest: (id) => {
     if (claimQuest(save, id) > 0) {
