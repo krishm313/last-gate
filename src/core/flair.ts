@@ -21,6 +21,7 @@ export const FLAIRS: FlairDef[] = [
   { id: "frost", name: "Frost Trail", icon: "❄️", how: "Clear chapter 6", unlocked: (s) => (s.stars[6] ?? 0) > 0 },
   { id: "seafoam", name: "Seafoam Trail", icon: "🫧", how: "Clear chapter 8", unlocked: (s) => (s.stars[8] ?? 0) > 0 },
   { id: "bloodmoon", name: "Blood Moon Halo", icon: "🌕", how: "Clear chapter 9", unlocked: (s) => (s.stars[9] ?? 0) > 0 },
+  { id: "grave", name: "Grave Wisps", icon: "👻", how: "Clear chapter 10", unlocked: (s) => (s.stars[10] ?? 0) > 0 },
 ];
 
 export const FLAIR_BY_ID: Record<string, FlairDef> = Object.fromEntries(FLAIRS.map((f) => [f.id, f]));

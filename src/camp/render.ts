@@ -4707,8 +4707,9 @@ fx.shake(0.15);
     if (f === "shadow") tint("rgba(90,40,160,0.8)", 0.6);
     if (f === "petal") tint("rgba(255,160,200,0.7)", 0.5);
     if (f === "seafoam") tint("rgba(80,210,200,0.75)", 0.55);
+    if (f === "grave") tint("rgba(184,154,255,0.7)", 0.55);
     // Trails: shed motes while walking (and a few while standing for the wisps).
-    this.flairAcc += dt * (moving ? 1 : f === "shadow" ? 0.5 : 0.15);
+    this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" ? 0.5 : 0.15);
     const every = 0.035;
     while (this.flairAcc > every) {
       this.flairAcc -= every;
@@ -4718,6 +4719,7 @@ fx.shake(0.15);
       else if (f === "frost") this.fx.burst(x + jx, y + 10 + jy, alt ? "#ffffff" : "#8ad0ff", 1, 22, { max: 1.1, size: 3.2, gravity: 14, drag: 3, shape: "chunk" });
       else if (f === "petal") this.fx.burst(x + jx, y + 2 + jy, alt ? "#ffb0d0" : "#ff6aa8", 1, 26, { max: 1.3, size: 3.6, gravity: 36, drag: 2.5, shape: "chunk" });
       else if (f === "shadow") this.fx.burst(x + jx * 1.4, y + 8 + jy, alt ? "#5a2a98" : "#2a1448", 1, 16, { max: 1.1, size: 4.6, gravity: -46, drag: 2, shape: "dot" });
+      else if (f === "grave") this.fx.burst(x + jx * 1.2, y + 6 + jy, alt ? "#f0eaff" : "#a88aff", 1, 14, { max: 1.4, size: alt ? 3 : 4.4, gravity: -55, drag: 2.2, shape: "dot" });
       else if (f === "seafoam") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8fffc" : "#6ad8d0", 1, 18, { max: 1.0, size: alt ? 2.6 : 3.8, gravity: -36, drag: 2.4, shape: "dot" });
     }
     if (this.flairAcc > 1) this.flairAcc = 0;
