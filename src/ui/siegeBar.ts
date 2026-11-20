@@ -8,12 +8,12 @@ import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
  * them in. A card stays selected so a lane can be tapped again for the next group.
  */
 const CARD_ART: Record<string, string> = {
-  footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper", shaman: "enemy_shaman", knight: "enemy_knight",
+  footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper", shaman: "enemy_shaman", knight: "enemy_knight", stalker: "enemy_stalker",
 };
 /** Cards drawn from in-game sprites (full paths). */
 const CARD_SPRITE: Record<string, string> = { bat: "./sprites/props/bat.webp", imp: "./sprites/props/imp.webp" };
 const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
-export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps", shaman: "Shaman", knight: "Knights" };
+export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps", shaman: "Shaman", knight: "Knights", stalker: "Stalkers" };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const n = document.createElement(tag);

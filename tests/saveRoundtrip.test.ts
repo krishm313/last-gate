@@ -17,7 +17,7 @@ describe("save round-trip", () => {
     s.diffCleared[10] = 1;
     s.hero = "marshal";
     s.flair = "grave";
-    for (const k of ["archery", "supply", "watch", "catapult", "dragon", "lanterns", "forge", "bells", "siege1", "siege2", "siege3", "siege4", "siege5"]) s.mini[k] = { best: 42, stars: 2 };
+    for (const k of ["archery", "supply", "watch", "catapult", "dragon", "lanterns", "forge", "bells", "siege1", "siege2", "siege3", "siege4", "siege5", "siege6"]) s.mini[k] = { best: 42, stars: 2 };
     for (const k of ["levied", "miniPlays", "miniStars", "deployed", "hollowking", "sanctified", "lanced"]) s.stats[k] = 7;
     s.claimed.push("hollow", "throne", "marshal", "bossrush", "hollowkeep", "dragonheart", "fairground");
     s.heroes.marshal.xp = 12;

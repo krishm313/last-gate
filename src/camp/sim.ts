@@ -521,13 +521,14 @@ export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: num
   { id: "imp", count: 3, cost: 5, unlock: 3 },
   { id: "shaman", count: 1, cost: 7, unlock: 4 },
   { id: "knight", count: 2, cost: 8, unlock: 5 },
+  { id: "stalker", count: 2, cost: 6, unlock: 6 },
 ];
 /** Is this war card in the deck, given how many sieges have been won? */
 export function cardOpen(card: { unlock?: number }, won: number): boolean {
   return (card.unlock ?? 0) <= won;
 }
 /** The three sieges: the defenders' upgrade level and hero rise (campaign bot plays them). */
-export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" | "cleric" | "marshal"; needs?: number; hordeHp?: number }[] = [
+export const SIEGES: { name: string; chapter: number; perm: number; hero: "ranger" | "knight" | "cleric" | "marshal" | "alchemist"; needs?: number; hordeHp?: number }[] = [
   { name: "Raid on the Border Keep", chapter: 1, perm: 0, hero: "ranger" },
   { name: "The Keep Stands Ready", chapter: 1, perm: 2, hero: "ranger" },
   { name: "The Captain's Last Stand", chapter: 1, perm: 3, hero: "knight" },
@@ -535,6 +536,8 @@ export const SIEGES: { name: string; chapter: number; perm: number; hero: "range
   { name: "The Frost Citadel", chapter: 6, perm: 6, hero: "cleric", needs: 6 },
   /** The finale on the Hollow Throne's ground: max-level walls under the Marshal; the horde is a touch frailer there. */
   { name: "The Hollow Keep", chapter: 10, perm: 10, hero: "marshal", needs: 10, hordeHp: 0.96 },
+  /** On the Bloodmoon Moors after the Hollow Keep: the Alchemist's acid melts clumped pushes, so the walls are lower (L8) and the horde a bit tougher. */
+  { name: "The Alchemist's Tower", chapter: 9, perm: 8, hero: "alchemist", needs: 10, hordeHp: 1.08 },
 ];
 /** Stars for a taken hall: by push 8 / 6 / 4. */
 export function siegeStars(push: number): number {

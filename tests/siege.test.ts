@@ -94,9 +94,11 @@ describe("Siege Lord (reverse mode)", () => {
 
 describe("siege ladder", async () => {
   const { SIEGES, siegeStars } = await import("../src/camp/sim");
-  it("has five sieges with rising defences, and stars by push", () => {
-    expect(SIEGES.length).toBe(5);
-    for (let i = 1; i < SIEGES.length; i++) expect(SIEGES[i]!.perm).toBeGreaterThan(SIEGES[i - 1]!.perm);
+  it("has six sieges with rising defences, and stars by push", () => {
+    expect(SIEGES.length).toBe(6);
+    // Walls rise through the Hollow Keep; the Alchemist's Tower trades lower walls (L8) for his acid.
+    for (let i = 1; i < 5; i++) expect(SIEGES[i]!.perm).toBeGreaterThan(SIEGES[i - 1]!.perm);
+    expect(SIEGES[5]!).toMatchObject({ hero: "alchemist", needs: 10 });
     expect(SIEGES[3]!.needs).toBe(6); // the Frost Citadel waits for chapter 6
     expect(SIEGES[4]!.needs).toBe(10); // the Hollow Keep waits for chapter 10
     expect([3, 4, 5, 6, 7, 8, 9].map(siegeStars)).toEqual([3, 3, 2, 2, 1, 1, 0]);
