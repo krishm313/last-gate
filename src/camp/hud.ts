@@ -180,6 +180,14 @@ function portrait(id: EnemyId): string {
   return url;
 }
 
+/** DOM writes only when the value changes (rewriting the same text/style every frame still costs style + layout work on phones). */
+function setText(node: HTMLElement, text: string): void {
+  if (node.textContent !== text) node.textContent = text;
+}
+function setDisplay(node: HTMLElement, display: string): void {
+  if (node.style.display !== display) node.style.display = display;
+}
+
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
   e.className = cls;
@@ -648,13 +656,14 @@ export class CampHud {
       this.abilityIcon.textContent = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱", sanctuary: "✨", callToArms: "📯", acidFlask: "🧪" }[c.ability];
       this.abilityLabel.textContent = { arrowRain: "Arrow Rain", shieldBash: "Shield Bash", fireNova: "Fire Nova", overclock: "Overclock", snare: "Snare Field", lance: "Piercing Lance", sanctuary: "Sanctuary", callToArms: "Call to Arms", acidFlask: "Acid Flask" }[c.ability];
     }
-    this.ability.style.display = c.phase === "wave" ? "flex" : "none";
+    setDisplay(this.ability, c.phase === "wave" ? "flex" : "none");
     // Hero down: the battlefield goes grey until they're back (the corner pill alone is easy to miss).
     document.body.classList.toggle("hero-dead", c.hero.dead && (c.phase === "wave" || c.phase === "build"));
     this.updatePreview(c);
     this.updateInfo(c);
-    this.status.style.display = c.phase === "build" && !c.hero.dead ? "none" : "block";
-    this.abilityFill.style.height = `${c.abilityCharge * 100}%`;
+    setDisplay(this.status, c.phase === "build" && !c.hero.dead ? "none" : "block");
+    const abH = `${Math.round(c.abilityCharge * 100)}%`;
+    if (this.abilityFill.style.height !== abH) this.abilityFill.style.height = abH;
     const ready = c.abilityCharge >= 1 && !c.hero.dead;
     if (ready && !this.ability.classList.contains("ready")) {
       this.ability.classList.add("charged");
@@ -662,14 +671,17 @@ export class CampHud {
     }
     this.ability.classList.toggle("ready", ready);
     const boss = c.enemies.find((e) => e.def.boss);
-    this.boss.style.display = boss ? "block" : "none";
+    setDisplay(this.boss, boss ? "block" : "none");
     if (boss) {
-      this.bossName.textContent = boss.enraged ? `${boss.def.name} — ENRAGED` : boss.def.name;
+      setText(this.bossName, boss.enraged ? `${boss.def.name} — ENRAGED` : boss.def.name);
       const frac = Math.max(0, boss.hp / boss.maxHp);
-      this.bossFill.style.width = `${frac * 100}%`;
-      // The white chip trails behind (slower CSS transition) so each hit visibly bites off a piece.
-      this.bossChip.style.width = `${frac * 100}%`;
-      this.bossPct.textContent = `${Math.ceil(frac * 100)}%`;
+      const bw = `${Math.round(frac * 1000) / 10}%`;
+      if (this.bossFill.style.width !== bw) {
+        this.bossFill.style.width = bw;
+        // The white chip trails behind (slower CSS transition) so each hit visibly bites off a piece.
+        this.bossChip.style.width = bw;
+      }
+      setText(this.bossPct, `${Math.ceil(frac * 100)}%`);
       // A heavy blow (over 2% in one go) jolts the bar with a short shake and flash.
       if (boss.id === this.bossHitId && this.bossLastFrac - frac > 0.02) {
         this.bossBar.classList.remove("hurt");
@@ -687,7 +699,7 @@ export class CampHud {
       }
     }
     const building = c.phase === "build";
-    this.callBtn.style.display = building && c.timer > 3 ? "flex" : "none";
+    setDisplay(this.callBtn, building && c.timer > 3 ? "flex" : "none");
     // Last 10 s of daylight: the button turns urgent (deeper red, pulsing) — the bonus is shrinking.
     this.callBtn.classList.toggle("soon", building && c.timer <= 10);
     if (building) {
@@ -718,15 +730,16 @@ export class CampHud {
     this.shownCoins = this.roll(this.shownCoins, c.hero.coins, k, this.coinText);
 
     const showLogs = c.hero.logs > 0 || c.plots.some((p) => p.kind === "lumber" && p.level > 0);
-    this.logPill.style.display = showLogs ? "flex" : "none";
+    setDisplay(this.logPill, showLogs ? "flex" : "none");
     if (c.hero.logs !== this.lastLogs) {
       if (c.hero.logs > this.lastLogs && this.lastLogs >= 0) this.bump(this.logPill);
       if (this.lastLogs < 0) this.shownLogs = c.hero.logs;
       this.lastLogs = c.hero.logs;
     }
     this.shownLogs = this.roll(this.shownLogs, c.hero.logs, k, this.logText);
-    this.bowPill.style.display = c.hero.bows > 0 ? "flex" : "none";
-    this.xpFill.style.width = `${(c.heroXp / xpToNext(c.heroLevel)) * 100}%`;
+    setDisplay(this.bowPill, c.hero.bows > 0 ? "flex" : "none");
+    const xpW = `${Math.round((c.heroXp / xpToNext(c.heroLevel)) * 1000) / 10}%`;
+    if (this.xpFill.style.width !== xpW) this.xpFill.style.width = xpW;
     if (c.heroLevel !== this.lastLevel) {
       // Level up: the pill pops and glows green, matching the on-map "LEVEL N!" burst.
       if (c.heroLevel > this.lastLevel && this.lastLevel > 0) {
@@ -737,8 +750,8 @@ export class CampHud {
       }
       this.lastLevel = c.heroLevel;
     }
-    this.xpText.textContent = `Lv ${c.heroLevel}`;
-    this.bowText.textContent = `${c.hero.bows}`;
+    setText(this.xpText, `Lv ${c.heroLevel}`);
+    setText(this.bowText, `${c.hero.bows}`);
     const left = c.queue.length + c.enemies.length;
     const key = `${c.wave}|${c.phase}|${Math.ceil(c.hallHp)}|${left}|${c.hero.dead ? Math.ceil(c.hero.respawn) : -1}`;
     if (key === this.lastKey) return;
