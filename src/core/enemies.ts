@@ -21,6 +21,7 @@ export type EnemyId =
   | "magma"
   | "drowned"
   | "bloodlord"
+  | "hollowking"
   | "hag"
   | "golem"
   | "dragon"
@@ -97,7 +98,7 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
-  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon"; every: number; radius: number; power: number };
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -166,6 +167,12 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     cost: 0, slowResist: 0.25, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "knight", count: 2, interval: 8, enraged: "runner" },
     // Phase 2: the moon flares every 12 s — every foe on the field runs wild for 5 s.
     phase2: { kind: "bloodmoon", every: 12, radius: 0, power: 5 },
+  },
+  hollowking: {
+    ...base, id: "hollowking", name: "The Hollow King", hp: 3800, speed: 14, radius: 36, gateDamage: 75, attackInterval: 1.8, gold: 360, color: "#3a2a5a",
+    cost: 0, slowResist: 0.3, boss: true, armor: 0.22, behavior: "summoner", summon: { enemy: "wraith", count: 2, interval: 8, enraged: "knight" },
+    // Phase 2: Grave Rise — every 11 s wraiths claw up out of the ground ahead of the wall.
+    phase2: { kind: "graverise", every: 11, radius: 0, power: 3 },
   },
 };
 

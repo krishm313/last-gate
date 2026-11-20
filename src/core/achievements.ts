@@ -16,7 +16,7 @@ export interface Achievement {
 const stat = (k: string) => (s: SaveData) => s.stats[k] ?? 0;
 /** Heroes that have won a run (tracked per hero; older wins still in the history count too). */
 /** Bestiary: foe kinds slain at least once (the four late bosses also count from their older kill stats). */
-const BOSS_STATS: Record<string, string> = { frostwyrm: "frostwyrm", magma: "magma", drowned: "drowned", bloodlord: "bloodlord" };
+const BOSS_STATS: Record<string, string> = { frostwyrm: "frostwyrm", magma: "magma", drowned: "drowned", bloodlord: "bloodlord", hollowking: "hollowking" };
 export function foeMet(s: SaveData, id: string): boolean {
   return (s.stats[`met_${id}`] ?? 0) > 0 || (BOSS_STATS[id] !== undefined && (s.stats[BOSS_STATS[id]!] ?? 0) > 0);
 }
@@ -58,6 +58,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "citadel", name: "Lord of the Tides", desc: "Clear chapter 8, Sunken Citadel", icon: "🌊", goal: 1, reward: 1100, progress: (s) => ((s.stars[8] ?? 0) > 0 ? 1 : 0) },
   { id: "moonbreaker", name: "Moonbreaker", desc: "Defeat the Blood Moon Warlord", icon: "🌕", goal: 1, reward: 500, progress: stat("bloodlord") },
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
+  { id: "hollow", name: "Uncrowned", desc: "Defeat the Hollow King", icon: "💀", goal: 1, reward: 600, progress: stat("hollowking") },
+  { id: "throne", name: "Lord of the Hollow Throne", desc: "Clear chapter 10, the Hollow Throne", icon: "🏰", goal: 1, reward: 1500, progress: (s) => ((s.stars[10] ?? 0) > 0 ? 1 : 0) },
   { id: "scholar", name: "Scholar of War", desc: "Slay every kind of foe (see the Bestiary)", icon: "📖", goal: Object.keys(ENEMIES).length, reward: 800, progress: foesMet },
   { id: "bossrush", name: "Kingslayer", desc: "Clear the Boss Rush", icon: "👑", goal: 1, reward: 800, progress: (s) => ((s.stars[98] ?? 0) > 0 ? 1 : 0) },
   { id: "siegelord", name: "Siege Lord", desc: "Take the hall in all three sieges", icon: "⚔️", goal: 3, reward: 500, progress: (s) => [1, 2, 3].filter((i) => (s.mini[`siege${i}`]?.stars ?? 0) > 0).length },

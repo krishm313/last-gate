@@ -97,7 +97,7 @@ export function drawMood(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, mood: n
   // Follow the world's screen shake so the night light pool stays on the hero.
   const hx = c.hero.x - o.x + sh.x;
   const hy = c.hero.y - o.y + sh.y;
-  if (mood === 4) {
+  if (mood === 4 || mood === 10) {
     // Night: the renderer's day/night pass draws the darkness and lights; here just a cold tint
     // and the eyes watching from the forest.
     ctx.fillStyle = "rgba(20,30,80,0.12)";

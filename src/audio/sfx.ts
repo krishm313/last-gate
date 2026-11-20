@@ -397,9 +397,9 @@ export class Sfx {
    * for the Border Keep, eerie for Hollow Night, glassy bells for Frostpeak, war drums for the Caldera, a heartbeat and gong for the Moors).
    */
   fanfare(chapter: number): void {
-    const KEY = [0, 0, 2, -2, -5, 3, 5, -3, 1, -4]; // semitones per chapter id (index = id)
+    const KEY = [0, 0, 2, -2, -5, 3, 5, -3, 1, -4, -6]; // semitones per chapter id (index = id)
     const k = 2 ** ((KEY[chapter] ?? 0) / 12);
-    const minor = chapter === 4 || chapter === 7 || chapter === 9;
+    const minor = chapter === 4 || chapter === 7 || chapter === 9 || chapter === 10;
     const notes = (minor ? [392, 466, 587, 698, 932] : [392, 523, 659, 784, 1047]).map((f) => f * k);
     const voice: OscillatorType = chapter === 6 ? "triangle" : chapter === 4 ? "square" : "sawtooth";
     for (const [i, f] of notes.entries()) this.tone(voice, f, f, 0.5, chapter === 6 ? 0.07 : 0.08, i * 0.14);
@@ -412,6 +412,8 @@ export class Sfx {
       for (const t of [0.75, 0.95, 1.55, 1.75]) this.tone("sine", 70, 38, 0.22, 0.3, t);
       this.tone("sine", 110, 104, 2.2, 0.12, 0.8);
     }
+    // The Hollow Throne: a tolling bell under the chord.
+    if (chapter === 10) for (const t of [0.8, 1.6, 2.4]) { this.tone("sine", 196, 194, 1.2, 0.07, t); this.tone("sine", 392, 389, 0.8, 0.03, t); }
     if (chapter === 99) this.noise(0.8, 0.12, "bandpass", 1200, 2, 0.7, 4000);
   }
 

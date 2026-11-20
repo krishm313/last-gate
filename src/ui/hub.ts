@@ -546,6 +546,7 @@ export class Hub {
       else if (bossId === "magma") boss.append(el("span", "ch-boss-emoji", "🌋"));
       else if (bossId === "drowned") boss.append(el("span", "ch-boss-emoji", "🔱"));
       else if (bossId === "bloodlord") boss.append(el("span", "ch-boss-emoji", "🌕"));
+      else if (bossId === "hollowking") boss.append(el("span", "ch-boss-emoji", "💀"));
       else boss.append(img);
       boss.append(el("span", "", `Boss: ${ENEMIES[bossId].name}`));
       left.append(boss);
@@ -1486,6 +1487,7 @@ const CONFETTI_COLORS: Record<number, string[]> = {
   7: ["#ffd84a", "#ff5a2a", "#ff9a2a", "#ffcf4a", "#b03a2a", "#ffffff"], // Ashen Caldera: embers
   8: ["#ffd84a", "#3ac9b8", "#2a8ac9", "#7be3d0", "#5a6cff", "#ffffff"], // Sunken Citadel: tide
   9: ["#ffd84a", "#d83a4a", "#8a2a5a", "#ff8a7a", "#5a1a3a", "#ffffff"], // Bloodmoon Moors: crimson + plum
+  10: ["#ffd84a", "#b89aff", "#6a5aaa", "#e8e0ff", "#3a2a5a", "#ffffff"], // The Hollow Throne: violet + bone
 };
 const CONFETTI_DEFAULT = ["#ffd84a", "#ff7a2a", "#5ec43a", "#4a9cff", "#ff5a8a", "#ffffff"];
 
@@ -1521,7 +1523,7 @@ export function fmtGold(n: number): string {
 }
 
 /** Final-boss icons for the map's last stop. */
-const BOSS_ICON: Record<string, string> = { warlord: "⚔️", hag: "🧙", golem: "🗿", dragon: "🐉", colossus: "🛡️", frostwyrm: "❄️", magma: "🌋", drowned: "🔱", bloodlord: "🌕" };
+const BOSS_ICON: Record<string, string> = { warlord: "⚔️", hag: "🧙", golem: "🗿", dragon: "🐉", colossus: "🛡️", frostwyrm: "❄️", magma: "🌋", drowned: "🔱", bloodlord: "🌕", hollowking: "💀" };
 
 /** Bestiary art: painted portraits where they exist, emoji for the rest. */
 const FOE_PORTRAIT: Record<string, string> = {
@@ -1531,7 +1533,7 @@ const FOE_PORTRAIT: Record<string, string> = {
 };
 const FOE_EMOJI: Record<string, string> = {
   bat: "🦇", raven: "🐦‍⬛", imp: "👺", ram: "🪵", ogre: "👹", troll: "🧌", golem: "🗿", dragon: "🐉", colossus: "🛡️",
-  frostwyrm: "❄️", magma: "🌋", drowned: "🔱", warlord: "⚔️", bloodlord: "🌕",
+  frostwyrm: "❄️", magma: "🌋", drowned: "🔱", warlord: "⚔️", bloodlord: "🌕", hollowking: "💀",
 };
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */

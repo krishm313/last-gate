@@ -818,6 +818,15 @@ fx.shake(0.15);
         case "noTarget":
           fx.number(ev.x, ev.y - 92, ev.text ?? "Out of reach!", "#ffe0a0", 14, 0.9);
           break;
+        case "graverise":
+          // Grave Rise: earth bursts open where each wraith claws its way up, under a violet ring.
+          for (const sp of ev.spots) {
+            fx.rings.push({ x: sp.x, y: sp.y, r: 46, color: "#b89aff", life: 0.6, max: 0.6, width: 4 });
+            fx.burst(sp.x, sp.y, "#5a4a3a", 10, 110, { max: 0.6, size: 3, gravity: 260, shape: "chunk" });
+          }
+          fx.number(ev.x, ev.y - 110, "GRAVE RISE!", "#d8c8ff", 16, 1.1);
+          fx.shake(0.15);
+          break;
         case "callToArms":
           // A war-horn blast: a red ring and banners of dust where the militia fall in.
           fx.rings.push({ x: ev.x, y: ev.y, r: 120, color: "#ff9a8a", life: 0.6, max: 0.6, width: 6 });
@@ -1065,7 +1074,7 @@ fx.shake(0.15);
       this.lastCamp = c;
       this.reveal = 0;
       this.revealPending = 0;
-      this.night = c.phase === "wave" || this.mood === 4 ? 1 : 0;
+      this.night = c.phase === "wave" || (this.mood === 4 || this.mood === 10) ? 1 : 0;
       this.levelUpAt = -9;
       this.quip = null;
       this.groundFires = [];
@@ -1228,7 +1237,7 @@ fx.shake(0.15);
     // Enemy tracks, tinted by the ground: dark mud in the marsh, pale scuffs on the dusty plains,
     // muted elsewhere. They fade over a few seconds so a busy night shows where the horde came.
     this.ePrints = this.ePrints.filter((p) => this.time - p.t < 5);
-    const tint = this.mood === 2 ? "34,26,14" : this.mood === 3 ? "96,72,40" : this.mood === 4 ? "16,20,26" : "26,36,10";
+    const tint = this.mood === 2 ? "34,26,14" : this.mood === 3 ? "96,72,40" : (this.mood === 4 || this.mood === 10) ? "16,20,26" : "26,36,10";
     const base = (this.mood === 2 ? 0.75 : this.mood === 3 ? 0.6 : 0.62) * (1 - this.night * 0.45); // quieter at night, where they read as busy dots
     for (const p of this.ePrints) {
       const u = (this.time - p.t) / 5;
@@ -1810,6 +1819,7 @@ fx.shake(0.15);
       7: [["burntstump1", 10], ["deadtree1", 5]],
       8: [["pond1", 10], ["deadtree1", 4]],
       9: [["deadtree1", 8], ["burntstump1", 5]],
+      10: [["gravestone1", 10], ["gravestone2", 8], ["deadtree1", 6]],
       99: [["crystal1", 14]],
     };
     const set = SETS[this.mood];
@@ -1883,7 +1893,7 @@ fx.shake(0.15);
         ctx.fill();
         ctx.stroke();
       }
-    } else if (this.mood === 4) {
+    } else if ((this.mood === 4 || this.mood === 10)) {
       for (let i = 0; i < 16; i++) {
         const { x, y } = spot();
         ctx.fillStyle = "#8a8a92";
@@ -1957,7 +1967,7 @@ fx.shake(0.15);
   private propImgs = new Map<string, HTMLImageElement>();
   private propCache = new Map<string, HTMLCanvasElement>();
   private propTint(): string {
-    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "moor" } as Record<number, string>)[this.mood] ?? "summer";
+    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "moor", 10: "night" } as Record<number, string>)[this.mood] ?? "summer";
   }
   private propAtlas(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
@@ -3053,7 +3063,7 @@ fx.shake(0.15);
    */
   private drawDayNight(ctx: CanvasRenderingContext2D, c: Camp, o: Vec, sh: Vec, dt: number): void {
     // Hollow Night (chapter 4) never sees the sun.
-    const target = c.phase === "wave" || this.mood === 4 ? 1 : 0;
+    const target = c.phase === "wave" || (this.mood === 4 || this.mood === 10) ? 1 : 0;
     if (this.prevPhase === "pick" && c.phase === "build") this.say(["Another dawn!", "We held!", "Rebuild. Quickly.", "Still standing!"]);
     this.prevPhase = c.phase;
     this.night += Math.sign(target - this.night) * Math.min(Math.abs(target - this.night), dt * 0.45);
@@ -3586,7 +3596,7 @@ fx.shake(0.15);
         }
       }
       ctx.restore();
-    } else if (this.mood === 4) {
+    } else if ((this.mood === 4 || this.mood === 10)) {
       // Hollow Night: banks of low mist creep across the field in layers (pinned to the world,
       // drifting at different speeds), thickest out on the battlefield.
       const mist = this.blob("mist2", [[0, "rgba(170,190,225,1)"], [0.5, "rgba(150,170,210,0.55)"], [1, "rgba(130,150,190,0)"]]);
@@ -3991,7 +4001,7 @@ fx.shake(0.15);
     // dust where they break cover.
     if (!e.def.flying && e.y > FOREST_Y - 6 && e.y < FOREST_Y + 40 && !this.brokeCover.has(e.id)) {
       this.brokeCover.add(e.id);
-      const leaf = this.mood === 9 ? "#8a3a5a" : this.mood === 8 ? "#4a8a7a" : this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : this.mood === 4 ? "#4a5a48" : "#4e8a3a";
+      const leaf = this.mood === 9 ? "#8a3a5a" : this.mood === 8 ? "#4a8a7a" : this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : (this.mood === 4 || this.mood === 10) ? "#4a5a48" : "#4e8a3a";
       this.fx.burst(e.x, e.y - r * 0.6, leaf, 5, 60, { max: 0.8, size: 2.6, gravity: 90, drag: 2 });
       this.fx.burst(e.x, e.y + r * 0.8, "rgba(160,150,120,0.6)", 3, 30, { max: 0.4, size: 3, gravity: -10, drag: 4 });
     }
@@ -4000,6 +4010,7 @@ fx.shake(0.15);
     if (e.elite) this.drawEliteRing(ctx, c, e);
     if (e.def.id === "magma") this.drawMagmaAura(ctx, c, e);
     if (e.def.id === "bloodlord") this.drawBloodAura(ctx, c, e);
+    if (e.def.id === "hollowking") this.drawHollowAura(ctx, c, e);
     if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
     if (e.age < 0.5 && !e.def.boss) {
       ctx.save();
@@ -4130,6 +4141,17 @@ fx.shake(0.15);
     this.drawBlob(ctx, this.blob("bloodglow", [[0, "rgba(255,60,70,0.9)"], [1, "rgba(160,10,40,0)"]]), e.x, e.y - r * 0.5, r * (2.1 + pulse * 0.3 + flare), r * (1.6 + pulse * 0.2 + flare * 0.6), (e.enraged ? 0.5 : 0.32) + flare + this.night * 0.25);
     ctx.restore();
     if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ff7a7a" : "#c81a3a", 1, 36, { max: 0.7, size: 2.4, gravity: -60, shape: "dot" });
+  }
+
+  /** The Hollow King: a cold violet pall and pale grave-motes drifting up around him. */
+  private drawHollowAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 1.8 + e.id);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    this.drawBlob(ctx, this.blob("hollowglow", [[0, "rgba(170,130,255,0.9)"], [1, "rgba(60,30,140,0)"]]), e.x, e.y - r * 0.5, r * (2.3 + pulse * 0.35), r * (1.8 + pulse * 0.25), (e.enraged ? 0.55 : 0.36) + this.night * 0.25);
+    ctx.restore();
+    if (Math.floor(c.time * 9 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 13) * r * 0.8, e.y - r * (0.2 + Math.cos(c.time * 7) * 0.5), Math.sin(c.time * 19) > 0 ? "#e8e0ff" : "#9a7aff", 1, 30, { max: 0.9, size: 2.4, gravity: -50, shape: "dot" });
   }
 
   /** The Magma Titan glows from within: a molten halo and embers shed as it walks; brighter once it erupts. */

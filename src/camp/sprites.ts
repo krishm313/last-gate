@@ -76,6 +76,7 @@ export const ENEMY_SPRITES: Record<string, { name: SpriteName; h: number }> = {
   magma: { name: "boss", h: 1.95 },
   drowned: { name: "boss", h: 2.0 },
   bloodlord: { name: "boss", h: 1.95 },
+  hollowking: { name: "boss", h: 2.0 },
 };
 
 export interface SpritePose {
@@ -517,4 +518,5 @@ export const ENEMY_ANIMS: Record<string, { name: AnimChar; h: number }> = {
   magma: { name: "boss_anim", h: 2.3 },
   drowned: { name: "boss_anim", h: 2.35 },
   bloodlord: { name: "boss_anim", h: 2.3 },
+  hollowking: { name: "boss_anim", h: 2.4 },
 };

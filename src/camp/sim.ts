@@ -60,7 +60,7 @@ export const CAMP = {
 };
 
 /** Camp-mode per-chapter enemy HP tuning (the chapter tables are shared with the old gate mode). */
-export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 9: 2.45, 98: 2.3, 99: 1 };
+export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 9: 2.45, 10: 2.6, 98: 2.3, 99: 1 };
 
 export const TOWER_LEVELS = [
   // level 1..4
@@ -317,6 +317,7 @@ export type CampEvent =
   | { type: "bossSlam"; x: number; y: number; r: number }
   | { type: "warcry"; x: number; y: number; r: number }
   | { type: "bloodmoon"; x: number; y: number }
+  | { type: "graverise"; x: number; y: number; spots: Vec[] }
   | { type: "curse"; x: number; y: number; r: number }
   | { type: "tide"; y: number; h: number }
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
@@ -1655,6 +1656,16 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     c.bloodmoon = p2.power;
     c.runStats.flares = (c.runStats.flares ?? 0) + 1;
     c.events.push({ type: "bloodmoon", x: e.x, y: e.y });
+  } else if (p2.kind === "graverise") {
+    // Grave Rise: wraiths claw up out of the ground in a band ahead of the wall, spread across it.
+    const spots: Vec[] = [];
+    for (let i = 0; i < p2.power; i++) {
+      const x = Math.max(70, Math.min(MAP_W - 70, MAP_W * ((i + 0.5) / p2.power) + range(c.rng, -40, 40)));
+      const y = WALL_Y - range(c.rng, 140, 260);
+      spots.push({ x, y });
+      spawnEnemy(c, { at: 0, enemy: "wraith", hpMult: e.hpMult * 0.5, lane: null }, { x, y });
+    }
+    c.events.push({ type: "graverise", x: e.x, y: e.y, spots });
   } else if (p2.kind === "tide") {
     // The tide: a band of water across the field, centred between the boss and the hero.
     const h = 170;

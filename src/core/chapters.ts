@@ -204,6 +204,29 @@ export const CHAPTERS: ChapterDef[] = [
       { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.3, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, imp: 0.7 }, boss: "bloodlord", bossHpMult: 0.7 },
     ],
   },
+  {
+    id: 10,
+    name: "The Hollow Throne",
+    blurb: "Beyond the moors, a starless keep. Its king is long dead — and still holds court.",
+    hpMult: 4.1,
+    speedMult: 1.12,
+    gateDamageMult: 1.4,
+    affixes: ["Restless dead: wraiths walk every night", "Starless: the horde hits the gate 40% harder"],
+    ground: ["#2a2638", "#353046"],
+    weatherOdds: { rain: 0.1, fog: 0.4, storm: 0.15 },
+    waves: [
+      { mix: { footman: 2, wraith: 1.2, shield: 1.2, banner: 0.6 } },
+      { mix: { knight: 1.3, wraith: 1.6, crossbow: 1, raven: 1.2 } },
+      { mix: { shield: 2, brute: 1.1, ram: 0.8, sapper: 1.2, tunneler: 1, wraith: 1, imp: 0.8 } },
+      { mix: { wraith: 2, bat: 2.2, raven: 1.2, goblin: 1 }, breather: true },
+      { mix: { knight: 1.6, wraith: 1.8, brute: 1.1, crossbow: 1.2, banner: 0.9 }, boss: "warlord", bossHpMult: 0.5 },
+      { mix: { footman: 2, shield: 2, brute: 1.3, ram: 0.9, sapper: 1.2, tunneler: 1, wraith: 1.2, imp: 0.9 } },
+      { mix: { knight: 1.8, wraith: 2, crossbow: 1.5, brute: 1.3, shaman: 1, banner: 0.9 } },
+      { mix: { wraith: 2.5, goblin: 2, bat: 2, raven: 1.3, imp: 1.1 }, breather: true },
+      { mix: { shield: 2, knight: 1.8, wraith: 2, crossbow: 1.3, ram: 1, brute: 1.3, sapper: 1, shaman: 0.9, banner: 0.9, tunneler: 0.9, imp: 0.9 } },
+      { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.8, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, imp: 0.7 }, boss: "hollowking", bossHpMult: 0.6 },
+    ],
+  },
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */
