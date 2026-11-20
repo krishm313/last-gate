@@ -534,6 +534,9 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).
 
+## Investigated, not shipped
+- Campaign walkers hitting the hero through a standing wall (fixed in Siege Lord only): enabling the same rule in the campaign is neutral for chapters 1–8 (campsim 16 runs 100/6/6/6) but makes chapter 10 harder (32 runs: 25% → 13%, losses pile up on the final night). No clean compensation without a new mechanic or a global wall buff that would soften chapters 1–8, so the campaign keeps today's behaviour.
+
 ## Self-reviews
 - 19:37 Nov 20 — Deploys 363–365 all green. Hour's work: boss sweeps (mid + final bosses, ch1–10: no errors, bars/phase 2 readable) → toasts drop below the boss bar; first-time-player run of Siege Lord → the castle's 20 s opening build is fast-forwarded (same bot steps, same balance) so you start after a 5 s countdown; siege progression (card unlock → deck, stars, Daily appears) checked fine. Honest gaps: no device numbers; balance tuned on bot runs only.
 - 18:43 Nov 20 — Deploys 359–362 all green. Hour's work: Siege Lord loss panel gives a tip from the run; Siege Lord audio was on the castle's side — victory/defeat sounds were swapped (taking the hall played the defeat sound) and the castle's reward sounds (its builds, coins, ability chime) played for the attacker; both fixed, plus no danger heartbeat when the castle's hall is low. Checked fine: Daily Siege repeat-win message; chapter 2–10 build + night screenshots (no errors; readable on every ground). Honest gaps: audio fixes verified by reading code (no audio in headless); baked edge trees slightly overlap the leftmost tower plot in a few chapters.
