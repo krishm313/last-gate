@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Endless scenery rotation: each week Endless is fought on a different cleared chapter's ground, props and lighting (looks only — waves, bosses, weather and records unchanged); the Endless card names "This week's battlefield". endlessSceneryFor + test.
 - Mason's Tower sounds: a stone thud for a cut drop, a clean seat + chime for a perfect one (new sfx.mini kinds). Smoke sweep with all 9 side games + daily, Endless, Boss Rush, Siege 5: no page errors.
 - Mason's Tower (9th side game, after chapter 7): a stone block slides on a crane rope — tap to drop it on the tower; the overhang breaks off and tumbles, a near-perfect drop keeps the width (a streak of 3+ grows it back); the camera rises with the tower and the sky darkens to stars; 60 s or until a block misses. Stars 60/130/220 (masonsim: ±0.04 s ≈ 2★), gold = score. Master Mason achievement; Champion of the Fair now 27 stars; Fair rotation from Nov 22; Trophies grid; What's-new.
 - Fixed: the Royal Forge's Master Smith shared the id "smith" with Blacksmith (claiming one claimed both) — now "forgemaster", with a test that achievement ids are unique. Every hero now has an ability achievement: Storm of Arrows (King), Bulwark (Knight), Inferno (Pyromancer), Clockwork (Engineer) — 50 casts each, counted from the ability event (ab_<ability> stats).

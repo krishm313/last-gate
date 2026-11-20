@@ -51,6 +51,17 @@ export function endlessTwistFor(date = todayString()): EndlessTwist {
   return list[((w % n) + n) % n]!;
 }
 
+/**
+ * Endless scenery: each week the siege is fought on a different cleared chapter's ground (looks
+ * only — the waves, bosses and weather stay Endless's own). Picked from the week number.
+ */
+export function endlessSceneryFor(date: string, cleared: number[]): number {
+  const pool = cleared.filter((id) => id >= 1 && id <= 10).sort((a, b) => a - b);
+  if (!pool.length) return 1;
+  const w = weekNumber(date);
+  return pool[(((w * 7) % pool.length) + pool.length) % pool.length]!;
+}
+
 /** Applies a twist to an Endless run's setup and chapter (returns the adjusted chapter). */
 export function applyEndlessTwist<C extends { weatherOdds?: { rain: number; fog: number; storm: number }; bossEvery?: number }>(
   t: EndlessTwist,

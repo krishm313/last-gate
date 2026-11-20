@@ -27,3 +27,14 @@ describe("endless weekly twists", () => {
     for (const t of ENDLESS_TWISTS) for (const k of Object.keys(t.mods ?? {})) expect(keys).toContain(k);
   });
 });
+
+describe("endless scenery", () => {
+  it("rotates weekly among cleared chapters and falls back to chapter 1", async () => {
+    const { endlessSceneryFor } = await import("../src/core/endlessMods");
+    expect(endlessSceneryFor("2026-11-20", [])).toBe(1);
+    const seen = new Set(Array.from({ length: 20 }, (_, i) => endlessSceneryFor(day("2026-11-23", i * 7), [1, 2, 3, 4, 5])));
+    expect(seen.size).toBeGreaterThan(3);
+    for (const id of seen) expect([1, 2, 3, 4, 5]).toContain(id);
+    expect(endlessSceneryFor("2026-11-23", [1, 2])).toBe(endlessSceneryFor("2026-11-29", [1, 2]));
+  });
+});

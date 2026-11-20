@@ -16,7 +16,7 @@ import { ACHIEVEMENTS, claimable, foeMet, foesMet, heroHasWon } from "../core/ac
 import { canLearn, freePoints, nextSkillThreshold, SKILL_BRANCHES, SKILL_THRESHOLDS, SKILLS } from "../core/skills";
 import { historySummary, weekSummary } from "../core/history";
 import { weekNumber } from "../core/quests";
-import { endlessTwistFor } from "../core/endlessMods";
+import { endlessSceneryFor, endlessTwistFor } from "../core/endlessMods";
 import { activeFlair, FLAIRS } from "../core/flair";
 import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
@@ -329,6 +329,10 @@ export class Hub {
     const left = el("div", "ch-left");
     left.append(el("div", "ch-num", "Endless"), el("div", "ch-name", ENDLESS.name), el("div", "ch-blurb", open ? ENDLESS.blurb : "Clear chapter 1 to unlock"));
     if (open) left.append(el("div", "ch-affix", ENDLESS.affixes.join(" · ")));
+    if (open) {
+      const sc = CHAPTER_BY_ID[endlessSceneryFor(todayString(), Object.keys(save.stars).map(Number).filter((k) => k <= 10 && (save.stars[k] ?? 0) > 0))];
+      if (sc) left.append(el("div", "ch-affix", `🗺️ This week's battlefield: ${sc.name}`));
+    }
     if (open) {
       const t = endlessTwistFor();
       left.append(el("div", "ch-boss lge-twist", `${t.icon} This week: ${t.name} — ${t.desc}`));

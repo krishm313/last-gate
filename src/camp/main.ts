@@ -44,7 +44,7 @@ import { campBotInput, campBotPick, campBotStep } from "./bot";
 import { HERO_BY_ID } from "../core/heroes";
 import { learnSkill, resetSkills } from "../core/skills";
 import { pushEndlessTop, pushHistory, type RunRecord } from "../core/history";
-import { applyEndlessTwist, endlessTwistFor } from "../core/endlessMods";
+import { applyEndlessTwist, endlessSceneryFor, endlessTwistFor } from "../core/endlessMods";
 import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable, foeMet } from "../core/achievements";
@@ -337,8 +337,10 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   if (weatherOdds) played = { ...played, weatherOdds };
   camp = createCamp(seed, played, setup);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
-  renderer.setGround(chapter.ground, chapter.id);
-  lastMood = chapter.id;
+  // Endless is fought on a different cleared chapter's ground each week (scenery only).
+  const scene = chapter.endless ? CHAPTER_BY_ID[endlessSceneryFor(todayString(), clearedChapters())]! : chapter;
+  renderer.setGround(scene.ground, scene.id);
+  lastMood = scene.id;
   hud.endlessBest = chapter.endless ? (save.best[id] ?? 0) : 0;
   hud.twistIcon = chapter.endless ? endlessTwistFor().icon : "";
   knownTrophies = new Set(claimable(save).map((a) => a.id));
@@ -641,6 +643,11 @@ const siegeBar = new SiegeBar(
   () => setPaused(true),
 );
 let siegeIdx = 0;
+
+/** Campaign chapters with at least one star. */
+function clearedChapters(): number[] {
+  return Object.keys(save.stars).map(Number).filter((k) => k <= 10 && (save.stars[k] ?? 0) > 0);
+}
 
 /** The siege to play: one of the ladder's, or (i = -1) today's Daily Siege. */
 function siegeDef(i: number): { name: string; chapter: number; perm: number; hero: HeroId; hordeHp?: number } | undefined {
