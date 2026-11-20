@@ -893,7 +893,7 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     // Side games: best score and stars for each mini-game, plus Siege Lord stars.
-    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"], ["forge", "⚒️", "Royal Forge"]];
+    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
     const fun = el("div", "records");
     const opened = openMinis(save.stars);
     for (const [key, icon, label] of minis) {

@@ -46,7 +46,7 @@ export class ForgeView {
     private host: HTMLElement,
     private onFinish: (score: number) => MiniResult,
     private onExit: () => void,
-    private onSound?: (kind: "thunk" | "bull" | "crash" | "star") => void,
+    private onSound?: (kind: "clang" | "ring" | "crash" | "star") => void,
   ) {
     this.root.className = "lgf2";
     this.canvas.className = "lgl-canvas";
@@ -98,7 +98,8 @@ export class ForgeView {
       this.onSound?.("crash");
       return;
     }
-    this.onSound?.(this.s.blades > blades ? "star" : k === "perfect" ? "bull" : "thunk");
+    this.onSound?.(k === "perfect" ? "ring" : "clang");
+    if (this.s.blades > blades) window.setTimeout(() => this.onSound?.("star"), 120);
     const n = k === "perfect" ? 22 : 12;
     for (let i = 0; i < n; i++) {
       const a = -Math.PI * (0.1 + 0.8 * this.rnd());

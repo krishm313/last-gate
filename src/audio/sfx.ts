@@ -455,7 +455,7 @@ export class Sfx {
   }
 
   /** Side games: bow twang, target thunk, bullseye ding, wagon crash, pickup. */
-  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star" | "roar"): void {
+  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star" | "roar" | "clang" | "ring"): void {
     if (!this.ok(`mini_${kind}`, kind === "star" ? 0.2 : 0.05)) return;
     if (kind === "twang") {
       this.tone("triangle", 330, 180, 0.12, 0.07);
@@ -475,6 +475,18 @@ export class Sfx {
       this.tone("sawtooth", 70, 140, 0.55, 0.12);
       this.tone("square", 95, 60, 0.6, 0.05, 0.1);
       this.noise(0.6, 0.25, "lowpass", 500);
+    } else if (kind === "clang") {
+      // Hammer on hot steel: a bright metallic hit with inharmonic overtones.
+      this.noise(0.04, 0.16, "highpass", 3000);
+      this.tone("square", 880, 860, 0.09, 0.05);
+      this.tone("triangle", 1245, 1230, 0.22, 0.06);
+      this.tone("sine", 2350, 2330, 0.3, 0.03);
+    } else if (kind === "ring") {
+      // A perfect strike: the anvil rings out long and clear.
+      this.noise(0.04, 0.14, "highpass", 3200);
+      this.tone("triangle", 1047, 1047, 0.5, 0.07);
+      this.tone("sine", 1568, 1568, 0.6, 0.05, 0.01);
+      this.tone("sine", 2637, 2637, 0.45, 0.025, 0.02);
     } else if (kind === "star") {
       for (const [i, f] of [988, 1319, 1760].entries()) this.tone("triangle", f, f, 0.22, 0.06, i * 0.05);
     } else {
