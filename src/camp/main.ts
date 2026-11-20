@@ -26,7 +26,7 @@ import { todayString as fairDate } from "../core/daily";
 import { claimGift } from "../core/gift";
 import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
 import type { HeroId } from "../core/heroes";
-import { deploy, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
+import { deploy, REVERSE, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
 import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
@@ -72,6 +72,8 @@ applyDisplaySettings(settings);
 sfx.muted = getItem("lastgate.muted") === "1";
 
 let camp: Camp | null = null;
+/** The finished siege, kept on screen (frozen, its effects settling) behind the result panel. */
+let siegeBackdrop: Camp | null = null;
 let save = loadSave();
 let chapterId = save.lastChapter;
 let paused = false;
@@ -682,6 +684,7 @@ function startSiege(i: number) {
   if (!s) return;
   sfx.unlock();
   dailyRun = null;
+  siegeBackdrop = null;
   siegeIdx = i;
   // The defenders: a castle with this siege's upgrades and hero, played by the bot.
   const def = newSave();
@@ -726,6 +729,7 @@ function finishSiege(c: Camp, retreat = false) {
   const wonAfter = SIEGES.filter((_, k) => (save.mini[`siege${k + 1}`]?.stars ?? 0) > 0).length;
   const hallLeft = Math.max(0, Math.round((c.hallHp / c.hallMaxHp) * 100));
   camp = null;
+  siegeBackdrop = c;
   paused = false;
   siegeBar.show(false);
   // The story of the siege, then what it opened up.
@@ -760,6 +764,7 @@ function finishDailySiege(c: Camp, won: boolean, retreat: boolean) {
   writeSave(save);
   const hallLeft = Math.max(0, Math.round((c.hallHp / c.hallMaxHp) * 100));
   camp = null;
+  siegeBackdrop = c;
   paused = false;
   siegeBar.show(false);
   const lines = [`⚔️ ${r.deployed} sent · 🧱 ${r.broken} wall${r.broken === 1 ? "" : "s"} broken${won ? ` · taken on push ${c.wave}` : ` · hall at ${hallLeft}%`}`];
@@ -783,6 +788,7 @@ function finishDailySiege(c: Camp, won: boolean, retreat: boolean) {
 function goHub(tab: "battle" | "armory" = "battle") {
   siegeBar.show(false);
   camp = null;
+  siegeBackdrop = null;
   hud.setTip(null);
   paused = false;
   hud.setVisible(false);
@@ -797,12 +803,17 @@ function setPaused(p: boolean) {
     hub.showPause(() => setPaused(false), () => (camp!.reverse ? finishSiege(camp!, true) : finishRun(camp!, false, true)), {
       values: settings as unknown as Record<string, boolean>,
       onToggle: toggleSetting,
-    }, buildStrip(camp!.owned), dailyRun ? `🎯 Daily: ${dailyRun.twist.name} — ${dailyRun.twist.desc}` : undefined, pauseStatus(camp!));
+    }, buildStrip(camp!.owned), dailyRun ? `🎯 Daily: ${dailyRun.twist.name} — ${dailyRun.twist.desc}` : undefined, pauseStatus(camp!), camp!.reverse ? "Withdraw" : undefined);
   else hub.hide();
 }
 
 /** Where the run stands, for the pause panel: chapter, wave, kills, time. */
 function pauseStatus(c: Camp): string[] {
+  if (c.reverse) {
+    // Siege Lord: the attacker's view of the siege — which castle, which push, what you've sent.
+    const r = c.reverse, s = siegeDef(siegeIdx);
+    return [`🏰 ${s?.name ?? "Siege"}`, `⚔️ Push ${c.wave}/${REVERSE.pushes}`, `🪖 ${r.deployed} sent`, `🧱 ${r.broken} broken`, `🏛️ Hall ${Math.max(0, Math.round((c.hallHp / c.hallMaxHp) * 100))}%`];
+  }
   // Same numbering as the HUD: between waves it shows the wave coming up.
   const total = c.chapter.waves.length;
   const cur = c.phase === "wave" ? c.wave : c.chapter.endless ? c.wave + 1 : Math.min(total, c.wave + 1);
@@ -1389,6 +1400,7 @@ function frame(now: number) {
     renderer.draw(c, realDt);
     interp.restore(c);
   } else if (c) renderer.draw(c, 0);
+  else if (siegeBackdrop) renderer.draw(siegeBackdrop, realDt);
   else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl, .lgf2, .lgb2, .lgm2")) {
     // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
   } else {

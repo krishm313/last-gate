@@ -2878,7 +2878,7 @@ fx.shake(0.15);
       let ui = this.plotUi.get(p.id);
       if (!ui) { ui = { near: 0, aff: affordable, affAt: -9, label: `${cost - p.paid}`, labelAt: -9 }; this.plotUi.set(p.id, ui); }
       ui.near += ((near ? 1 : 0) - ui.near) * (1 - Math.exp(-pdt * 14));
-      if (ui.near > 0.02 && p.kind === "tower") this.drawRangePreview(ctx, c, p, ui.near);
+      if (!this.flip && ui.near > 0.02 && p.kind === "tower") this.drawRangePreview(ctx, c, p, ui.near);
       if (affordable && !ui.aff) ui.affAt = this.time;
       ui.aff = affordable;
       const pulse = 1 + Math.sin(this.time * 10) * 0.05 * ui.near + ui.near * 0.03;

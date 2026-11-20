@@ -1553,7 +1553,7 @@ export class Hub {
     this.show(box);
   }
 
-  showPause(onResume: () => void, onQuit: () => void, settings?: { values: Record<string, boolean>; onToggle: (k: string) => void }, build?: HTMLElement | null, note?: string, status?: string[]): void {
+  showPause(onResume: () => void, onQuit: () => void, settings?: { values: Record<string, boolean>; onToggle: (k: string) => void }, build?: HTMLElement | null, note?: string, status?: string[], quitLabel = "Abandon run"): void {
     const box = el("div", "panel pop-in");
     box.append(el("h1", "title", "Paused"));
     if (status?.length) {
@@ -1584,14 +1584,14 @@ export class Hub {
     const col = el("div", "btn-col");
     // Abandoning ends the run, so it takes a second tap to confirm.
     let armed = false;
-    const quit = this.button("Abandon run", "btn btn-ghost btn-quit", () => {
+    const quit = this.button(quitLabel, "btn btn-ghost btn-quit", () => {
       if (armed) return onQuit();
       armed = true;
-      quit.textContent = "Tap again to abandon";
+      quit.textContent = `Tap again to ${quitLabel.split(" ")[0]!.toLowerCase()}`;
       quit.classList.add("confirm");
       setTimeout(() => {
         armed = false;
-        quit.textContent = "Abandon run";
+        quit.textContent = quitLabel;
         quit.classList.remove("confirm");
       }, 2500);
     });
