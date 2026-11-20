@@ -33,7 +33,7 @@ import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
 import { INCOME_PILE, STEP, VIEW_H, VIEW_W } from "./world";
 import { RenderInterp } from "./interp";
-import { crispCache, crispStats, preloadAnims, preloadAnimsFor } from "./sprites";
+import { atlasDebug, crispCache, crispStats, preloadAnims, preloadAnimsFor } from "./sprites";
 import type { GameEvent } from "../core/events";
 import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
@@ -393,10 +393,17 @@ function introLine(name: string): string {
 /** Starts loading the animation sheets this run can meet (its waves' foes and bosses) during the build phase. */
 function preloadChapterArt(ch: ChapterDef) {
   if (ch.endless || !ch.waves?.length) return preloadAnims(true); // (waves made up as it goes)
-  const ids = new Set<string>();
+  // Plus what the sim spawns outside the wave lists: the goblin thief, split-offs and summoned minions.
+  const ids = new Set<string>(["thief"]);
   for (const w of ch.waves) {
     for (const id of Object.keys(w.mix ?? {})) ids.add(id);
     if (w.boss) ids.add(w.boss);
+  }
+  for (const id of [...ids]) {
+    const d = ENEMIES[id as keyof typeof ENEMIES];
+    if (!d) continue;
+    if (d.splitsInto) ids.add(d.splitsInto.enemy);
+    if (d.summon) { ids.add(d.summon.enemy); if (d.summon.enraged) ids.add(d.summon.enraged); }
   }
   preloadAnimsFor(ids);
 }
@@ -1540,6 +1547,7 @@ Object.assign(window, {
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,
+  __atlases: atlasDebug,
   __spawnThief: () => camp && spawnThief(camp),
   // Visual QA: drop an enemy (e.g. a boss) onto the field.
   __spawn: (enemy: string, x?: number, y?: number) => camp && spawnEnemy(camp, { at: 0, enemy: enemy as never, hpMult: 1, lane: 0.5 }, x !== undefined && y !== undefined ? { x, y } : undefined),

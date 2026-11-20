@@ -267,6 +267,12 @@ interface AtlasEntry {
   halfPending?: boolean;
 }
 const atlases = new Map<AnimChar, AtlasEntry>();
+/** Debug: sheet states (loaded / warm / half ready) for QA scripts. */
+export function atlasDebug(): Record<string, string> {
+  const o: Record<string, string> = {};
+  for (const [k, e] of atlases) o[k] = `${e.ready ? "R" : "-"}${e.warm ? "W" : "-"}${e.half ? (e.half instanceof HTMLCanvasElement ? "C" : "B") : e.halfPending ? "p" : "-"}`;
+  return o;
+}
 
 function atlas(name: AnimChar): AtlasEntry | null {
   if (typeof Image === "undefined") return null;
