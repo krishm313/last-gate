@@ -441,7 +441,7 @@ export class Hub {
     card.style.setProperty("--g2", "#2a1408");
     const left = el("div", "ch-left");
     left.append(el("div", "ch-num", "Challenge"), el("div", "ch-name", `👑 ${BOSS_RUSH.name}`), el("div", "ch-blurb", open ? BOSS_RUSH.blurb : "Clear chapter 5 to unlock"));
-    if (open) left.append(el("div", "ch-affix", "Ten nights · a boss every night · the Blood Moon Warlord last"));
+    if (open) left.append(el("div", "ch-affix", "Ten nights · a boss every night · the Hollow King last"));
     const right = el("div", "ch-right");
     const st = save.stars[BOSS_RUSH.id] ?? 0;
     right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));
@@ -595,7 +595,7 @@ export class Hub {
     const lines = NEWS === "2026-11-21" && seen === "2026-11-20"
       ? [
           "💀 Chapter 10: The Hollow Throne — a starless keep, and the Hollow King who raises the dead",
-          "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Blood Moon Warlord",
+          "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Hollow King",
           "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
           "🐉 Dragon Dodge (after chapter 8) & 🪨 Catapult Toss (after chapter 6): two more mini-games",
           "🏔️ Siege Lord: a 4th siege, the Frost Citadel · ⚡ smoother menus and mini-games on older phones",

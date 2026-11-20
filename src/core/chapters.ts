@@ -277,7 +277,7 @@ export const BOSS_RUSH: ChapterDef = {
     { mix: { knight: 1, wraith: 1.2, raven: 1, imp: 0.8, sapper: 0.6 }, boss: "frostwyrm", bossHpMult: 0.85 },
     { mix: { shield: 1.2, knight: 1, crossbow: 1.2, imp: 1, ram: 0.6 }, boss: "magma", bossHpMult: 0.9 },
     { mix: { wraith: 1.4, knight: 1.2, crossbow: 1.2, tunneler: 0.8, banner: 0.6 }, boss: "drowned", bossHpMult: 0.95 },
-    { mix: { knight: 1.4, wraith: 1.4, banner: 0.8, brute: 1, raven: 0.8, imp: 0.8 }, boss: "bloodlord", bossHpMult: 1 },
+    { mix: { knight: 1.4, wraith: 1.4, banner: 0.8, brute: 1, raven: 0.8, imp: 0.8 }, boss: "hollowking", bossHpMult: 1 },
   ],
 };
 
