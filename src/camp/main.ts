@@ -1159,7 +1159,12 @@ function trackStats(ev: CampEvent) {
   else if (ev.type === "fireOut") add("firesOut");
 }
 
+/** Siege Lord: the castle's own feel-good sounds (its coins, builds, level-ups, ability chime) would
+ *  sound like YOUR progress — the attacker doesn't hear them (their popups are hidden too). */
+const SIEGE_SILENT = new Set<CampEvent["type"]>(["coinPickup", "logPickup", "coinSpend", "logSpend", "build", "blessing", "offers", "levelUp", "earlyBonus", "heroRespawn", "plotUnlocked", "specChosen", "abilityReady", "courier", "heroDown"]);
+
 function playSfx(ev: CampEvent, c: Camp) {
+  if (c.reverse && SIEGE_SILENT.has(ev.type)) return;
   // Newer event types: synthesised in sfx.event (rate-limited there), plus a buzz for the big hits.
   switch (ev.type) {
     case "callToArms":
@@ -1285,12 +1290,19 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "sapper":
     case "waveStart":
     case "won":
-    case "lost":
-      if (ev.type === "won") sfx.fanfare(c.chapter.id);
-      else sfx.play(ev as unknown as GameEvent);
-      if (ev.type === "bossSpawn") buzz(settings, 80);
-      if (ev.type === "won") buzz(settings, 150);
+    case "lost": {
+      if (ev.type !== "won" && ev.type !== "lost") {
+        sfx.play(ev as unknown as GameEvent);
+        if (ev.type === "bossSpawn") buzz(settings, 80);
+        break;
+      }
+      // (Siege Lord is the other side: the castle falling — "lost" — is YOUR victory, and vice versa.)
+      const victory = c.reverse ? ev.type === "lost" : ev.type === "won";
+      if (victory) sfx.fanfare(c.chapter.id);
+      else sfx.play({ type: "lost" } as unknown as GameEvent);
+      if (victory) buzz(settings, 150);
       break;
+    }
 
     default:
       break;
