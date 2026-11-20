@@ -106,6 +106,8 @@ export interface Enemy {
   novaTimer?: number;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
   rallied?: boolean;
+  /** Shadowstalker: seconds until its next blink. */
+  blinkT?: number;
   /** Tunneler: seconds left digging under the wall (untargetable), and whether it has dug yet. */
   burrow?: number;
   dug?: boolean;
@@ -323,6 +325,7 @@ export type CampEvent =
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
+  | { type: "blink"; x0: number; y0: number; x: number; y: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
@@ -1793,6 +1796,20 @@ function updateEnemy(c: Camp, e: Enemy): void {
       c.events.push({ type: "thiefEscaped" });
     }
     return;
+  }
+
+  // Shadowstalkers blink forward through the field (not once they're at the wall, and not while stunned or snared).
+  if (def.blink && !e.inside && e.stunTime <= 0 && !(e.snared && e.snared > 0)) {
+    const front = WALL_Y - WALL_THICK / 2 - def.radius;
+    if (e.y < front - 30) {
+      e.blinkT = (e.blinkT ?? def.blink.every) - STEP;
+      if (e.blinkT <= 0) {
+        const y0 = e.y;
+        e.y = Math.min(front - 4, e.y + def.blink.dist);
+        e.blinkT = def.blink.every;
+        c.events.push({ type: "blink", x0: e.x, y0, x: e.x, y: e.y });
+      }
+    }
   }
 
   // Enemies that meet an allied soldier stop to fight it.

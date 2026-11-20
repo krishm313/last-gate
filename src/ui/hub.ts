@@ -693,6 +693,7 @@ export class Hub {
           "🧭 Siege Lord, Endless & Boss Rush now sit in one row of tiles just above the map",
           "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
           "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
+          "🌑 Shadowstalker: a new foe in chapters 7–10 and Endless that blinks forward through your fire",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
@@ -1677,7 +1678,7 @@ const BOSS_ICON: Record<string, string> = { warlord: "⚔️", hag: "🧙", gole
 /** Bestiary art: painted portraits where they exist, emoji for the rest. */
 const FOE_PORTRAIT: Record<string, string> = {
   footman: "enemy_footman", runner: "enemy_footman", banner: "enemy_footman", shield: "enemy_shield", brute: "enemy_brute",
-  crossbow: "enemy_crossbow", knight: "enemy_knight", shaman: "enemy_shaman", wraith: "enemy_wraith", sapper: "enemy_sapper",
+  crossbow: "enemy_crossbow", knight: "enemy_knight", shaman: "enemy_shaman", wraith: "enemy_wraith", stalker: "enemy_stalker", sapper: "enemy_sapper",
   tunneler: "enemy_sapper", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", hag: "elite_mage", hollowking: "hollowking",
 };
 const FOE_EMOJI: Record<string, string> = {

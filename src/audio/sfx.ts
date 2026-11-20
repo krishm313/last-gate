@@ -386,6 +386,11 @@ export class Sfx {
         if (!this.ok("dig", 0.4)) return;
         this.noise(0.3, 0.2, "lowpass", 500, 1, 0, 200);
         break;
+      case "blink":
+        if (!this.ok("blink", 0.25)) return;
+        this.noise(0.12, 0.08, "highpass", 1800);
+        this.tone("sine", 900, 300, 0.12, 0.04);
+        break;
       case "specChosen":
         for (const [i, f] of [392, 523, 659, 784].entries()) this.tone("triangle", f, f, 0.3, 0.07, i * 0.06);
         break;

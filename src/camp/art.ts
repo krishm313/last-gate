@@ -42,6 +42,7 @@ export const LOOKS: Record<string, UnitLook> = {
   sapper: { body: "#3a3a3a", trim: "#1a1a1a", skin: "#f2c9a0", head: "cap", helm: "#5a3a2a", weapon: "bomb" },
   tunneler: { body: "#6a4a2a", trim: "#3a2a14", skin: "#f2c9a0", head: "cap", helm: "#8a6a3a", weapon: "sword" },
   knight: { body: "#3a404a", trim: "#1a1e24", skin: "#c8ccd4", head: "plume", helm: "#5a6070", weapon: "sword", shield: "#2a2e36" },
+  stalker: { body: "#3a2a5a", trim: "#1a1028", skin: "#2a2038", head: "hood", helm: "#2a1a48", weapon: "none" },
   wraith: { body: "#8a9ac0", trim: "#5a6a90", skin: "#c8d4f0", head: "hood", helm: "#6a7aa0", weapon: "none" },
   ogre: { body: "#6a7a3a", trim: "#3a4a1a", skin: "#9ab06a", head: "bare", weapon: "club", bulk: 1 },
   troll: { body: "#4a7a5a", trim: "#2a4a3a", skin: "#7aa088", head: "bare", weapon: "club" },

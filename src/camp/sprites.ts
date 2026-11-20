@@ -5,7 +5,7 @@
 
 export type SpriteName =
   | "king" | "swordsman" | "spearman" | "archer" | "crossbowman" | "knight" | "mage" | "cleric" | "marshal"
-  | "horde_sword" | "horde_brute" | "horde_archer" | "elite_horned" | "elite_shield" | "elite_mage" | "boss" | "castle" | "wraith" | "sapper" | "goblin" | "goblin_mob" | "goblin_thief";
+  | "horde_sword" | "horde_brute" | "horde_archer" | "elite_horned" | "elite_shield" | "elite_mage" | "boss" | "castle" | "wraith" | "stalker" | "sapper" | "goblin" | "goblin_mob" | "goblin_thief";
 
 interface Entry {
   img: HTMLImageElement;
@@ -62,6 +62,7 @@ export const ENEMY_SPRITES: Record<string, { name: SpriteName; h: number }> = {
   knight: { name: "elite_horned", h: 3.2 },
   shaman: { name: "elite_mage", h: 3.4 },
   wraith: { name: "wraith", h: 3.4 },
+  stalker: { name: "stalker", h: 3.3 },
   sapper: { name: "sapper", h: 3.3 },
   tunneler: { name: "sapper", h: 3.3 },
   goblin: { name: "goblin", h: 3.6 },
@@ -102,7 +103,7 @@ const spriteTurns = new Map<string, { flip: boolean; at: number; from: boolean; 
  * isn't loaded yet so the caller can fall back to the procedural unit.
  */
 /** Robed figures: the hem sways as one piece instead of two scissoring legs; the wraith floats. */
-const ROBED: Partial<Record<SpriteName, boolean>> = { mage: true, elite_mage: true, wraith: true };
+const ROBED: Partial<Record<SpriteName, boolean>> = { mage: true, elite_mage: true, wraith: true, stalker: true };
 /** Fraction of the sprite's height (from the feet) that is legs / robe hem. */
 const LEGS = 0.3;
 

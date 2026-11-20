@@ -1014,6 +1014,7 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "spikeHit":
     case "burrow":
     case "emerge":
+    case "blink":
     case "specChosen":
     case "ablaze":
     case "fireOut":

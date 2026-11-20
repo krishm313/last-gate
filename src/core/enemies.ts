@@ -29,7 +29,8 @@ export type EnemyId =
   | "banner"
   | "raven"
   | "imp"
-  | "tunneler";
+  | "tunneler"
+  | "stalker";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -93,6 +94,8 @@ export interface EnemyDef {
   towerHunter?: number;
   /** Dives at a support building (catapult, mage, healer, spikes, watchtower, forge) and sets it ablaze for this many seconds. */
   arsonist?: number;
+  /** Every `every` s (out in the field) it blinks `dist` px straight toward the wall in a puff of shadow. */
+  blink?: { every: number; dist: number };
   /** At the wall it digs under for this many seconds (can't be hit), then surfaces inside the camp. */
   tunneler?: number;
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
@@ -121,6 +124,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   sapper: { ...base, id: "sapper", name: "Sapper", hp: 26, speed: 58, radius: 11, gateDamage: 45, gold: 2, color: "#2a2a2a", cost: 3, kamikaze: true },
   thief: { ...base, id: "thief", name: "Treasure Goblin", hp: 60, speed: 95, radius: 10, gateDamage: 0, gold: 12, color: "#d8b030", cost: 0, crossing: true },
   knight: { ...base, id: "knight", name: "Black Knight", hp: 70, speed: 34, radius: 14, gateDamage: 12, attackInterval: 1.2, gold: 4, color: "#2e3440", cost: 4, armor: 0.4 },
+  stalker: { ...base, id: "stalker", name: "Shadowstalker", hp: 32, speed: 34, radius: 11, gateDamage: 6, gold: 3, color: "#3a2a5a", cost: 3, blink: { every: 3.8, dist: 64 } },
   wraith: { ...base, id: "wraith", name: "Wraith", hp: 30, speed: 52, radius: 11, gateDamage: 7, gold: 3, color: "#8a9ac0", cost: 2.5, armorCycle: { on: 1.4, off: 1.8, reduction: 1 } },
   ogre: { ...base, id: "ogre", name: "Ogre Champion", hp: 600, speed: 20, radius: 28, gateDamage: 30, attackInterval: 1.5, gold: 25, color: "#6a7a3a", cost: 0, slowResist: 0.4, boss: true, phase2: { kind: "slam", every: 5, radius: 130, power: 18 } },
   troll: { ...base, id: "troll", name: "Marsh Troll", hp: 700, speed: 22, radius: 26, gateDamage: 30, attackInterval: 1.4, gold: 30, color: "#4a7a5a", cost: 0, slowResist: 0.5, boss: true, regen: 0.015 },
@@ -185,6 +189,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.behavior === "healer") t.push("heals allies");
   if (d.aura) t.push("rallies nearby foes");
   if (d.towerHunter) t.push("dives at towers");
+  if (d.blink) t.push("blinks forward");
   if (d.tunneler) t.push("digs under the wall");
   if (d.arsonist) t.push("sets buildings ablaze");
   if (d.frostNova) t.push("freezes towers when hurt");

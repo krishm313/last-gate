@@ -967,3 +967,34 @@ describe("newer blessings", () => {
     for (let i = 0; i < 200; i++) expect(rollBlessings(rng, 8, { kingslayer: 1 }, 3).some((b) => b.id === "bastion")).toBe(false);
   });
 });
+
+describe("shadowstalker", () => {
+  it("blinks forward every few seconds out in the field, but not at the wall or while stunned", () => {
+    const c = createCamp(1);
+    run(c, 0.1, { move: { x: 0, y: 0 }, callWave: true });
+    c.queue.length = 0;
+    c.enemies.length = 0;
+    for (const p of c.plots) if (p.kind === "tower") p.level = 0;
+    c.hero.x = 360; c.hero.y = 1150;
+    const s = spawnEnemy(c, { at: 0, enemy: "stalker", hpMult: 1, lane: 0.5 }, { x: 200, y: 200 });
+    const blinks: number[] = [];
+    let lastY = s.y;
+    for (let i = 0; i < 60 * 4; i++) {
+      step(c, still);
+      if (s.y - lastY > 30) blinks.push(s.y - lastY);
+      lastY = s.y;
+    }
+    expect(blinks.length).toBe(1);
+    expect(blinks[0]).toBeGreaterThan(62);
+    expect(blinks[0]).toBeLessThan(67);
+    // Stunned: no blink.
+    s.stunTime = 99;
+    const y0 = s.y;
+    for (let i = 0; i < 60 * 4; i++) step(c, still);
+    expect(s.y - y0).toBeLessThan(30);
+    // Never blinks through the wall.
+    s.stunTime = 0;
+    for (let i = 0; i < 60 * 30; i++) step(c, still);
+    expect(s.y).toBeLessThan(WALL_Y);
+  });
+});

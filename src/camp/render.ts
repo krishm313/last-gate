@@ -732,6 +732,12 @@ export class CampRenderer {
           fx.zaps.push({ points: ev.points, life: 0.3, color: "#d8b0ff" });
           for (const pt of ev.points.slice(1)) fx.burst(pt.x, pt.y, "#c890ff", 5, 110, { max: 0.3, size: 2.4, shape: "spark" });
           break;
+        case "blink":
+          // A puff of shadow where it vanished, a streak, and another where it steps out.
+          fx.burst(ev.x0, ev.y0, "#2a1a40", 10, 90, { max: 0.5, size: 4, gravity: -40, drag: 2, shape: "dot" });
+          fx.burst(ev.x, ev.y, "#6a4aa8", 10, 110, { max: 0.45, size: 3.4, gravity: -30, drag: 2, shape: "dot" });
+          fx.rings.push({ x: ev.x, y: ev.y + 4, r: 22, color: "#8a6ad8", life: 0.3, max: 0.3, width: 2.5 });
+          break;
         case "burrow":
         case "emerge":
           fx.burst(ev.x, ev.y, "#7a5a32", ev.type === "emerge" ? 16 : 10, 150, { max: 0.6, size: 3, gravity: 300, shape: "chunk" });
@@ -4448,6 +4454,15 @@ fx.shake(0.15);
         if (drawn && id === "sapper") this.drawSapperBomb(ctx, e.x, e.y, r, eflip, e.id, frame, anim === "walk");
       }
       const sp = ENEMY_SPRITES[id];
+      if (!drawn && id === "stalker" && sp) {
+        // A cold violet halo so the shadow still reads against a night field; it flares just before a blink.
+        const ready = e.blinkT !== undefined && e.blinkT < 0.6 ? 1 - e.blinkT / 0.6 : 0;
+        const glow = this.blob("stalker-glow", [[0, "rgba(170,120,255,0.75)"], [1, "rgba(120,60,220,0)"]]);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        this.drawBlob(ctx, glow, x, y - r * 0.6, r * 2.4 + ready * r, r * 2.6 + ready * r, 0.45 + ready * 0.45);
+        ctx.restore();
+      }
       if (!drawn && id === "wraith" && sp) {
         // Ghostly afterimages trailing back up the field and wisps curling off the hem.
         const a0 = ctx.globalAlpha;
