@@ -4853,8 +4853,16 @@ fx.shake(0.15);
     } else if (a.swinging <= 0) this.allySparked.delete(a.id);
     const allyFrame =
       a.swinging > 0 ? Math.min(5, 4 + swingT / 0.22) : windUp ? Math.max(0, (1 - a.cooldown / 0.28) * 4) : moving ? this.walkPhase(`a${a.id}`, a.x, a.y, 56, a.id * 0.37) : animFrame(allyAnim, c.time + a.id * 0.37, 5.2 + ((a.id * 29) % 5) * 0.35);
-    const allyDrawn =
-      (() => {
+    // The Marshal's militia: his red-and-gold levy, a little smaller, fading out as they march off.
+    const militia = a.temp !== undefined;
+    const fade = militia ? Math.max(0, Math.min(1, a.temp! / 0.8)) : 1;
+    const alpha0 = ctx.globalAlpha;
+    if (militia) ctx.globalAlpha = alpha0 * fade;
+    const allyDrawn = militia
+      ? drawSprite(ctx, "marshal", a.x, a.y + 9.5, 28, {
+          walk: moving ? 0.001 + (this.walkPhase(`a${a.id}`, a.x, a.y, 50, a.id * 0.37) * Math.PI) / 4 : 0, time: c.time, seed: a.id, flip: Math.cos(a.facing) > 0.15, flash: 0, lunge: a.swinging > 0 ? a.swinging / 0.25 : 0, key: `sa${a.id}`,
+        })
+      : (() => {
         // Face the way they move/fight: back view walking up toward the wall, front view otherwise.
         // Standing guard, a knight keeps its eyes on the nearest threat in range (turning only once
         // it is clearly to the other side, so a foe walking straight at it doesn't cause flicker).
@@ -4878,6 +4886,7 @@ fx.shake(0.15);
       walk: moving ? 0.001 + (this.walkPhase(`a${a.id}`, a.x, a.y, 50, a.id * 0.37) * Math.PI) / 4 : 0, time: c.time, seed: a.id, flip: Math.cos(a.facing) > 0.15, flash: 0, lunge: a.swinging > 0 ? a.swinging / 0.25 : 0, key: `sa${a.id}`,
     });
     if (!allyDrawn) drawUnit(ctx, LOOKS.ally!, a.x, a.y, 9, moving ? c.time * 12 + a.id : 0, a.facing, false, a.swinging > 0 ? -1.2 * (a.swinging / 0.25) : 0);
+    ctx.globalAlpha = alpha0;
     if (a.hp < a.maxHp) {
       const b = this.barState(`a${a.id}`, Math.max(0, a.hp) / a.maxHp);
       ctx.save();
