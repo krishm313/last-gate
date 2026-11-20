@@ -708,28 +708,21 @@ export class Hub {
     // Saw an earlier card today: just the newest bits. Otherwise the whole update.
     const lines = NEWS === "2026-11-21" && seen === "2026-11-20"
       ? [
-          "💀 Chapter 10: The Hollow Throne — a starless keep, and the Hollow King who raises the dead",
-          "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Hollow King",
-          "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
-          "🐉 Dragon Dodge, 🪨 Catapult Toss & 🏮 Ghost Lanterns: three more mini-games on the map",
-          "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother on older phones",
-          "🧭 Siege Lord, Endless & Boss Rush now sit in one row of tiles just above the map",
-          "🎁 A Royal Gift every day on the Battle tab — come back 7 days in a row for the big one",
-          "⚒️ Royal Forge (after chapter 3) & 🔔 Bell Tower (after chapter 5): two new mini-games · 3 new hero flairs",
-          "🌑 Shadowstalker: a new foe in chapters 7–10 and Endless that blinks forward through your fire",
-          "⚔️ Siege 6: The Alchemist's Tower — take it to unlock the Stalkers war card",
-          "🗓️ Daily Siege: a new castle to storm every day in Siege Lord — +250 gold for the first win",
-          "🧪 The Alchemist (9th hero, 28★): an Acid Flask pools on the thickest knot of foes — they burn and take 25% more damage",
-          "🎖️ Veteran looks: survive 25 nights with a hero to unlock a new outfit — violet-and-gold, Golden robes for the Cleric, the Crimson King",
+          "💀 Chapter 10: The Hollow Throne · 👑 Boss Rush — every boss, one per night",
+          "📯 The Marshal (25★) & 🧪 The Alchemist (28★): two new heroes · 🎖️ Veteran looks after 25 nights",
+          "🎪 Five new mini-games — Royal Forge, Bell Tower, Dragon Dodge, Catapult Toss, Ghost Lanterns — all in the 🎪 Fair tile",
+          "⚔️ Siege Lord: three new sieges up to the Alchemist's Tower, new war cards, and a 🗓️ Daily Siege",
+          "🌑 Shadowstalker: a new foe in chapters 7–10 that blinks forward through your fire",
+          "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
-          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 5 sieges, new cards as you win",
-          "🎪 8 mini-games on the map (all in the 🎪 Fair tile too) — 🎯 Archery, 🛒 Supply Run, ⚒️ Royal Forge, 🛡️ Wall Watch, 🔔 Bell Tower, 🪨 Catapult Toss, 🐉 Dragon Dodge, 🏮 Ghost Lanterns — with stars, gold and a daily 2× Fair day",
+          "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 6 sieges, new war cards and a 🗓️ Daily Siege",
+          "🎪 8 mini-games on the map, all in the 🎪 Fair tile — stars, gold and a daily 2× Fair day",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
-          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10: The Hollow Throne · 👑 Boss Rush · 📯 The Marshal (new hero, 25★)"] : []),
+          ...(NEWS === "2026-11-21" ? ["💀 Chapter 10 · 👑 Boss Rush · 📯 the Marshal & 🧪 the Alchemist (new heroes) · 🎖️ Veteran looks"] : []),
         ]
       : seen.startsWith("2026-11-19")
       ? [

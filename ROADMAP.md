@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- What's-new card tightened: the Nov 21 "since you were here" card went from 13 lines to 6 grouped ones (chapter 10 + Boss Rush, two heroes + looks, five mini-games, Siege Lord, Shadowstalker, Royal Gift); the full card now says 6 sieges + Daily Siege and points at the Fair tile.
 - Quests: daily "Win today's Daily Siege" (from Nov 27) and weekly "Win 4 Daily Sieges this week" (from the week of Dec 14), both only once Siege 1 is taken; earlier days/weeks keep their picks (diffed and tested). Checked: Endless milestones already continue every 5 nights uncapped, and Scholar of War counts every foe kind (now 31) automatically.
 - Flair: Toxic Bubbles (lime bubble trail + green pool) — win a run with the Alchemist.
 - Siege Lord tile reads "🗓️ Daily open" while today's Daily Siege prize is waiting; achievement Raider of the Realm (win 7 Daily Sieges, 500).
