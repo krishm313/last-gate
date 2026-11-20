@@ -13,6 +13,8 @@ import { CatapultView } from "../mini/catapultView";
 import { catReward } from "../mini/catapult";
 import { DragonView } from "../mini/dragonView";
 import { dragonReward } from "../mini/dragon";
+import { LanternsView } from "../mini/lanternsView";
+import { lanternReward } from "../mini/lanterns";
 import { fairPick, openMinis } from "../mini/fair";
 import { todayString as fairDate } from "../core/daily";
 import { deploy, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
@@ -129,6 +131,11 @@ const hub = new Hub(uiRoot, {
     hub.hide();
     sfx.unlock();
     dragonDodge.open((Date.now() >>> 0) ^ 0xd1a);
+  },
+  onLanterns: () => {
+    hub.hide();
+    sfx.unlock();
+    lanterns.open((Date.now() >>> 0) ^ 0x1a7);
   },
   onPlay: (id) => newRun(id),
   onSelectHero: (id) => {
@@ -484,6 +491,27 @@ const dragonDodge = new DragonView(
     save.mini.dragon = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
     const fair = isFair("dragon");
     if (fair) r.gold += dragonReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
+    starChimes(r.newStars);
+    save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
+    save.stats.miniStars = (save.stats.miniStars ?? 0) + r.newStars;
+    save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+    save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+    writeSave(save);
+    return { score, stars: r.stars, gold: r.gold, newStars: r.newStars, fair };
+  },
+  () => hub.showHub(save, "battle"),
+  (kind) => sfx.mini(kind),
+);
+
+// ---- Ghost Lanterns (side stop on the map). ----
+const lanterns = new LanternsView(
+  uiRoot,
+  (score) => {
+    const prev = save.mini.lanterns ?? { best: 0, stars: 0 };
+    const r = lanternReward(score, prev.stars);
+    save.mini.lanterns = { best: Math.max(prev.best, score), stars: Math.max(prev.stars, r.stars) };
+    const fair = isFair("lanterns");
+    if (fair) r.gold += lanternReward(score, 3).gold; // Fair day: the score gold again (not the one-time star bonuses)
     starChimes(r.newStars);
     save.stats.miniPlays = (save.stats.miniPlays ?? 0) + 1;
     save.stats.miniStars = (save.stats.miniStars ?? 0) + r.newStars;
@@ -1179,7 +1207,7 @@ function frame(now: number) {
     renderer.draw(c, realDt);
     interp.restore(c);
   } else if (c) renderer.draw(c, 0);
-  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2")) {
+  else if (uiRoot.querySelector(".lga, .lgr, .lgw, .lgc, .lgd2, .lgl")) {
     // A full-screen mini-game covers everything: skip the attract camp (it would only cost frames).
   } else {
     // Attract mode: the bot defends a camp behind the menus. On a slow device it updates less often
@@ -1273,6 +1301,7 @@ Object.assign(window, {
   __watch: () => wallWatch,
   __catapult: () => catapult,
   __dragon: () => dragonDodge,
+  __lanterns: () => lanterns,
   __renderer: renderer,
   __crisp: crispCache,
   __crispStats: crispStats,

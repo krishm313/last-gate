@@ -87,6 +87,8 @@ export interface HubCallbacks {
   onCatapult?: () => void;
   /** Open the Dragon Dodge side stop. */
   onDragon?: () => void;
+  /** Open the Ghost Lanterns side stop. */
+  onLanterns?: () => void;
   /** Siege Lord: start siege i (0-based). */
   onSiege?: (i: number) => void;
   onPlay: (chapter: number) => void;
@@ -402,6 +404,7 @@ export class Hub {
       { key: "watch", icon: "🛡️", name: "Wall Watch", after: 4, left: 11, at: 3.6, go: () => this.cb.onWatch?.() },
       { key: "catapult", icon: "🪨", name: "Catapult Toss", after: 6, left: 88, at: 5.4, go: () => this.cb.onCatapult?.() },
       { key: "dragon", icon: "🐉", name: "Dragon Dodge", after: 8, left: 84, at: 7.5, go: () => this.cb.onDragon?.() },
+      { key: "lanterns", icon: "🏮", name: "Ghost Lanterns", after: 10, left: 16, at: 9.1, go: () => this.cb.onLanterns?.() },
     ];
     const fair = fairPick(todayString(), openMinis(save.stars));
     for (const sd of sides) {
@@ -808,7 +811,7 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     // Side games: best score and stars for each mini-game, plus Siege Lord stars.
-    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"]];
+    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
     const fun = el("div", "records");
     const opened = openMinis(save.stars);
     for (const [key, icon, label] of minis) {
