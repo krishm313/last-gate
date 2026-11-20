@@ -721,6 +721,7 @@ function startSiege(i: number) {
   sfx.unlock();
   dailyRun = null;
   siegeBackdrop = null;
+  siegeFullTime = 0;
   siegeIdx = i;
   // The defenders: a castle with this siege's upgrades and hero, played by the bot.
   const def = newSave();
@@ -748,6 +749,19 @@ function startSiege(i: number) {
   window.setTimeout(() => hud.toast("⚔️ Drag a unit card onto a lane of the field — or tap the field to send the picked card. Take the hall!"), 600);
 }
 
+/** Seconds the War Chest sat full during this siege's pushes (income going to waste). */
+let siegeFullTime = 0;
+
+/** One line of advice for a lost siege, from what happened. */
+function siegeTip(c: Camp): string {
+  const r = c.reverse!;
+  const hallLeft = c.hallHp / c.hallMaxHp;
+  if (siegeFullTime > 25) return `💡 Your chest sat full for ${Math.round(siegeFullTime)}s — gold past ${REVERSE.cap} is wasted. Keep sending.`;
+  if (r.broken === 0) return "💡 Rams and Sappers break walls fast — send them behind a screen of Shields.";
+  if (hallLeft > 0.5) return "💡 A breach stays open till the next push — pour your horde through it before the castle repairs.";
+  return "💡 So close! Flyers (Bats, Imps) skip the wall, and Diggers come up inside — mix them in for the last push.";
+}
+
 function finishSiege(c: Camp, retreat = false) {
   const r = c.reverse!;
   const won = !retreat && r.result === "win";
@@ -773,6 +787,7 @@ function finishSiege(c: Camp, retreat = false) {
   const lines = [`⚔️ ${r.deployed} sent · 🧱 ${r.broken} wall${r.broken === 1 ? "" : "s"} broken${won ? ` · taken on push ${c.wave}` : ` · hall at ${hallLeft}%`}`];
   if (won) lines.push(`${"★".repeat(stars)}${"☆".repeat(3 - stars)}${stars > prev.stars ? " — new best!" : ""}`);
   lines.push(`+${gold} gold`);
+  if (!won && !retreat) lines.push(siegeTip(c));
   const newCards = WAR_CARDS.filter((k) => k.unlock !== undefined && k.unlock > wonBefore && k.unlock <= wonAfter);
   if (newCards.length) lines.push(`🃏 New war card${newCards.length > 1 ? "s" : ""}: ${newCards.map((k) => CARD_NAME[k.id] ?? ENEMIES[k.id].name).join(", ")}`);
   const next = SIEGES[siegeIdx + 1];
@@ -808,6 +823,7 @@ function finishDailySiege(c: Camp, won: boolean, retreat: boolean) {
   if (prize) lines.push(`🗓️ Daily Siege taken! +${prize} gold prize`);
   else if (won) lines.push("Today's prize was already won — a new siege tomorrow");
   lines.push(`+${gold} gold`);
+  if (!won && !retreat) lines.push(siegeTip(c));
   if (prize) window.setTimeout(() => sfx.mini("star"), 400);
   hud.showMessage(
     won ? "🏴 The hall has fallen!" : retreat ? "You withdrew" : "The castle held",
@@ -1430,6 +1446,7 @@ function frame(now: number) {
     renderer.joystick = joyId !== null ? { origin: joyOrigin, knob: { x: joyOrigin.x + joyVec.x * JOY_R, y: joyOrigin.y + joyVec.y * JOY_R } } : null;
     hud.noStars = !!dailyRun;
     if (c.reverse) {
+      if (c.phase === "wave" && c.reverse.chest >= REVERSE.cap - 0.01) siegeFullTime += realDt;
       siegeBar.update(c);
       renderer.siegePicked = !!siegeBar.pickedCard && c.phase === "wave";
       renderer.siegeCoach = c.reverse.deployed === 0 && c.phase === "wave";
