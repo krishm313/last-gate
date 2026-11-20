@@ -8,12 +8,12 @@ import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
  * them in. A card stays selected so a lane can be tapped again for the next group.
  */
 const CARD_ART: Record<string, string> = {
-  footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper",
+  footman: "enemy_footman", runner: "enemy_footman", shield: "enemy_shield", crossbow: "enemy_crossbow", brute: "enemy_brute", sapper: "enemy_sapper", shaman: "enemy_shaman", knight: "enemy_knight",
 };
 /** Cards drawn from in-game sprites (full paths). */
 const CARD_SPRITE: Record<string, string> = { bat: "./sprites/props/bat.webp", imp: "./sprites/props/imp.webp" };
 const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
-export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps" };
+export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps", shaman: "Shaman", knight: "Knights" };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const n = document.createElement(tag);
@@ -108,6 +108,8 @@ export class SiegeBar {
       b.querySelector(".lgs2-cost")!.textContent = open ? `💰${card.cost}` : `🔒 Win ${card.unlock}`;
     }
     this.deck.classList.toggle("wide", WAR_CARDS.length > 8);
+    // Always two even rows once the deck is big (13 cards would leave one alone on a third row).
+    this.deck.style.gridTemplateColumns = WAR_CARDS.length > 8 ? `repeat(${Math.ceil(WAR_CARDS.length / 2)}, 1fr)` : "";
   }
 
   show(v: boolean): void {

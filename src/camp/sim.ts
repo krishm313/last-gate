@@ -509,6 +509,8 @@ export const WAR_CARDS: { id: EnemyId; count: number; cost: number; unlock?: num
   { id: "raven", count: 3, cost: 3, unlock: 1, hp: 2 },
   { id: "tunneler", count: 2, cost: 6, unlock: 2 },
   { id: "imp", count: 3, cost: 5, unlock: 3 },
+  { id: "shaman", count: 1, cost: 7, unlock: 4 },
+  { id: "knight", count: 2, cost: 8, unlock: 5 },
 ];
 /** Is this war card in the deck, given how many sieges have been won? */
 export function cardOpen(card: { unlock?: number }, won: number): boolean {
