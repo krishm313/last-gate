@@ -316,7 +316,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   chapterId = id;
   const chapter = CHAPTER_BY_ID[id]!;
   // Campaign difficulty (Endless and the daily always play Normal; a locked pick falls back too).
-  runDifficulty = !chapter.endless && id !== 98 && difficultyOpen(diff, (save.stars[id] ?? 0) > 0, save.diffCleared[id] ?? 0) ? diff : "normal";
+  runDifficulty = !chapter.endless && difficultyOpen(diff, (save.stars[id] ?? 0) > 0, save.diffCleared[id] ?? 0) ? diff : "normal";
   const dd = DIFF_BY_ID[runDifficulty];
   if (dd.rank > 0) setup = { ...setup, enemyHpMult: (setup.enemyHpMult ?? 1) * dd.hp, eliteChance: dd.elite };
   let played = chapterOnDifficulty(chapter, runDifficulty);

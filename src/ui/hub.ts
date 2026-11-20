@@ -507,6 +507,11 @@ export class Hub {
     const left = el("div", "ch-left");
     left.append(el("div", "ch-num", "Challenge"), el("div", "ch-name", `👑 ${BOSS_RUSH.name}`), el("div", "ch-blurb", open ? BOSS_RUSH.blurb : "Clear chapter 5 to unlock"));
     if (open) left.append(el("div", "ch-affix", "Ten nights · a boss every night · the Hollow King last"));
+    // Boss Rush follows the campaign difficulty picker (Hard after a Normal clear, Nightmare after Hard).
+    const diff = DIFF_BY_ID[save.difficulty];
+    const rank = save.diffCleared[BOSS_RUSH.id] ?? 0;
+    if (open && diff.rank > 0) left.append(el("div", "ch-affix", difficultyOpen(diff.id, (save.stars[BOSS_RUSH.id] ?? 0) > 0, rank) ? `${diff.icon} Plays on ${diff.name}` : `🔒 ${diff.name}: clear Boss Rush on ${diff.rank === 2 ? "Hard" : "Normal"} first`));
+    if (open && rank > 0) left.append(el("div", "ch-affix", rank >= 2 ? "☠️ Cleared on Nightmare" : "💀 Cleared on Hard"));
     const right = el("div", "ch-right");
     const st = save.stars[BOSS_RUSH.id] ?? 0;
     right.append(el("div", "ch-stars", open ? "★".repeat(st) + "☆".repeat(3 - st) : "🔒"));

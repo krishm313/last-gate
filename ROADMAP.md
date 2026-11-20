@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Boss Rush now follows the difficulty picker: Hard after a Normal clear, Nightmare after Hard (it always played Normal). The card shows "💀 Plays on Hard" / the lock reason and the best difficulty cleared; new achievement Unbroken Crown (Boss Rush on Nightmare, 1500). campsim gained a difficulty argument: Boss Rush L10 75% / 33% / 0% (Nightmare is 0% for the bot on every chapter).
 - Perf: trail flairs shed particles at 0.06 s instead of 0.035 s. At 4× CPU throttle in chapter 10, Grave Wisps cost a full frame (66 vs 50 ms median); now back to 50 ms. The Alchemist (sprite + flask) costs nothing measurable; the acid pool gradient only exists for 5 s per cast.
 - The Alchemist carries a glowing green flask in his free hand in battle, so he no longer reads as a green Pyromancer.
 - What's-new card tightened: the Nov 21 "since you were here" card went from 13 lines to 6 grouped ones (chapter 10 + Boss Rush, two heroes + looks, five mini-games, Siege Lord, Shadowstalker, Royal Gift); the full card now says 6 sieges + Daily Siege and points at the Fair tile.
