@@ -353,7 +353,7 @@ export class Hub {
     const siegeTotal = SIEGES.reduce((a, _, i) => a + (save.mini[`siege${i + 1}`]?.stars ?? 0), 0);
     const rushStars = save.stars[BOSS_RUSH.id] ?? 0;
     const tiles: { cls: string; icon: string; name: string; sub: string; open: boolean; fresh: boolean; go: () => void }[] = [
-      { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: siegeOpen ? `★ ${siegeTotal}/${SIEGES.length * 3}` : "Clear ch. 1", open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
+      { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: !siegeOpen ? "Clear ch. 1" : (save.mini.siege1?.stars ?? 0) > 0 && dailySiegeOpen(save.stats, todayString()) ? "🗓️ Daily open" : `★ ${siegeTotal}/${SIEGES.length * 3}`, open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
       { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]} · ${endlessTwistFor().icon}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card) },
       { cls: "fair", icon: "🎪", name: "Fair", sub: `${openMinis(save.stars).length ? `★ ${Object.entries(save.mini).reduce((a, [k, m]) => a + (k.startsWith("siege") ? 0 : m.stars), 0)}/${this.sideGames().length * 3}` : "Clear ch. 1"}`, open: openMinis(save.stars).length > 0, fresh: false, go: () => this.fairSheet(save) },
       { cls: "rush", icon: "👑", name: "Boss Rush", sub: rushOpen ? (rushStars ? "★".repeat(rushStars) + "☆".repeat(3 - rushStars) : "10 bosses") : "Clear ch. 5", open: rushOpen, fresh: rushFresh, go: () => this.modeSheet(save, rushCard) },
