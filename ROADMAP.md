@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Quests: daily "Win today's Daily Siege" (from Nov 27) and weekly "Win 4 Daily Sieges this week" (from the week of Dec 14), both only once Siege 1 is taken; earlier days/weeks keep their picks (diffed and tested). Checked: Endless milestones already continue every 5 nights uncapped, and Scholar of War counts every foe kind (now 31) automatically.
 - Flair: Toxic Bubbles (lime bubble trail + green pool) — win a run with the Alchemist.
 - Siege Lord tile reads "🗓️ Daily open" while today's Daily Siege prize is waiting; achievement Raider of the Realm (win 7 Daily Sieges, 500).
 - Daily Siege (Siege Lord sheet, after Siege 1): a castle picked from the date — a chapter you've cleared as the ground, any hero defending, walls ≈0.6 per chapter (a level lower some days; King −1, Pyromancer/Alchemist −2 — they wipe packed pushes in siegesim) — first win of the day pays +250 gold (stats.dsiegeDay/dsiegeWins). No stars or cards; result panel shows the prize. src/core/dailySiege.ts + tests.

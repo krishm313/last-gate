@@ -23,3 +23,14 @@ describe("daily siege", () => {
     expect(s.dsiegeWins).toBe(1);
   });
 });
+
+describe("daily siege quests", () => {
+  it("join the rotation only from Nov 27 (daily) and the week of Dec 14 (weekly)", async () => {
+    const { dailyPicks, weeklyPick, weekNumber } = await import("../src/core/quests");
+    const day = (i: number, from: string) => { const d = new Date(`${from}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + i); return d.toISOString().slice(0, 10); };
+    for (let i = 0; i < 37; i++) expect(dailyPicks(day(i, "2026-10-21"))).not.toContain("d-dsiege");
+    for (let i = 0; i < 54; i++) expect(weeklyPick(weekNumber(day(i, "2026-10-20")))).not.toBe("w-dsiege");
+    const later = Array.from({ length: 60 }, (_, i) => dailyPicks(day(i, "2026-11-27"))).flat();
+    expect(later).toContain("d-dsiege");
+  });
+});
