@@ -672,6 +672,8 @@ export class CampHud {
     this.ability.classList.toggle("ready", ready);
     const boss = c.enemies.find((e) => e.def.boss);
     setDisplay(this.boss, boss ? "block" : "none");
+    // (Toasts drop below the boss bar while it's up — "New in the Bestiary" used to sit on top of it.)
+    if (this.toastHost.classList.contains("below-boss") !== !!boss) this.toastHost.classList.toggle("below-boss", !!boss);
     if (boss) {
       setText(this.bossName, boss.enraged ? `${boss.def.name} — ENRAGED` : boss.def.name);
       const frac = Math.max(0, boss.hp / boss.maxHp);
