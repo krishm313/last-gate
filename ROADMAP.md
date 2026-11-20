@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Lag pass 2 (spikes): character sheets are decoded off the main thread before first use (img.decode) instead of on the first drawImage mid-battle; hit flashes use small per-cell white silhouettes (LRU 60) instead of a full-sheet copy (~14 MB canvas per character, built on the first hit). Profiling notes: in steady play draw is ~5 ms/frame at 1x (30–45 ms at 4x throttle); the remaining cost is raster, not JS; a deferred half-sheet build was tried and reverted (worse).
 - Siege Lord: world-pinned weather and day-life effects (pond rain rings, puddles, lightning targets, crystal glints, clouds, gusts, butterflies) map through the flipped, zoomed view.
 - Siege Lord flow: the finished siege stays on screen (flipped, effects settling) behind the result panel instead of jumping to the menu backdrop; pause panel speaks the attacker's language (siege name, push n/8, sent, broken, hall %, "Withdraw"); the defender's tower-range preview no longer shows on the attacker's field.
 - Breached wall segments now read at a glance: scorched scar, jagged torn stumps (stone chunks for stone walls) and debris thrown inward, instead of a few faint brown dashes (both the defender and Siege Lord views).

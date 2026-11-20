@@ -16,15 +16,25 @@ interface Entry {
 
 const entries = new Map<SpriteName, Entry>();
 
+/**
+ * Marks an image ready only once it is decoded: a plain onload leaves decoding to the first
+ * drawImage, which then stalls a frame mid-battle (tens of ms on a phone). decode() runs off the
+ * main thread.
+ */
+function whenDecoded(img: HTMLImageElement, ready: () => void): void {
+  img.onload = () => {
+    if (typeof img.decode === "function") img.decode().then(ready, ready);
+    else ready();
+  };
+}
+
 function entry(name: SpriteName): Entry | null {
   if (typeof Image === "undefined") return null;
   let e = entries.get(name);
   if (!e) {
     const img = new Image();
     const created: Entry = { img, ready: false, flash: null };
-    img.onload = () => {
-      created.ready = true;
-    };
+    whenDecoded(img, () => { created.ready = true; });
     img.src = `./sprites/units/${name}.png`;
     entries.set(name, created);
     e = created;
@@ -261,9 +271,7 @@ function atlas(name: AnimChar): AtlasEntry | null {
   if (!e) {
     const img = new Image();
     const created: AtlasEntry = { img, ready: false, flash: null, half: null };
-    img.onload = () => {
-      created.ready = true;
-    };
+    whenDecoded(img, () => { created.ready = true; });
     img.src = `./sprites/anim/${name}.webp`;
     atlases.set(name, created);
     e = created;
@@ -336,17 +344,27 @@ function crispFrame(e: AtlasEntry, key: string, sx: number, sy: number, sw: numb
   return c;
 }
 
-function atlasFlash(e: AtlasEntry): HTMLCanvasElement {
-  if (e.flash) return e.flash;
+/** White silhouettes of single sheet cells for hit flashes (a whole-sheet copy is ~14 MB each and
+ *  hitched the first hit on every character). Small LRU. */
+const flashCells = new Map<string, HTMLCanvasElement>();
+function cellFlash(e: AtlasEntry, name: string, sx: number, sy: number, sw: number, sh: number): HTMLCanvasElement {
+  const k = `${name}|${sx}|${sy}`;
+  const hit = flashCells.get(k);
+  if (hit) {
+    flashCells.delete(k);
+    flashCells.set(k, hit);
+    return hit;
+  }
   const c = document.createElement("canvas");
-  c.width = e.img.naturalWidth;
-  c.height = e.img.naturalHeight;
+  c.width = sw;
+  c.height = sh;
   const g = c.getContext("2d")!;
-  g.drawImage(e.img, 0, 0);
+  g.drawImage(e.img, sx, sy, sw, sh, 0, 0, sw, sh);
   g.globalCompositeOperation = "source-in";
   g.fillStyle = "#ffffff";
-  g.fillRect(0, 0, c.width, c.height);
-  e.flash = c;
+  g.fillRect(0, 0, sw, sh);
+  flashCells.set(k, c);
+  if (flashCells.size > 60) flashCells.delete(flashCells.keys().next().value!);
   return c;
 }
 
@@ -480,7 +498,7 @@ export function drawAnim(
   }
   if (opts.flash && opts.flash > 0) {
     ctx.globalAlpha *= Math.min(1, opts.flash) * 0.8;
-    ctx.drawImage(atlasFlash(e), sx, sy, A.w, A.h, dx, dy, w, A.h * k);
+    ctx.drawImage(cellFlash(e, name, sx, sy, A.w, A.h), dx, dy, w, A.h * k);
   }
   ctx.restore();
   return true;
