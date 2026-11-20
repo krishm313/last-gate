@@ -9,6 +9,11 @@ html, body {
 #ui { position: absolute; pointer-events: none; }
 #ui * { pointer-events: none; }
 #ui .overlay, #ui .overlay *, #ui .hud-btn, #ui .ability { pointer-events: auto; }
+/* Decoration inside overlays must never catch taps (the rule above re-enables everything in an overlay:
+   the victory confetti layer covered the whole panel and swallowed every tap on "Next"). */
+#ui .overlay .confetti, #ui .overlay .confetti *, #ui .overlay .end-hero, #ui .overlay .end-hero *,
+#ui .overlay .title-embers, #ui .overlay .title-embers *, #ui .overlay .perm-spent, #ui .overlay .trophy-gain,
+#ui .overlay .hall-ticks, #ui .overlay .fly-coin { pointer-events: none; }
 
 /* All UI sizes are in world units via --s (world→CSS scale), so the UI scales with the canvas. */
 #ui { --u: calc(var(--s, 1) * 1px); --t: 1; --tu: calc(var(--u) * var(--t)); font-size: calc(16 * var(--tu)); }
