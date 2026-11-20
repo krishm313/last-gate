@@ -672,6 +672,8 @@ export class CampRenderer {
     return this.flip ? 2 * base - y : y;
   }
 
+  /** Seconds into the current Siege Lord push (for the breach call-out). */
+  private pushTime = 0;
   private pickupBatch = 0;
   /** The live "+N" pickup label and its running total (merged while it's still fresh). */
   private pickupNum: (typeof this.fx.nums)[number] | null = null;
@@ -957,6 +959,8 @@ fx.shake(0.15);
             // flying from the rubble into your War Chest meter.
             fx.shake(0.7);
             fx.number(ev.x, ev.y - 40, `WALL DOWN! +${REVERSE.wallBounty}`, "#ffd84a", 24, 1.5);
+            // Past the push's opening lull the castle can't mend it: say the gap is yours till the next push.
+            if (this.pushTime >= REVERSE.repairLull) fx.number(ev.x, ev.y - 66, "Open till the next push", "#ffffff", 13, 1.5);
             const oc = this.camOrigin();
             const sx = this.screenX(ev.x, oc), sy = this.screenY(ev.y, oc);
             for (let k = 0; k < 8; k++) this.uiCoins.push({ x: sx + (k - 4) * 6, y: sy, t: -k * 0.05, spin: k * 0.8 });
@@ -1394,6 +1398,7 @@ fx.shake(0.15);
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     this.lateBars.length = 0; // (never carried across frames, even if a frame skipped the flush)
     this.flip = !!c.reverse && !this.ambient;
+    this.pushTime = c.phase === "wave" ? c.waveTime : 0;
     this.fx.flip = this.flip;
     this.worldTransform(ctx, o, sh);
 

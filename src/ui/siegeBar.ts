@@ -222,7 +222,9 @@ export class SiegeBar {
     this.hallText.textContent = `${Math.ceil(c.hallHp)}`;
     const left = c.phase === "wave" ? Math.max(0, Math.ceil(REVERSE.push - c.waveTime)) : 0;
     // Between pushes the castle rebuilds (the bot spends its gold) — say so, with the countdown.
-    const push = c.phase === "wave" ? `PUSH ${c.wave}/${REVERSE.pushes} · ${left}s` : c.wave === 0 ? `⚔️ Attack in ${Math.max(1, Math.ceil(c.timer))}s` : `🔨 Castle rebuilds · ${Math.max(1, Math.ceil(c.timer))}s`;
+    // In each push's opening lull the castle may still mend its wall (only then): flag it.
+    const mending = c.phase === "wave" && c.waveTime < REVERSE.repairLull && c.segments.some((s) => s.hp < s.maxHp);
+    const push = c.phase === "wave" ? `${mending ? "🔨 Repairs · " : ""}PUSH ${c.wave}/${REVERSE.pushes} · ${left}s` : c.wave === 0 ? `⚔️ Attack in ${Math.max(1, Math.ceil(c.timer))}s` : `🔨 Castle rebuilds · ${Math.max(1, Math.ceil(c.timer))}s`;
     if (this.pushText.textContent !== push) this.pushText.textContent = push;
     const cw = `${Math.round((r.chest / REVERSE.cap) * 1000) / 10}%`;
     if (this.chestFill.style.width !== cw) this.chestFill.style.width = cw;
