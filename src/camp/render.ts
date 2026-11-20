@@ -2501,6 +2501,52 @@ fx.shake(0.15);
     ctx.globalAlpha = 1;
   }
 
+  /**
+   * A broken wall segment: a scorched dirt scar, jagged stumps (stone chunks once the wall is stone)
+   * and splinters thrown inward — a gap that reads at a glance, day or night. Shapes are fixed per
+   * segment index, so the same breach always looks the same.
+   */
+  private drawBreach(ctx: CanvasRenderingContext2D, c: Camp, i: number, x0: number): void {
+    const h = (n: number): number => { const v = Math.sin((i * 7.31 + n) * 12.9898) * 43758.5453; return v - Math.floor(v); };
+    const cx = x0 + SEGMENT_W / 2, base = WALL_Y + 6;
+    ctx.save();
+    ctx.fillStyle = "rgba(28,18,10,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(cx, base + 2, SEGMENT_W * 0.62, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const stone = c.wallLevel >= 2;
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = INK;
+    // Stumps across the gap: tall at the edges (torn ends of the neighbours), short in the middle.
+    for (let k = 0; k < 6; k++) {
+      const t = (k + 0.5) / 6, edge = Math.abs(t - 0.5) * 2;
+      const w = 7 + h(k) * 2, x = x0 + 2 + t * (SEGMENT_W - 4) - w / 2;
+      const top = base - (4 + edge * edge * 18 + h(k + 10) * 5);
+      ctx.fillStyle = stone ? (k % 2 ? "#8a8478" : "#a39d90") : (k % 2 ? "#6e4a2a" : "#85593a");
+      ctx.beginPath();
+      ctx.moveTo(x, base);
+      ctx.lineTo(x, top + 2);
+      if (stone) { ctx.lineTo(x + w * 0.4, top); ctx.lineTo(x + w, top + 3); }
+      else { ctx.lineTo(x + w * 0.3, top - 3); ctx.lineTo(x + w * 0.55, top + 2); ctx.lineTo(x + w * 0.8, top - 1); ctx.lineTo(x + w, top + 3); }
+      ctx.lineTo(x + w, base);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    // Debris thrown into the camp side.
+    for (let k = 0; k < 7; k++) {
+      const x = x0 + 6 + h(k + 20) * (SEGMENT_W - 12), y = base + 6 + h(k + 30) * 18;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((h(k + 40) - 0.5) * 2.4);
+      ctx.fillStyle = stone ? "#8f897c" : "#7a5230";
+      ctx.fillRect(-(stone ? 3 : 6), -1.5, stone ? 6 : 12, stone ? 4 : 3);
+      ctx.strokeRect(-(stone ? 3 : 6), -1.5, stone ? 6 : 12, stone ? 4 : 3);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   private drawWall(ctx: CanvasRenderingContext2D, c: Camp): void {
     // The wall casts a soft shadow onto the camp side (light comes from the top-left).
     const band = ctx.createLinearGradient(0, WALL_Y + 4, 0, WALL_Y + 26);
@@ -2520,9 +2566,7 @@ fx.shake(0.15);
       const frac = s.hp / s.maxHp;
       const gate = GATE_SEGMENTS.includes(i);
       if (s.hp <= 0) {
-        // Rubble.
-        ctx.fillStyle = "#6a5034";
-        for (let k = 0; k < 6; k++) ctx.fillRect(x0 + 4 + k * 9, WALL_Y + 2 + ((k * 5) % 7), 7, 4);
+        this.drawBreach(ctx, c, i, x0);
         continue;
       }
       ctx.save();

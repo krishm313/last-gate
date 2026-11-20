@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Breached wall segments now read at a glance: scorched scar, jagged torn stumps (stone chunks for stone walls) and debris thrown inward, instead of a few faint brown dashes (both the defender and Siege Lord views).
 - Siege Lord: rock-steady attacker camera (no drift under your finger while dragging; leans in only once units breach); torch-bearers' torches, coin glints and dropped fires placed correctly in the flipped view.
 - Siege Lord: flyers (bats/ravens/imps) visible in the flipped view; castle-side popups (BUILT!, TO ARMS!, combos, level-ups) hidden for the attacker; lane chevrons fade while dragging.
 - Siege Lord clarity: the push pill says "⚔️ Attack in 20s" before the first push and "🔨 Castle rebuilds · 12s" between pushes; the War Chest shows "+4/s" and glows "FULL" when income is going to waste; cards you can't afford yet fill from the bottom toward their cost. Fixed: starting a siege toasted every unclaimed trophy (a whole column of them). Hints now explain drag-and-drop.
