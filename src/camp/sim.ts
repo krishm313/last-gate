@@ -329,7 +329,7 @@ export type CampEvent =
   | { type: "burrow"; x: number; y: number }
   | { type: "blink"; x0: number; y0: number; x: number; y: number }
   | { type: "flask"; x: number; y: number }
-  | { type: "acidSplash"; x: number; y: number; r: number }
+  | { type: "acidSplash"; x: number; y: number; r: number; n: number }
   | { type: "emerge"; x: number; y: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
@@ -1425,7 +1425,10 @@ function updateAcid(c: Camp): void {
   for (const p of c.acid) {
     if (p.delay > 0) {
       p.delay -= STEP;
-      if (p.delay <= 0) c.events.push({ type: "acidSplash", x: p.x, y: p.y, r: p.r });
+      if (p.delay <= 0) {
+        const n = c.enemies.filter((e) => !e.def.flying && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 <= (p.r + e.def.radius * 0.5) ** 2).length;
+        c.events.push({ type: "acidSplash", x: p.x, y: p.y, r: p.r, n });
+      }
       continue;
     }
     p.t -= STEP;
