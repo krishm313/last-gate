@@ -607,7 +607,8 @@ export class Hub {
           "👑 Boss Rush: ten nights, a boss every night — from the Ogre to the Hollow King",
           "📯 The Marshal (new hero, 25★) calls militia to arms beside him",
           "🐉 Dragon Dodge, 🪨 Catapult Toss & 🏮 Ghost Lanterns: three more mini-games on the map",
-          "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother menus and mini-games on older phones",
+          "🏔️ Siege Lord: two new sieges, the Frost Citadel & the Hollow Keep · ⚡ smoother on older phones",
+          "🧭 Siege Lord, Endless & Boss Rush now sit in one row of tiles just above the map",
         ]
       : NEWS === "2026-11-20" || NEWS === "2026-11-21"
       ? [
