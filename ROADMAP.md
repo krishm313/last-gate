@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Heroes tab: opening it with a later hero picked (e.g. the Marshal) scrolls straight to their card and skill tree instead of the top of the list.
 - Trophies tab: claimed achievements fold into a "▸ ✔ Claimed (n)" toggle at the bottom, so the goals still open come first.
 - Achievements Iron Crown (clear chapter 10 on Hard, 800) and Nightmare's End (on Nightmare, 1500). The Endless tile shows your record plus this week's twist icon ("Night 14 · 👑").
 - Map quick-jump: the "N / 10 chapters cleared · ⬇ next" counter at the top of the map is a button that smooth-scrolls back down to your next stop.

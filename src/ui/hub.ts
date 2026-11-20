@@ -236,7 +236,8 @@ export class Hub {
     this.coachmark(wrap, tabs, save, tab);
     const claimedNow = !!this.justClaimed, boughtNow = !!this.justBought;
     // Slide the content in only when the tab actually changes (not on re-renders after a purchase).
-    const body = el("div", `hub-body${tab !== this.renderedTab ? " tab-in" : ""}`);
+    const tabChanged = tab !== this.renderedTab;
+    const body = el("div", `hub-body${tabChanged ? " tab-in" : ""}`);
     this.renderedTab = tab;
     if (tab === "battle") this.battleTab(body, save);
     else if (tab === "heroes") this.heroesTab(body, save);
@@ -246,6 +247,9 @@ export class Hub {
     body.querySelectorAll<HTMLElement>(".hero, .perm, .trophy").forEach((e, i) => e.style.setProperty("--i", String(Math.min(i, 10))));
     wrap.append(body);
     this.show(wrap);
+    // Opening Heroes with a later hero picked: bring their card (and skill tree) into view.
+    const picked = tabChanged && tab === "heroes" ? body.querySelector<HTMLElement>(".hero.selected") : null;
+    if (picked && picked !== body.querySelector(".hero")) requestAnimationFrame(() => scrollToLayout(picked));
     if (claimedNow) requestAnimationFrame(() => flyCoins(wrap, ".trophy.just", ".res-gold", true));
     else if (boughtNow) requestAnimationFrame(() => flyCoins(wrap, ".res-gold", ".perm.just", false));
   }
@@ -1582,3 +1586,13 @@ const FOE_EMOJI: Record<string, string> = {
 
 /** Same icons as the in-run ability button, so the Heroes tab and the battle match. */
 const ABILITY_ICON: Record<string, string> = { arrowRain: "☔", shieldBash: "🛡️", fireNova: "🔥", overclock: "⚙️", snare: "🕸️", lance: "🔱", sanctuary: "✨", callToArms: "📯" };
+
+/** Scroll `node` near the top of its scrolling ancestor by layout position (ignores entrance-animation transforms). */
+function scrollToLayout(node: HTMLElement): void {
+  let box = node.parentElement;
+  while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box = box.parentElement;
+  if (!box) return;
+  let top = 0;
+  for (let e: HTMLElement | null = node; e && e !== box; e = e.offsetParent as HTMLElement | null) top += e.offsetTop;
+  box.scrollTop = Math.max(0, top - 12);
+}
