@@ -822,6 +822,13 @@ export class Hub {
     const sc = el("div", "record");
     sc.append(el("div", "record-icon", "⚔️"), el("div", "record-val", `${siegeStars}/${SIEGES.length * 3}`), el("div", "record-label", "Siege Lord stars"));
     fun.append(sc);
+    // Boss Rush: the furthest boss reached (or cleared).
+    if (chapterUnlocked(save, BOSS_RUSH.id)) {
+      const br = el("div", "record");
+      const best = save.best[BOSS_RUSH.id] ?? 0;
+      br.append(el("div", "record-icon", "👑"), el("div", "record-val", (save.stars[BOSS_RUSH.id] ?? 0) > 0 ? "10/10" : best ? `${Math.max(0, best - 1)}/10` : "—"), el("div", "record-label", "Boss Rush bosses"));
+      fun.append(br);
+    }
     body.append(el("div", "hub-hint records-title", "Side games — best scores"), fun);
     this.bestiarySection(body, save);
     this.historySection(body, save);

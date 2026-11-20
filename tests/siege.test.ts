@@ -11,6 +11,16 @@ function toFirstPush(seed = 5) {
 }
 
 describe("Siege Lord (reverse mode)", () => {
+  it("a siege's horde handicap scales the units' health", () => {
+    const full = toFirstPush(7);
+    const weak = createCamp(7, undefined, { reverse: true, hordeHp: 0.5 });
+    for (let i = 0; i < 60 * 60 && weak.phase !== "wave"; i++) campBotStep(weak);
+    deploy(full, "brute", 1);
+    deploy(weak, "brute", 1);
+    const a = full.enemies.find((e) => e.def.id === "brute")!, b = weak.enemies.find((e) => e.def.id === "brute")!;
+    expect(b.maxHp / a.maxHp).toBeCloseTo(0.5, 2);
+  });
+
   it("opens the later war cards as sieges are won", () => {
     const c = toFirstPush();
     c.reverse!.chest = 50;

@@ -275,3 +275,17 @@ describe("Boss Rush", () => {
     expect(CAMP_CHAPTER_HP[BOSS_RUSH.id]).toBeGreaterThan(1); // late-campaign strength in the camp sim
   });
 });
+
+describe("Boss Rush progress survives a reload", () => {
+  it("keeps stars and best night for chapter 98 through sanitizeSave", async () => {
+    const { newSave, sanitizeSave, totalStars } = await import("../src/core/meta");
+    const s = newSave();
+    s.stars[5] = 3;
+    s.stars[98] = 2;
+    s.best[98] = 7;
+    const back = sanitizeSave(JSON.parse(JSON.stringify(s)));
+    expect(back.stars[98]).toBe(2);
+    expect(back.best[98]).toBe(7);
+    expect(totalStars(back)).toBe(3); // still outside the campaign total
+  });
+});

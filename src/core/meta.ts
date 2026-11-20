@@ -107,7 +107,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   const rec = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, number>) : {});
   // Clamp to sane ranges and keep only real chapters, so a hand-edited or corrupted save can't
   // show "1e+308" gold or count stars for chapters that don't exist (which would unlock heroes).
-  const chapterIds = new Set(CHAPTERS.map((c) => c.id));
+  // Campaign chapters plus Boss Rush (98), whose stars and best night are kept too.
+  const chapterIds = new Set([...CHAPTERS.map((c) => c.id), 98]);
   d.gold = Math.min(MAX_GOLD, Math.max(0, Math.floor(num(r.gold, 0))));
   for (const [k, v] of Object.entries(rec(r.stars))) if (chapterIds.has(Number(k))) d.stars[Number(k)] = Math.max(0, Math.min(3, Math.floor(num(v, 0))));
   for (const [k, v] of Object.entries(rec(r.best))) if (chapterIds.has(Number(k)) || Number(k) === ENDLESS_ID) d.best[Number(k)] = Math.max(0, Math.min(9999, Math.floor(num(v, 0))));
