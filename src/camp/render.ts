@@ -4820,7 +4820,8 @@ fx.shake(0.15);
     if (f === "grave") tint("rgba(184,154,255,0.7)", 0.55);
     // Trails: shed motes while walking (and a few while standing for the wisps).
     this.flairAcc += dt * (moving ? 1 : f === "shadow" || f === "grave" || f === "warlord" || f === "toxic" ? 0.5 : 0.15);
-    const every = 0.035;
+    // Emit rate for trail flairs (every particle costs raster time on slow phones).
+    const every = 0.06;
     while (this.flairAcc > every) {
       this.flairAcc -= every;
       const jx = Math.sin(this.time * 91.7 + this.flairAcc * 50) * 9, jy = Math.cos(this.time * 53.3) * 4;
