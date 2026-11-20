@@ -60,6 +60,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
   { id: "hollow", name: "Uncrowned", desc: "Defeat the Hollow King", icon: "💀", goal: 1, reward: 600, progress: stat("hollowking") },
   { id: "throne", name: "Lord of the Hollow Throne", desc: "Clear chapter 10, the Hollow Throne", icon: "🏰", goal: 1, reward: 1500, progress: (s) => ((s.stars[10] ?? 0) > 0 ? 1 : 0) },
+  { id: "throne-hard", name: "Iron Crown", desc: "Clear chapter 10 on Hard", icon: "🪖", goal: 1, reward: 800, progress: (s) => ((s.diffCleared[10] ?? 0) >= 1 ? 1 : 0) },
+  { id: "throne-nightmare", name: "Nightmare's End", desc: "Clear chapter 10 on Nightmare", icon: "☠️", goal: 1, reward: 1500, progress: (s) => ((s.diffCleared[10] ?? 0) >= 2 ? 1 : 0) },
   { id: "scholar", name: "Scholar of War", desc: "Slay every kind of foe (see the Bestiary)", icon: "📖", goal: Object.keys(ENEMIES).length, reward: 800, progress: foesMet },
   { id: "bossrush", name: "Kingslayer", desc: "Clear the Boss Rush", icon: "👑", goal: 1, reward: 800, progress: (s) => ((s.stars[98] ?? 0) > 0 ? 1 : 0) },
   { id: "siegelord", name: "Siege Lord", desc: "Take the hall in all three sieges", icon: "⚔️", goal: 3, reward: 500, progress: (s) => [1, 2, 3].filter((i) => (s.mini[`siege${i}`]?.stars ?? 0) > 0).length },

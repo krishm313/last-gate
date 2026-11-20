@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Achievements Iron Crown (clear chapter 10 on Hard, 800) and Nightmare's End (on Nightmare, 1500). The Endless tile shows your record plus this week's twist icon ("Night 14 · 👑").
 - Map quick-jump: the "N / 10 chapters cleared · ⬇ next" counter at the top of the map is a button that smooth-scrolls back down to your next stop.
 - Nov 21 What's-new card: a line pointing at the new modes row above the map.
 - Battle tab: Siege Lord, Endless and Boss Rush are now one compact row of three tiles above the map (icon, name, key stat, NEW! badge; locked tiles shake) — each opens its full card in a sheet. On an iPhone SE the map now starts about two big cards higher.
