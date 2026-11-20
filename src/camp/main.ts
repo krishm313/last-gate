@@ -702,8 +702,10 @@ function startSiege(i: number) {
   hud.setVisible(false);
   siegeBar.setWon(won);
   siegeBar.show(true);
+  // Trophies already waiting to be claimed aren't news (without this, every unclaimed one toasted at the start).
+  knownTrophies = new Set(claimable(save).map((a) => a.id));
   music.start();
-  window.setTimeout(() => hud.toast("⚔️ Tap the field to send your Footmen up that lane — pick other units from the cards. Take the hall!"), 600);
+  window.setTimeout(() => hud.toast("⚔️ Drag a unit card onto a lane of the field — or tap the field to send the picked card. Take the hall!"), 600);
 }
 
 function finishSiege(c: Camp, retreat = false) {

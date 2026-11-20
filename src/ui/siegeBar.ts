@@ -221,10 +221,25 @@ export class SiegeBar {
     this.hallFill.style.width = `${hall * 100}%`;
     this.hallText.textContent = `${Math.ceil(c.hallHp)}`;
     const left = c.phase === "wave" ? Math.max(0, Math.ceil(REVERSE.push - c.waveTime)) : 0;
-    this.pushText.textContent = c.phase === "wave" ? `PUSH ${c.wave}/${REVERSE.pushes} · ${left}s` : "The castle prepares…";
-    this.chestFill.style.width = `${(r.chest / REVERSE.cap) * 100}%`;
-    this.chestText.textContent = `${Math.floor(r.chest)}`;
-    for (const card of WAR_CARDS) this.cards.get(card.id)!.classList.toggle("poor", r.chest < card.cost || c.phase !== "wave");
+    // Between pushes the castle rebuilds (the bot spends its gold) — say so, with the countdown.
+    const push = c.phase === "wave" ? `PUSH ${c.wave}/${REVERSE.pushes} · ${left}s` : c.wave === 0 ? `⚔️ Attack in ${Math.max(1, Math.ceil(c.timer))}s` : `🔨 Castle rebuilds · ${Math.max(1, Math.ceil(c.timer))}s`;
+    if (this.pushText.textContent !== push) this.pushText.textContent = push;
+    const cw = `${Math.round((r.chest / REVERSE.cap) * 1000) / 10}%`;
+    if (this.chestFill.style.width !== cw) this.chestFill.style.width = cw;
+    // Chest: the gold, how fast it fills, and "FULL" (income going to waste) as a nudge to spend.
+    const full = r.chest >= REVERSE.cap - 0.01;
+    const ct = full ? `${Math.floor(r.chest)} FULL` : `${Math.floor(r.chest)} · +${REVERSE.income}/s`;
+    if (this.chestText.textContent !== ct) this.chestText.textContent = ct;
+    this.chestBox?.classList.toggle("full", full && c.phase === "wave");
+    for (const card of WAR_CARDS) {
+      const b = this.cards.get(card.id)!;
+      const poor = r.chest < card.cost || c.phase !== "wave";
+      b.classList.toggle("poor", poor);
+      // A card you can't afford yet fills up from the bottom as the chest grows toward its cost.
+      const f = c.phase === "wave" ? Math.min(1, r.chest / card.cost) : 0;
+      const fs = (Math.round(f * 20) / 20).toString();
+      if (b.style.getPropertyValue("--afford") !== fs) b.style.setProperty("--afford", fs);
+    }
     // (First steps are coached on the battlefield itself: the lane markers pulse until the first send.)
   }
 }

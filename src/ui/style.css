@@ -1382,3 +1382,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-chest.gain { animation: lgs2-gain 0.38s cubic-bezier(.2,1.6,.4,1); }
 @keyframes lgs2-gain { 40% { transform: scale(1.06); filter: brightness(1.5); } }
 @media (prefers-reduced-motion: reduce) { .lgs2-hall.hit, .lgs2-chest.gain { animation: none; } }
+/* Siege Lord: a card you can't afford yet fills from the bottom as the War Chest grows toward its cost. */
+.lgs2-card { position: relative; overflow: hidden; }
+.lgs2-card.poor::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--afford, 0) * 100%); background: linear-gradient(#ffd84a00, #ffd84a40); pointer-events: none; }
+.lgs2-chest.full { animation: lgs2-full 0.9s ease-in-out infinite; }
+@keyframes lgs2-full { 50% { box-shadow: inset 0 0 0 calc(2 * var(--u)) #ffd84a, 0 0 calc(12 * var(--u)) #ffd84aaa; } }
+.lgs2-chest-t { min-width: calc(74 * var(--u)); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .lgs2-chest.full { animation: none; } }
