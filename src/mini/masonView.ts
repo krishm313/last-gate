@@ -31,7 +31,7 @@ export class MasonView {
     private host: HTMLElement,
     private onFinish: (score: number) => MiniResult,
     private onExit: () => void,
-    private onSound?: (kind: "thunk" | "bull" | "crash" | "star") => void,
+    private onSound?: (kind: "thud" | "settle" | "crash" | "star") => void,
   ) {
     this.root.className = "lgm2";
     this.canvas.className = "lgl-canvas";
@@ -76,8 +76,10 @@ export class MasonView {
     const r = drop(this.s);
     if (r === "ignored") return;
     if (r === "miss") this.onSound?.("crash");
-    else if (r === "perfect") this.onSound?.(this.s.streak > streak && this.s.streak % 3 === 0 ? "star" : "bull");
-    else this.onSound?.("thunk");
+    else if (r === "perfect") {
+      this.onSound?.("settle");
+      if (this.s.streak > streak && this.s.streak % 3 === 0) window.setTimeout(() => this.onSound?.("star"), 120);
+    } else this.onSound?.("thud");
   }
 
   private frame(now: number): void {

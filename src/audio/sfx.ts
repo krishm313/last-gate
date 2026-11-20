@@ -467,7 +467,7 @@ export class Sfx {
   }
 
   /** Side games: bow twang, target thunk, bullseye ding, wagon crash, pickup. */
-  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star" | "roar" | "clang" | "ring"): void {
+  mini(kind: "twang" | "thunk" | "bull" | "crash" | "pickup" | "star" | "roar" | "clang" | "ring" | "thud" | "settle"): void {
     if (!this.ok(`mini_${kind}`, kind === "star" ? 0.2 : 0.05)) return;
     if (kind === "twang") {
       this.tone("triangle", 330, 180, 0.12, 0.07);
@@ -493,6 +493,14 @@ export class Sfx {
       this.tone("square", 880, 860, 0.09, 0.05);
       this.tone("triangle", 1245, 1230, 0.22, 0.06);
       this.tone("sine", 2350, 2330, 0.3, 0.03);
+    } else if (kind === "thud") {
+      // A stone block lands (and something chips off): a low knock and a gritty crunch.
+      this.tone("sine", 140, 70, 0.14, 0.2);
+      this.noise(0.12, 0.14, "lowpass", 800);
+    } else if (kind === "settle") {
+      // A perfect fit: the block seats with a clean, deep knock and a little chime.
+      this.tone("sine", 160, 90, 0.16, 0.2);
+      this.tone("triangle", 880, 880, 0.18, 0.04, 0.03);
     } else if (kind === "ring") {
       // A perfect strike: the anvil rings out long and clear.
       this.noise(0.04, 0.14, "highpass", 3200);
