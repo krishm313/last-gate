@@ -13,6 +13,14 @@ const CARD_ART: Record<string, string> = {
 /** Cards drawn from in-game sprites (full paths). */
 const CARD_SPRITE: Record<string, string> = { bat: "./sprites/props/bat.webp", imp: "./sprites/props/imp.webp" };
 const CARD_EMOJI: Record<string, string> = { bat: "🦇", ram: "🪵", raven: "🐦‍⬛", tunneler: "⛏️", imp: "🔥" };
+/** "flies over the wall" → "fly over the wall" (traits are written for one foe). */
+function pluralVerb(trait: string): string {
+  const [w, ...rest] = trait.split(" ");
+  const irregular: Record<string, string> = { flies: "fly", rallies: "rally", does: "do" };
+  const v = irregular[w!] ?? (/(sh|ch|x|ss)es$/.test(w!) ? w!.slice(0, -2) : /s$/.test(w!) && !/ss$/.test(w!) ? w!.slice(0, -1) : w!);
+  return [v, ...rest].join(" ");
+}
+
 export const CARD_NAME: Record<string, string> = { footman: "Footmen", runner: "Runners", shield: "Shields", crossbow: "Archers", brute: "Brute", bat: "Bats", sapper: "Sapper", ram: "Ram", raven: "Ravens", tunneler: "Diggers", imp: "Imps", shaman: "Shaman", knight: "Knights", stalker: "Stalkers" };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
@@ -111,7 +119,9 @@ export class SiegeBar {
     // What the picked card does, in the Bestiary's words (a new player can't tell a Sapper from Diggers).
     const id = this.picked;
     if (!id) { this.info.textContent = ""; return; }
-    const t = enemyTraits(ENEMIES[id as keyof typeof ENEMIES]).filter((x) => x !== "boss").slice(0, 2);
+    const many = (WAR_CARDS.find((k) => k.id === id)?.count ?? 1) > 1;
+    // (Plural cards get plural verbs: "Ravens — fly over the wall, dive at towers".)
+    const t = enemyTraits(ENEMIES[id as keyof typeof ENEMIES]).filter((x) => x !== "boss").slice(0, 2).map((x) => (many ? pluralVerb(x) : x));
     this.info.textContent = `${CARD_NAME[id] ?? ENEMIES[id as keyof typeof ENEMIES].name} — ${t.length ? t.join(", ") : "steady infantry"}`;
   }
 

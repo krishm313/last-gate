@@ -203,7 +203,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.splitsInto) t.push("splits when killed");
   if (d.crossing) t.push("runs off with coins");
   if (d.speed >= 60 && !d.flying) t.push("fast");
-  if (!d.boss && !d.flying && d.gateDamage >= 30) t.push("smashes the wall");
+  if (!d.boss && !d.flying && !d.kamikaze && d.gateDamage >= 30) t.push("smashes the wall");
   if (!d.boss && d.hp >= 100) t.push("tough");
   return t;
 }
