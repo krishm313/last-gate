@@ -1261,7 +1261,7 @@ function frame(now: number) {
       if (c.reverse) {
         if (ev.type === "won" || ev.type === "lost") finishSiege(c);
         if (ev.type === "waveStart" && ev.wave > 1) hud.banner(`⚔️ Push ${ev.wave}`, "The castle grows stronger");
-        if (ev.type === "wallBreak") hud.toast("🧱 Wall breached! +10 gold to the War Chest");
+        // (Wall breaks get their call-out and coin flight on the battlefield itself.)
         continue;
       }
       // First kill of a foe kind: it joins the Bestiary (bosses get their own banner already).

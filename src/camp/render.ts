@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { ACID, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
+import { ACID, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -938,6 +938,16 @@ fx.shake(0.15);
           this.impacts.push({ x: ev.x, y: ev.y + 6, r: SEGMENT_W * 0.9, t: this.time });
           for (let k = 0; k < 5; k++)
             this.planks.push({ x: ev.x + (k - 2) * 9, y: ev.y - 6, vx: (k - 2) * 38 + (k % 2 ? 12 : -12), vy: -150 - (k % 3) * 40, a: k * 0.7, va: (k % 2 ? 1 : -1) * (6 + k), t: this.time, gy: ev.y + 14 + (k % 3) * 6 });
+          if (this.flip) {
+            // Siege Lord: your breach — a big gold call-out, a heavier jolt, and the bounty's coins
+            // flying from the rubble into your War Chest meter.
+            fx.shake(0.7);
+            fx.number(ev.x, ev.y - 40, `WALL DOWN! +${REVERSE.wallBounty}`, "#ffd84a", 24, 1.5);
+            const oc = this.camOrigin();
+            const sx = this.screenX(ev.x, oc), sy = this.screenY(ev.y, oc);
+            for (let k = 0; k < 8; k++) this.uiCoins.push({ x: sx + (k - 4) * 6, y: sy, t: -k * 0.05, spin: k * 0.8 });
+            break;
+          }
           fx.shake(0.45);
           fx.number(ev.x, ev.y - 30, "BREACH!", "#ff6a50", 18, 1.1);
           break;
@@ -1627,7 +1637,7 @@ fx.shake(0.15);
     // to falling, so you feel it even when the King is far from the hall.
     const hitAge = this.time - this.hallHitAt;
     const hallFrac = c.hallHp / c.hallMaxHp;
-    if (!this.ambient && c.phase === "wave" && hallFrac < 0.5 && hallFrac > 0 && hitAge < 0.4) {
+    if (!this.ambient && !this.flip && c.phase === "wave" && hallFrac < 0.5 && hallFrac > 0 && hitAge < 0.4) {
       const k = (1 - hitAge / 0.4) * (0.35 + 0.5 * (1 - hallFrac / 0.5));
       const g = ctx.createRadialGradient(VIEW_W / 2, VIEW_H / 2, VIEW_H * 0.28, VIEW_W / 2, VIEW_H / 2, VIEW_H * 0.6);
       g.addColorStop(0, "rgba(255,30,20,0)");
@@ -3017,7 +3027,8 @@ fx.shake(0.15);
     if (!this.uiCoins.length) return;
     // Where the HUD coin pill sits, in canvas units (re-measured now and then; the HUD is DOM).
     if (this.time - this.coinTarget.at > 1 && typeof document !== "undefined") {
-      const pill = document.querySelector(".coin-pill"), cv = this.canvas.getBoundingClientRect();
+      // (Siege Lord: coins fly to the War Chest meter instead of the hero's purse.)
+      const pill = document.querySelector(this.flip ? ".lgs2-chest .lgs2-bar" : ".coin-pill"), cv = this.canvas.getBoundingClientRect();
       if (pill && cv.width > 0) {
         const r = pill.getBoundingClientRect();
         this.coinTarget = { x: ((r.left + r.height * 0.55 - cv.left) / cv.width) * VIEW_W, y: ((r.top + r.height / 2 - cv.top) / cv.height) * VIEW_H, at: this.time };

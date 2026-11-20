@@ -34,6 +34,10 @@ export class SiegeBar {
   private lanes = el("div", "lgs2-lanes");
   private cards = new Map<string, HTMLButtonElement>();
   private picked: string | null = null;
+  private lastHall = -1;
+  private lastChest = -1;
+  private hallBox: HTMLElement | null = null;
+  private chestBox: HTMLElement | null = null;
   private won = 0;
 
   /** Drag-and-drop: maps a screen point to a lane (null over the deck/off the field), and reports the hovered lane. */
@@ -46,6 +50,7 @@ export class SiegeBar {
     const bar = el("div", "lgs2-bar");
     bar.append(this.hallFill);
     hall.append(el("span", "lgs2-hall-i", "🏰"), bar, this.hallText);
+    this.hallBox = hall;
     const pause = el("button", "lgs2-pause", "II");
     pause.onclick = () => this.onPause();
     this.top.append(hall, this.pushText, pause);
@@ -53,6 +58,7 @@ export class SiegeBar {
     const cbar = el("div", "lgs2-bar gold");
     cbar.append(this.chestFill);
     chest.append(el("span", "lgs2-chest-i", "💰"), cbar, this.chestText);
+    this.chestBox = chest;
     for (const [i, label] of ["◀ Left", "Middle", "Right ▶"].entries()) {
       const b = el("button", "lgs2-lane", label);
       b.onclick = () => this.send(i);
@@ -167,6 +173,12 @@ export class SiegeBar {
     if (lane !== null) this.send(lane);
   }
 
+  private pop(node: HTMLElement | null, cls: string): void {
+    if (!node || node.classList.contains(cls)) return;
+    node.classList.add(cls);
+    window.setTimeout(() => node.classList.remove(cls), 380);
+  }
+
   /** Can't afford / locked: a short shake. */
   private nope(b: HTMLElement): void {
     b.classList.remove("nope");
@@ -192,6 +204,8 @@ export class SiegeBar {
     this.root.style.display = v ? "flex" : "none";
     // A new siege starts with Footmen picked, so the first tap on the field already sends a group.
     this.picked = v ? WAR_CARDS[0]!.id : null;
+    this.lastHall = -1;
+    this.lastChest = -1;
     this.refreshPick();
   }
 
@@ -199,6 +213,11 @@ export class SiegeBar {
     const r = c.reverse;
     if (!r) return;
     const hall = Math.max(0, c.hallHp / c.hallMaxHp);
+    // Your horde hit the hall: the bar jolts and flashes. A bounty (a wall down) makes the chest pop.
+    if (this.lastHall >= 0 && c.hallHp < this.lastHall - 0.5) this.pop(this.hallBox, "hit");
+    if (this.lastChest >= 0 && r.chest > this.lastChest + 5) this.pop(this.chestBox, "gain");
+    this.lastHall = c.hallHp;
+    this.lastChest = r.chest;
     this.hallFill.style.width = `${hall * 100}%`;
     this.hallText.textContent = `${Math.ceil(c.hallHp)}`;
     const left = c.phase === "wave" ? Math.max(0, Math.ceil(REVERSE.push - c.waveTime)) : 0;

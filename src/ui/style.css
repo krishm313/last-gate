@@ -1376,3 +1376,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-ghost .lgs2-art { transform: scale(1.5); }
 .lgs2-card.dragging { opacity: 0.45; }
 .lgs2-card { touch-action: none; }
+/* Siege Lord: the castle's hall bar jolts red when your horde hits it; the War Chest pops on a bounty. */
+.lgs2-hall.hit { animation: lgs2-hit 0.38s ease-out; }
+@keyframes lgs2-hit { 0% { transform: translateX(0); filter: brightness(1.8) saturate(1.4); } 25% { transform: translateX(calc(-4 * var(--u))); } 50% { transform: translateX(calc(3 * var(--u))); } 100% { transform: translateX(0); filter: none; } }
+.lgs2-chest.gain { animation: lgs2-gain 0.38s cubic-bezier(.2,1.6,.4,1); }
+@keyframes lgs2-gain { 40% { transform: scale(1.06); filter: brightness(1.5); } }
+@media (prefers-reduced-motion: reduce) { .lgs2-hall.hit, .lgs2-chest.gain { animation: none; } }
