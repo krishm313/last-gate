@@ -180,7 +180,7 @@ export function drawSprite(ctx: CanvasRenderingContext2D, name: SpriteName, x: n
 export type AnimChar =
   | "king" | "horde_horned" | "brute" | "horde_archer" | "knight_ally" | "knight_ally_back" | "king_back" | "archer_ally"
   // Palette variants of the horde sheets (scripts/anim/recolor.py): same frames, variant colours.
-  | "goblin_anim" | "sapper_anim" | "goblin_mob_anim" | "goblin_thief_anim" | "boss_anim";
+  | "goblin_anim" | "sapper_anim" | "goblin_mob_anim" | "goblin_thief_anim" | "boss_anim" | "hollowking_anim";
 export type AnimName = "idle" | "walk" | "attack" | "hit" | "death";
 
 const ROWS: Record<AnimName, { row: number; frames: number }> = {
@@ -206,6 +206,8 @@ const ATLAS: Record<AnimChar, { w: number; h: number; foot: number }> = {
   goblin_mob_anim: { w: 219, h: 200, foot: 194 },
   goblin_thief_anim: { w: 222, h: 200, foot: 193 },
   boss_anim: { w: 219, h: 200, foot: 194 },
+  // The Hollow King: the boss sheet recoloured pale and violet (deathly skin, violet armour).
+  hollowking_anim: { w: 219, h: 200, foot: 194 },
 };
 
 /** Per-character frame-count overrides (sheets that differ from the standard rows). */
@@ -518,5 +520,5 @@ export const ENEMY_ANIMS: Record<string, { name: AnimChar; h: number }> = {
   magma: { name: "boss_anim", h: 2.3 },
   drowned: { name: "boss_anim", h: 2.35 },
   bloodlord: { name: "boss_anim", h: 2.3 },
-  hollowking: { name: "boss_anim", h: 2.4 },
+  hollowking: { name: "hollowking_anim", h: 2.4 },
 };
