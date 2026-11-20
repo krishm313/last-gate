@@ -55,6 +55,9 @@ export const CAMP = {
   /** Seconds between coins paid into a plot, at the start and at full speed. */
   paySlow: 0.11,
   payFast: 0.025,
+  /** After a level completes, standing on the plot waits this long before paying into the next
+   *  level (so finishing a build doesn't silently drain your purse into an upgrade you didn't mean). */
+  upgradePause: 1.1,
   plotHalf: 34,
   arrowSpeed: 620,
 };
@@ -994,7 +997,14 @@ function updatePaying(c: Camp): void {
       plot.paidLogs += 1;
       c.events.push({ type: "logSpend", from: { x: h.x, y: h.y - 20 }, to: { x: plot.x, y: plot.y } });
     }
-    if (plot.paid >= plotCost(plot) && plot.paidLogs >= plotLogCost(plot)) completePlot(c, plot);
+    if (plot.paid >= plotCost(plot) && plot.paidLogs >= plotLogCost(plot)) {
+      completePlot(c, plot);
+      // Breathe before the next level: the build pops, and a player who only wanted this level has
+      // time to step off. Staying put means "keep going" (the pay ramp restarts slow).
+      h.payTime = 0;
+      h.payTimer = CAMP.upgradePause;
+      break;
+    }
   }
 }
 
