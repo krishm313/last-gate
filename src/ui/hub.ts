@@ -313,10 +313,30 @@ export class Hub {
         this.cb.onPlay(ENDLESS.id);
       };
     else card.onclick = () => this.denied(card);
-    // Endless sits above the map, which reads bottom → top with the final boss farthest away.
-    body.insertBefore(card, map);
-    body.insertBefore(this.bossRushCard(save, rushFresh), map);
-    body.insertBefore(this.siegeCard(save), card);
+    // The extra modes sit above the map as one compact row of tiles (each opens its full card), so
+    // the campaign map is reached quickly even on a small phone.
+    const rushCard = this.bossRushCard(save, rushFresh);
+    const siegeOpen = (save.stars[1] ?? 0) > 0;
+    const siegeTotal = SIEGES.reduce((a, _, i) => a + (save.mini[`siege${i + 1}`]?.stars ?? 0), 0);
+    const rushStars = save.stars[BOSS_RUSH.id] ?? 0;
+    const tiles: { cls: string; icon: string; name: string; sub: string; open: boolean; fresh: boolean; go: () => void }[] = [
+      { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: siegeOpen ? `★ ${siegeTotal}/${SIEGES.length * 3}` : "Clear ch. 1", open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
+      { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card) },
+      { cls: "rush", icon: "👑", name: "Boss Rush", sub: rushOpen ? (rushStars ? "★".repeat(rushStars) + "☆".repeat(3 - rushStars) : "10 bosses") : "Clear ch. 5", open: rushOpen, fresh: rushFresh, go: () => this.modeSheet(save, rushCard) },
+    ];
+    const row = el("div", "lgmodes");
+    for (const t of tiles) {
+      const b = el("button", `lgmode lgmode-${t.cls}${t.open ? "" : " locked"}`);
+      b.append(el("div", "lgmode-icon", t.open ? t.icon : "🔒"), el("div", "lgmode-name", t.name), el("div", "lgmode-sub", t.sub));
+      if (t.fresh) b.append(el("div", "lgmode-new", "NEW!"));
+      b.onclick = () => {
+        if (!t.open) return this.denied(b);
+        this.cb.onClick();
+        t.go();
+      };
+      row.append(b);
+    }
+    body.insertBefore(row, map);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
   }
 
@@ -435,6 +455,14 @@ export class Hub {
     return map;
   }
 
+  /** A mode's full card in a sheet (from the modes row), with a way back to the map. */
+  private modeSheet(save: SaveData, card: HTMLElement): void {
+    const box = el("div", "panel pop-in lgm-sheet");
+    box.append(card);
+    box.append(this.button("Back to the map", "btn btn-ghost", () => this.showHub(save, "battle")));
+    this.show(box);
+  }
+
   /** Boss Rush: every boss in a row (opens after chapter 5). */
   private bossRushCard(save: SaveData, fresh = false): HTMLElement {
     const open = chapterUnlocked(save, BOSS_RUSH.id);
@@ -456,28 +484,6 @@ export class Hub {
       if (!open) return this.denied(card);
       this.cb.onClick();
       this.cb.onPlay(BOSS_RUSH.id);
-    };
-    return card;
-  }
-
-  /** Siege Lord (reverse mode): lead the horde against the castle. Opens after chapter 1. */
-  private siegeCard(save: SaveData): HTMLElement {
-    const open = (save.stars[1] ?? 0) > 0;
-    const card = el("button", `chapter lgsl-card${open ? "" : " locked"}`);
-    card.style.setProperty("--g1", "#6a1a1a");
-    card.style.setProperty("--g2", "#3a0e10");
-    const left = el("div", "ch-left");
-    const total = SIEGES.reduce((a, _, i) => a + (save.mini[`siege${i + 1}`]?.stars ?? 0), 0);
-    left.append(el("div", "ch-num", "New mode"), el("div", "ch-name", "⚔️ Siege Lord"), el("div", "ch-blurb", open ? "Turn the tables: lead the horde and take the castle's hall." : "Clear chapter 1 to unlock"));
-    if (open) left.append(el("div", "ch-affix", "Send units from your War Chest down three lanes · the castle fights back"));
-    const right = el("div", "ch-right");
-    right.append(el("div", "ch-stars", open ? `★ ${total}/${SIEGES.length * 3}` : "🔒"));
-    if (open) right.append(el("div", "ch-play", "PLAY ▶"));
-    card.append(left, right);
-    card.onclick = () => {
-      if (!open) return this.denied(card);
-      this.cb.onClick();
-      this.siegeSheet(save);
     };
     return card;
   }

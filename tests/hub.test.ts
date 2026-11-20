@@ -219,7 +219,7 @@ describe("locked cards", () => {
     const hub = new Hub(root, callbacks({ onPlay, onSelectHero, onDenied }));
     const save = newSave();
     hub.showHub(save, "battle");
-    const locked = root.querySelector<HTMLElement>(".chapter.locked")!;
+    const locked = root.querySelector<HTMLElement>(".lgmode.locked")!;
     locked.click();
     expect(locked.classList.contains("nope")).toBe(true);
     expect(onPlay).not.toHaveBeenCalled();

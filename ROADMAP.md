@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Battle tab: Siege Lord, Endless and Boss Rush are now one compact row of three tiles above the map (icon, name, key stat, NEW! badge; locked tiles shake) — each opens its full card in a sheet. On an iPhone SE the map now starts about two big cards higher.
 - Ghost Lanterns: wraith/lantern glows pre-rendered once instead of a radial gradient per wraith per frame. Mini-game perf at 4× throttle: the other five hold 16.7 ms; Lanterns 33 ms, and a profile shows 94% raster (software compositing of the light pools/fog) with the game code ~2% — fine on a phone GPU, left as is.
 - Ghost Lanterns polish: a cold glow around each wraith, a curl of smoke when a lantern goes dark; the Nov 21 What's-new card now counts 6 mini-games.
 - Ghost Lanterns (mini-game #6): 🏮 side stop beside chapter 10 (opens after chapter 10). Four lanterns burn down along the wall while wraiths drift toward them — tap a wraith to banish it (more points close to the lantern, combos ×2/×3), tap a lantern to refill it (+1 if it was low). A wraith that reaches a lantern snuffs it; all dark = over; 60 s. Stars 150/280/420, gold score/3. Fair day, achievement Lamplighter, Champion of the Fair now 18 stars (800), Trophies grid, save round-trip test. scripts/lanternsim.ts: perfect bot ~460; 0.7 s reactions lose.

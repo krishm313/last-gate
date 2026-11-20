@@ -1283,6 +1283,18 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 @keyframes lgx-star { from { transform: scale(0) rotate(-40deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lgx-star.fresh { animation: none; } }
 .lgx-gold { font-weight: 900; color: #ffd84a; font-size: calc(14 * var(--tu)); margin: 0; }
+/* Modes row above the map: three compact tiles that open their full cards. */
+.lgmodes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(6 * var(--u)); margin: calc(4 * var(--u)) 0 calc(8 * var(--u)); }
+#ui .lgmodes, #ui .lgmodes * { pointer-events: auto; }
+.lgmode { position: relative; border: calc(2.5 * var(--u)) solid #1d1208; border-radius: calc(12 * var(--u)); padding: calc(7 * var(--u)) calc(4 * var(--u)) calc(6 * var(--u)); color: #fff; text-align: center; box-shadow: inset 0 calc(2 * var(--u)) 0 #ffffff25, 0 calc(3 * var(--u)) 0 #1d1208; outline: calc(1.5 * var(--u)) solid #ffd84a55; }
+.lgmode-siege { background: linear-gradient(#7a2a2a, #3a0e10); }
+.lgmode-endless { background: linear-gradient(#6a3a7a, #3a1a4a); }
+.lgmode-rush { background: linear-gradient(#7a4a1a, #2a1408); }
+.lgmode.locked { filter: grayscale(0.7) brightness(0.7); outline: none; }
+.lgmode-icon { font-size: calc(22 * var(--tu)); line-height: 1.1; }
+.lgmode-name { font-weight: 900; font-size: calc(12 * var(--tu)); margin-top: calc(2 * var(--u)); }
+.lgmode-sub { font-weight: 800; font-size: calc(10 * var(--tu)); color: #ffd84a; margin-top: calc(1 * var(--u)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lgmode-new { position: absolute; top: calc(-8 * var(--u)); right: calc(-4 * var(--u)); background: linear-gradient(#7ae05a, #3a9a2a); color: #fff; font-weight: 900; font-size: calc(9 * var(--tu)); padding: 0 calc(5 * var(--u)); border-radius: calc(6 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; }
 /* The map's side stop: a smaller pin off the road. */
 .lgm-side { position: absolute; transform: translate(-50%, 50%); background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: calc(2 * var(--u)); z-index: 1; }
 .lgm-side .lgm-pin { width: calc(40 * var(--u)); height: calc(40 * var(--u)); font-size: calc(18 * var(--tu)); background: radial-gradient(circle at 35% 30%, #e0a03a, #8a5a1a); }
