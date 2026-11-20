@@ -1,6 +1,7 @@
 import { ENEMIES } from "./enemies";
 import { HEROES } from "./heroes";
 import type { SaveData } from "./meta";
+import { SIDE_GAMES_ENABLED } from "./features";
 
 export interface Achievement {
   id: string;
@@ -31,7 +32,7 @@ export function heroHasWon(s: SaveData, hero: string): boolean {
   return (s.stats[`won_${hero}`] ?? 0) > 0 || s.history.some((r) => r.won && r.hero === hero);
 }
 
-export const ACHIEVEMENTS: Achievement[] = [
+const ALL_ACHIEVEMENTS: Achievement[] = [
   { id: "first-wave", name: "First Stand", desc: "Survive your first night", icon: "🛡️", goal: 1, reward: 30, progress: stat("wavesHeld") },
   { id: "veteran", name: "Veteran", desc: "Survive 100 nights in total", icon: "⚔️", goal: 100, reward: 250, progress: stat("wavesHeld") },
   { id: "builder", name: "Master Builder", desc: "Build 25 archer towers", icon: "🏹", goal: 25, reward: 150, progress: stat("towersBuilt") },
@@ -92,6 +93,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "daily3", name: "Daily Grind", desc: "Clear 3 daily challenges", icon: "🏅", goal: 3, reward: 200, progress: stat("dailyWins") },
   { id: "loyal", name: "Loyal Subject", desc: "Open the Royal Gift 7 days in a row", icon: "🎁", goal: 7, reward: 300, progress: stat("giftBest") },
 ];
+
+/** Achievements for the side-stop mini-games (hidden while those are switched off). */
+const SIDE_GAME_ACHIEVEMENTS = ["marksman", "quartermaster", "sentinel", "engineer3", "dragonheart", "lamplighter", "forgemaster", "bellringer", "mason", "fairground"];
+export const ACHIEVEMENTS: Achievement[] = SIDE_GAMES_ENABLED ? ALL_ACHIEVEMENTS : ALL_ACHIEVEMENTS.filter((a) => !SIDE_GAME_ACHIEVEMENTS.includes(a.id));
 
 export function claimable(s: SaveData): Achievement[] {
   return ACHIEVEMENTS.filter((a) => !s.claimed.includes(a.id) && a.progress(s) >= a.goal);

@@ -1,6 +1,7 @@
 import { GIFT_GOLD, giftView } from "../core/gift";
 import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
+import { SIDE_GAMES_ENABLED } from "../core/features";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate } from "./settings";
@@ -361,10 +362,11 @@ export class Hub {
     const tiles: { cls: string; icon: string; name: string; sub: string; open: boolean; fresh: boolean; go: () => void }[] = [
       { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: !siegeOpen ? "Clear ch. 1" : (save.mini.siege1?.stars ?? 0) > 0 && dailySiegeOpen(save.stats, todayString()) ? "🗓️ Daily open" : `★ ${siegeTotal}/${SIEGES.length * 3}`, open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
       { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]} · ${endlessTwistFor().icon}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card) },
-      { cls: "fair", icon: "🎪", name: "Fair", sub: `${openMinis(save.stars).length ? `★ ${Object.entries(save.mini).reduce((a, [k, m]) => a + (k.startsWith("siege") ? 0 : m.stars), 0)}/${this.sideGames().length * 3}` : "Clear ch. 1"}`, open: openMinis(save.stars).length > 0, fresh: false, go: () => this.fairSheet(save) },
+...(SIDE_GAMES_ENABLED ? [{ cls: "fair", icon: "🎪", name: "Fair", sub: `${openMinis(save.stars).length ? `★ ${Object.entries(save.mini).reduce((a, [k, m]) => a + (k.startsWith("siege") ? 0 : m.stars), 0)}/${this.sideGames().length * 3}` : "Clear ch. 1"}`, open: openMinis(save.stars).length > 0, fresh: false, go: () => this.fairSheet(save) }] : []),
       { cls: "rush", icon: "👑", name: "Boss Rush", sub: rushOpen ? (rushStars ? "★".repeat(rushStars) + "☆".repeat(3 - rushStars) : "10 bosses") : "Clear ch. 5", open: rushOpen, fresh: rushFresh, go: () => this.modeSheet(save, rushCard) },
     ];
     const row = el("div", "lgmodes");
+    row.style.gridTemplateColumns = `repeat(${tiles.length}, 1fr)`;
     for (const t of tiles) {
       const b = el("button", `lgmode lgmode-${t.cls}${t.open ? "" : " locked"}`);
       b.append(el("div", "lgmode-icon", t.open ? t.icon : "🔒"), el("div", "lgmode-name", t.name), el("div", "lgmode-sub", t.sub));
@@ -535,6 +537,7 @@ export class Hub {
 
   /** The side-stop mini-games: where they sit on the map and the chapter that opens each. */
   private sideGames(): { key: string; icon: string; name: string; after: number; left: number; at: number; go: () => void }[] {
+    if (!SIDE_GAMES_ENABLED) return [];
     return [
       { key: "archery", icon: "🎯", name: "Archery Range", after: 1, left: 84, at: 0.5, go: () => this.cb.onArchery?.() },
       { key: "supply", icon: "🛒", name: "Supply Run", after: 2, left: 12, at: 1.5, go: () => this.cb.onSupply?.() },
@@ -722,7 +725,7 @@ export class Hub {
       ? [
           "💀 Chapter 10: The Hollow Throne · 👑 Boss Rush — every boss, one per night",
           "📯 The Marshal (25★) & 🧪 The Alchemist (28★): two new heroes · 🎖️ Veteran looks after 25 nights",
-          "🎪 Six new mini-games — Royal Forge, Bell Tower, Mason's Tower, Dragon Dodge, Catapult Toss, Ghost Lanterns — all in the 🎪 Fair tile",
+          "⚔️ Siege Lord rebuilt: the view flips so you attack up the field — tap the field to send your horde",
           "⚔️ Siege Lord: three new sieges up to the Alchemist's Tower, new war cards, and a 🗓️ Daily Siege",
           "🌑 Shadowstalker: a new foe in chapters 7–10 that blinks forward through your fire",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
@@ -731,7 +734,7 @@ export class Hub {
       ? [
           "🗺️ The campaign is now a map — follow the road to the final boss (no spoilers past your next stop)",
           "⚔️ Siege Lord: play the horde! Send units down 3 lanes to take the castle — 6 sieges, new war cards and a 🗓️ Daily Siege",
-          "🎪 9 mini-games on the map, all in the 🎪 Fair tile — stars, gold and a daily 2× Fair day",
+          "⚡ Smoother on phones: sprite and interface work cut way down",
           "🎁 A Royal Gift every day on the Battle tab — 7 days in a row for the big one",
           "✝️ The Cleric (new hero) heals the hall and walls with Sanctuary · 📖 a Bestiary of every foe you've met",
           ...(NEWS === "2026-11-21" ? ["💀 Chapter 10 · 👑 Boss Rush · 📯 the Marshal & 🧪 the Alchemist (new heroes) · 🎖️ Veteran looks"] : []),
@@ -982,7 +985,7 @@ export class Hub {
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
     // Side games: best score and stars for each mini-game, plus Siege Lord stars.
-    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["bells", "🔔", "Bell Tower"], ["catapult", "🪨", "Catapult"], ["mason", "🧱", "Mason's Tower"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
+    const minis: [string, string, string][] = !SIDE_GAMES_ENABLED ? [] : [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["forge", "⚒️", "Royal Forge"], ["watch", "🛡️", "Wall Watch"], ["bells", "🔔", "Bell Tower"], ["catapult", "🪨", "Catapult"], ["mason", "🧱", "Mason's Tower"], ["dragon", "🐉", "Dragon Dodge"], ["lanterns", "🏮", "Lanterns"]];
     const fun = el("div", "records");
     const opened = openMinis(save.stars);
     for (const [key, icon, label] of minis) {
@@ -1003,7 +1006,7 @@ export class Hub {
       br.append(el("div", "record-icon", "👑"), el("div", "record-val", (save.stars[BOSS_RUSH.id] ?? 0) > 0 ? "10/10" : best ? `${Math.max(0, best - 1)}/10` : "—"), el("div", "record-label", "Boss Rush bosses"));
       fun.append(br);
     }
-    body.append(el("div", "hub-hint records-title", "Side games — best scores"), fun);
+    body.append(el("div", "hub-hint records-title", SIDE_GAMES_ENABLED ? "Side games — best scores" : "Modes"), fun);
     this.bestiarySection(body, save);
     this.historySection(body, save);
     this.endlessTopSection(body, save);

@@ -1,5 +1,6 @@
 import { dayNumber, todayString } from "./daily";
 import type { SaveData } from "./meta";
+import { SIDE_GAMES_ENABLED } from "./features";
 
 /**
  * Daily / weekly quests. Each quest tracks a lifetime stat: when a quest is handed out we record the
@@ -126,7 +127,8 @@ export function questEligible(s: SaveData | null, id: string): boolean {
   if (id === "d-elites" || id === "d-hard" || id === "w-elites") return cleared;
   if (id === "d-fires") return (s.stars[6] ?? 0) > 0;
   if (id === "w-late") return (s.stars[7] ?? 0) > 0; // has beaten chapter 7 once already
-  if (id === "d-mini" || id === "d-siege" || id === "w-minis" || id === "w-siege") return (s.stars[1] ?? 0) > 0; // Archery / Siege Lord open after chapter 1
+  if (id === "d-mini" || id === "w-minis") return SIDE_GAMES_ENABLED && (s.stars[1] ?? 0) > 0; // (side games switched off for now)
+  if (id === "d-siege" || id === "w-siege") return (s.stars[1] ?? 0) > 0; // Archery / Siege Lord open after chapter 1
   if (id === "d-dsiege" || id === "w-dsiege") return (s.mini.siege1?.stars ?? 0) > 0; // the Daily Siege opens after the first siege
   return true;
 }

@@ -1,4 +1,5 @@
 import type { SaveData } from "./meta";
+import { SIDE_GAMES_ENABLED } from "./features";
 
 /** Cosmetic hero flair (a trail / halo drawn around the hero), unlocked by milestones. */
 export interface FlairDef {
@@ -15,7 +16,7 @@ const stars = (s: SaveData) => Object.entries(s.stars).reduce((a, [id, v]) => a 
 /** Stars from the side-stop mini-games (sieges excluded). */
 const miniStars = (s: SaveData) => Object.entries(s.mini).reduce((a, [id, m]) => a + (id.startsWith("siege") ? 0 : m.stars), 0);
 
-export const FLAIRS: FlairDef[] = [
+const ALL_FLAIRS: FlairDef[] = [
   { id: "none", name: "None", icon: "▫️", how: "", unlocked: () => true },
   { id: "gold", name: "Golden Halo", icon: "✨", how: "Earn 6 stars", unlocked: (s) => stars(s) >= 6 },
   { id: "ember", name: "Ember Trail", icon: "🔥", how: "Clear chapter 4", unlocked: (s) => (s.stars[4] ?? 0) > 0 },
@@ -30,6 +31,9 @@ export const FLAIRS: FlairDef[] = [
   { id: "toxic", name: "Toxic Bubbles", icon: "🧪", how: "Win a run with the Alchemist", unlocked: (s) => (s.stats.won_alchemist ?? 0) > 0 || s.history.some((r) => r.won && r.hero === "alchemist") },
   { id: "crown", name: "Royal Crown", icon: "👑", how: "Open the Royal Gift 7 days in a row", unlocked: (s) => (s.stats.giftBest ?? 0) >= 7 },
 ];
+
+/** (Fairground Lights needs mini-game stars: hidden while the side games are switched off.) */
+export const FLAIRS: FlairDef[] = SIDE_GAMES_ENABLED ? ALL_FLAIRS : ALL_FLAIRS.filter((f) => f.id !== "fair");
 
 export const FLAIR_BY_ID: Record<string, FlairDef> = Object.fromEntries(FLAIRS.map((f) => [f.id, f]));
 
