@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- New-enemy banners say what the foe does: "New enemy: War Raven — flies over the wall, dives at towers" (first two Bestiary traits). Brute and Battering Ram gained traits ("tough", "smashes the wall") so every introduced foe has one.
 - One-time hint the first time logs pile up at the Lumber Camp while your pockets are empty: "walk over to pick them up" (nothing told new players the pile must be collected). Memory audit (chapter 5 night): live canvases 58 MB — terrain 18.5, crisp frame cache 17 (cap 1500 ≈ 43), half sheets 12 — nothing else large.
 - Lighter ground: the baked terrain canvas was 2.5 px/world unit (36 MB of canvas) though the renderer caps at 2× density (~1.7 px/unit on phones) — now 1.8 (18.5 MB), and the 11 painted grounds re-encoded to match (13.5 → 7.8 MB total; chapter 1 1.7 → 0.93 MB). Side-by-side screenshots on iPhone 13: no visible difference. scripts/gen_terrain.py K updated.
 - Faster, lighter first load: the title screen downloaded all 15 character animation sheets (~8 MB, ~190 MB decoded) — now only the 8 core ones; each run preloads its own chapter's foes and bosses during the build phase (Siege Lord: every war card; Endless/Boss Rush: all). First load 11.9 → 8.7 MB.

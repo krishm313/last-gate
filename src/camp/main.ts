@@ -1,4 +1,4 @@
-import { ENEMIES } from "../core/enemies";
+import { ENEMIES, enemyTraits } from "../core/enemies";
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
 import { musicIntensity } from "../audio/intensity";
@@ -375,6 +375,13 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
 }
 
 let dailyRun: DailyChallenge | null = null;
+
+/** "New enemy: Goblin Thief — runs off with coins": the name plus what it does (its first two traits). */
+function introLine(name: string): string {
+  const d = Object.values(ENEMIES).find((e) => e.name === name);
+  const t = d ? enemyTraits(d).filter((x) => x !== "boss").slice(0, 2) : [];
+  return `New enemy: ${name}${t.length ? ` — ${t.join(", ")}` : ""}`;
+}
 
 /** Starts loading the animation sheets this run can meet (its waves' foes and bosses) during the build phase. */
 function preloadChapterArt(ch: ChapterDef) {
@@ -1318,7 +1325,7 @@ function frame(now: number) {
       if (ev.type === "waveStart")
         hud.banner(
           c.chapter.id === 98 ? (ev.wave === c.chapter.waves.length ? "👑 THE LAST BOSS" : `👑 Boss ${ev.wave}/${c.chapter.waves.length}`) : !c.chapter.endless && ev.wave === c.chapter.waves.length ? "🌙 FINAL NIGHT" : ev.boss ? `🌙 Night ${ev.wave} — Boss!` : `🌙 Night ${ev.wave}`,
-          ev.boss ?? (ev.intro ? `New enemy: ${ev.intro}` : "The horde comes in the dark"),
+          ev.boss ?? (ev.intro ? introLine(ev.intro) : "The horde comes in the dark"),
           !c.chapter.endless && ev.wave === c.chapter.waves.length ? "red" : undefined,
         );
       // Wave-end unlocks are announced after the blessing pick; a hall upgrade mid-build is announced now.
