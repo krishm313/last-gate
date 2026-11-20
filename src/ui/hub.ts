@@ -1173,6 +1173,13 @@ export class Hub {
       const held = Math.max(0, r.wave - 1);
       box.append(el("h1", "title", "Siege over"), el("p", "sub", `The camp held ${held} night${held === 1 ? "" : "s"}.`));
       if (r.record) box.append(el("div", "end-unlock end-record", "🏆 New record!"));
+    } else if (r.chapterId === BOSS_RUSH.id) {
+      // Boss Rush: count the bosses beaten (losing on night N means N-1 fell).
+      const slain = r.won ? BOSS_RUSH.waves.length : Math.max(0, r.wave - 1);
+      box.append(
+        el("h1", r.won ? "title win" : "title lose", r.won ? "Kingslayer!" : "The hall has fallen"),
+        el("p", "sub", r.won ? `Every boss of the realm has fallen — ${slain}/${slain}!` : `Bosses slain: ${slain}/${BOSS_RUSH.waves.length}`),
+      );
     } else box.append(
       el("h1", r.won ? "title win" : "title lose", r.won ? "Victory!" : "The hall has fallen"),
       el("p", "sub", r.won ? `${r.chapterName} holds!` : `${r.chapterName} · fell on night ${Math.max(1, r.wave)}`),
