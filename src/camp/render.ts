@@ -1,6 +1,6 @@
 import { Fx } from "../render/fx";
 import { BAT_ATLAS, DECOR_ATLAS, DRAGON_ATLAS, PROP_ATLAS, WALL_ATLAS } from "./propAtlas";
-import { animFrame, drawAnim, viewFor, type SpriteName, drawSprite, ENEMY_ANIMS, ENEMY_SPRITES, preloadAnims, preloadSprites, type AnimName } from "./sprites";
+import { animFrame, drawAnim, viewFor, type SpriteName, drawSprite, ENEMY_ANIMS, ENEMY_SPRITES, preloadAnims, preloadSprites, takeUnwarmed, type AnimName } from "./sprites";
 import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
@@ -1644,6 +1644,18 @@ fx.shake(0.15);
     }
     // Chapter 4 is permanently night; everywhere else waves are fought at night, building by day.
     this.drawDayNight(ctx, c, o, sh, dt);
+    // Calm moment (building, or hardly anyone on the field): pre-draw one sheet this run will need, so
+    // its first real draw (the texture upload) doesn't hitch a fight. 2×2 px and nearly transparent.
+    if (!this.ambient && (c.phase === "build" || c.enemies.length < 3)) {
+      const img = takeUnwarmed();
+      if (img) {
+        ctx.save();
+        ctx.setTransform(...this.base);
+        ctx.globalAlpha = 0.004;
+        ctx.drawImage(img, 0, 0, 2, 2);
+        ctx.restore();
+      }
+    }
     this.drawWeather(ctx, dt, o);
     // Floating numbers sit above the night darkness and weather, so damage, loot and "LEVEL N!"
     // read at full brightness anywhere on screen, not only inside a light.

@@ -298,6 +298,22 @@ export function preloadAnims(all = false): void {
   for (const n of all ? (Object.keys(ATLAS) as AnimChar[]) : CORE_ANIMS) if (!n.endsWith("_vet")) warmAtlas(n);
 }
 
+/** Sheets (and their half copies) a run will use that haven't been drawn yet: see takeUnwarmed. */
+const warmed = new WeakSet<object>();
+/**
+ * Next sheet this run will need that has never been drawn: the renderer draws one per calm frame
+ * (2×2 px, almost transparent) so its first real draw — the costly texture upload — never lands
+ * mid-fight.
+ */
+export function takeUnwarmed(): CanvasImageSource | null {
+  for (const e of atlases.values()) {
+    if (!e.warm || !e.ready) continue;
+    if (!warmed.has(e.img)) { warmed.add(e.img); return e.img; }
+    if (e.half && !warmed.has(e.half)) { warmed.add(e.half); return e.half; }
+  }
+  return null;
+}
+
 /** Starts loading a sheet and marks it for an off-thread half-size build once decoded. */
 function warmAtlas(name: AnimChar): void {
   atlas(name);
