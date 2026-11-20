@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Four new daily twists from Nov 27 (earlier days keep theirs, tested): Swift Feet (hero +40% speed, +25% fire rate; foes +25% HP), Long Shots (towers +35% range, −20% fire rate), Rally Day (soldiers & militia +80%; hero −25%), Tax Day (double hall income, −40% drops). Twists can now carry any run-mod multipliers (`mods`).
 - Royal Forge sound: strikes clang like hammer on steel, a perfect strike rings the anvil out, and a finished blade chimes. The Forge sits in unlock order in the Trophies side-games grid.
 - Royal Forge (7th side game, after chapter 3): a marker sweeps the anvil bar — tap in the hot zone to strike, dead centre is perfect; 5 strikes forge a blade (+10, +10 more if flawless); zone narrows and speeds up over 60 s; 3 misses crack the anvil. Stars 250/450/650 (forgesim: ±40 ms timing ≈ 2–3★), gold score/4. Achievement Master Smith; Champion of the Fair now 21 stars; joins the Fair day rotation from Nov 21 (earlier days unchanged, tested); Trophies grid; What's-new line.
 - Three new hero flairs: Fairground Lights (confetti trail, 9 mini-game stars), Warlord's Smoke (red-black embers, take the Hollow Keep), Royal Crown (three gold crowns circling the hero's feet, Royal Gift 7 days in a row). Battle tab shows a 🎁 badge while today's gift is unopened.

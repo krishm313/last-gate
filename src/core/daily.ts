@@ -27,6 +27,8 @@ export interface Twist {
   wallHp?: number;
   /** Seconds between free tides each night (slows foes and the hero alike). */
   tideEvery?: number;
+  /** Extra run-modifier multipliers (keys of CampMods, e.g. heroSpeed, towerRange, allyPower, income). */
+  mods?: Record<string, number>;
   /** First date this twist can appear (so days already decided keep their twist). */
   since?: string;
 }
@@ -42,6 +44,10 @@ export const TWISTS: Twist[] = [
   { id: "iron-walls", name: "Iron Walls", desc: "Walls +60% HP; your hero −25%", enemyHp: 1, drops: 1, heroDamage: 0.75, towerDamage: 1, wallHp: 1.6 },
   { id: "high-tide", name: "High Tide", desc: "The tide rolls in every 12s at night — it slows you and the horde · coins +20%", enemyHp: 1, drops: 1.2, heroDamage: 1, towerDamage: 1, tideEvery: 12, since: "2026-11-21" },
   { id: "last-stand", name: "Last Stand", desc: "Walls −40% HP; your hero +60% damage · coins +20%", enemyHp: 1, drops: 1.2, heroDamage: 1.6, towerDamage: 1, wallHp: 0.6, since: "2026-11-21" },
+  { id: "swift", name: "Swift Feet", desc: "Your hero runs 40% faster and shoots 25% faster · foes +25% HP", enemyHp: 1.25, drops: 1, heroDamage: 1, towerDamage: 1, mods: { heroSpeed: 1.4, heroRate: 1.25 }, since: "2026-11-27" },
+  { id: "long-shots", name: "Long Shots", desc: "Towers reach 35% farther but fire 20% slower · coins +10%", enemyHp: 1, drops: 1.1, heroDamage: 1, towerDamage: 1, mods: { towerRange: 1.35, towerRate: 0.8 }, since: "2026-11-27" },
+  { id: "rally", name: "Rally Day", desc: "Soldiers & militia +80% HP and damage; your hero −25%", enemyHp: 1, drops: 1, heroDamage: 0.75, towerDamage: 1, mods: { allyPower: 1.8 }, since: "2026-11-27" },
+  { id: "tax-day", name: "Tax Day", desc: "The hall pays double income, but foes drop 40% fewer coins", enemyHp: 1, drops: 0.6, heroDamage: 1, towerDamage: 1, mods: { income: 2 }, since: "2026-11-27" },
   { id: "glass", name: "Glass Cannon", desc: "Everything you have hits 50% harder; enemies +50% HP", enemyHp: 1.5, drops: 1.2, heroDamage: 1.5, towerDamage: 1.5 },
 ];
 

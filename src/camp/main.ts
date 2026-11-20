@@ -351,6 +351,8 @@ function startDaily() {
   if (d.twist.eliteChance) setup.eliteChance = d.twist.eliteChance;
   if (d.twist.wallHp) setup.mods!.wallHp *= d.twist.wallHp;
   if (d.twist.tideEvery) setup.tideEvery = d.twist.tideEvery;
+  const mods = setup.mods as unknown as Record<string, number>;
+  for (const [k, v] of Object.entries(d.twist.mods ?? {})) if (typeof mods[k] === "number") mods[k] *= v;
   setup.startBlessings = [d.blessing];
   setup.classicBlessings = true;
   newRun(d.chapterId, setup, d.seed, "normal", d.twist.weatherOdds);
