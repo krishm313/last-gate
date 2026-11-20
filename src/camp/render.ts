@@ -55,6 +55,9 @@ const WINDOW_GLOW: Partial<Record<string, { base: number; spill: number; pts: [n
   forge: { base: 22, spill: 20, pts: [[-8.5, 0], [5.5, 0], [5.5, 14], [-8.5, 14]] },
 };
 
+/** Defender-side events whose popups are hidden from the attacker in Siege Lord. */
+const SIEGE_QUIET = new Set(["build", "noTarget", "callToArms", "sanctuary", "heroRespawn", "earlyBonus", "waveClear", "levelUp", "pickup", "unlock", "plotUnlocked", "specChosen"]);
+
 export class CampRenderer {
   private ctx: CanvasRenderingContext2D;
   readonly fx = new Fx();
@@ -138,7 +141,7 @@ export class CampRenderer {
       // thump of screen shake.
       const tier = this.streakCall;
       const col = tier >= 3 ? "#ff5a3a" : tier === 2 ? "#ff7a2a" : "#ff9a3a";
-      this.fx.number(x, y - 34, label, col, 22 + tier * 4, 1.3);
+      if (!this.flip) this.fx.number(x, y - 34, label, col, 22 + tier * 4, 1.3);
       this.fx.rings.push({ x, y, r: 46 + tier * 14, color: col, life: 0.35, max: 0.35, width: 5 });
       this.fx.rings.push({ x, y, r: 80 + tier * 24, color: "#fff2c0", life: 0.55, max: 0.55, width: 3 });
       this.fx.burst(x, y - 10, "#ffd060", 14 + tier * 6, 200 + tier * 40, { max: 0.7, size: 2.4, gravity: 180, shape: "spark" });
@@ -472,7 +475,7 @@ export class CampRenderer {
     }
     this.fx.rings.push({ x: h.x, y: h.y + 12, r: 70, color: "#bfe8ff", life: 0.6, max: 0.6, width: 5 });
     this.fx.burst(h.x, h.y - 10, "#fff2b0", 22, 170, { max: 0.8, size: 3, gravity: -90, shape: "spark" });
-    this.fx.number(h.x, h.y - 112, `${icon} ${name}`, "#bfe8ff", 18, 1.6);
+    if (!this.flip) this.fx.number(h.x, h.y - 112, `${icon} ${name}`, "#bfe8ff", 18, 1.6);
   }
 
   /** Short fireworks burst for in-run milestones (e.g. a new endless record). */
@@ -595,7 +598,10 @@ export class CampRenderer {
       }
       // A chevron pointing up the lane, toward the castle.
       ctx.save();
-      ctx.globalAlpha = Math.min(1, (this.siegePicked ? 0.75 : 0.35) + pulse * 0.25 + fl * 0.4);
+      // Bold while coaching the first send; afterwards faint (they sit where your units spawn), and
+      // gone while dragging (the drop zones take over).
+      if (this.dragging) { ctx.restore(); continue; }
+      ctx.globalAlpha = Math.min(1, (this.siegeCoach ? 0.8 : 0.22) + pulse * 0.2 + fl * 0.5);
       ctx.strokeStyle = "#ffe27a";
       ctx.lineWidth = 4;
       ctx.lineCap = "round";
@@ -771,6 +777,9 @@ export class CampRenderer {
     // there would ghost through behind the title (its recap already says "Flawless").
     const picking = events.some((e) => e.type === "offers");
     for (const ev of events) {
+      // Siege Lord: the castle's own news (built, wave cleared, hero back, early bonus…) isn't the
+      // attacker's — skip its popups; hits, kills, breaches and fx still play.
+      if (this.flip && SIEGE_QUIET.has(ev.type)) continue;
       switch (ev.type) {
         case "hit":
           if (this.hitStars.length > 24) this.hitStars.shift();
@@ -1525,7 +1534,8 @@ fx.shake(0.15);
         },
       });
     // Flyers sort above everything on the ground (they pass over trees and buildings).
-    for (const e of c.enemies) items.push({ y: e.def.flying ? e.y + 2000 : e.y, draw: () => this.drawEnemy(ctx, c, e) });
+    // (Flyers sort on top; `a` keeps their real base so the flipped view mirrors them about it.)
+    for (const e of c.enemies) items.push({ y: e.def.flying ? (this.flip ? e.y - 2000 : e.y + 2000) : e.y, a: e.y, draw: () => this.drawEnemy(ctx, c, e) });
     if (!c.hero.dead) {
       this.heroFell = null;
       items.push({ y: c.hero.y, draw: () => this.drawHero(ctx, c) });

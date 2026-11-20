@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord: flyers (bats/ravens/imps) visible in the flipped view; castle-side popups (BUILT!, TO ARMS!, combos, level-ups) hidden for the attacker; lane chevrons fade while dragging.
 - Siege Lord clarity: the push pill says "⚔️ Attack in 20s" before the first push and "🔨 Castle rebuilds · 12s" between pushes; the War Chest shows "+4/s" and glows "FULL" when income is going to waste; cards you can't afford yet fill from the bottom toward their cost. Fixed: starting a siege toasted every unclaimed trophy (a whole column of them). Hints now explain drag-and-drop.
 - Siege Lord impact: when your horde breaks a wall section there's a big gold "WALL DOWN! +10" call-out, a heavier jolt, and the bounty's coins arc from the rubble into the War Chest meter (which pops); the castle's hall bar jolts and flashes each time your units hit the hall. The defender's red low-hall screen alarm no longer shows for the attacker, and the breach toast is gone (the call-out replaces it).
 - Siege Lord drag-and-drop (owner's idea): drag a unit card onto the field — its portrait follows your finger, dashed outlines split the field into the three drop zones (from your edge up to the wall), the zone under your finger fills gold, and letting go drops the group there; dropping back on the deck cancels. Tap-a-card-then-tap-the-field still works.
