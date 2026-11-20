@@ -591,7 +591,7 @@ export class Hub {
 
   private siegeSheet(save: SaveData): void {
     const box = el("div", "panel pop-in lgm-sheet");
-    box.append(el("h1", "title", "⚔️ Siege Lord"), el("p", "sub", "Drag a unit card onto a lane of the field to send it. Break the walls, take the hall — before the castle holds 8 pushes."));
+    box.append(el("h1", "title", "⚔️ Siege Lord"), el("p", "sub", "Drag a unit card onto a lane of the field to send it. Break the walls (a breach stays open till the next push), take the hall — before the castle holds 8 pushes."));
     // Today's Daily Siege (once the first siege is taken): a fresh castle every day, with a prize for the first win.
     if ((save.mini.siege1?.stars ?? 0) > 0) {
       const today = todayString();
