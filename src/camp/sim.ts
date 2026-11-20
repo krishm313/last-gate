@@ -1001,9 +1001,13 @@ function updatePaying(c: Camp): void {
       completePlot(c, plot);
       // Breathe before the next level: the build pops, and a player who only wanted this level has
       // time to step off. Staying put means "keep going" (the pay ramp restarts slow).
-      h.payTime = 0;
-      h.payTimer = CAMP.upgradePause;
-      break;
+      // (Not for Siege Lord's defending bot: the pause is for a player's finger, and the sieges are
+      // tuned to the bot spending without it.)
+      if (!c.reverse) {
+        h.payTime = 0;
+        h.payTimer = CAMP.upgradePause;
+        break;
+      }
     }
   }
 }
@@ -1925,8 +1929,11 @@ function updateEnemy(c: Camp, e: Enemy): void {
     }
   }
 
-  // Anything that bumps into the hero fights the hero.
-  if (!def.kamikaze && def.behavior !== "ranged" && heroD < (def.flying ? 160 : 70)) {
+  // Anything that bumps into the hero fights the hero — but a walker can't reach through a standing
+  // wall: with the wall between them (foe outside, hero inside, segment intact) it batters the wall.
+  // (Siege Lord only for now: in the campaign the hero holding the gate is part of the tuned balance.)
+  const walledOff = !!c.reverse && !def.flying && e.y < WALL_Y && h.y > WALL_Y && wallIntact(c, segmentIndexAt(e.x));
+  if (!def.kamikaze && def.behavior !== "ranged" && !walledOff && heroD < (def.flying ? 160 : 70)) {
     if (heroD > reach) moveToward(c, e, h.x, h.y);
     else attackTick(c, e, () => damageHero(c, def.gateDamage));
     return;
