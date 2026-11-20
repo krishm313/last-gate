@@ -456,6 +456,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - Tower specialisations slice 2: path-coloured banners, glowing fire/frost arrows, fire sparks / frost shatter on hit.
 - Tower specialisations slice 1: Fire / Frost / Volley choice at Lv 3 (sim, tests, choice screen).
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).
+- 2026-11-20 (UUU) Trophies tab: claimed achievements fold into a "Claimed (n)" toggle so open goals come first.
 
 ## Self-reviews
 - 04:06 — Deploys 261–269 all green. This hour: Siege 5 The Hollow Keep (new horde-HP handicap), a real save bug fixed (Boss Rush stars/best were dropped on every reload — sanitizeSave whitelisted only campaign ids) plus a save round-trip test guarding every newer field, Ghost Lanterns (mini-game #6) + polish + glow caching, compact modes row on the Battle tab, What's-new lines. Tests 204→211. Lessons: whitelisting sanitizers silently eat new data — every new mode/stat needs a round-trip test entry (now in place); siege balance knobs can be cliff-steep (horde HP 1.0 → 75%, 0.8 → 0%); profile before optimising (Lanterns: 94% raster, gradients weren't it).

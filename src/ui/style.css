@@ -1284,6 +1284,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 @keyframes lgx-star { from { transform: scale(0) rotate(-40deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lgx-star.fresh { animation: none; } }
 .lgx-gold { font-weight: 900; color: #ffd84a; font-size: calc(14 * var(--tu)); margin: 0; }
+/* Trophies: the claimed section folds away. */
+.trophy-fold { display: block; width: 100%; margin: calc(6 * var(--u)) 0; padding: calc(8 * var(--u)); border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); background: linear-gradient(#2a3a5a, #1a2640); color: #cfe0ff; font-weight: 900; font-size: calc(12 * var(--tu)); text-align: left; }
+#ui .trophy-fold { pointer-events: auto; }
 /* Modes row above the map: three compact tiles that open their full cards. */
 .lgmodes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(6 * var(--u)); margin: calc(4 * var(--u)) 0 calc(8 * var(--u)); }
 #ui .lgmodes, #ui .lgmodes * { pointer-events: auto; }

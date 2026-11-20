@@ -157,6 +157,8 @@ export class Hub {
   /** Perm just bought (and what it cost), celebrated on the next render. */
   private justBought: { id: string; cost: number } | null = null;
   /** Trophy just claimed (and its reward), celebrated on the next render. */
+  /** Trophies tab: whether the claimed section is open. */
+  private showClaimed = false;
   private justClaimed: { id: string; reward: number } | null = null;
   /** Hero just picked, celebrated on the next render. */
   private justPicked: string | null = null;
@@ -775,7 +777,24 @@ export class Hub {
       if (this.justClaimed?.id === a.id) return -2;
       return save.claimed.includes(a.id) ? 2 : f >= 1 ? -1 : -f;
     };
+    // Claimed trophies fold into a "Claimed (n)" section at the end (tap to open), so the list
+    // leads with what's still in play.
+    let claimedBox: HTMLElement | null = null;
+    const claimedCount = ACHIEVEMENTS.filter((a) => save.claimed.includes(a.id) && this.justClaimed?.id !== a.id).length;
     for (const a of [...ACHIEVEMENTS].sort((x, y) => rank(x) - rank(y))) {
+      const isFolded = save.claimed.includes(a.id) && this.justClaimed?.id !== a.id;
+      if (isFolded && !claimedBox) {
+        const toggle = el("button", "trophy-fold", `${this.showClaimed ? "▾" : "▸"} ✔ Claimed (${claimedCount})`);
+        claimedBox = el("div", "trophy-folded");
+        claimedBox.style.display = this.showClaimed ? "" : "none";
+        toggle.onclick = () => {
+          this.showClaimed = !this.showClaimed;
+          claimedBox!.style.display = this.showClaimed ? "" : "none";
+          toggle.textContent = `${this.showClaimed ? "▾" : "▸"} ✔ Claimed (${claimedCount})`;
+          this.cb.onClick();
+        };
+        body.append(toggle, claimedBox);
+      }
       const p = Math.min(a.goal, a.progress(save));
       const done = p >= a.goal;
       const claimed = save.claimed.includes(a.id);
@@ -801,7 +820,7 @@ export class Hub {
         row.append(el("div", "trophy-gain", `+${this.justClaimed.reward}`));
       }
       row.append(el("div", "trophy-icon", a.icon), info, right);
-      body.append(row);
+      (isFolded && claimedBox ? claimedBox : body).append(row);
     }
     this.justClaimed = null;
     // Lifetime records from the same stats the trophies use.
