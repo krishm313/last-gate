@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Siege Lord pause button (27×27 on iPhone SE) gets the same bigger invisible tap area; siege cards measured 42×37 (fine). Full siege flow (pause → resume → win → retry → lose) re-checked with real taps.
 - Bigger invisible hit areas on small phones, same look: touch-target audit on iPhone SE found the in-game ▶/II/🔊 buttons at 24×24, hub tabs 24 tall, the gear 26×26, claim buttons 24 tall and "Reset progress" 12 tall — each now has a transparent ::after extending its tap area (kept clear of neighbours). Real-tap audit still clean on every screen.
 - Volume sliders are easier to grab: the touch target was 14 px tall on iPhone SE (a finger slightly off missed it) — now 24 px with the same look, and dragging no longer lets the panel scroll. Checked with a finger-style drag: 80% → 17%, saved, panel stays open.
 - Long-session memory (4 min autoplay, chapter 5): JS heap flat at 14 MB, renderer maps all bounded — but canvases kept climbing (50 → 110 MB) as the crisp frame cache filled to 1500. Cap now 800 (canvases level off ~88 MB; rebuilds per minute unchanged), and the prop cache is bounded (300). iOS caps total canvas memory, so this matters on long nights.
