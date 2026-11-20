@@ -41,6 +41,8 @@ export interface ChapterDef {
   /** Night weather odds for this chapter (defaults to the global odds). */
   weatherOdds?: { rain: number; fog: number; storm: number };
   endless?: boolean;
+  /** Endless: a boss every N nights (default 5; a weekly twist can change it). */
+  bossEvery?: number;
   /** Multiplier on every wave's enemy budget (default 1), e.g. Boss Rush's full escorts. */
   budgetMult?: number;
   waves: WaveDef[];
@@ -118,8 +120,9 @@ const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "
 /** Endless waves: cycle the template list; every 5th wave brings the next boss in rotation. */
 function endlessWave(chapter: ChapterDef, wave: number): WaveDef {
   const base = chapter.waves[(wave - 1) % chapter.waves.length]!;
-  if (wave % 5 !== 0) return { ...base, boss: undefined, breather: wave % 10 === 4 };
-  return { ...base, boss: ENDLESS_BOSSES[(wave / 5 - 1) % ENDLESS_BOSSES.length]!, breather: false };
+  const every = chapter.bossEvery ?? 5;
+  if (wave % every !== 0) return { ...base, boss: undefined, breather: wave % 10 === 4 };
+  return { ...base, boss: ENDLESS_BOSSES[(wave / every - 1) % ENDLESS_BOSSES.length]!, breather: false };
 }
 
 export function enemyHp(enemy: EnemyId, hpMult: number): number {
