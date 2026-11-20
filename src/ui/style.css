@@ -1272,6 +1272,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 #ui .lgd2, #ui .lgd2 * { pointer-events: auto; }
 .lgd2-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
 .lgx-end { position: relative; z-index: 1; display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
+.record.empty { opacity: 0.5; }
 /* Mini-game end panel: stars (new ones pop in), gold line. */
 .lgx-stars { display: flex; justify-content: center; gap: calc(6 * var(--u)); font-size: calc(34 * var(--tu)); line-height: 1; color: #5a6078; text-shadow: 0 calc(2 * var(--u)) 0 #1d1208; }
 .lgx-star.on { color: #ffd84a; }

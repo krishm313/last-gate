@@ -763,6 +763,22 @@ export class Hub {
       grid.append(cell);
     }
     body.append(el("div", "hub-hint records-title", "Records"), grid);
+    // Side games: best score and stars for each mini-game, plus Siege Lord stars.
+    const minis: [string, string, string][] = [["archery", "🎯", "Archery"], ["supply", "🛒", "Supply Run"], ["watch", "🛡️", "Wall Watch"], ["catapult", "🪨", "Catapult"], ["dragon", "🐉", "Dragon Dodge"]];
+    const fun = el("div", "records");
+    const opened = openMinis(save.stars);
+    for (const [key, icon, label] of minis) {
+      const rec = save.mini[key];
+      const known = opened.includes(key);
+      const cell = el("div", `record${rec ? "" : " empty"}`);
+      cell.append(el("div", "record-icon", known ? icon : "❔"), el("div", "record-val", rec ? rec.best.toLocaleString() : "—"), el("div", "record-label", rec ? `${label} ${"★".repeat(rec.stars)}${"☆".repeat(3 - rec.stars)}` : known ? label : "???"));
+      fun.append(cell);
+    }
+    const siegeStars = SIEGES.reduce((a, _, i) => a + (save.mini[`siege${i + 1}`]?.stars ?? 0), 0);
+    const sc = el("div", "record");
+    sc.append(el("div", "record-icon", "⚔️"), el("div", "record-val", `${siegeStars}/${SIEGES.length * 3}`), el("div", "record-label", "Siege Lord stars"));
+    fun.append(sc);
+    body.append(el("div", "hub-hint records-title", "Side games — best scores"), fun);
     this.bestiarySection(body, save);
     this.historySection(body, save);
     this.endlessTopSection(body, save);
