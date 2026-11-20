@@ -281,6 +281,9 @@ export class Hub {
         card.append(el("div", "ch-fresh", "🔓 NEW!"));
       }
     }
+    const rushOpen = chapterUnlocked(save, BOSS_RUSH.id);
+    const rushFresh = rushOpen && !seen.has(BOSS_RUSH.id);
+    if (rushOpen) nowOpen.push(BOSS_RUSH.id);
     setItem(seenKey, JSON.stringify(nowOpen));
     card.style.setProperty("--g1", "#5a2a6a");
     card.style.setProperty("--g2", "#3a1a4a");
@@ -308,7 +311,7 @@ export class Hub {
     else card.onclick = () => this.denied(card);
     // Endless sits above the map, which reads bottom → top with the final boss farthest away.
     body.insertBefore(card, map);
-    body.insertBefore(this.bossRushCard(save), map);
+    body.insertBefore(this.bossRushCard(save, rushFresh), map);
     body.insertBefore(this.siegeCard(save), card);
     body.append(el("div", "hub-foot", `Runs: ${save.runs} · Victories: ${save.wins}`));
   }
@@ -428,9 +431,10 @@ export class Hub {
   }
 
   /** Boss Rush: every boss in a row (opens after chapter 5). */
-  private bossRushCard(save: SaveData): HTMLElement {
+  private bossRushCard(save: SaveData, fresh = false): HTMLElement {
     const open = chapterUnlocked(save, BOSS_RUSH.id);
-    const card = el("button", `chapter lgbr${open ? "" : " locked"}`);
+    const card = el("button", `chapter lgbr${open ? "" : " locked"}${fresh ? " fresh" : ""}`);
+    if (fresh) card.append(el("div", "ch-fresh", "🔓 NEW!"));
     card.style.setProperty("--g1", "#6a3a1a");
     card.style.setProperty("--g2", "#2a1408");
     const left = el("div", "ch-left");
