@@ -1,4 +1,4 @@
-import { ENEMIES } from "../core/enemies";
+import { ENEMIES, enemyTraits } from "../core/enemies";
 import { drawFlyer } from "../mini/flyer";
 import { cardOpen, REVERSE, WAR_CARDS, type Camp } from "../camp/sim";
 
@@ -38,6 +38,8 @@ export class SiegeBar {
   private lastChest = -1;
   private hallBox: HTMLElement | null = null;
   private chestBox: HTMLElement | null = null;
+  /** One line on what the picked card does. */
+  private info = el("div", "lgs2-info");
   private won = 0;
 
   /** Drag-and-drop: maps a screen point to a lane (null over the deck/off the field), and reports the hovered lane. */
@@ -97,7 +99,7 @@ export class SiegeBar {
     }
     const bottom = el("div", "lgs2-bottom");
     // (Lanes are picked by tapping the battlefield itself — see tapField; no buttons over the field.)
-    bottom.append(chest, this.deck);
+    bottom.append(this.info, chest, this.deck);
     this.root.append(this.top, bottom);
     this.root.style.display = "none";
     host.append(this.root);
@@ -106,6 +108,11 @@ export class SiegeBar {
 
   private refreshPick(): void {
     for (const [id, b] of this.cards) b.classList.toggle("on", id === this.picked);
+    // What the picked card does, in the Bestiary's words (a new player can't tell a Sapper from Diggers).
+    const id = this.picked;
+    if (!id) { this.info.textContent = ""; return; }
+    const t = enemyTraits(ENEMIES[id as keyof typeof ENEMIES]).filter((x) => x !== "boss").slice(0, 2);
+    this.info.textContent = `${CARD_NAME[id] ?? ENEMIES[id as keyof typeof ENEMIES].name} — ${t.length ? t.join(", ") : "steady infantry"}`;
   }
 
   /** The card currently picked (null if none). */
