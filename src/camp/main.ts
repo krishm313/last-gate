@@ -1645,6 +1645,8 @@ function frame(now: number) {
     }
     // (No tutorial tip while the hero is down: "drag to walk" means nothing until he rises.)
     hud.setTip((c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
+    // First run: the first day's sunset waits while the walk / build-a-tower tips are still up.
+    if (tutorial.holdsClock && c.phase === "build" && c.wave === 0 && !dailyRun && !c.reverse) c.timer = Math.max(c.timer, 12);
     renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;
     interp.apply(c, accumulator / STEP);
     renderer.draw(c, realDt);

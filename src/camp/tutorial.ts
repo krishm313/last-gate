@@ -36,6 +36,12 @@ export class Tutorial {
     return null; // (hall coins now fly to the King on their own: no need to point at the pile)
   }
 
+  /** First run, before walking and building the first tower: the first day's clock shouldn't run
+   *  out on a new player who is still reading (sunset waits until they've built). */
+  get holdsClock(): boolean {
+    return this.active && this.step < 2;
+  }
+
   /** Progress reset: show the first-run tips again from the start. */
   reset(): void {
     this.step = 0;
