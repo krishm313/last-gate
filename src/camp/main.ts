@@ -27,7 +27,7 @@ import { claimGift } from "../core/gift";
 import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
 import type { HeroId } from "../core/heroes";
 import { deploy, REVERSE, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
-import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { chooseBlessing, chooseBuilding, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
@@ -1419,7 +1419,8 @@ function frame(now: number) {
     const auto = (window as unknown as { __autoplay?: boolean }).__autoplay;
     const move = auto ? campBotInput(c).move : moveInput();
     if (auto && c.phase === "pick" && !(window as unknown as { __noAutoPick?: boolean }).__noAutoPick) {
-      chooseBlessing(c, campBotPick(c));
+      if (c.buildChoice) chooseBuilding(c, c.buildChoice[0]!);
+      if (c.phase === "pick") chooseBlessing(c, campBotPick(c));
       hud.hideOverlay();
     }
     while (accumulator >= STEP) {
@@ -1531,6 +1532,16 @@ function frame(now: number) {
             }
           },
           () => rerollBlessings(c),
+          (kind) => {
+            if (!chooseBuilding(c, kind)) return false;
+            sfx.unlockChime();
+            if (c.phase !== "pick") {
+              hud.hideOverlay();
+              hud.banner("New building!", `${[...new Set(unlockedLabels)].join(" & ")} unlocked`);
+              unlockedLabels = [];
+            }
+            return true;
+          },
         );
       if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
       if (ev.type === "heroDown") hud.banner("You fell!", "You'll rise again at the hall…", "red"); // (the corner chip counts the seconds)

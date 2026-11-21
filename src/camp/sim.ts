@@ -384,6 +384,8 @@ export type CampEvent =
   /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
+  /** Building draft resolved (the chosen kind opens now). */
+  | { type: "buildChosen"; kind: PlotKind }
   /** Visitors: arrived at dawn, accepted (shrine) / bought (merchant), left at nightfall. */
   | { type: "visitor"; kind: VisitorKind; action: "arrive" | "accept" | "buy" | "leave"; x: number; y: number; id?: string }
   /** A rule-changing blessing fired (for its visual): ricochet, thorns, wildfire, cull, volley. */
@@ -459,6 +461,8 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** Building draft waiting on the player (kinds to choose from), else null. */
+  buildChoice: PlotKind[] | null;
   /** Today's visitor in camp (build phase only). */
   visitor: Visitor | null;
   /** The shrine was accepted: tonight is an Elite Raid, and the next pick adds a rule card. */
@@ -819,6 +823,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     nightEvent: null,
     eventThief: false,
     visitor: null,
+    buildChoice: null,
     cursed: false,
     shrineReward: false,
     strikes: [],
@@ -2626,16 +2631,19 @@ export function step(c: Camp, input: CampInput): void {
       return;
     }
     if (c.mods.repairAfterWave > 0) for (const sg of c.segments) if (sg.hp > 0) sg.hp = Math.min(sg.maxHp, sg.hp + sg.maxHp * c.mods.repairAfterWave);
-    // New buildings become available as the run goes on.
-    for (const p of c.plots) {
-      if (p.locked && p.unlockWave && c.wave >= p.unlockWave) {
-        p.locked = false;
-        c.events.push({ type: "plotUnlocked", label: p.label, x: p.x, y: p.y });
-      }
-    }
+    // New buildings become available as the run goes on. When several kinds open on the same dawn,
+    // the player drafts which comes first (the rest open the next dawn); the balance bot, dailies and
+    // Siege Lord keep the fixed order.
+    const due = c.plots.filter((p) => p.locked && p.unlockWave && c.wave >= p.unlockWave);
+    const kinds = [...new Set(due.map((p) => p.kind))];
+    if (kinds.length >= 2 && !c.botDriven && !c.classicBlessings && !c.reverse) {
+      // At most three to choose from (anything beyond opens straight away).
+      c.buildChoice = kinds.slice(0, 3);
+      for (const p of due) if (!c.buildChoice.includes(p.kind)) unlockPlot(c, p);
+    } else for (const p of due) unlockPlot(c, p);
     c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings, c.shrineReward);
     c.shrineReward = false;
-    if (c.offers.length) {
+    if (c.offers.length || c.buildChoice) {
       c.phase = "pick";
       c.events.push({ type: "offers" });
     } else beginBuild(c);
@@ -2715,8 +2723,27 @@ export function applyBlessing(c: Camp, id: string): void {
   c.events.push({ type: "blessing", id });
 }
 
+function unlockPlot(c: Camp, p: Plot): void {
+  p.locked = false;
+  c.events.push({ type: "plotUnlocked", label: p.label, x: p.x, y: p.y });
+}
+
+/** Building draft: open `kind` now; the other drafted kinds open next dawn. */
+export function chooseBuilding(c: Camp, kind: PlotKind): boolean {
+  if (c.phase !== "pick" || !c.buildChoice?.includes(kind)) return false;
+  for (const p of c.plots) {
+    if (!p.locked || !c.buildChoice.includes(p.kind)) continue;
+    if (p.kind === kind) unlockPlot(c, p);
+    else p.unlockWave = c.wave + 1;
+  }
+  c.buildChoice = null;
+  c.events.push({ type: "buildChosen", kind });
+  if (!c.offers.length) beginBuild(c);
+  return true;
+}
+
 export function chooseBlessing(c: Camp, id: string): boolean {
-  if (c.phase !== "pick" || !c.offers.some((o) => o.id === id)) return false;
+  if (c.phase !== "pick" || c.buildChoice || !c.offers.some((o) => o.id === id)) return false;
   applyBlessing(c, id);
   c.offers = [];
   beginBuild(c);

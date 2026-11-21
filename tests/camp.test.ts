@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { campBotStep } from "../src/camp/bot";
-import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, RALLY, reduction, rollWeather, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
+import { CAMP, applyBlessing, carryCap, chooseBlessing, chooseBuilding, chooseTowerSpec, createCamp, drainEvents, MAGE_LEVELS, plotCost, RALLY, reduction, rollWeather, spawnEnemy, SPIKES, step, type Camp, type CampInput } from "../src/camp/sim";
 import { STEP, WALL_Y } from "../src/camp/world";
 import { rollBlessings } from "../src/camp/blessings";
 import { createRng } from "../src/core/rng";
@@ -76,6 +76,7 @@ describe("camp", () => {
     c.hero.y = 1280; // out of the way
     let broke = false;
     for (let i = 0; i < 900 / STEP && c.phase !== "lost"; i++) {
+      if (c.phase === "pick" && c.buildChoice) chooseBuilding(c, c.buildChoice[0]!);
       if (c.phase === "pick") chooseBlessing(c, c.offers[0]!.id);
       step(c, { ...still, callWave: true });
       if (drainEvents(c).some((e) => e.type === "wallBreak")) broke = true;

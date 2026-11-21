@@ -1499,3 +1499,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgh-name { font-weight: 900; font-size: calc(10 * var(--tu)); }
 .lgh-desc { font-weight: 700; font-size: calc(8.5 * var(--tu)); color: #cfd8f0; line-height: 1.15; }
 .lgh-gold { font-weight: 900; font-size: calc(9 * var(--tu)); color: #ffd84a; margin-top: calc(2 * var(--u)); }
+
+/* Building draft step on the pick screen. */
+.lgb-note { margin: calc(-6 * var(--u)) 0 calc(8 * var(--u)); font-weight: 700; font-size: calc(11 * var(--tu)); color: #cfd8f0; }
+.lgb-card { --rc: #8ad05a; --rg: #8ad05a66; }
+.lgb-card .card-rarity { background: #5a9a3a; color: #fff; }

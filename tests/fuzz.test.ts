@@ -4,7 +4,7 @@ import { HEROES } from "../src/core/heroes";
 import { newSave, PERMS } from "../src/core/meta";
 import { createRng, next } from "../src/core/rng";
 import { campSetupFromSave } from "../src/camp/meta";
-import { chooseBlessing, createCamp, rerollBlessings, step, type Camp } from "../src/camp/sim";
+import { chooseBlessing, chooseBuilding, createCamp, rerollBlessings, step, type Camp } from "../src/camp/sim";
 
 function finite(c: Camp): boolean {
   const nums = [c.hero.x, c.hero.y, c.hero.hp, c.hallHp, c.hero.coins, c.hero.logs, c.hero.bows, c.lumberPile, c.incomePile];
@@ -27,6 +27,7 @@ describe("fuzz: random players never break the sim", () => {
         const maxSteps = (chapter.endless ? 8 : 25) * 60 * 60;
         for (let i = 0; i < maxSteps && c.phase !== "won" && c.phase !== "lost"; i++) {
           if (i % 30 === 0) move = { x: next(rng) * 2 - 1, y: next(rng) * 2 - 1 };
+          if (c.phase === "pick" && c.buildChoice) chooseBuilding(c, c.buildChoice[Math.floor(next(rng) * c.buildChoice.length)]!);
           if (c.phase === "pick") {
             if (next(rng) < 0.3) rerollBlessings(c);
             chooseBlessing(c, c.offers[Math.floor(next(rng) * c.offers.length)]!.id);

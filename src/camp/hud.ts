@@ -3,10 +3,23 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
 
 /** Icons for buildings named in blessing requirements. */
-const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️" };
+const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
+/** Building draft cards: what each building does, in a line. */
+const BUILD_INFO: Record<string, { name: string; desc: string }> = {
+  forge: { name: "Forge", desc: "Forges bows that make every tower hit harder" },
+  fortify: { name: "Fortify Wall", desc: "Stone up the wall for far more HP" },
+  spikes: { name: "Spike Trap", desc: "Stakes before the gate shred whoever charges" },
+  catapult: { name: "Catapults", desc: "Two catapults that smash crowds with splash" },
+  mage: { name: "Mage Tower", desc: "Lightning that leaps from foe to foe" },
+  hall: { name: "Upgrade Hall", desc: "More hall archers and a sturdier hall" },
+  healer: { name: "Healer's Tent", desc: "Heals you, your soldiers and the walls" },
+  watch: { name: "Watchtower", desc: "Towers near it shoot farther and faster" },
+  barracks: { name: "Barracks", desc: "Soldiers who hold the line at the gate" },
+  lumber: { name: "Lumber Camp", desc: "Woodcutters bring logs for big upgrades" },
+};
 
 /** "Now → next" lines for the building the hero is standing on. */
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -394,8 +407,37 @@ export class CampHud {
     this.overlay.style.display = "flex";
   }
 
+  /** Building draft: several buildings open at this dawn — pick the one you get now (the rest come tomorrow). */
+  private showBuildDraft(c: Camp, recap: { kills: number; loot: number; hall: number; flawless?: boolean }, onChoose: (id: string) => void, onReroll: () => void, onBuild: (kind: PlotKind) => boolean): void {
+    const wrap = el("div", "pick lgb-draft");
+    wrap.append(el("h2", "pick-title", `Night ${c.wave} survived!`), el("p", "pick-sub", "🏗️ New ground cleared — what do you build first?"), el("p", "lgb-note", "The others open tomorrow at dawn"));
+    const cards = el("div", "cards");
+    const armedAt = performance.now() + 450;
+    (c.buildChoice ?? []).forEach((kind, i) => {
+      const info = BUILD_INFO[kind] ?? { name: kind, desc: "" };
+      const card = el("button", "card r-rare lgb-card");
+      card.style.animationDelay = `${i * 0.08}s`;
+      card.append(el("div", "card-rarity", "building"), el("div", "card-icon", BUILDING_ICON[kind] ?? "🏗️"), el("div", "card-name", info.name), el("div", "card-desc", info.desc), el("div", "card-tag new", "Opens now"));
+      card.onclick = () => {
+        if (performance.now() < armedAt || wrap.classList.contains("chosen-one")) return;
+        wrap.classList.add("chosen-one");
+        card.classList.add("chosen");
+        for (const other of cards.querySelectorAll(".card")) if (other !== card) other.classList.add("passed");
+        window.setTimeout(() => {
+          if (!onBuild(kind)) return;
+          if (c.phase === "pick" && c.offers.length) this.showOffers(c, recap, onChoose, onReroll, onBuild);
+        }, CHOOSE_BEAT_MS);
+      };
+      cards.append(card);
+    });
+    wrap.append(cards);
+    this.overlay.replaceChildren(wrap);
+    this.overlay.style.display = "flex";
+  }
+
   /** Pick-1-of-3 blessing cards between waves. */
-  showOffers(c: Camp, recap: { kills: number; loot: number; hall: number; flawless?: boolean }, onChoose: (id: string) => void, onReroll: () => void): void {
+  showOffers(c: Camp, recap: { kills: number; loot: number; hall: number; flawless?: boolean }, onChoose: (id: string) => void, onReroll: () => void, onBuild?: (kind: PlotKind) => boolean): void {
+    if (c.buildChoice && onBuild) return this.showBuildDraft(c, recap, onChoose, onReroll, onBuild);
     const wrap = el("div", "pick");
     const tally = el("div", "pick-recap");
     tally.append(
