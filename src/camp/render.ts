@@ -1096,6 +1096,14 @@ fx.shake(0.15);
           if (ev.id === "overclock") {
             fx.flash = 0.2;
             fx.flashColor = "#ffd060";
+            // Read at a glance: a call-out over the hero, and every built tower jolts with a spark ring.
+            fx.number(ev.x, ev.y - 46, "⚙️ OVERCLOCK!", "#ffd060", 15, 0.9);
+            fx.burst(ev.x, ev.y - 10, "#ffe08a", 14, 200, { max: 0.45, size: 2.4, shape: "spark" });
+            for (const p of this.lastCamp?.plots ?? []) {
+              if (p.kind !== "tower" || p.level <= 0) continue;
+              fx.rings.push({ x: p.x, y: p.y - 24, r: 30, color: "#ffd060", life: 0.4, max: 0.4, width: 4 });
+              fx.burst(p.x, p.y - 30, "#ffe08a", 8, 150, { max: 0.4, size: 2.2, gravity: -40, shape: "spark" });
+            }
           }
           break;
         case "boom":
