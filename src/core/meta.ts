@@ -68,6 +68,8 @@ export interface SaveData {
   bought?: string[];
   /** Heat modifiers switched on for campaign / Endless runs. */
   heat?: string[];
+  /** This week's Weekly Gauntlet result. */
+  weekly?: { week: number; best: number; stars: number; won: boolean };
   hero: HeroId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
@@ -126,6 +128,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const p of PERMS) d.perms[p.id] = Math.max(0, Math.min(p.max, Math.floor(num(rec(r.perms)[p.id], 0))));
   d.crowns = Math.max(0, Math.min(ASCEND.maxCrowns, Math.floor(num(r.crowns, 0))));
   d.heat = cleanHeat(r.heat);
+  const wk = (r as { weekly?: Record<string, unknown> }).weekly;
+  if (wk && typeof wk === "object") d.weekly = { week: Math.floor(num(wk.week, 0)), best: Math.max(0, Math.min(999, Math.floor(num(wk.best, 0)))), stars: Math.max(0, Math.min(3, Math.floor(num(wk.stars, 0)))), won: wk.won === true };
   d.bought = Array.isArray(r.bought) ? [...new Set(r.bought.filter((x): x is string => typeof x === "string" && x.length <= 20))] : [];
   d.hero = r.hero && r.hero in HERO_BY_ID ? r.hero : "ranger";
   d.runs = Math.floor(num(r.runs, 0));

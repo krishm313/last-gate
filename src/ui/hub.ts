@@ -6,7 +6,8 @@ import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate, QUALITIES, type Quality } from "./settings";
 import { nextGoals } from "../core/goals";
-import { cleanHeat, HEATS, heatGold } from "../core/heat";
+import { cleanHeat, HEAT_BY_ID, HEATS, heatGold } from "../core/heat";
+import { WEEKLY, weeklyFor } from "../core/weekly";
 import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
@@ -116,6 +117,8 @@ export interface HubCallbacks {
   onResetSkills?: (hero: HeroId) => void;
   /** Toggled a hero's Veteran look. */
   onHeroLook?: (hero: HeroId, on: boolean) => void;
+  /** Start this week's Weekly Gauntlet. */
+  onWeekly?: () => void;
   /** Heat toggles changed (save.heat already updated; persist it). */
   onHeat?: () => void;
   /** Bought a Royal Bazaar flair. */
@@ -327,6 +330,7 @@ export class Hub {
       const gift = this.giftCard(save);
       if (gift) body.append(gift);
       body.append(this.dailyCard(save));
+      if ((save.stars[3] ?? 0) > 0) body.append(this.weeklyCard(save));
       body.append(this.goalsCard(save));
     }
     // Campaign difficulty, once a chapter has been cleared.
@@ -866,6 +870,34 @@ export class Hub {
         if (gold > 0) this.justClaimed = { id: "gift", reward: gold };
         this.showHub(save, "battle");
       };
+    return card;
+  }
+
+  /** The Weekly Gauntlet: one fixed run all week (chapter, twist, three forced Heats), a prize for the first win. */
+  private weeklyCard(save: SaveData): HTMLElement {
+    const cleared = Object.keys(save.stars).map(Number).filter((k) => k <= 10 && (save.stars[k] ?? 0) > 0);
+    const g = weeklyFor(todayString(), cleared);
+    const rec = save.weekly?.week === g.week ? save.weekly : null;
+    const card = el("button", "chapter lgw-week");
+    card.style.setProperty("--g1", "#2a5a8a");
+    card.style.setProperty("--g2", "#122a4a");
+    const left = el("div", "ch-left");
+    left.append(
+      el("div", "ch-num", "Weekly Gauntlet"),
+      el("div", "ch-name", g.twist.name),
+      el("div", "ch-blurb", g.twist.desc),
+      el("div", "ch-affix", `${CHAPTER_BY_ID[g.chapterId]!.name} · same run all week`),
+      el("div", "ch-boss lgw-heat", `🔥 ${g.heats.map((h) => `${HEAT_BY_ID[h]!.icon} ${HEAT_BY_ID[h]!.name}`).join(" · ")}`),
+    );
+    const right = el("div", "ch-right");
+    right.append(el("div", "ch-stars", rec?.won ? "★".repeat(rec.stars) + "☆".repeat(3 - rec.stars) : "🗓️"));
+    right.append(el("div", "ch-best", rec?.won ? "Beaten! Go for ★★★" : rec?.best ? `Best: night ${rec.best}` : `+${WEEKLY.win + WEEKLY.perHeat * g.heats.length} gold`));
+    right.append(el("div", "ch-play", rec?.won ? "REPLAY ↻" : "PLAY ▶"));
+    card.append(left, right);
+    card.onclick = () => {
+      this.cb.onClick();
+      this.cb.onWeekly?.();
+    };
     return card;
   }
 

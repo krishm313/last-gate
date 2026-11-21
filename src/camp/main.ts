@@ -37,9 +37,10 @@ import { atlasDebug, crispCache, crispStats, preloadAnims, preloadAnimsFor } fro
 import type { GameEvent } from "../core/events";
 import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
+import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS, starsFor } from "../core/meta";
 import { buyFlair } from "../core/flair";
 import { cleanHeat, HEAT_BY_ID, heatAllowed, heatGold } from "../core/heat";
+import { recordWeekly, WEEKLY, weeklyFor, weeklyReward, type Gauntlet } from "../core/weekly";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -51,7 +52,7 @@ import { applyEndlessTwist, endlessSceneryFor, endlessTwistFor } from "../core/e
 import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
 import { claim, claimable, foeMet } from "../core/achievements";
-import { DAILY_BONUS, dailyFor, dailyStreakBonus, recordDailyWin, todayString, type DailyChallenge } from "../core/daily";
+import { DAILY_BONUS, dailyFor, dailyStreakBonus, recordDailyWin, todayString, type DailyChallenge, type Twist } from "../core/daily";
 import { applyDisplaySettings, buzz, loadSettings, saveSettings } from "../ui/settings";
 import { padMove, pollPad } from "./input";
 import { Tutorial } from "./tutorial";
@@ -252,6 +253,7 @@ const hub = new Hub(uiRoot, {
     hub.showHub(save, "battle");
   },
   onHeat: () => writeSave(save),
+  onWeekly: () => startWeekly(),
   onBuyFlair: (id) => {
     if (!buyFlair(save, id)) return;
     writeSave(save);
@@ -386,9 +388,10 @@ function moveInput(): Vec {
 /** Heat gold multiplier of the run in progress (1 = no heat). */
 let runHeatMult = 1;
 
-function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty, weatherOdds?: { rain: number; fog: number; storm: number }) {
+function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty, weatherOdds?: { rain: number; fog: number; storm: number }, heatOverride?: string[]) {
   sfx.unlock();
   dailyRun = null;
+  weeklyRun = null;
   chapterId = id;
   const chapter = CHAPTER_BY_ID[id]!;
   // Campaign difficulty (Endless and the daily always play Normal; a locked pick falls back too).
@@ -405,7 +408,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   }
   if (weatherOdds) played = { ...played, weatherOdds };
   // Heat: the challenge modifiers switched on in the chapter sheet.
-  const heat = heatAllowed(id) && !setup.classicBlessings ? cleanHeat(save.heat) : [];
+  const heat = heatOverride ? cleanHeat(heatOverride) : heatAllowed(id) && !setup.classicBlessings ? cleanHeat(save.heat) : [];
   runHeatMult = heatGold(heat);
   if (heat.length) {
     setup = { ...setup, mods: { ...setup.mods! } };
@@ -475,18 +478,63 @@ function preloadChapterArt(ch: ChapterDef) {
   preloadAnimsFor(ids);
 }
 
+/** A daily / weekly twist applied to a run setup. */
+function applyTwist(setup: CampSetup, t: Twist): void {
+  setup.mods!.drops *= t.drops;
+  setup.mods!.heroDamage *= t.heroDamage;
+  setup.mods!.towerDamage *= t.towerDamage;
+  setup.enemyHpMult = (setup.enemyHpMult ?? 1) * t.enemyHp;
+  if (t.eliteChance) setup.eliteChance = t.eliteChance;
+  if (t.wallHp) setup.mods!.wallHp *= t.wallHp;
+  if (t.tideEvery) setup.tideEvery = t.tideEvery;
+  const mods = setup.mods as unknown as Record<string, number>;
+  for (const [k, v] of Object.entries(t.mods ?? {})) if (typeof mods[k] === "number") mods[k] *= v as number;
+}
+
+/** The Weekly Gauntlet in progress (null otherwise). */
+let weeklyRun: Gauntlet | null = null;
+
+function startWeekly() {
+  const g = weeklyFor(todayString(), clearedChapters());
+  const setup = campSetupFromSave(save);
+  applyTwist(setup, g.twist);
+  newRun(g.chapterId, setup, g.seed, "normal", g.twist.weatherOdds, g.heats);
+  weeklyRun = g;
+  hud.banner(`🗓️ Weekly Gauntlet: ${g.twist.name}`, `${g.twist.desc} · 🔥 ${g.heats.map((h) => HEAT_BY_ID[h]!.icon).join("")}`);
+}
+
+function finishWeekly(c: Camp, won: boolean, abandoned: boolean, g: Gauntlet, rec: { date: string; hero: HeroId; won: boolean; nights: number; kills: number; minutes: number }) {
+  const firstWin = won && !(save.weekly?.week === g.week && save.weekly.won);
+  const loot = Math.round(c.goldEarned * LOOT_TO_GOLD * runHeatMult);
+  const r = weeklyReward(loot, rec.nights, won, firstWin, g.heats.length);
+  const stars = won ? starsFor(true, c.hallHp / c.hallMaxHp) : 0;
+  save.weekly = recordWeekly(save.weekly, g.week, rec.nights, won, stars);
+  save.gold = Math.min(MAX_GOLD, save.gold + r.gold);
+  save.stats.goldEarned = (save.stats.goldEarned ?? 0) + r.gold;
+  pushHistory(save.history, { ...rec, chapter: g.chapterId, gold: r.gold });
+  save.runs += 1;
+  if (won) save.wins += 1;
+  writeSave(save);
+  weeklyRun = null;
+  if (abandoned) {
+    goHub("battle");
+    if (r.gold > 0) hud.toast(`🪙 +${r.gold} gold banked from the run`);
+    return;
+  }
+  hud.setVisible(false);
+  const reward = { gold: r.gold, waveBonus: rec.nights * WEEKLY.night, winBonus: r.prize, stars: 0, newStars: 0, firstClear: firstWin, unlockedHeroes: [] };
+  hub.showEnd(
+    { won, chapterName: `Weekly: ${c.chapter.name}`, chapterId: c.chapter.id, wave: c.wave, kills: c.kills, coins: loot, minutes: c.time / 60, heroLevel: c.heroLevel, bosses: c.runStats.bosses, streak: renderer.bestStreak, streakIsBest, flawless: flawlessWaves, tip: lossTip(c), dmg: c.runStats.dmg, earned: earnedThisRun.slice(), questsReady: questsReady(save), skillPoints: newSkillPoints ?? undefined },
+    reward,
+    () => startWeekly(),
+    () => goHub("battle"),
+  );
+}
+
 function startDaily() {
   const d = dailyFor(todayString());
   const setup = campSetupFromSave(save, d.hero);
-  setup.mods!.drops *= d.twist.drops;
-  setup.mods!.heroDamage *= d.twist.heroDamage;
-  setup.mods!.towerDamage *= d.twist.towerDamage;
-  setup.enemyHpMult = d.twist.enemyHp;
-  if (d.twist.eliteChance) setup.eliteChance = d.twist.eliteChance;
-  if (d.twist.wallHp) setup.mods!.wallHp *= d.twist.wallHp;
-  if (d.twist.tideEvery) setup.tideEvery = d.twist.tideEvery;
-  const mods = setup.mods as unknown as Record<string, number>;
-  for (const [k, v] of Object.entries(d.twist.mods ?? {})) if (typeof mods[k] === "number") mods[k] *= v;
+  applyTwist(setup, d.twist);
   setup.startBlessings = [d.blessing];
   setup.classicBlessings = true;
   newRun(d.chapterId, setup, d.seed, "normal", d.twist.weatherOdds);
@@ -995,6 +1043,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   if (won) save.stats[`won_${heroId}`] = 1;
   nightsThisRun = 0;
   if (dailyRun) return finishDaily(c, won, abandoned, dailyRun, rec);
+  if (weeklyRun) return finishWeekly(c, won, abandoned, weeklyRun, rec);
   const prevBest = save.best[c.chapter.id] ?? 0;
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
