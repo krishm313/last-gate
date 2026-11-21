@@ -3394,7 +3394,7 @@ fx.shake(0.15);
     }
     const L = (this.nightLayer ??= document.createElement("canvas"));
     // The darkness is all soft gradients, so it renders at half resolution (4x fewer pixels).
-    const HR = 0.5;
+    const HR = this.lite >= 1 ? 0.34 : 0.5;
     if (L.width !== Math.ceil(VIEW_W * HR) || L.height !== Math.ceil(VIEW_H * HR)) {
       L.width = Math.ceil(VIEW_W * HR);
       L.height = Math.ceil(VIEW_H * HR);
