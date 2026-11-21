@@ -27,7 +27,7 @@ import { claimGift } from "../core/gift";
 import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
 import type { HeroId } from "../core/heroes";
 import { deploy, REVERSE, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
-import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { chooseBlessing, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
@@ -1428,12 +1428,12 @@ function frame(now: number) {
       }
       if (ev.type === "waveStart" && ev.weather !== "clear") {
         const w = WEATHER_INFO[ev.weather];
-        window.setTimeout(() => hud.toast(`${w.icon} ${w.name} tonight — ${w.desc}`), 1600);
+        window.setTimeout(() => hud.toast(`${w.icon} ${w.name} tonight — ${w.desc}`), ev.event ? 3000 : 1600);
       }
       if (ev.type === "waveStart")
         hud.banner(
           c.chapter.id === 98 ? (ev.wave === c.chapter.waves.length ? "👑 THE LAST BOSS" : `👑 Boss ${ev.wave}/${c.chapter.waves.length}`) : !c.chapter.endless && ev.wave === c.chapter.waves.length ? "🌙 FINAL NIGHT" : ev.boss ? `🌙 Night ${ev.wave} — Boss!` : `🌙 Night ${ev.wave}`,
-          ev.boss ?? (ev.intro ? introLine(ev.intro) : "The horde comes in the dark"),
+          ev.boss ?? (ev.event ? `${NIGHT_EVENT_INFO[ev.event].icon} ${NIGHT_EVENT_INFO[ev.event].name} — ${NIGHT_EVENT_INFO[ev.event].desc}` : ev.intro ? introLine(ev.intro) : "The horde comes in the dark"),
           !c.chapter.endless && ev.wave === c.chapter.waves.length ? "red" : undefined,
         );
       // Wave-end unlocks are announced after the blessing pick; a hall upgrade mid-build is announced now.

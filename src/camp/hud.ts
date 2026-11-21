@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
+import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type TowerSpec } from "./sim";
 
 /** Icons for buildings named in blessing requirements. */
 const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️" };
@@ -763,7 +763,7 @@ export class CampHud {
     this.lastKey = key;
     const total = c.chapter.waves.length;
     const cur = c.phase === "wave" ? c.wave : Math.min(total, c.wave + 1);
-    const wIcon = c.phase === "wave" && c.weather !== "clear" ? ` ${WEATHER_INFO[c.weather].icon}` : "";
+    const wIcon = (c.phase === "wave" && c.weather !== "clear" ? ` ${WEATHER_INFO[c.weather].icon}` : "") + (c.phase === "wave" && c.nightEvent ? ` ${NIGHT_EVENT_INFO[c.nightEvent].icon}` : "");
     this.waveLabel.textContent = (c.chapter.endless ? `NIGHT ${cur} · ENDLESS${this.twistIcon ? ` ${this.twistIcon}` : ""}` : `NIGHT ${cur}/${total}`) + wIcon;
     this.waveDots.style.display = c.chapter.endless ? "none" : "flex";
     const showBest = !!c.chapter.endless && this.endlessBest > 0;

@@ -204,6 +204,27 @@ export function rollWeather(seed: number, wave: number, breather: boolean, odds:
   const o = odds;
   return u < o.rain ? "rain" : u < o.rain + o.fog ? "fog" : u < o.rain + o.fog + o.storm ? "storm" : "clear";
 }
+/** Night events: some nights bring a twist (announced at nightfall). */
+export type NightEvent = "treasure" | "elite" | "swarm";
+export const NIGHT_EVENT_INFO: Record<NightEvent, { icon: string; name: string; desc: string }> = {
+  treasure: { icon: "💰", name: "Treasure Night", desc: "Foes drop double coins — and goblins are out" },
+  elite: { icon: "🎖️", name: "Elite Raid", desc: "Fewer foes, but many elites — hold for a big dawn bonus" },
+  swarm: { icon: "🐀", name: "Swarm Night", desc: "Twice the foes, each half as tough" },
+};
+export const NIGHT_EVENTS = { chance: 0.25, eliteChance: 0.2, eliteBonus: (wave: number) => 10 + 3 * wave, treasureGold: 2, swarmHp: 0.5, thiefAt: 14 };
+
+/** Tonight's event (or none), hashed from (seed, wave) so it never touches the run's RNG stream. */
+export function rollNightEvent(seed: number, wave: number, ok: boolean): NightEvent | null {
+  if (!ok || wave < 3) return null;
+  let h = (seed * 2246822519 + wave * 3266489917) | 0;
+  h = Math.imul(h ^ (h >>> 15), 2654435761);
+  const u = ((h ^ (h >>> 13)) >>> 0) / 4294967296;
+  if (u >= NIGHT_EVENTS.chance) return null;
+  const k = u / NIGHT_EVENTS.chance;
+  // (Elite Raid is opt-in only: the Cursed Shrine.)
+  return k < 0.55 ? "treasure" : "swarm";
+}
+
 /** Multiplier on tower / mage range from tonight's weather. */
 export function weatherRange(c: Camp): number {
   return c.weather === "rain" ? WEATHER.rain.towerRange : c.weather === "fog" ? WEATHER.fog.towerRange : 1;
@@ -223,7 +244,7 @@ export const ELITE = { hp: 1.6, gold: 3, speed: 1.4, armor: 0.35, vampHeal: 0.06
 /** Elite chance for a spawn: the run's setting, rising in Endless past night 10. */
 export function eliteChance(c: Camp): number {
   const endless = c.chapter.endless && c.wave > 10 ? Math.min(0.2, 0.05 + 0.01 * (c.wave - 10)) : 0;
-  return Math.max(c.eliteChance, endless);
+  return Math.max(c.eliteChance, endless) + (c.nightEvent === "elite" ? NIGHT_EVENTS.eliteChance : 0);
 }
 
 /** Tower specialisations, offered when a tower reaches level 3. */
@@ -360,7 +381,7 @@ export type CampEvent =
   | { type: "enrage"; x: number; y: number; name: string }
   | { type: "bossSpawn"; name: string; x: number; y: number }
   | { type: "sapper"; x: number; y: number }
-  | { type: "waveStart"; wave: number; breather: boolean; boss: string | null; intro: string | null; weather: Weather }
+  | { type: "waveStart"; wave: number; breather: boolean; boss: string | null; intro: string | null; weather: Weather; event?: NightEvent }
   /** Storm weather: a lightning bolt strikes a foe. */
   | { type: "stormBolt"; x: number; y: number }
   | { type: "earlyBonus"; coins: number }
@@ -395,6 +416,10 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** Tonight's event (null on ordinary nights). */
+  nightEvent: NightEvent | null;
+  /** Treasure Night: whether the mid-night goblin has run yet. */
+  eventThief: boolean;
   /** Golden Volley: coins picked up toward the next ring of arrows. */
   coinVolley: number;
   seed: number;
@@ -741,6 +766,8 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     heroXp: 0,
     runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0, dmg: {} },
     coinVolley: 0,
+    nightEvent: null,
+    eventThief: false,
     strikes: [],
     acid: [],
     crit: setup.critChance ?? 0.08,
@@ -2355,7 +2382,7 @@ function reap(c: Camp): void {
       // Enemies that removed themselves (a sapper blowing up on the wall/hall, an escaped treasure goblin)
       // were not killed by the player: no kill, XP, coins, streak or kill event.
       if (e.exploded) continue;
-      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops * (e.elite ? ELITE.gold : 1) * (e.elite || e.def.boss ? c.mods.bigGold : 1)));
+      const gold = Math.max(1, Math.round(e.def.gold * CAMP.dropMult * c.mods.drops * (e.elite ? ELITE.gold : 1) * (e.elite || e.def.boss ? c.mods.bigGold : 1) * (c.nightEvent === "treasure" ? NIGHT_EVENTS.treasureGold : 1)));
       c.kills += 1;
       c.goldEarned += gold;
       gainXp(c, e.def.boss ? 15 : Math.max(1, Math.round(e.def.cost)));
@@ -2410,11 +2437,25 @@ function startWave(c: Camp): void {
   c.stormTimer = WEATHER.storm.every;
   const plan = planWave(c.chapter, c.wave, c.seed);
   c.queue = c.reverse ? [] : plan.spawns.slice();
+  // Night events: never in dailies, Siege Lord or Boss Rush, nor on boss, breather or final nights.
+  const finalNight = !c.chapter.endless && c.wave >= c.chapter.waves.length;
+  c.nightEvent = rollNightEvent(c.seed, c.wave, !c.reverse && !c.classicBlessings && c.chapter.id !== 98 && !plan.boss && !plan.breather && !finalNight);
+  c.eventThief = false;
+  // Elite Raid: fewer foes, but far more of them elite.
+  if (c.nightEvent === "elite") c.queue = c.queue.filter((sp, i) => ENEMIES[sp.enemy].boss || i % 5 !== 4);
+  if (c.nightEvent === "swarm") {
+    // Each foe comes as a pair at half strength (same total HP, twice the bodies).
+    c.queue = c.queue.flatMap((sp) => (ENEMIES[sp.enemy].boss ? [sp] : [
+      { ...sp, hpMult: sp.hpMult * NIGHT_EVENTS.swarmHp },
+      { ...sp, at: sp.at + 0.35, hpMult: sp.hpMult * NIGHT_EVENTS.swarmHp, lane: sp.lane === null ? null : Math.min(1, Math.max(0, sp.lane + 0.06)) },
+    ])).sort((a, b) => a.at - b.at);
+  }
   c.waveTime = 0;
   c.phase = "wave";
   c.events.push({
     type: "waveStart", wave: c.wave, breather: plan.breather, weather: c.weather,
     boss: plan.boss ? ENEMIES[plan.boss].name : null, intro: plan.intro ? ENEMIES[plan.intro].name : null,
+    ...(c.nightEvent ? { event: c.nightEvent } : {}),
   });
 }
 
@@ -2437,6 +2478,11 @@ export function step(c: Camp, input: CampInput): void {
     while (c.queue.length && c.queue[0]!.at <= c.waveTime) spawnEnemy(c, c.queue.shift()!);
     if (c.reverse) c.reverse.chest = Math.min(REVERSE.cap, c.reverse.chest + REVERSE.income * STEP);
     else if (c.waveTime >= 6 && c.waveTime - STEP < 6) maybeSpawnThief(c);
+    // Treasure Night: a goblin is guaranteed (on top of the usual chance).
+    if (c.nightEvent === "treasure" && !c.eventThief && c.waveTime >= NIGHT_EVENTS.thiefAt) {
+      c.eventThief = true;
+      spawnThief(c);
+    }
     if (c.abilityCharge < 1) {
       c.abilityCharge = Math.min(1, c.abilityCharge + STEP / c.abilityCooldown);
       if (c.abilityCharge >= 1) c.events.push({ type: "abilityReady" });
@@ -2503,9 +2549,10 @@ export function step(c: Camp, input: CampInput): void {
     // Sweep up: every coin left on the field flies to the hero.
     for (const k of c.coins) if (k.z === 0) k.homing = true;
     // Holding a wave pays a bonus into the hall's coin pile.
-    const bonus = 4 + c.wave;
+    const bonus = 4 + c.wave + (c.nightEvent === "elite" ? NIGHT_EVENTS.eliteBonus(c.wave) : 0);
     c.incomePile += bonus;
     c.events.push({ type: "waveClear", wave: c.wave, bonus });
+    c.nightEvent = null;
     c.bolts = [];
     c.strikes = [];
     c.acid = [];

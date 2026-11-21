@@ -1149,7 +1149,15 @@ fx.shake(0.15);
           fx.shake(0.2);
           // Nightfall reveal: glide up to the gate to show the horde coming, then back to the King.
           if (!ev.boss && !this.ambient) this.revealPending = 14;
-          this.say(ev.boss ? ["That one's big…", "Steady now!"] : ["Hold the line!", "Here they come!", "To the walls!", "Not tonight!"]);
+          if (ev.event === "swarm") {
+            // Swarm Night: the whole forest edge stirs — dust kicks up all along the treeline.
+            for (let i = 0; i < 9; i++) fx.burst((MAP_W * (i + 0.5)) / 9, FOREST_Y + 30, "#9a8a6a", 4, 90, { max: 0.9, size: 5, gravity: -20, drag: 2.5, shape: "chunk" });
+            fx.shake(0.35);
+            this.say(["So many of them!", "They're everywhere!", "A swarm!"]);
+          } else if (ev.event === "treasure") {
+            fx.burst(this.cam.x, this.cam.y - 120, "#ffe680", 22, 220, { max: 1.1, size: 2.6, gravity: 140, shape: "spark" });
+            this.say(["Gold on the wind!", "Tonight we get rich!", "Treasure!"]);
+          } else this.say(ev.boss ? ["That one's big…", "Steady now!"] : ["Hold the line!", "Here they come!", "To the walls!", "Not tonight!"]);
           break;
         case "heroHit":
           this.heroHitAt = this.time;
@@ -1296,6 +1304,10 @@ fx.shake(0.15);
       // A fresh run: the King drops onto the field.
       this.arriveAt = this.ambient ? -9 : this.time;
       this.landed = this.ambient;
+    }
+    // Treasure Night: gold motes drift up through the dark around the camera.
+    if (c.nightEvent === "treasure" && c.phase === "wave" && this.lite < 2 && Math.random() < dt * 9) {
+      this.fx.burst(this.cam.x + (Math.random() - 0.5) * VIEW_W, this.cam.y + (Math.random() - 0.2) * VIEW_H * 0.6, "#ffe27a", 1, 18, { max: 1.6, size: 2.2, gravity: -26, shape: "spark" });
     }
     if (this.enemyMove.size > 300) {
       const alive = new Set(c.enemies.map((e) => e.id));
