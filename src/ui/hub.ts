@@ -5,6 +5,7 @@ import { SIDE_GAMES_ENABLED } from "../core/features";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate, QUALITIES, type Quality } from "./settings";
+import { nextGoals } from "../core/goals";
 import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
@@ -283,6 +284,34 @@ export class Hub {
     else if (boughtNow) requestAnimationFrame(() => flyCoins(wrap, ".res-gold", ".perm.just", false));
   }
 
+  /** "Next goals": the three nearest concrete targets (stars, trophies, skill point, Endless), tap to go. */
+  private goalsCard(save: SaveData): HTMLElement {
+    const box = el("div", "lgg-card");
+    box.append(el("div", "lgg-head", "🎯 Next goals"));
+    const goals = nextGoals(save);
+    if (!goals.length) box.append(el("div", "lgg-done", "Every goal complete — legendary!"));
+    for (const g of goals) {
+      const row = el("button", "lgg-row");
+      const bar = el("div", "lgg-bar");
+      const fill = el("i", "");
+      fill.style.width = `${Math.round(g.progress * 100)}%`;
+      bar.append(fill);
+      const mid = el("div", "lgg-mid");
+      mid.append(el("div", "lgg-text", g.text), bar);
+      const right = el("div", "lgg-right");
+      right.append(el("div", "lgg-label", g.label));
+      if (g.reward) right.append(el("div", "lgg-reward", `● ${g.reward}`));
+      row.append(el("div", "lgg-icon", g.icon), mid, right);
+      row.onclick = () => {
+        this.cb.onClick();
+        if (g.action.kind === "chapter") this.cb.onPlay(g.action.id);
+        else this.showHub(save, g.action.tab);
+      };
+      box.append(row);
+    }
+    return box;
+  }
+
   private battleTab(body: HTMLElement, save: SaveData): void {
     body.append(el("div", "hub-hint", `Hero: ${HERO_BY_ID[save.hero].name} — pick a battlefield`));
     const news = this.newsCard(save);
@@ -291,6 +320,7 @@ export class Hub {
       const gift = this.giftCard(save);
       if (gift) body.append(gift);
       body.append(this.dailyCard(save));
+      body.append(this.goalsCard(save));
     }
     // Campaign difficulty, once a chapter has been cleared.
     const diff = DIFF_BY_ID[save.difficulty];

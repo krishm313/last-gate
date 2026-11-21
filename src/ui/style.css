@@ -1422,3 +1422,18 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgq-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
 .lgq-hint { font-size: calc(10 * var(--tu)); font-weight: 700; color: #b8c4e0; }
 .lgq-val { background: #ffd84a; color: #2a1606; border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(2 * var(--u)) calc(10 * var(--u)); font-size: calc(13 * var(--tu)); }
+
+/* Battle tab: Next goals card. */
+.lgg-card { background: linear-gradient(#1c3260, #12223f); border: calc(3 * var(--u)) solid #1d1208; border-radius: calc(14 * var(--u)); padding: calc(8 * var(--u)) calc(10 * var(--u)); margin: calc(8 * var(--u)) 0; box-shadow: 0 calc(4 * var(--u)) 0 #0006; }
+.lgg-head { font-weight: 900; font-size: calc(15 * var(--tu)); color: #ffd84a; margin-bottom: calc(4 * var(--u)); text-shadow: 0 calc(1.5 * var(--u)) 0 #1d1208; }
+.lgg-done { font-weight: 800; color: #cfe0ff; font-size: calc(12 * var(--tu)); }
+.lgg-row { display: flex; align-items: center; gap: calc(8 * var(--u)); width: 100%; font: inherit; color: #fff; background: #0c1830aa; border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(6 * var(--u)) calc(8 * var(--u)); margin-top: calc(5 * var(--u)); cursor: pointer; text-align: left; }
+.lgg-row:active { transform: scale(0.98); }
+.lgg-icon { font-size: calc(20 * var(--tu)); width: calc(26 * var(--u)); text-align: center; flex: none; color: #ffd84a; }
+.lgg-mid { flex: 1; min-width: 0; }
+.lgg-text { font-weight: 800; font-size: calc(12 * var(--tu)); line-height: 1.2; }
+.lgg-bar { height: calc(6 * var(--u)); background: #0008; border-radius: calc(3 * var(--u)); margin-top: calc(4 * var(--u)); overflow: hidden; }
+.lgg-bar i { display: block; height: 100%; background: linear-gradient(90deg, #5cc23c, #b8f060); border-radius: inherit; }
+.lgg-right { flex: none; text-align: right; }
+.lgg-label { font-weight: 800; font-size: calc(10.5 * var(--tu)); color: #cfe0ff; white-space: nowrap; }
+.lgg-reward { font-weight: 900; font-size: calc(11 * var(--tu)); color: #ffd84a; }
