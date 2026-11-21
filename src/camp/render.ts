@@ -1060,6 +1060,10 @@ export class CampRenderer {
           fx.burst(ev.x, ev.y, "#c8a070", 14, 160, { max: 0.6, size: 4, gravity: 300, shape: "chunk" });
           fx.rings.push({ x: ev.x, y: ev.y, r: 70, color: "#ffe08a", life: 0.5, max: 0.5, width: 5 });
           if (upgrade) {
+            // The new parts arrive: three pieces arc from the King into the building as it crouches,
+            // landing one after another with a puff (arrows, boulders, crystals, shields, stakes, planks).
+            const hx = this.lastCamp?.hero.x ?? ev.x, hy = (this.lastCamp?.hero.y ?? ev.y) - 20;
+            for (let k = 0; k < 3; k++) this.parts.push({ fx: hx, fy: hy, tx: ev.x + (k - 1) * 14, ty: ev.y - 26 - k * 6, t: this.time + k * 0.07, kind: ev.kind, spin: k * 1.7 });
             // Workmen's dust: puffs burst from both sides as it crouches, a second, wider gold ring as
             // it springs up, and a fountain of sparks off the top.
             for (const side of [-1, 1]) fx.burst(ev.x + side * 30, ev.y + 8, "#f4ecd8", 6, 90, { max: 0.5, size: 6, gravity: -20, drag: 3, shape: "dot" });
@@ -1814,6 +1818,7 @@ export class CampRenderer {
     }
     this.buildDust = this.buildDust.filter((d) => this.time < d.t);
     this.drawMasteryBeams(ctx);
+    this.drawParts(ctx);
     this.drawFlyers(ctx, dt);
     this.fx.draw(ctx);
 
@@ -5910,6 +5915,52 @@ export class CampRenderer {
   private castAt: { x: number; y: number; t: number; color: "heal" | "summon" }[] = [];
   /** Pending build-landing dust clouds (fired at time t). */
   private buildDust: { x: number; y: number; t: number }[] = [];
+  /** Upgrade parts in flight from the hero to the building. */
+  private parts: { fx: number; fy: number; tx: number; ty: number; t: number; kind: string; spin: number }[] = [];
+
+  private drawParts(ctx: CanvasRenderingContext2D): void {
+    if (!this.parts.length) return;
+    const DUR = 0.32;
+    for (const q of this.parts) {
+      const u = (this.time - q.t) / DUR;
+      if (u < 0) continue;
+      if (u >= 1) {
+        if (!(q as { landed?: boolean }).landed) {
+          (q as { landed?: boolean }).landed = true;
+          this.fx.burst(q.tx, q.ty, "#f4ecd8", 4, 70, { max: 0.3, size: 4, gravity: -10, drag: 3, shape: "dot" });
+        }
+        continue;
+      }
+      const e = u * u * (3 - 2 * u);
+      const x = q.fx + (q.tx - q.fx) * e;
+      const y = q.fy + (q.ty - q.fy) * e - Math.sin(u * Math.PI) * 70;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(q.spin + u * 9);
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 1.4;
+      if (q.kind === "catapult") {
+        ctx.fillStyle = "#8a8a92"; ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      } else if (q.kind === "mage") {
+        ctx.fillStyle = "#b07aff"; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(4, 0); ctx.lineTo(0, 7); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (q.kind === "barracks") {
+        ctx.fillStyle = "#3d6aa8"; ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.lineTo(5, 1); ctx.quadraticCurveTo(0, 7, -5, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ffd23a"; ctx.fillRect(-1, -4, 2, 7);
+      } else if (q.kind === "tower") {
+        ctx.strokeStyle = "#6a4422"; ctx.lineWidth = 2;
+        for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, 6); ctx.lineTo(o, -6); ctx.stroke(); }
+        ctx.fillStyle = "#e8e8ee"; for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, -9); ctx.lineTo(o + 1.6, -6); ctx.lineTo(o - 1.6, -6); ctx.fill(); }
+      } else if (q.kind === "spikes") {
+        ctx.fillStyle = "#a8743e"; ctx.beginPath(); ctx.moveTo(-1.8, 7); ctx.lineTo(1.8, 7); ctx.lineTo(0, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else {
+        ctx.fillStyle = q.spin > 1 && q.spin < 2 ? "#9a9aa6" : "#b8844a";
+        ctx.beginPath(); ctx.roundRect(-7, -2.5, 14, 5, 1.5); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    this.parts = this.parts.filter((q) => this.time - q.t < DUR + 0.05);
+  }
+
   /** Mastery moments: a column of light from the sky onto the building (1.2 s). */
   private masteryBeams: { x: number; y: number; t: number }[] = [];
 
