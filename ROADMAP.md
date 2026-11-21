@@ -286,6 +286,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
   below ch6 (its night-5 Golem mid-boss is a wall at low upgrades) — inside noise at 10 runs; watch.
 
 ## Shipped (newest first)
+- Ability-ready pulse: static glow, scale-only animation (the animated box-shadow repainted the button every frame during play).
 - Drag responsiveness: canvas rect measured once per touch instead of every pointermove (no forced layout mid-drag on busy nights).
 - Lag emergency (Nov 21): adaptive quality tiers (density 2/1.5/1.25/1×, washes/twinkles/glows/particle caps drop per tier), phones start at tier 1, 1 s step-down window, long stalls ignored, tier remembered across launches; night layer at 0.34× res from tier 1. Ch6 boss-night bench: tier0 29.7 → tier1 15.7 → tier3 9.6 ms/frame.
 - "How to play" covers the carry chain: logs are picked up at the Lumber Camp's pile, and the Forge turns logs into bows you carry to towers (+6% damage each) — neither was mentioned.
