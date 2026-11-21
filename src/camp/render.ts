@@ -832,7 +832,12 @@ export class CampRenderer {
             const h = (ev.eid * 7919 + this.stuck.length * 131) % 1000 / 1000;
             this.stuck.push({ eid: ev.eid, dx: (h - 0.5) * 10, dy: -6 - h * 10, ang: -Math.PI / 2 + (h - 0.5) * 1.1, t: this.time });
           }
-          if (ev.crit) fx.number(ev.x, ev.y, `${ev.damage}!`, "#ffd84a", 24, 0.8);
+          if (ev.crit) {
+            fx.number(ev.x, ev.y, `${ev.damage}!`, "#ffd84a", 24, 0.8);
+            // Crits land with weight: a white impact ring and (hero crits) a hair of hitstop.
+            fx.rings.push({ x: ev.x, y: ev.y, r: 20, color: "#ffffff", life: 0.16, max: 0.16, width: 3 });
+            if (ev.owner === "hero") fx.stop(0.035);
+          }
           else if (ev.owner === "hero") fx.number(ev.x, ev.y, String(ev.damage), "#ffffff", 15, 0.6);
           break;
         case "shoot":
@@ -844,6 +849,7 @@ export class CampRenderer {
           break;
         case "kill":
           this.countKill(ev.x, ev.y);
+          if (ev.elite) fx.stop(0.06);
           this.lastKill = { x: ev.x, y: ev.y };
           // A fallen torch-bearer's torch keeps burning on the ground for a moment.
           if (this.night > 0.4 && ev.eid % 3 === 0 && !ev.enemy.flying && this.groundFires.length < 12) this.groundFires.push({ x: ev.x + 10, y: ev.y + 6, t: this.time });
@@ -1085,6 +1091,7 @@ fx.shake(0.15);
         case "ability":
           this.castFlourishAt = this.time;
           fx.shake(0.3);
+          fx.stop(0.07);
           fx.rings.push({ x: ev.x, y: ev.y, r: 90, color: "#ffe08a", life: 0.5, max: 0.5, width: 5 });
           if (ev.id === "overclock") {
             fx.flash = 0.2;

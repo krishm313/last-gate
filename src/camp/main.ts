@@ -1464,7 +1464,8 @@ function frame(now: number) {
   // Only real play tunes the battle's pixel density (a slow menu backdrop shouldn't blur the game).
   if (document.visibilityState === "visible" && !paused && camp) renderer.perfSample(realDt);
   updateFps(realDt);
-  const dt = (renderer.fx.slowmo > 0 && !settings.calm ? realDt * 0.3 : realDt) * gameSpeed;
+  // Slow-motion beats, and the near-freeze of a hitstop on heavy hits (sim only; effects keep moving).
+  const dt = (renderer.fx.hitstop > 0 ? realDt * 0.06 : renderer.fx.slowmo > 0 && !settings.calm ? realDt * 0.3 : realDt) * gameSpeed;
   const c = camp;
   if (c && !paused && !specChoosing) {
     accumulator += dt;

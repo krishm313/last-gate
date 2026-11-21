@@ -45,6 +45,9 @@ export class Fx {
   gateHit = 0;
   /** Boss-kill slow motion: seconds of real time remaining. */
   slowmo = 0;
+  /** Hitstop: seconds the action nearly freezes on a big hit (impact weight); with a cooldown so it never stutters. */
+  hitstop = 0;
+  private hitstopGap = 0;
   /** Where the gold counter is, in world coords (coins fly there). */
   goldTarget: Vec = { x: WORLD_W - 72, y: 22 };
 
@@ -197,8 +200,17 @@ export class Fx {
   /** Siege Lord's flipped view: "up" on screen is +y in the world, so rising things (smoke, numbers) invert. */
   flip = false;
 
+  /** A tiny freeze-frame on a heavy hit (skipped in reduced motion, and at most every 0.35 s). */
+  stop(secs: number): void {
+    if (this.calm || this.hitstopGap > 0) return;
+    this.hitstop = Math.max(this.hitstop, secs);
+    this.hitstopGap = 0.35;
+  }
+
   update(dt: number): void {
     const up = this.flip ? -1 : 1;
+    this.hitstop = Math.max(0, this.hitstop - dt);
+    this.hitstopGap = Math.max(0, this.hitstopGap - dt);
     this.trauma = Math.max(0, this.trauma - dt * 1.6);
     this.flash = Math.max(0, this.flash - dt * 2);
     this.heroKick = Math.max(0, this.heroKick - dt * 9);
