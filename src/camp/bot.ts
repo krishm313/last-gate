@@ -1,5 +1,5 @@
-import { PRE_MASTERY, carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, siegeRepairLocked, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
-import { GATE_SEGMENTS, INCOME_PILE, SEGMENT_W, WALL_Y } from "./world";
+import { PRE_MASTERY, carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, type TowerSpec, plotCost, plotLogCost, plotMaxed, siegeRepairLocked, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
+import { GATE_SEGMENTS, SEGMENT_W, WALL_Y } from "./world";
 
 const GATE_X = ((GATE_SEGMENTS[0]! + GATE_SEGMENTS[GATE_SEGMENTS.length - 1]! + 1) / 2) * SEGMENT_W;
 
@@ -63,13 +63,13 @@ export function campBotInput(c: Camp): CampInput {
   }
   if (target) {
     const needLogs = plotLogCost(target) - target.paidLogs;
-    if (needLogs > h.logs && c.lumberPile > 0 && h.logs < 20) return go(LUMBER_PILE);
+    if (needLogs > h.logs && c.lumberPile > 0 && h.logs < 20) return go(c.lay.lumberPile);
     const coinsOk = h.coins >= Math.min(plotCost(target) - target.paid, 25) && (plotCost(target) > target.paid ? h.coins > 0 : true);
     if (coinsOk && needLogs <= h.logs) return go(target);
   }
 
   // 3. Grab the hall's income.
-  if (c.incomePile >= 5 && h.coins < carryCap(c)) return go(INCOME_PILE);
+  if (c.incomePile >= 5 && h.coins < carryCap(c)) return go(c.lay.incomePile);
 
   // 4. During a wave, fight from behind the gate — but go out and hunt stragglers nothing can reach.
   if (c.phase === "wave") {
@@ -79,7 +79,7 @@ export function campBotInput(c: Camp): CampInput {
     }
     return go({ x: 360, y: WALL_Y + 70 });
   }
-  return { ...go(INCOME_PILE), callWave: c.timer > 3 && h.coins < 5 && c.incomePile < 5 };
+  return { ...go(c.lay.incomePile), callWave: c.timer > 3 && h.coins < 5 && c.incomePile < 5 };
 }
 
 const BOT_PREF = ["drills", "eagle", "volley", "fire", "inferno", "wildfire", "frost", "split", "blades", "ricochet", "sharp", "cull", "quick", "goldvolley", "boulders", "soldiers", "walls", "maiden", "thorns", "masons", "guard", "woodsmen", "tax", "bounty", "pockets", "vigor", "smith", "boots", "banner", "lucky"];

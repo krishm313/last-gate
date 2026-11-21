@@ -1,7 +1,7 @@
 /** Camp balance simulator: `npm run campsim -- [runs] [chapter] [permLevel] [hero] [difficulty]` */
 import { CHAPTER_BY_ID } from "../src/core/chapters";
 import { campBotStep } from "../src/camp/bot";
-import { createCamp, drainEvents } from "../src/camp/sim";
+import { campLayout, createCamp, drainEvents } from "../src/camp/sim";
 import { campSetupFromSave } from "../src/camp/meta";
 import { newSave, PERMS } from "../src/core/meta";
 import { chapterOnDifficulty, DIFF_BY_ID, type DifficultyId } from "../src/core/difficulty";
@@ -23,7 +23,10 @@ const hallLost = new Map<number, number>();
 const breaches = new Map<number, number>();
 let built = "";
 for (let r = 0; r < runs; r++) {
-  const c = createCamp(500 + r, played, setup());
+  // LAYOUT=classic | mirror forces a camp layout; default: hashed per run like the game.
+  const L = process.env.LAYOUT;
+  const layout = L === "classic" ? campLayout(false) : L === "mirror" ? campLayout(true) : undefined;
+  const c = createCamp(500 + r, played, layout ? { ...setup(), layout } : setup());
   for (let i = 0; i < 60 * 60 * 30 && c.phase !== "won" && c.phase !== "lost"; i++) {
     campBotStep(c);
     for (const e of drainEvents(c)) {

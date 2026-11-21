@@ -10,7 +10,7 @@ import { BLESSING_BY_ID } from "./blessings";
 import { ACID, BANNER_R, PRE_MASTERY, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, riseScale, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
-  BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
+  BOWS_PER_TOWER, CAMP, GROVE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
   type Ally, type Camp, type CampEvent, type Enemy, type Plot, type Vec, type Worker,
 } from "./sim";
 import { FOREST_Y, GATE_SEGMENTS, HALL, HERO_SPAWN, INCOME_PILE, MAP_H, MAP_W, SEGMENT_W, SEGMENTS, VIEW_H, VIEW_W, WALL_THICK, WALL_Y } from "./world";
@@ -1257,14 +1257,14 @@ export class CampRenderer {
         case "heroRespawn":
           this.respawnAt = this.time;
           // Back in the fight: a gold ring and burst where the hero reappears.
-          fx.rings.push({ x: HERO_SPAWN.x, y: HERO_SPAWN.y, r: 60, color: "#ffd84a", life: 0.5, max: 0.5, width: 5 });
-          fx.burst(HERO_SPAWN.x, HERO_SPAWN.y, "#ffe9a0", 18, 160, { max: 0.6, size: 3, gravity: -40 });
-          fx.number(HERO_SPAWN.x, HERO_SPAWN.y - 44, "Back!", "#ffe9a0", 16, 1);
+          fx.rings.push({ x: this.heroSpot.x, y: this.heroSpot.y, r: 60, color: "#ffd84a", life: 0.5, max: 0.5, width: 5 });
+          fx.burst(this.heroSpot.x, this.heroSpot.y, "#ffe9a0", 18, 160, { max: 0.6, size: 3, gravity: -40 });
+          fx.number(this.heroSpot.x, this.heroSpot.y - 44, "Back!", "#ffe9a0", 16, 1);
           break;
         case "earlyBonus":
           // Calling the wave early: show the reward landing on the hall's coin pile.
-          fx.number(INCOME_PILE.x - 60, INCOME_PILE.y - 40, `+${ev.coins} early!`, "#ffd84a", 16, 1.3);
-          fx.burst(INCOME_PILE.x, INCOME_PILE.y - 10, "#ffd84a", 10, 120, { max: 0.6, size: 3, gravity: 200 });
+          fx.number(this.incomeSpot.x - 60, this.incomeSpot.y - 40, `+${ev.coins} early!`, "#ffd84a", 16, 1.3);
+          fx.burst(this.incomeSpot.x, this.incomeSpot.y - 10, "#ffd84a", 10, 120, { max: 0.6, size: 3, gravity: 200 });
           break;
         case "levelUp":
           if (this.flip) break; // Siege Lord: the defending hero levelling up is noise for the attacker
@@ -1416,7 +1416,7 @@ export class CampRenderer {
           }
           const colors = ["#ffd84a", "#ff6a8a", "#6ae0ff", "#8ef06a", "#ffffff"];
           for (const col of colors) fx.burst(this.cam.x + (Math.random() - 0.5) * 300, this.cam.y - 200, col, 10, 260, { max: 1.4, size: 4, gravity: 220, drag: 1.5, shape: "chunk" });
-          fx.number(INCOME_PILE.x - 45, INCOME_PILE.y - 34, `+${ev.bonus} bonus`, "#ffe66a", 16, 1.4);
+          fx.number(this.incomeSpot.x - 45, this.incomeSpot.y - 34, `+${ev.bonus} bonus`, "#ffe66a", 16, 1.4);
           break;
         }
         case "won":
@@ -1433,6 +1433,13 @@ export class CampRenderer {
     }
   }
 
+  /** The current camp's lumber grove (the baked terrain keeps its undergrowth clear of it). */
+  private groveSpots: Vec[] = GROVE;
+  private groveMirror = false;
+  /** The current camp's income pile (event pop-ups land there). */
+  private incomeSpot: Vec = INCOME_PILE;
+  private heroSpot: Vec = HERO_SPAWN;
+
   draw(c: Camp, dt: number): void {
     // Menu backdrop: never carry a boss-entrance pan/card over from a run that was just left.
     if (this.ambient) this.focus = null;
@@ -1440,6 +1447,14 @@ export class CampRenderer {
     // presentation state so nothing leaks across — reveal pans, darkness, per-enemy memory.
     if (c !== this.lastCamp) {
       this.lastCamp = c;
+      // A mirrored camp moves the lumber grove to the other forest edge: re-bake the terrain around it.
+      if (c.lay.mirror !== this.groveMirror) {
+        this.groveMirror = c.lay.mirror;
+        this.groveSpots = c.lay.grove;
+        this.terrain = null;
+      }
+      this.incomeSpot = c.lay.incomePile;
+      this.heroSpot = c.lay.heroSpawn;
       this.reveal = 0;
       this.revealPending = 0;
       this.night = c.phase === "wave" || (this.mood === 4 || this.mood === 10) ? 1 : 0;
@@ -1721,9 +1736,9 @@ export class CampRenderer {
     for (const p of c.plots)
       if (p.kind === "forge" && p.level > 0) {
         items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawForge(this, ctx, c, p)) });
-        items.push({ y: FORGE_IN.y, draw: () => drawForgeZones(this, ctx, c) });
+        items.push({ y: c.lay.forgeIn.y, draw: () => drawForgeZones(this, ctx, c) });
       }
-    GROVE.forEach((g, i) => items.push({ y: g.y, draw: () => this.drawGroveTree(ctx, c, g, i) }));
+    c.lay.grove.forEach((g, i) => items.push({ y: g.y, draw: () => this.drawGroveTree(ctx, c, g, i) }));
     // Daytime chickens in the meadow (render-only life; they shelter at night).
     if (this.night < 0.6 && (this.mood === 1 || this.mood === 2 || this.mood === 3 || this.mood === 5)) {
       this.updateChickens(c);
@@ -1733,36 +1748,36 @@ export class CampRenderer {
     // The log drop-off only means something once a lumber camp exists: before that it was an unlabeled empty box.
     if (c.lumberPile > 0 || c.plots.some((p) => p.kind === "lumber" && p.level > 0))
       items.push({
-        y: LUMBER_PILE.y,
+        y: c.lay.lumberPile.y,
         draw: () => {
           // Logs landing on (or taken from) the pile: it squashes and springs back, the old stack
           // cross-fades into the next size, a little dust puffs out, and the count bumps.
           const ps = this.pileState;
           if (c.lumberPile !== ps.n) {
-            if (c.lumberPile > ps.n && this.time > 1) this.fx.burst(LUMBER_PILE.x, LUMBER_PILE.y + 12, "rgba(206,190,160,0.7)", 4, 34, { max: 0.4, size: 3, gravity: -12, drag: 4 });
+            if (c.lumberPile > ps.n && this.time > 1) this.fx.burst(c.lay.lumberPile.x, c.lay.lumberPile.y + 12, "rgba(206,190,160,0.7)", 4, 34, { max: 0.4, size: 3, gravity: -12, drag: 4 });
             ps.prev = ps.n; ps.n = c.lumberPile; ps.at = this.time;
           }
           const u = Math.min(1, (this.time - ps.at) / 0.3);
           const bump = u < 1 ? Math.sin(u * Math.PI * 2.2) * (1 - u) * 0.12 : 0;
           ctx.save();
-          ctx.translate(LUMBER_PILE.x, LUMBER_PILE.y + 12);
+          ctx.translate(c.lay.lumberPile.x, c.lay.lumberPile.y + 12);
           ctx.scale(1 + bump * 0.6, 1 - bump);
-          ctx.translate(-LUMBER_PILE.x, -(LUMBER_PILE.y + 12));
+          ctx.translate(-c.lay.lumberPile.x, -(c.lay.lumberPile.y + 12));
           // The bigger stack stays solid; the change fades in over it (growing) or out of it (shrinking).
           const grow = ps.n > ps.prev;
           if (u < 1 && ps.prev !== ps.n) {
             ctx.globalAlpha = grow ? 1 : 1 - u;
-            drawLogPile(ctx, LUMBER_PILE.x, LUMBER_PILE.y, ps.prev, true, false);
+            drawLogPile(ctx, c.lay.lumberPile.x, c.lay.lumberPile.y, ps.prev, true, false);
             ctx.globalAlpha = grow ? u : 1;
           }
-          drawLogPile(ctx, LUMBER_PILE.x, LUMBER_PILE.y, c.lumberPile, true);
+          drawLogPile(ctx, c.lay.lumberPile.x, c.lay.lumberPile.y, c.lumberPile, true);
           ctx.globalAlpha = 1;
           ctx.restore();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           const tb = u < 0.5 ? 1 + Math.sin(u * 2 * Math.PI) * 0.18 : 1;
           ctx.save();
-          ctx.translate(LUMBER_PILE.x, LUMBER_PILE.y + 30);
+          ctx.translate(c.lay.lumberPile.x, c.lay.lumberPile.y + 30);
           ctx.scale(tb, tb);
           const lt = c.lumberPile > 0 ? `Logs ${c.lumberPile}` : "Logs";
           this.overlay(ctx, (ctx) => { ctx.textAlign = "center"; ctx.textBaseline = "middle"; outlined(ctx, lt, 0, 0, 9.5); });
@@ -2015,7 +2030,7 @@ export class CampRenderer {
           const x = left ? d - 4 : MAP_W + 4 - d;
           const y = FOREST_Y + 10 + next(rng) * (MAP_H - FOREST_Y);
           if (Math.abs(y - WALL_Y) < 30) continue;
-          if (GROVE.some((g) => Math.hypot(g.x - x, g.y - y) < 30)) continue;
+          if (this.groveSpots.some((g) => Math.hypot(g.x - x, g.y - y) < 30)) continue;
           items.push({ x, y, n: next(rng) < 0.18 ? `rock${1 + (i % 3)}` : `bush${1 + (i % 3)}`, s: 0.6 + next(rng) * 0.5 });
         }
         items.sort((a, b) => a.y - b.y);
@@ -2089,7 +2104,7 @@ export class CampRenderer {
       if (decor && log) {
         const [sx, sy, sw, sh, fx, fy] = log;
         for (const [x, y, s, flip] of FALLEN_LOGS) {
-          if (GROVE.some((g) => Math.hypot(g.x - x, g.y - y) < 40)) continue;
+          if (this.groveSpots.some((g) => Math.hypot(g.x - x, g.y - y) < 40)) continue;
           ctx.save();
           ctx.translate(x, y);
           if (flip) ctx.scale(-1, 1);
@@ -2956,7 +2971,7 @@ export class CampRenderer {
   }
 
   private drawIncome(ctx: CanvasRenderingContext2D, c: Camp): void {
-    const { x, y } = INCOME_PILE;
+    const { x, y } = c.lay.incomePile;
     ctx.strokeStyle = "rgba(255,255,255,0.4)";
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 2;
@@ -5862,8 +5877,8 @@ export class CampRenderer {
     const ph = moving ? this.walkPhase(`w${w.id}`, w.x, w.y, 48, w.id * 0.37) : 0;
     softShadow(ctx, w.x, w.y + 9, 9.5, 3.6, 0.3);
     const swing = w.state === "chop" ? Math.sin(this.time * 10) * 0.9 - 0.4 : 0;
-    const tree = GROVE[w.tree]!;
-    const facing = w.state === "chop" ? Math.atan2(tree.y - w.y, tree.x - w.x) : w.state === "toPile" ? Math.atan2(LUMBER_PILE.y - w.y, LUMBER_PILE.x - w.x) : Math.atan2(tree.y - w.y, tree.x - w.x);
+    const tree = c.lay.grove[w.tree]!;
+    const facing = w.state === "chop" ? Math.atan2(tree.y - w.y, tree.x - w.x) : w.state === "toPile" ? Math.atan2(c.lay.lumberPile.y - w.y, c.lay.lumberPile.x - w.x) : Math.atan2(tree.y - w.y, tree.x - w.x);
     if (!this.drawLumberjack(ctx, w.x, w.y + 9, moving, moving ? ph / 10 : c.time + w.id * 0.37, Math.cos(facing) > 0.15))
       drawUnit(ctx, LOOKS.worker!, w.x, w.y, 8.5, moving ? c.time * 12 + w.id : 0, facing, false, swing);
     // Logs balanced on the head, riding the actual footfalls (contacts at poses 0 and 4): they dip
@@ -7338,13 +7353,13 @@ export class CampRenderer {
       goal = c.plots.filter((p) => p.kind === "tower" && p.level > 0 && p.bows < BOWS_PER_TOWER).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0]!;
       icon = "tower";
     } else if (c.forgeBows >= 3 && h.bows === 0 && c.plots.some((p) => p.kind === "tower" && p.level > 0 && p.bows < BOWS_PER_TOWER)) {
-      goal = FORGE_OUT;
+      goal = c.lay.forgeOut;
       icon = "sword";
     } else if (h.logs < 6 && c.lumberPile >= 6 && c.plots.some((p) => !plotMaxed(p) && plotLogCost(p) > p.paidLogs && h.coins >= plotCost(p) - p.paid)) {
-      goal = LUMBER_PILE;
+      goal = c.lay.lumberPile;
       icon = "sword";
     } else if (h.coins < 5 && c.incomePile >= 8) {
-      goal = INCOME_PILE;
+      goal = c.lay.incomePile;
       icon = "coin";
     }
     if (this.guideOverride) {

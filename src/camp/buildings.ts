@@ -103,7 +103,7 @@ function towerPart(ctx: CanvasRenderingContext2D, img: HTMLImageElement, name: s
   const k = 0.5;
   ctx.drawImage(img, sx, sy, sw, sh, x - fx * k, baseY - fy * k, sw * k, sh * k);
 }
-import { BOWS_PER_TOWER, FORGE_IN, FORGE_OUT, TOWER_LEVELS, type Camp, type Plot } from "./sim";
+import { BOWS_PER_TOWER, TOWER_LEVELS, type Camp, type Plot } from "./sim";
 import { HALL, SEGMENT_W, WALL_Y } from "./world";
 
 /** Shared animation state the building drawers need from the renderer. */
@@ -979,7 +979,7 @@ export function drawForge(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp, 
 export function drawForgeZones(_env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): void {
   // Drop-off spots read as real fixtures, not dashed debug boxes: a timber pallet for logs going
   // in, a rack frame for finished bows, each with a small sign.
-  for (const [z, label, rack] of [[FORGE_IN, "Logs in", false], [FORGE_OUT, "Bows", true]] as const) {
+  for (const [z, label, rack] of [[c.lay.forgeIn, "Logs in", false], [c.lay.forgeOut, "Bows", true]] as const) {
     softShadow(ctx, z.x + 3, z.y + 15, 26, 6, 0.28);
     ctx.lineJoin = "round";
     for (let k = 0; k < 4; k++) {
@@ -1007,8 +1007,8 @@ export function drawForgeZones(_env: DrawEnv, ctx: CanvasRenderingContext2D, c: 
       ctx.restore();
     });
   }
-  drawLogPile(ctx, FORGE_IN.x, FORGE_IN.y, c.forgeLogs, false);
-  for (let i = 0; i < Math.min(15, c.forgeBows); i++) drawBowItem(ctx, FORGE_OUT.x + ((i % 3) - 1) * 13, FORGE_OUT.y + 8 - Math.floor(i / 3) * 6);
+  drawLogPile(ctx, c.lay.forgeIn.x, c.lay.forgeIn.y, c.forgeLogs, false);
+  for (let i = 0; i < Math.min(15, c.forgeBows); i++) drawBowItem(ctx, c.lay.forgeOut.x + ((i % 3) - 1) * 13, c.lay.forgeOut.y + 8 - Math.floor(i / 3) * 6);
 }
 
 export function drawHall(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp): void {

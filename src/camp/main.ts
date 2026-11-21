@@ -27,11 +27,11 @@ import { claimGift } from "../core/gift";
 import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
 import type { HeroId } from "../core/heroes";
 import { deploy, REVERSE, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
-import { PRE_MASTERY, chooseBlessing, chooseBuilding, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { PRE_MASTERY, campLayout, chooseBlessing, chooseBuilding, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
-import { INCOME_PILE, STEP, VIEW_H, VIEW_W } from "./world";
+import { STEP, VIEW_H, VIEW_W } from "./world";
 import { RenderInterp } from "./interp";
 import { atlasDebug, crispCache, crispStats, preloadAnims, preloadAnimsFor } from "./sprites";
 import type { GameEvent } from "../core/events";
@@ -433,6 +433,9 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
     }
     window.setTimeout(() => hud.toast(`🔥 Heat ${heat.map((x) => HEAT_BY_ID[x]!.icon).join("")} · gold ×${runHeatMult.toFixed(2)}`), 700);
   }
+  // Testing aid: ?layout=mirror | classic forces the camp layout.
+  const forced = new URLSearchParams(location.search).get("layout");
+  if (forced === "mirror" || forced === "classic") setup.layout = campLayout(forced === "mirror");
   camp = createCamp(seed, played, setup);
   preloadChapterArt(played);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
@@ -1674,7 +1677,7 @@ function frame(now: number) {
     hud.setTip((c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
     // First run: the first day's sunset waits while the walk / build-a-tower tips are still up.
     if (tutorial.holdsClock && c.phase === "build" && c.wave === 0 && !dailyRun && !c.reverse) c.timer = Math.max(c.timer, 12);
-    renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? INCOME_PILE : null;
+    renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? c.lay.incomePile : null;
     interp.apply(c, accumulator / STEP);
     renderer.draw(c, realDt);
     interp.restore(c);

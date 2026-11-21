@@ -494,6 +494,8 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** This run's camp layout (mirrored / shuffled pads and their drop-off spots). */
+  lay: CampLayout;
   /** Tonight has a boss (no Nightmare Blood Moon surge on those). */
   bossNight?: boolean;
   /** Building draft waiting on the player (kinds to choose from), else null. */
@@ -606,6 +608,35 @@ export const LUMBER_PILE = { x: 236, y: 860 };
 /** Forge: drop logs at the input, collect bows from the output. */
 export const FORGE_IN = { x: 520, y: 935 };
 export const FORGE_OUT = { x: 640, y: 935 };
+/** Per-run camp layout: half of all runs mirror the inner camp left↔right (lumber camp, forge, barracks,
+ *  catapults, Mage Tower, healer, watchtower, the wood grove and every drop-off spot), so runs don't all
+ *  look and route the same. Towers, the wall, the gate, the spike field and the hall are symmetric about
+ *  the road and stay put; the towers, the hero's spawn and the enemy lanes mirror with it, so it is
+ *  an exact reflection and balance-neutral. (Shuffling the front-row pads was tried and dropped: where the Mage Tower and
+ *  Spike Trap stand changes what they hit and how often they burn — not balance-neutral.) */
+export interface CampLayout {
+  mirror: boolean;
+  lumberPile: Vec;
+  forgeIn: Vec;
+  forgeOut: Vec;
+  grove: Vec[];
+  incomePile: Vec;
+  heroSpawn: Vec;
+}
+export function campLayout(mirror: boolean): CampLayout {
+  const m = (v: Vec): Vec => (mirror ? { x: MAP_W - v.x, y: v.y } : { x: v.x, y: v.y });
+  return { mirror, lumberPile: m(LUMBER_PILE), forgeIn: m(FORGE_IN), forgeOut: m(FORGE_OUT), grove: GROVE.map(m), incomePile: m(INCOME_PILE), heroSpawn: m(HERO_SPAWN) };
+}
+/** The layout a run gets, hashed from its seed (never touches the run's RNG). Chapter 1 (where new
+ *  players learn the camp), daily runs and Siege Lord keep the classic layout. */
+export function layoutFor(seed: number, chapterId: number, classic: boolean): CampLayout {
+  return campLayout(!classic && chapterId !== 1 && hash01(seed, 0, 31) >= 0.5);
+}
+/** Apply a layout to freshly made plots (in place). */
+function applyLayout(plots: Plot[], lay: CampLayout): void {
+  if (lay.mirror) for (const p of plots) p.x = MAP_W - p.x;
+  // (Enemy lanes mirror too — see spawnEnemy — so a mirrored run plays exactly like the classic one, reflected.)
+}
 export const BOWS_PER_TOWER = 10;
 export const BOW_DAMAGE = 0.06;
 
@@ -765,6 +796,8 @@ export interface CampSetup {
   classicBlessings?: boolean;
   /** Siege Lord (reverse mode): the player sends the horde; the defence is played by the bot. */
   reverse?: boolean;
+  /** Force a camp layout (tests, tools); default: hashed from the seed. */
+  layout?: CampLayout;
   /** Siege Lord: sieges already won (opens the later war cards). */
   siegesWon?: number;
   /** Siege Lord: health multiplier on the horde's units (default 1). */
@@ -802,7 +835,10 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     const p = plots.find((q) => q.id === id);
     if (p && p.level === 0) p.level = 1;
   }
+  const lay = setup.layout ?? layoutFor(seed, chapter.id, !!setup.reverse || !!setup.classicBlessings);
+  applyLayout(plots, lay);
   const camp: Camp = {
+    lay,
     seed,
     rng: createRng(seed),
     chapter,
@@ -813,7 +849,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     waveTime: 0,
     queue: [],
     hero: {
-      x: HERO_SPAWN.x, y: HERO_SPAWN.y, hp: CAMP.heroHp * mods.heroHp, maxHp: CAMP.heroHp * mods.heroHp, coins: setup.startCoins ?? 12, logs: 0, bows: 0, cooldown: 0, facing: -Math.PI / 2,
+      x: lay.heroSpawn.x, y: lay.heroSpawn.y, hp: CAMP.heroHp * mods.heroHp, maxHp: CAMP.heroHp * mods.heroHp, coins: setup.startCoins ?? 12, logs: 0, bows: 0, cooldown: 0, facing: -Math.PI / 2,
       sinceHit: 99, dead: false, respawn: 0, moving: false, payTime: 0, payTimer: 0, payingPlot: null,
     },
     workers: [],
@@ -968,8 +1004,8 @@ function updateHero(c: Camp, input: CampInput): void {
     if (h.respawn <= 0) {
       h.dead = false;
       h.hp = h.maxHp;
-      h.x = HERO_SPAWN.x;
-      h.y = HERO_SPAWN.y;
+      h.x = c.lay.heroSpawn.x;
+      h.y = c.lay.heroSpawn.y;
       c.events.push({ type: "heroRespawn" });
     }
     return;
@@ -1022,18 +1058,18 @@ function updateHero(c: Camp, input: CampInput): void {
   } else if (h.moving) h.facing = Math.atan2(input.move.y, input.move.x);
 
   // Pick up the hall's income pile.
-  if (c.incomePile > 0 && Math.hypot(h.x - INCOME_PILE.x, h.y - INCOME_PILE.y) < 50 && h.coins < carryCap(c)) {
+  if (c.incomePile > 0 && Math.hypot(h.x - c.lay.incomePile.x, h.y - c.lay.incomePile.y) < 50 && h.coins < carryCap(c)) {
     const take = Math.min(c.incomePile, carryCap(c) - h.coins);
     c.incomePile -= take;
     h.coins += take;
-    for (let i = 0; i < Math.min(take, 8); i++) c.events.push({ type: "coinPickup", x: INCOME_PILE.x, y: INCOME_PILE.y });
+    for (let i = 0; i < Math.min(take, 8); i++) c.events.push({ type: "coinPickup", x: c.lay.incomePile.x, y: c.lay.incomePile.y });
   }
 
-  if (c.lumberPile > 0 && Math.hypot(h.x - LUMBER_PILE.x, h.y - LUMBER_PILE.y) < 50 && h.logs < CAMP.logCap) {
+  if (c.lumberPile > 0 && Math.hypot(h.x - c.lay.lumberPile.x, h.y - c.lay.lumberPile.y) < 50 && h.logs < CAMP.logCap) {
     const take = Math.min(c.lumberPile, CAMP.logCap - h.logs);
     c.lumberPile -= take;
     h.logs += take;
-    for (let i = 0; i < Math.min(take, 6); i++) c.events.push({ type: "logPickup", x: LUMBER_PILE.x, y: LUMBER_PILE.y });
+    for (let i = 0; i < Math.min(take, 6); i++) c.events.push({ type: "logPickup", x: c.lay.lumberPile.x, y: c.lay.lumberPile.y });
   }
 
   updateForgeHauling(c);
@@ -1068,17 +1104,17 @@ function forgeLevel(c: Camp): number {
 function updateForgeHauling(c: Camp): void {
   const h = c.hero;
   if (forgeLevel(c) === 0) return;
-  if (h.logs > 0 && Math.hypot(h.x - FORGE_IN.x, h.y - FORGE_IN.y) < 40 && c.forgeLogs < 20) {
+  if (h.logs > 0 && Math.hypot(h.x - c.lay.forgeIn.x, h.y - c.lay.forgeIn.y) < 40 && c.forgeLogs < 20) {
     const n = Math.min(h.logs, 20 - c.forgeLogs);
     h.logs -= n;
     c.forgeLogs += n;
-    for (let i = 0; i < Math.min(n, 6); i++) c.events.push({ type: "logSpend", from: { x: h.x, y: h.y - 20 }, to: FORGE_IN });
+    for (let i = 0; i < Math.min(n, 6); i++) c.events.push({ type: "logSpend", from: { x: h.x, y: h.y - 20 }, to: c.lay.forgeIn });
   }
-  if (c.forgeBows > 0 && Math.hypot(h.x - FORGE_OUT.x, h.y - FORGE_OUT.y) < 40 && h.bows < CAMP.bowCap) {
+  if (c.forgeBows > 0 && Math.hypot(h.x - c.lay.forgeOut.x, h.y - c.lay.forgeOut.y) < 40 && h.bows < CAMP.bowCap) {
     const n = Math.min(c.forgeBows, CAMP.bowCap - h.bows);
     c.forgeBows -= n;
     h.bows += n;
-    for (let i = 0; i < Math.min(n, 6); i++) c.events.push({ type: "logPickup", x: FORGE_OUT.x, y: FORGE_OUT.y });
+    for (let i = 0; i < Math.min(n, 6); i++) c.events.push({ type: "logPickup", x: c.lay.forgeOut.x, y: c.lay.forgeOut.y });
   }
   if (h.bows > 0) {
     for (const p of c.plots) {
@@ -1102,7 +1138,7 @@ function updateForge(c: Camp): void {
     c.forgeTimer -= every;
     c.forgeLogs -= 1;
     c.forgeBows += 1;
-    c.events.push({ type: "forged", x: FORGE_OUT.x, y: FORGE_OUT.y });
+    c.events.push({ type: "forged", x: c.lay.forgeOut.x, y: c.lay.forgeOut.y });
   }
 }
 
@@ -1196,7 +1232,7 @@ function completePlot(c: Camp, p: Plot): void {
     c.allies.push({ id: c.nextId++, x: p.x, y: p.y, hp: ALLY.hp, maxHp: ALLY.hp, cooldown: 0, postX, postY: WALL_Y + 45 + (i % 2) * 14, respawn: 0, facing: -Math.PI / 2, swinging: 0 });
   }
   if (p.kind === "lumber") {
-    c.workers.push({ id: c.nextId++, x: p.x, y: p.y, state: "toTree", t: 0, tree: c.workers.length % GROVE.length, carrying: false });
+    c.workers.push({ id: c.nextId++, x: p.x, y: p.y, state: "toTree", t: 0, tree: c.workers.length % c.lay.grove.length, carrying: false });
   }
   c.events.push({ type: "build", plot: p.id, kind: p.kind, level: p.level, x: p.x, y: p.y });
   if (p.kind === "tower" && p.level === TOWER_SPEC_LEVEL && !p.spec) c.events.push({ type: "specChoice", plot: p.id });
@@ -1228,8 +1264,9 @@ function updateAllies(c: Camp): void {
       a.respawn -= STEP;
       if (a.respawn <= 0) {
         a.hp = a.maxHp;
-        a.x = BARRACKS.x;
-        a.y = BARRACKS.y;
+        const bk = c.plots.find((q) => q.kind === "barracks");
+        a.x = bk?.x ?? BARRACKS.x;
+        a.y = bk?.y ?? BARRACKS.y;
       }
       continue;
     }
@@ -1284,7 +1321,7 @@ function damageAlly(c: Camp, a: Ally, raw: number): void {
 
 function updateWorkers(c: Camp): void {
   for (const w of c.workers) {
-    const tree = GROVE[w.tree]!;
+    const tree = c.lay.grove[w.tree]!;
     const go = (tx: number, ty: number): boolean => {
       const d = Math.hypot(tx - w.x, ty - w.y);
       if (d < 4) return true;
@@ -1305,7 +1342,7 @@ function updateWorkers(c: Camp): void {
         w.state = "toPile";
         c.events.push({ type: "chop", x: tree.x, y: tree.y });
       }
-    } else if (go(LUMBER_PILE.x + 10, LUMBER_PILE.y)) {
+    } else if (go(c.lay.lumberPile.x + 10, c.lay.lumberPile.y)) {
       if (w.carrying && c.lumberPile < CAMP.lumberCap) {
         const before = c.lumberPile;
         c.lumberPile = Math.min(CAMP.lumberCap, c.lumberPile + 3 + c.mods.logsPerTrip);
@@ -1314,7 +1351,7 @@ function updateWorkers(c: Camp): void {
       w.carrying = false;
       w.state = "toTree";
       // Spread workers over the grove.
-      w.tree = (w.tree + c.workers.length) % GROVE.length;
+      w.tree = (w.tree + c.workers.length) % c.lay.grove.length;
     }
   }
 }
@@ -1772,7 +1809,8 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
   const hp = enemyHp(s.enemy, s.hpMult * (CAMP.enemyHp + CAMP.enemyHpPerWave * Math.max(0, c.wave - 1)) * (CAMP_CHAPTER_HP[c.chapter.id] ?? 1) * c.enemyHpMult);
   // The first waves come down the middle so a new player can meet them at the gate.
   const spread = c.wave <= 2 ? 170 : MAP_W / 2 - 50;
-  const x = at ? at.x : s.lane === null ? range(c.rng, MAP_W / 2 - spread, MAP_W / 2 + spread) : MAP_W / 2 - spread + 2 * spread * s.lane;
+  const x0 = at ? at.x : s.lane === null ? range(c.rng, MAP_W / 2 - spread, MAP_W / 2 + spread) : MAP_W / 2 - spread + 2 * spread * s.lane;
+  const x = !at && c.lay.mirror ? MAP_W - x0 : x0;
   const e: Enemy = {
     id: c.nextId++, def, x, y: at ? at.y : SPAWN_Y - range(c.rng, 0, 30), hp, maxHp: hp,
     attackTimer: def.attackInterval * range(c.rng, 0.3, 1), flash: 0, sway: range(c.rng, 0, Math.PI * 2), hpMult: s.hpMult,
@@ -2487,7 +2525,7 @@ function updateIncome(c: Camp): void {
       c.courierTimer -= 1 / CAMP.courierRate;
       c.incomePile -= 1;
       h.coins += 1;
-      c.events.push({ type: "courier", x: INCOME_PILE.x, y: INCOME_PILE.y });
+      c.events.push({ type: "courier", x: c.lay.incomePile.x, y: c.lay.incomePile.y });
     }
   } else c.courierTimer = 0;
 }
