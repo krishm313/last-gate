@@ -1636,22 +1636,24 @@ fx.shake(0.15);
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
     for (const p of c.plots) if (p.kind === "tower" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 110, () => drawTower(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: -1e6, draw: () => this.drawHealerAura(ctx, p, c.mods.healerPower) });
-    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 36, 70, () => this.drawHealerTent(ctx, p)) });
+    for (const p of c.plots) if (p.kind === "healer" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 36, 70, () => { if (p.level > (PRE_MASTERY.healer ?? 9)) this.drawMasteryGlow(ctx, p, "110,230,140"); this.drawHealerTent(ctx, p); }) });
     for (const l of c.pools) items.push({ y: -1e6 + 1, draw: () => this.drawLavaPool(ctx, l) });
     for (const a of c.acid) items.push(a.delay > 0 ? { y: 1e6, draw: () => this.drawFlask(ctx, a) } : { y: -1e6 + 1, draw: () => this.drawAcidPool(ctx, a) });
     for (const t of c.tides) items.push({ y: -1e6 + 2, draw: () => this.drawTide(ctx, t) });
     for (const p of c.plots) if ((p.fire ?? 0) > 0) items.push({ y: p.y + 40, draw: () => this.drawBurning(ctx, p) });
     for (const p of c.plots) if (p.kind === "watch" && p.level > 0) {
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
-      items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
+      items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => { if (p.level > (PRE_MASTERY.watch ?? 9)) this.drawMasteryGlow(ctx, p, "255,210,90"); this.drawWatchtower(ctx, p); }) });
     }
     for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => { if (p.level > (PRE_MASTERY.mage ?? 9)) this.drawMasteryGlow(ctx, p, "170,120,255"); this.drawMageTower(ctx, p); }) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
-    for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => this.drawAlly(ctx, c, a) });
+    const vets = c.plots.some((p) => p.kind === "barracks" && p.level > (PRE_MASTERY.barracks ?? 9));
+    for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => { this.drawAlly(ctx, c, a); if (vets && a.temp === undefined) this.drawVeteranMark(ctx, a); } });
     for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => { if (p.level > (PRE_MASTERY.catapult ?? 9)) this.drawMasteryGlow(ctx, p, "255,120,40"); drawCatapult(this, ctx, p); }) });
     // Mastered buildings wear a bobbing gold star (towers fly their star pennant instead).
-    for (const p of c.plots) if ((p.kind === "catapult" || p.kind === "mage") && p.level > (PRE_MASTERY[p.kind] ?? 9)) items.push({ y: p.y + 11, draw: () => this.drawMasteryStar(ctx, p, p.kind === "mage" ? 104 : 62) });
+    const STAR_H: Partial<Record<string, number>> = { catapult: 62, mage: 104, healer: 78, watch: 150 };
+    for (const p of c.plots) if (STAR_H[p.kind] !== undefined && p.level > (PRE_MASTERY[p.kind] ?? 9)) items.push({ y: p.y + 11, draw: () => this.drawMasteryStar(ctx, p, STAR_H[p.kind]!) });
     for (const p of c.plots) if (p.kind === "lumber" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawLumberCamp(this, ctx, p)) });
     for (const p of c.plots)
       if (p.kind === "forge" && p.level > 0) {
@@ -5548,6 +5550,29 @@ fx.shake(0.15);
     ctx.arc(x - r * 0.15, y + r * 1.0, r * 0.08, 0, Math.PI * 2);
     ctx.arc(x + r * 0.15, y + r * 1.0, r * 0.08, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /** Barracks Veterans: a gold chevron rides over each veteran soldier's head. */
+  private drawVeteranMark(ctx: CanvasRenderingContext2D, a: Ally): void {
+    const x = a.x, y = a.y - 40 + Math.sin(this.time * 3 + a.id) * 1.2;
+    ctx.save();
+    ctx.fillStyle = "#ffd23a";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.4;
+    ctx.lineJoin = "round";
+    for (const dy of [0, 4.5]) {
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y + dy);
+      ctx.lineTo(x, y - 4 + dy);
+      ctx.lineTo(x + 6, y + dy);
+      ctx.lineTo(x + 6, y + 2.6 + dy);
+      ctx.lineTo(x, y - 1.4 + dy);
+      ctx.lineTo(x - 6, y + 2.6 + dy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private drawAlly(ctx: CanvasRenderingContext2D, c: Camp, a: Ally): void {

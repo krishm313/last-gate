@@ -168,7 +168,7 @@ export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps:
 /** Building masteries (top levels a balance bot never buys): catapult flames, mage stun. */
 export const BUILD_MASTERY = { catapultBurn: 0.35, catapultBurnTime: 3, mageStun: 0.5 };
 /** The level each building topped out at before its mastery level (the balance bot stops here). */
-export const PRE_MASTERY: Partial<Record<PlotKind, number>> = { tower: 4, catapult: 3, mage: 3, spikes: 3, barracks: 3 };
+export const PRE_MASTERY: Partial<Record<PlotKind, number>> = { tower: 4, catapult: 3, mage: 3, spikes: 3, barracks: 3, healer: 3, watch: 2 };
 /** Barracks Veterans (mastery): the garrison's soldiers are tougher, hit harder and get up sooner. */
 export const VETERANS = { hp: 1.6, damage: 1.5, respawn: 4 };
 function veterans(c: Camp): boolean {
@@ -193,6 +193,8 @@ export const HEALER_LEVELS = [
   { radius: 200, heal: 6, wall: 0.004 },
   { radius: 230, heal: 10, wall: 0.007 },
   { radius: 260, heal: 15, wall: 0.011 },
+  // level 4: Sanctum Mastery
+  { radius: 300, heal: 21, wall: 0.016 },
 ];
 
 /** Night weather: rolled per night from the seed (deterministic), from night 3 on, never on breathers. */
@@ -709,6 +711,8 @@ export const WATCH = { x: 480, y: 935 };
 export const WATCH_LEVELS = [
   { radius: 340, range: 0.25, rate: 0.15 },
   { radius: 420, range: 0.4, rate: 0.25 },
+  // level 3: Eagle Eye Mastery
+  { radius: 500, range: 0.5, rate: 0.32 },
 ];
 /** The Watchtower's boost for an archer tower (none if it isn't built or the tower is out of reach). */
 export function watchBoost(c: Camp, t: Plot): { range: number; rate: number; clear: boolean } {
@@ -787,8 +791,8 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90, 150], 4, [4, 8, 12, 18]), locked: true, unlockWave: 3 },
     { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140, 230], 4, [0, 0, 0, 18]), locked: true, unlockWave: 4 },
-    { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120], 3), locked: true, unlockWave: 5 },
-    { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110], 2, [6, 12]), locked: true, unlockWave: 5 },
+    { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120, 190], 4, [0, 0, 0, 16]), locked: true, unlockWave: 5 },
+    { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110, 180], 3, [6, 12, 18]), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);

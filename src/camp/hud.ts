@@ -35,6 +35,8 @@ const BUILD_MASTERY_TEXT: Record<string, string> = {
   mage: "Storm Mastery — the first foe struck is stunned (not bosses)",
   spikes: "Iron Maw — deeper stakes: 30 dmg/s, slows 45%",
   barracks: "Veterans — soldiers +60% HP, +50% damage, back up in 4 s",
+  healer: "Sanctum — reaches 300, heals 21/s and mends walls faster",
+  watch: "Eagle Eye — watches 500 out: towers +50% range, +32% fire rate",
 };
 
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
