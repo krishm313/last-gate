@@ -59,6 +59,16 @@ const tutorial = new Tutorial();
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const uiRoot = document.getElementById("ui") as HTMLDivElement;
 const renderer = new CampRenderer(canvas);
+{
+  // Phones start one quality step down (2× density on a 3× screen is all fill, no visible gain over
+  // 1.5× in motion), and every device starts at the lowest tier it has needed before.
+  const QKEY = "lastgate.quality";
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  let saved = 0;
+  try { saved = Number(localStorage.getItem(QKEY)) || 0; } catch { /* storage blocked */ }
+  renderer.setTier(Math.max(saved, coarse ? 1 : 0));
+  renderer.onTier = (t) => { try { localStorage.setItem(QKEY, String(t)); } catch { /* storage blocked */ } };
+}
 const sfx = new Sfx();
 const music = new Music(() => sfx.context, () => sfx.musicOutput);
 const settings = loadSettings();

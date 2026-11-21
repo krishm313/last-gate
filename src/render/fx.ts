@@ -53,7 +53,7 @@ export class Fx {
   }
 
   burst(x: number, y: number, color: string, count: number, speed: number, opts: Partial<Particle> = {}): void {
-    for (let i = 0; i < count && this.particles.length < MAX_PARTICLES; i++) {
+    for (let i = 0; i < count && this.particles.length < Math.min(MAX_PARTICLES, this.particleCap); i++) {
       const a = Math.random() * Math.PI * 2;
       const s = speed * (0.35 + Math.random() * 0.65);
       const max = (opts.max ?? 0.5) * (0.6 + Math.random() * 0.6);
@@ -252,6 +252,8 @@ export class Fx {
   shakeScale = 1;
   /** Reduced motion: full-screen flashes are skipped. */
   calm = false;
+  /** Lower on slow devices (renderer quality tiers): new sparks are dropped past this many. */
+  particleCap = Infinity;
 
   shakeOffset(time: number): Vec {
     const t = this.trauma * this.trauma * this.shakeScale;

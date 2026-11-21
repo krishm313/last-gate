@@ -498,25 +498,48 @@ export class CampRenderer {
   /** Pixel-density cap: 2× (indistinguishable from 3× at phone viewing distance, and less than half
    *  the pixels to fill); lowered automatically on devices that can't keep up (see perfSample). */
   maxDpr = 2;
+  /** Effect quality tier: 0 full · 1 fewer sparks, no sunlight wash / clouds / coin twinkles · 2 also no decorative glows. */
+  lite = 0;
   private perfAcc = 0;
   private perfFrames = 0;
+  private perfLong = 0;
+  /** Quality steps, best first: [pixel density cap, effect tier]. */
+  private static readonly TIERS: [number, number][] = [[2, 0], [1.5, 1], [1.25, 2], [1, 2]];
+  private tier = 0;
+  /** Called when the tier drops, so the caller can remember it for the next launch. */
+  onTier?: (tier: number) => void;
 
   /**
-   * Adaptive quality: feed real frame times; if ~4 s of frames average slower than 40 fps, render the
-   * canvas at a lower pixel density (2 → 1.5 → 1). Only ever steps down; affects drawing, never the sim.
+   * Adaptive quality: feed real frame times. Every ~1 s of play, if frames averaged slower than ~48 fps
+   * or more than 1 in 12 frames was a hitch (> 50 ms), step down one tier — lower pixel density AND
+   * cheaper effects (smoothness beats the last bit of sharpness; Low Power Mode's 30 fps cap lands
+   * here too, which saves battery). Only ever steps down; drawing only, never the sim.
    */
   perfSample(realDt: number): void {
-    if (this.maxDpr <= 1 || (window.devicePixelRatio || 1) <= 1) return;
+    // A single long stall (tab switch, asset load, GC) is not steady lag — don't let it cost quality.
+    if (this.tier >= CampRenderer.TIERS.length - 1 || realDt > 0.25) return;
     this.perfAcc += realDt;
     this.perfFrames++;
-    if (this.perfAcc < 4) return;
-    const avg = this.perfAcc / this.perfFrames;
+    if (realDt > 0.05) this.perfLong++;
+    if (this.perfAcc < 1) return;
+    const avg = this.perfAcc / this.perfFrames, longShare = this.perfLong / this.perfFrames;
     this.perfAcc = 0;
     this.perfFrames = 0;
-    // Below ~40 fps on average, drop a density step (smoothness matters more than the last bit of
-    // sharpness; Low Power Mode's 30 fps cap also lands here, which saves battery too).
-    if (avg > 1 / 40) {
-      this.maxDpr = this.maxDpr > 1.5 ? 1.5 : 1;
+    this.perfLong = 0;
+    if (avg > 1 / 48 || longShare > 1 / 12) {
+      this.setTier(this.tier + 1);
+      this.onTier?.(this.tier);
+    }
+  }
+
+  /** Apply a quality tier (also used by debug/QA: __renderer.setTier(n)). */
+  setTier(t: number): void {
+    this.tier = Math.max(0, Math.min(CampRenderer.TIERS.length - 1, t));
+    const [dpr, lite] = CampRenderer.TIERS[this.tier]!;
+    this.lite = lite;
+    this.fx.particleCap = lite >= 2 ? 70 : lite >= 1 ? 150 : Infinity;
+    if (dpr !== this.maxDpr) {
+      this.maxDpr = dpr;
       this.fit();
     }
   }
@@ -1635,7 +1658,7 @@ fx.shake(0.15);
     ctx.setTransform(...this.base);
     // Sunlight wash: warm where the light comes from (top-left), cooler and a touch darker toward
     // the bottom-right, with soft corners — ties every lit object into one scene. (Night has its own.)
-    if (this.mood !== 4) {
+    if (this.mood !== 4 && this.lite < 1) {
       ctx.fillStyle = this.sunlight ??= this.makeSunlight(ctx);
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       ctx.fillStyle = this.vignette ??= this.makeVignette(ctx);
@@ -3262,6 +3285,9 @@ fx.shake(0.15);
   }
   private drawBlob(ctx: CanvasRenderingContext2D, b: HTMLCanvasElement, x: number, y: number, rx: number, ry = rx, alpha = 1): void {
     if (alpha <= 0.002) return;
+    // Lowest quality tier: skip the decorative additive glows on the main canvas (big fill-rate cost on
+    // phones); the night's light pools are cut into the darkness layer, so lights still read.
+    if (this.lite >= 2 && ctx === this.ctx && ctx.globalCompositeOperation === "lighter") return;
     const a = ctx.globalAlpha;
     ctx.globalAlpha = a * Math.min(1, alpha);
     ctx.drawImage(b, x - rx, y - ry, rx * 2, ry * 2);
@@ -3320,7 +3346,7 @@ fx.shake(0.15);
     this.prevPhase = c.phase;
     this.night += Math.sign(target - this.night) * Math.min(Math.abs(target - this.night), dt * 0.45);
     const k = this.night;
-    this.drawDayLife(ctx, o, sh, 1 - k);
+    if (this.lite < 1) this.drawDayLife(ctx, o, sh, 1 - k);
     // Golden hour: in the last ~10 s of the day the light warms toward sunset.
     if (c.phase === "build" && c.timer < 10 && !this.ambient && this.mood !== 4) {
       const g = 1 - Math.max(0, c.timer) / 10;
@@ -6030,7 +6056,8 @@ fx.shake(0.15);
       // Resting coins twinkle now and then (a four-point star flash), so loot catches the eye;
       // homing coins leave a short trail of sparkles toward the King.
       const tw = (this.time * 0.9 + k.id * 0.37) % 1.6;
-      if (!k.homing && z < 2 && tw < 0.22) {
+      if (this.lite >= 1) { /* (lower quality tiers: no coin twinkles or trails) */ }
+      else if (!k.homing && z < 2 && tw < 0.22) {
         const u = tw / 0.22, a = Math.sin(u * Math.PI);
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
