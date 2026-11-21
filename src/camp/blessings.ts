@@ -48,6 +48,20 @@ export interface CampMods {
   /** Skill capstones: damage vs bosses, hall damage taken. */
   bossDamage: number;
   hallArmor: number;
+  /** Rule-changers. Ricochet: extra bounces per hero arrow (0 = off). */
+  ricochet: number;
+  /** Thorns: foes striking the wall take this × their blow back (0 = off). */
+  thorns: number;
+  /** Iron Maiden (combo): foes striking the wall are slowed. */
+  thornSlow: number;
+  /** Wildfire: burning foes spread fire to neighbours when they fall. */
+  wildfire: number;
+  /** Culling Blade: hero arrows finish non-boss foes below this HP fraction. */
+  cull: number;
+  /** Rallying Banner: towers near the hero fire this much faster (1 = off). */
+  banner: number;
+  /** Golden Volley: every N coins picked up fires a ring of hero arrows (0 = off). */
+  coinVolley: number;
 }
 
 export function baseMods(): CampMods {
@@ -55,6 +69,7 @@ export function baseMods(): CampMods {
     heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, heroRange: 1, carry: 0, towerDamage: 1, towerRate: 1,
     towerRange: 1, wallHp: 1, income: 1, drops: 1, burn: 0, burnMult: 1, slow: 0, hallDamage: 1, repairAfterWave: 0, magnet: 1, rerolls: 1,
     allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1, hawkeye: 0, bossDamage: 1, hallArmor: 1,
+    ricochet: 0, thorns: 0, thornSlow: 0, wildfire: 0, cull: 0, banner: 1, coinVolley: 0,
   };
 }
 
@@ -72,6 +87,8 @@ export interface Blessing {
   apply: (m: CampMods) => void;
   /** Newer blessings stay out of daily runs, so a day's challenge plays the same for everyone. */
   newer?: boolean;
+  /** Rule-changer: never in the regular three; offered as the extra ✨ card on rule nights. */
+  rule?: boolean;
 }
 
 export const BLESSINGS: Blessing[] = [
@@ -105,6 +122,15 @@ export const BLESSINGS: Blessing[] = [
   { id: "frost", name: "Frost Arrows", desc: "All arrows slow enemies by 35%", icon: "❄️", rarity: "epic", max: 1, apply: (m) => { m.slow = 0.35; } },
   { id: "volley", name: "Volley Fire", desc: "Towers fire 40% faster", icon: "🌧️", rarity: "epic", max: 2, requires: "eagle", apply: (m) => { m.towerRate *= 1.4; } },
   { id: "inferno", name: "Inferno", desc: "Burning doubled", icon: "☄️", rarity: "legendary", max: 1, requires: "fire", apply: (m) => { m.burnMult = 2; } },
+  // Rule-changers: each one changes how a run plays, not just a number.
+  { id: "ricochet", rule: true, name: "Ricochet", desc: "Your arrows bounce to 1 more foe (60% damage)", icon: "↪️", rarity: "epic", max: 1, newer: true, apply: (m) => { m.ricochet += 1; } },
+  { id: "thorns", rule: true, name: "Thorn Walls", desc: "Foes that strike the wall take the blow back ×3", icon: "🌵", rarity: "rare", max: 2, newer: true, apply: (m) => { m.thorns += 3; } },
+  { id: "wildfire", rule: true, name: "Wildfire", desc: "Burning foes set their neighbours ablaze when they fall", icon: "🔥", rarity: "epic", max: 1, requires: "fire", newer: true, apply: (m) => { m.wildfire = 1; } },
+  { id: "cull", rule: true, name: "Culling Blade", desc: "Your arrows finish off foes under 15% HP (not bosses)", icon: "🪓", rarity: "rare", max: 1, newer: true, apply: (m) => { m.cull = 0.15; } },
+  { id: "banner", rule: true, name: "Rallying Banner", desc: "Towers near you fire 50% faster — stand where it matters", icon: "🚩", rarity: "epic", max: 1, newer: true, apply: (m) => { m.banner = 1.5; } },
+  { id: "goldvolley", rule: true, name: "Golden Volley", desc: "Every 25 coins you grab looses a ring of arrows around you", icon: "🌟", rarity: "epic", max: 1, newer: true, apply: (m) => { m.coinVolley = 25; } },
+  { id: "blades", rule: true, name: "Storm of Blades", desc: "Ricochets bounce 2 more times", icon: "🌪️", rarity: "legendary", max: 1, requires: ["ricochet", "split"], newer: true, apply: (m) => { m.ricochet += 2; } },
+  { id: "maiden", rule: true, name: "Iron Maiden", desc: "Thorns hit twice as hard and slow attackers by 40%", icon: "⛓️", rarity: "legendary", max: 1, requires: ["thorns", "walls"], newer: true, apply: (m) => { m.thorns *= 2; m.thornSlow = 0.4; } },
   // Combos: pairs of blessings that unlock a stronger one.
   { id: "shatter", name: "Shatter", desc: "Slowed enemies take +35% damage", icon: "💎", rarity: "epic", max: 1, requires: ["frost", "drills"], apply: (m) => { m.slowedBonus = 1.35; } },
   { id: "thermal", name: "Thermal Shock", desc: "Burning hits slowed enemies 3× harder", icon: "🌋", rarity: "legendary", max: 1, requires: ["fire", "frost"], apply: (m) => { m.thermal = 3; } },
@@ -120,16 +146,26 @@ export function comboParts(b: Blessing): string[] {
 
 export const BLESSING_BY_ID: Record<string, Blessing> = Object.fromEntries(BLESSINGS.map((b) => [b.id, b]));
 
+/** Every third night (not in daily runs) the pick adds a fourth, rule-changing card. */
+export function ruleNight(wave: number, classic: boolean): boolean {
+  return !classic && wave > 0 && wave % 3 === 0;
+}
+
 export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false): Blessing[] {
-  const pool = BLESSINGS.filter(
-    (b) => !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding)),
-  );
+  const ok = (b: Blessing) =>
+    !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding));
+  const pool = BLESSINGS.filter((b) => !b.rule && ok(b));
   const w: Record<Rarity, number> = { common: Math.max(30, 64 - wave * 3), rare: 26 + wave, epic: 8 + wave * 1.5, legendary: 8 + wave };
   const out: Blessing[] = [];
   while (out.length < n && pool.length) {
     const b = weighted(rng, pool, (x) => w[x.rarity]);
     out.push(b);
     pool.splice(pool.indexOf(b), 1);
+  }
+  // Rule night: one extra card from the rule-changers (combos weigh in once their parts are owned).
+  if (ruleNight(wave, classic)) {
+    const rules = BLESSINGS.filter((b) => b.rule && ok(b));
+    if (rules.length) out.push(weighted(rng, rules, (x) => (x.requires ? 3 : 1)));
   }
   return out;
 }

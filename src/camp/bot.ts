@@ -81,7 +81,7 @@ export function campBotInput(c: Camp): CampInput {
   return { ...go(INCOME_PILE), callWave: c.timer > 3 && h.coins < 5 && c.incomePile < 5 };
 }
 
-const BOT_PREF = ["drills", "eagle", "volley", "fire", "inferno", "frost", "split", "sharp", "quick", "boulders", "soldiers", "walls", "masons", "guard", "woodsmen", "tax", "bounty", "pockets", "vigor", "smith", "boots", "lucky"];
+const BOT_PREF = ["drills", "eagle", "volley", "fire", "inferno", "wildfire", "frost", "split", "blades", "ricochet", "sharp", "cull", "quick", "goldvolley", "boulders", "soldiers", "walls", "maiden", "thorns", "masons", "guard", "woodsmen", "tax", "bounty", "pockets", "vigor", "smith", "boots", "banner", "lucky"];
 
 /** The bot's blessing choice: a fixed preference order. */
 export function campBotPick(c: Camp): string {

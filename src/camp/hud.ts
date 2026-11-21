@@ -414,7 +414,7 @@ export class CampHud {
     rr.onclick = onReroll;
     const armedAt = performance.now() + 450;
     c.offers.forEach((b, i) => {
-      const card = el("button", `card r-${b.rarity}`);
+      const card = el("button", `card r-${b.rarity}${b.rule ? " card-rule" : ""}`);
       card.style.animationDelay = `${i * 0.08}s`;
       const owned = c.owned[b.id] ?? 0;
       card.append(
@@ -425,13 +425,15 @@ export class CampHud {
         el("div", `card-tag${owned ? "" : " new"}`, owned ? `Lv ${owned} → ${owned + 1}` : "New"),
         b.max > 1 ? levelPips(owned, b.max) : el("div", "card-lvl", "Unique"),
       );
+      if (b.rule)
+        card.insertBefore(el("div", "card-rulehead", b.requires ? `✨ RULE COMBO · ${comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "").join(" + ")}` : "✨ RULE CARD · changes how you play"), card.firstChild);
       if (b.requires) {
         // Parts: the blessings it combines, plus the building it needs (if any).
         const parts = comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "");
         if (b.needsBuilding) parts.push(BUILDING_ICON[b.needsBuilding] ?? "🏗️");
         card.insertBefore(el("div", "card-combo", `COMBO ${parts.join(" + ")}`), card.children[1] ?? null);
       }
-      if (pad) card.append(el("div", "card-key", ["◀", "▲", "▶"][i]!));
+      if (pad) card.append(el("div", "card-key", ["◀", "▲", "▶", "▼"][i]!));
       else if (FINE_POINTER) card.append(el("div", "card-key", String(i + 1)));
       // Ignore taps right after the screen appears so a walking thumb doesn't pick by accident.
       card.onclick = () => {

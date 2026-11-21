@@ -235,6 +235,11 @@ export const TOWER_SPECS: Record<TowerSpec, { name: string; icon: string; desc: 
   volley: { name: "Volley Archers", icon: "🏹", desc: "Each shot also hits 2 more foes nearby." },
 };
 /** Tuning for the specialisations. */
+/** Rule-changing blessings: tuning. */
+export const RICOCHET = { range: 110, damage: 0.6 };
+export const THORNS = { scale: 1 };
+export const WILDFIRE = { range: 55, dps: 0.8 };
+export const BANNER_R = 130;
 export const SPEC = { fireBurn: 0.45, fireTime: 3, frostSlow: 0.4, frostTime: 1.6, frostDmg: 0.9, volleyExtra: 2, volleyDmg: 0.55 };
 
 export interface Coin {
@@ -263,6 +268,9 @@ export interface Arrow {
   spec?: TowerSpec;
   /** Hawkeye: chance this tower arrow crits (towers normally can't). */
   crit?: number;
+  /** Ricochet: bounces left, and the foes already hit (no bouncing back). */
+  bounce?: number;
+  hit?: number[];
 }
 
 export interface Bolt {
@@ -314,6 +322,8 @@ export type CampEvent =
   /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
+  /** A rule-changing blessing fired (for its visual): ricochet, thorns, wildfire, cull, volley. */
+  | { type: "rule"; rule: "ricochet" | "thorns" | "wildfire" | "cull" | "volley"; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
   | { type: "towerStunned"; plot: string; x: number; y: number; frozen?: boolean }
   | { type: "frostNova"; x: number; y: number; r: number }
@@ -385,6 +395,8 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** Golden Volley: coins picked up toward the next ring of arrows. */
+  coinVolley: number;
   seed: number;
   rng: Rng;
   chapter: ChapterDef;
@@ -728,6 +740,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     heroLevel: 1,
     heroXp: 0,
     runStats: { breaches: 0, flyerHallDamage: 0, heroDeaths: 0, bosses: 0, dmg: {} },
+    coinVolley: 0,
     strikes: [],
     acid: [],
     crit: setup.critChance ?? 0.08,
@@ -869,7 +882,7 @@ function updateHero(c: Camp, input: CampInput): void {
     h.facing = Math.atan2(t.y - h.y, t.x - h.x);
     if (h.cooldown <= 0) {
       h.cooldown = 1 / (CAMP.heroFireRate * c.mods.heroRate);
-      const dmg = CAMP.heroDamage * c.mods.heroDamage * levelDamage(c);
+      const dmg = heroShotDamage(c);
       fireArrow(c, h, t, dmg, "hero");
       // Split shot: extra arrows at the next-nearest enemies.
       if (c.mods.heroMultishot > 0) {
@@ -1181,8 +1194,27 @@ function updateWorkers(c: Camp): void {
 // Towers & arrows
 
 function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec, crit?: number): void {
-  c.arrows.push({ id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}) });
+  const a: Arrow = { id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}) };
+  if (owner === "hero" && c.mods.ricochet > 0) a.bounce = c.mods.ricochet;
+  c.arrows.push(a);
   c.events.push({ type: "shoot", owner, x: from.x, y: from.y });
+}
+
+/** One hero arrow's base damage. */
+function heroShotDamage(c: Camp): number {
+  return CAMP.heroDamage * c.mods.heroDamage * levelDamage(c);
+}
+
+/** Golden Volley: a ring of hero arrows at the nearest foes around the hero. */
+function goldenVolley(c: Camp): void {
+  const h = c.hero;
+  const R = 240;
+  const near = c.enemies
+    .filter((e) => e.y >= SPAWN_Y + 10 && !(e.burrow && e.burrow > 0) && (e.x - h.x) ** 2 + (e.y - h.y) ** 2 < R * R)
+    .sort((a, b) => (a.x - h.x) ** 2 + (a.y - h.y) ** 2 - ((b.x - h.x) ** 2 + (b.y - h.y) ** 2))
+    .slice(0, 8);
+  c.events.push({ type: "rule", rule: "volley", x: h.x, y: h.y });
+  for (const e of near) fireArrow(c, h, e, heroShotDamage(c) * 1.5, "hero");
 }
 
 /** Tower damage scales gently with the chapter so towers stay relevant later on. */
@@ -1201,7 +1233,9 @@ function updateTowers(c: Camp): void {
     const wb = watchBoost(c, p);
     const range = st.range * c.mods.towerRange * (wb.clear ? 1 : weatherRange(c)) * wb.range;
     p.fired += STEP;
-    p.cooldown -= STEP * c.mods.towerRate * wb.rate * (c.overclock > 0 ? 2.5 : 1);
+    // Rallying Banner: towers near the (living) hero fire faster.
+    const rally = c.mods.banner > 1 && !c.hero.dead && (c.hero.x - p.x) ** 2 + (c.hero.y - p.y) ** 2 < BANNER_R * BANNER_R ? c.mods.banner : 1;
+    p.cooldown -= STEP * c.mods.towerRate * wb.rate * rally * (c.overclock > 0 ? 2.5 : 1);
     if (p.cooldown > 0) continue;
     // Nearest enemy to the wall within range.
     let best: Enemy | null = null;
@@ -1507,6 +1541,28 @@ function updateArrows(c: Camp): void {
       // Shieldbearers block arrows that hit them head-on (flying almost straight up the map).
       const blocked = t.def.shield && Math.sin(a.angle) < -0.85 ? SHIELD_BLOCK : 1;
       damageEnemy(c, t, a.damage * (crit ? 2 : 1) * blocked, a.owner, crit);
+      if (a.owner === "hero") {
+        // Culling Blade: hero arrows finish off weakened (non-boss) foes.
+        if (c.mods.cull > 0 && !t.def.boss && t.hp > 0 && t.hp < t.maxHp * c.mods.cull) {
+          credit(c, "hero", t.hp);
+          t.hp = 0;
+          c.events.push({ type: "rule", rule: "cull", x: t.x, y: t.y - t.def.radius });
+        }
+        // Ricochet: bounce on to the nearest foe not yet hit by this arrow.
+        if (a.bounce && a.bounce > 0) {
+          const hit = [...(a.hit ?? []), t.id];
+          let next: Enemy | null = null, bd = RICOCHET.range ** 2;
+          for (const e of c.enemies) {
+            if (hit.includes(e.id) || e.hp <= 0 || (e.burrow && e.burrow > 0)) continue;
+            const d = (e.x - t.x) ** 2 + (e.y - t.y) ** 2;
+            if (d < bd) { bd = d; next = e; }
+          }
+          if (next) {
+            c.arrows.push({ id: c.nextId++, x: t.x, y: t.y, target: next.id, damage: a.damage * RICOCHET.damage, owner: "hero", life: 1, angle: Math.atan2(next.y - t.y, next.x - t.x), bounce: a.bounce - 1, hit });
+            c.events.push({ type: "rule", rule: "ricochet", x: t.x, y: t.y });
+          }
+        }
+      }
       if (c.mods.burn > 0) {
         t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * c.mods.burn * c.mods.burnMult);
         t.burnTime = 2.5;
@@ -2002,7 +2058,18 @@ function updateEnemy(c: Camp, e: Enemy): void {
       e.exploded = true;
       return;
     }
-    attackTick(c, e, () => damageWall(c, seg, def.gateDamage));
+    attackTick(c, e, () => {
+      damageWall(c, seg, def.gateDamage);
+      // Thorn Walls: the blow comes back (scaled like tower damage so it stays relevant later).
+      if (c.mods.thorns > 0) {
+        damageEnemy(c, e, def.gateDamage * c.mods.thorns * THORNS.scale * towerScale(c), "thorns");
+        if (c.mods.thornSlow > 0) {
+          e.slowPct = Math.max(e.slowTime > 0 ? e.slowPct : 0, c.mods.thornSlow);
+          e.slowTime = Math.max(e.slowTime, 1.5);
+        }
+        c.events.push({ type: "rule", rule: "thorns", x: e.x, y: WALL_Y });
+      }
+    });
     return;
   }
 
@@ -2138,6 +2205,10 @@ function updateCoins(c: Camp): void {
         h.coins += 1;
         k.vz = -1; // mark collected
         c.events.push({ type: "coinPickup", x: k.x, y: k.y });
+        if (c.mods.coinVolley > 0 && ++c.coinVolley >= c.mods.coinVolley) {
+          c.coinVolley = 0;
+          goldenVolley(c);
+        }
       }
     }
   }
@@ -2290,6 +2361,17 @@ function reap(c: Camp): void {
       gainXp(c, e.def.boss ? 15 : Math.max(1, Math.round(e.def.cost)));
       if (e.def.boss) c.runStats.bosses += 1;
       if (gold) dropCoins(c, e.x, e.y, gold);
+      // Wildfire: a burning foe's fall sets its neighbours ablaze.
+      if (c.mods.wildfire > 0 && e.burnTime > 0 && e.burnDps > 0) {
+        let spread = 0;
+        for (const o of c.enemies) {
+          if (o.hp <= 0 || (o.x - e.x) ** 2 + (o.y - e.y) ** 2 > WILDFIRE.range ** 2) continue;
+          o.burnDps = Math.max(o.burnTime > 0 ? o.burnDps : 0, e.burnDps * WILDFIRE.dps);
+          o.burnTime = Math.max(o.burnTime, 2.5);
+          spread++;
+        }
+        if (spread) c.events.push({ type: "rule", rule: "wildfire", x: e.x, y: e.y });
+      }
       c.events.push({ type: "kill", x: e.x, y: e.y, enemy: e.def, gold, eid: e.id, ...(e.elite ? { elite: true } : {}) });
       if (e.elite === "splitting") {
         for (let i = 0; i < 2; i++) {

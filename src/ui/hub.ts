@@ -48,7 +48,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: s
 
 const DMG_LABEL: Record<string, [string, string]> = {
   towers: ["🏹", "Archer towers"], hero: ["🗡️", "Your hero"], catapults: ["🪨", "Catapults"], soldiers: ["⚔️", "Soldiers"],
-  mage: ["🔮", "Mage Tower"], fire: ["🔥", "Burning"], spikes: ["🪤", "Spike trap"], storm: ["⚡", "Lightning"], lava: ["🌋", "Lava"],
+  mage: ["🔮", "Mage Tower"], fire: ["🔥", "Burning"], spikes: ["🪤", "Spike trap"], storm: ["⚡", "Lightning"], lava: ["🌋", "Lava"], thorns: ["🌵", "Thorn walls"],
 };
 /** "Who did the work": the top three damage sources of a run with their share. */
 function damageBreakdown(dmg?: Record<string, number>): HTMLElement | null {

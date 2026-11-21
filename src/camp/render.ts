@@ -5,7 +5,7 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
-import { ACID, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
+import { ACID, BANNER_R, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -953,6 +953,23 @@ export class CampRenderer {
             fx.burst(ev.x, ev.y, "#c8f0ff", 6, 110, { max: 0.4, size: 2.4, gravity: 120, shape: "chunk" });
             fx.rings.push({ x: ev.x, y: ev.y, r: 16, color: "#9ae6ff", life: 0.25, max: 0.25, width: 2 });
           } else fx.burst(ev.x, ev.y, "#ffe08a", 3, 80, { max: 0.2, size: 2, shape: "spark" });
+          break;
+        case "rule":
+          // Rule-changing blessings: each gets its own small, readable flourish.
+          if (ev.rule === "ricochet") {
+            fx.burst(ev.x, ev.y, "#fff2b0", 3, 90, { max: 0.22, size: 2, shape: "spark" });
+            fx.rings.push({ x: ev.x, y: ev.y, r: 10, color: "#ffe08a", life: 0.18, max: 0.18, width: 1.5 });
+          } else if (ev.rule === "thorns") fx.burst(ev.x, ev.y - 6, "#8ad05a", 3, 100, { max: 0.3, size: 2.2, gravity: 160, shape: "chunk" });
+          else if (ev.rule === "wildfire") {
+            fx.rings.push({ x: ev.x, y: ev.y, r: 52, color: "#ff8a30", life: 0.35, max: 0.35, width: 3 });
+            fx.burst(ev.x, ev.y, "#ffb050", 8, 120, { max: 0.45, size: 2.6, gravity: -50, shape: "spark" });
+          } else if (ev.rule === "cull") {
+            fx.number(ev.x, ev.y - 8, "CULL", "#ff6a5a", 13, 0.6);
+            fx.burst(ev.x, ev.y, "#ff6a5a", 5, 110, { max: 0.3, size: 2.2, shape: "spark" });
+          } else if (ev.rule === "volley") {
+            fx.rings.push({ x: ev.x, y: ev.y - 12, r: 70, color: "#ffd84a", life: 0.45, max: 0.45, width: 4 });
+            fx.burst(ev.x, ev.y - 12, "#ffe680", 12, 160, { max: 0.5, size: 2.4, shape: "spark" });
+          }
           break;
         case "courier":
           // A coin arcs from the hall's pile to the King, homing on him as he moves.
@@ -5702,6 +5719,18 @@ fx.shake(0.15);
     ctx.beginPath();
     ctx.ellipse(x, y + 12, 30 * K, 11 * K, 0, 0, Math.PI * 2);
     ctx.fill();
+    // Rallying Banner: the reach in which towers fire faster, as a slow-turning dashed ring at night.
+    if (c.mods.banner > 1 && c.phase === "wave" && !h.dead) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,216,74,0.45)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 10]);
+      ctx.lineDashOffset = -this.time * 14;
+      ctx.beginPath();
+      ctx.arc(x, y + 6, BANNER_R, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
     // Arrival: the King falls from above in a beam of light (0.55 s), then lands with a thud.
     const ar = this.time - this.arriveAt;
     let drop = 0;
