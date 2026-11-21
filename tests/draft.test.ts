@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseBlessing, chooseBuilding, createCamp, step, type Camp } from "../src/camp/sim";
+import { BUILD_DRAFT, chooseBlessing, chooseBuilding, createCamp, step, type Camp } from "../src/camp/sim";
 import { CHAPTER_BY_ID } from "../src/core/chapters";
 
 const still = { move: { x: 0, y: 0 } };
@@ -12,7 +12,7 @@ function clearNight(c: Camp, wave: number): void {
   step(c, still);
 }
 
-describe("building draft", () => {
+describe.skipIf(!BUILD_DRAFT)("building draft", () => {
   it("several kinds opening at once become a choice; the chosen opens now, the rest next dawn", () => {
     const c = createCamp(3, CHAPTER_BY_ID[3]);
     clearNight(c, 3);
@@ -43,5 +43,15 @@ describe("building draft", () => {
     const daily = createCamp(3, CHAPTER_BY_ID[3], { classicBlessings: true });
     clearNight(daily, 3);
     expect(daily.buildChoice).toBeNull();
+  });
+});
+
+describe("building draft switched off", () => {
+  it("new buildings all open together and the dawn has one pick", () => {
+    if (BUILD_DRAFT) return;
+    const c = createCamp(3, CHAPTER_BY_ID[3]);
+    clearNight(c, 3);
+    expect(c.buildChoice).toBeNull();
+    expect(c.plots.filter((p) => p.unlockWave === 3).every((p) => !p.locked)).toBe(true);
   });
 });

@@ -324,6 +324,10 @@ export const TOWER_SPECS: Record<TowerSpec, { name: string; icon: string; desc: 
   volley: { name: "Volley Archers", icon: "🏹", desc: "Each shot also hits 2 more foes nearby." },
 };
 /** Tuning for the specialisations. */
+/** Building draft (pick which new building opens first). Off: the owner found two prompts per dawn
+ *  too much to read mid-game ("it was better before") — everything unlocks together again. */
+export const BUILD_DRAFT = false;
+
 /** Rule-changing blessings: tuning. */
 export const RICOCHET = { range: 110, damage: 0.6 };
 export const THORNS = { scale: 1 };
@@ -2699,7 +2703,7 @@ export function step(c: Camp, input: CampInput): void {
     // Siege Lord keep the fixed order.
     const due = c.plots.filter((p) => p.locked && p.unlockWave && c.wave >= p.unlockWave);
     const kinds = [...new Set(due.map((p) => p.kind))];
-    if (kinds.length >= 2 && !c.botDriven && !c.classicBlessings && !c.reverse) {
+    if (BUILD_DRAFT && kinds.length >= 2 && !c.botDriven && !c.classicBlessings && !c.reverse) {
       // At most three to choose from (anything beyond opens straight away).
       c.buildChoice = kinds.slice(0, 3);
       for (const p of due) if (!c.buildChoice.includes(p.kind)) unlockPlot(c, p);
