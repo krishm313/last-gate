@@ -383,7 +383,7 @@ function gable(w: number, d: number, h: number, mat: THREE.Material, y: number):
   m.position.y = y;
   root.add(m);
 }
-function cabin(): void {
+function cabin(level = 1): void {
   const W = 6.4, D = 4.2, H = 2.6;
   const logC = [0x8a5a30, 0x7a4e2a, 0x946236];
   // Walls of stacked horizontal logs (front/back along x, sides along z).
@@ -459,8 +459,9 @@ function cabin(): void {
   const head = mesh(new THREE.BoxGeometry(0.35, 0.22, 0.06), new THREE.MeshStandardMaterial({ color: 0xc8ccd4, metalness: 0.7, roughness: 0.3 }));
   head.position.set(-W / 2 - 1.12, 0.62, 1.6);
   root.add(head);
+  if (level >= 2) cabinExtras(level, W, D);
 }
-function tent(): void {
+function tent(level = 1): void {
   const W = 5.4, D = 4.4, H = 3.4;
   // Canvas: a ridge tent made of two sloped planes with stripes (vertex colours).
   const seg = 12;
@@ -522,8 +523,9 @@ function tent(): void {
     tip.position.set(sp.position.x - 0.1, 1.9, sp.position.z);
     root.add(tip);
   }
+  if (level >= 2) tentExtras(level, W, D, H);
 }
-function forge(): void {
+function forge(level = 1): void {
   const W = 5.6, D = 4.0, H = 2.6;
   const g = lumpy(new THREE.BoxGeometry(W, H, D, 4, 3, 3), 0.015, 4, false);
   const walls = mesh(shadeByHeight(g, 0xa29c92, 0.75, 1.05), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }));
@@ -549,10 +551,11 @@ function forge(): void {
   const anvil = mesh(new THREE.BoxGeometry(0.9, 0.35, 0.45), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.7, roughness: 0.4 }));
   anvil.position.set(1.4, 0.78, D / 2 + 1.0);
   root.add(anvil);
+  if (level >= 2) forgeExtras(W, D, H);
 }
 
 /** Catapult chassis: frame box on four spoked wheels and two A-frame uprights (arm drawn by the game). */
-function catapultBody(): void {
+function catapultBody(level = 1): void {
   const wood = (c: number) => std(c, 0.85);
   const frame = mesh(new THREE.BoxGeometry(3.4, 0.5, 2.2), wood(0x7a4e2a));
   frame.position.y = 0.9;
@@ -590,6 +593,245 @@ function catapultBody(): void {
   axle.rotation.x = Math.PI / 2;
   axle.position.set(0, 2.9, 0);
   root.add(axle);
+  if (level >= 2) catapultExtras(level);
+}
+
+const IRON = (): THREE.Material => new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.65, roughness: 0.4 });
+const GOLD = (): THREE.Material => new THREE.MeshStandardMaterial({ color: 0xf2c443, metalness: 0.8, roughness: 0.3, emissive: 0x5a3a00, emissiveIntensity: 0.3 });
+const FLAME = (c: number, e: number, k = 1.8): THREE.Material => new THREE.MeshStandardMaterial({ color: c, emissive: e, emissiveIntensity: k, roughness: 0.6 });
+
+/** Per-level catapult upgrades: iron-shod frame (2), stone ammo + reinforced uprights (3), Firestorm brazier and banner (4). */
+function catapultExtras(level: number): void {
+  // L2: iron bands across the frame and a pile of round shot.
+  for (const x of [-1.55, -0.5, 0.5, 1.55]) {
+    const band = mesh(new THREE.BoxGeometry(0.16, 0.6, 2.3), IRON());
+    band.position.set(x, 0.9, 0);
+    root.add(band);
+  }
+  const stone = (r: number, x: number, y: number, z: number): void => {
+    const m = mesh(lumpy(new THREE.IcosahedronGeometry(r, 2), 0.06), std(0x8e8a84, 0.95));
+    m.position.set(x, y, z);
+    root.add(m);
+  };
+  const sx = 2.5, sz = 0.7;
+  for (const [dx, dz] of [[0, 0], [0.62, 0], [0.31, 0.55], [0.31, -0.55]] as const) stone(0.32, sx + dx, 0.32, sz + dz);
+  stone(0.32, sx + 0.31, 0.82, sz);
+  if (level < 3) return;
+  // L3: a wicker-and-plank mantlet shield in front, iron-plated uprights and a blue pennant.
+  for (const x of [-0.75, 0.75])
+    for (const k of [-1, 1]) {
+      const plate = mesh(new THREE.BoxGeometry(0.36, 0.5, 0.36), IRON());
+      plate.position.set(x, 1.4, k * 0.6);
+      root.add(plate);
+    }
+  for (let k = 0; k < 5; k++) {
+    const plank = mesh(new THREE.BoxGeometry(0.42, 1.3, 0.12), std(k % 2 ? 0x8a5a30 : 0x7a4e2a, 0.85));
+    plank.position.set(-0.9 + k * 0.45, 0.65, 1.95);
+    plank.rotation.x = -0.18;
+    root.add(plank);
+  }
+  const strap = mesh(new THREE.BoxGeometry(2.3, 0.12, 0.14), IRON());
+  strap.position.set(0, 0.95, 1.92);
+  strap.rotation.x = -0.18;
+  root.add(strap);
+  if (level < 4) return;
+  // L4 (Firestorm): an iron fire-brazier with roaring flames and a red war banner.
+  const bx = -2.5, bz = 0.8;
+  const bowl = mesh(new THREE.CylinderGeometry(0.6, 0.34, 0.55, 14, 1, true), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.6, roughness: 0.45, side: THREE.DoubleSide }));
+  bowl.position.set(bx, 1.15, bz);
+  root.add(bowl);
+  for (const a of [0, 2.1, 4.2]) {
+    const leg = mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 6), IRON());
+    leg.position.set(bx + Math.cos(a) * 0.32, 0.5, bz + Math.sin(a) * 0.32);
+    root.add(leg);
+  }
+  const coals = mesh(new THREE.CircleGeometry(0.55, 14), FLAME(0x501008, 0xff5a10, 1.6));
+  coals.rotation.x = -Math.PI / 2;
+  coals.position.set(bx, 1.34, bz);
+  root.add(coals);
+  for (const [dx, dz, h] of [[0, 0, 1.1], [0.24, 0.14, 0.7], [-0.22, -0.12, 0.8], [0.1, -0.24, 0.6]] as const) {
+    const f = mesh(new THREE.ConeGeometry(0.22, h, 8), FLAME(0xffb030, 0xff7a10, 2.2));
+    f.position.set(bx + dx, 1.34 + h / 2, bz + dz);
+    root.add(f);
+  }
+  const pole = mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 8), std(0x5a3a1c));
+  pole.position.set(1.7, 2.7, -0.95);
+  root.add(pole);
+  const banner = mesh(new THREE.PlaneGeometry(0.9, 1.3), new THREE.MeshStandardMaterial({ color: 0xc8301e, side: THREE.DoubleSide, roughness: 0.8 }));
+  banner.position.set(2.17, 3.7, -0.95);
+  root.add(banner);
+  const mark = mesh(new THREE.CircleGeometry(0.24, 12), GOLD());
+  mark.position.set(2.17, 3.75, -0.93);
+  root.add(mark);
+}
+
+/** Per-level barracks: a second tent (2), shield rack + banner (3), gold trim and standard for Veterans (4). */
+function tentExtras(level: number, W: number, D: number, H: number): void {
+  // L2: a smaller sleeping tent behind (extruded triangular prism) and a training dummy.
+  const tri = new THREE.Shape();
+  const sd = D * 0.62, sh = H * 0.62;
+  tri.moveTo(-sd / 2, 0);
+  tri.lineTo(0, sh);
+  tri.lineTo(sd / 2, 0);
+  tri.lineTo(-sd / 2, 0);
+  const prism = new THREE.ExtrudeGeometry(tri, { depth: W * 0.6, bevelEnabled: false });
+  const back = mesh(prism, std(0xe2dac8, 0.9));
+  back.rotation.y = Math.PI / 2;
+  back.position.set(-W * 0.45, 0, -D * 0.85);
+  root.add(back);
+  const dummyPost = mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.8, 8), std(0x6a4426));
+  dummyPost.position.set(W / 2 + 1.1, 0.9, -1.0);
+  root.add(dummyPost);
+  const sack = mesh(lumpy(new THREE.CylinderGeometry(0.32, 0.36, 0.9, 10, 2), 0.05), std(0xc8a870, 0.95));
+  sack.position.set(W / 2 + 1.1, 1.5, -1.0);
+  root.add(sack);
+  const arm = mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.2, 6), std(0x6a4426));
+  arm.rotation.x = Math.PI / 2;
+  arm.position.set(W / 2 + 1.1, 1.55, -1.0);
+  root.add(arm);
+  if (level < 3) return;
+  // L3: round shields on a rack and a blue banner.
+  for (let k = 0; k < 3; k++) {
+    const sh = mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.08, 16), std(k === 1 ? 0x3a6ad0 : 0xa03a2a, 0.7));
+    sh.rotation.z = Math.PI / 2;
+    sh.rotation.y = Math.PI / 2;
+    sh.position.set(-W / 2 + 2.3 + k * 0.95, 0.75, D / 2 + 0.75);
+    root.add(sh);
+    const boss = mesh(new THREE.SphereGeometry(0.12, 10, 6), IRON());
+    boss.position.set(sh.position.x, 0.75, D / 2 + 0.82);
+    root.add(boss);
+  }
+  const bp = mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.6, 8), std(0x5a3a1c));
+  bp.position.set(-W / 2 - 0.5, 1.8, D / 2 - 0.3);
+  root.add(bp);
+  const ban = mesh(new THREE.PlaneGeometry(0.9, 1.4), new THREE.MeshStandardMaterial({ color: 0x3a6ad0, side: THREE.DoubleSide, roughness: 0.8 }));
+  ban.position.set(-W / 2 - 0.5, 2.7, D / 2 - 0.3 + 0.48);
+  ban.rotation.y = Math.PI / 2;
+  root.add(ban);
+  if (level < 4) return;
+  // L4 (Veterans): gilded ridge, gold edge trim and a crowned gold standard.
+  const ridge = mesh(new THREE.CylinderGeometry(0.1, 0.1, W + 0.3, 10), GOLD());
+  ridge.rotation.z = Math.PI / 2;
+  ridge.position.y = H + 0.04;
+  root.add(ridge);
+  for (const side of [-1, 1]) {
+    const hem = mesh(new THREE.BoxGeometry(W + 0.1, 0.14, 0.08), GOLD());
+    hem.position.set(0, 0.12, (side * D) / 2 + side * 0.02);
+    root.add(hem);
+  }
+  for (const ex of [-W / 2, W / 2])
+    for (const side of [-1, 1]) {
+      const len = Math.hypot(D / 2, H);
+      const edge = mesh(new THREE.BoxGeometry(0.1, len, 0.1), GOLD());
+      edge.position.set(ex, H / 2, (side * D) / 4);
+      edge.rotation.x = -side * Math.atan2(D / 2, H);
+      root.add(edge);
+    }
+  const crown = mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.26, 5, 1, true), new THREE.MeshStandardMaterial({ color: 0xf2c443, metalness: 0.8, roughness: 0.3, side: THREE.DoubleSide }));
+  crown.position.set(-W / 2 - 0.5, 3.75, D / 2 - 0.3);
+  root.add(crown);
+}
+
+/** Per-level lumber camp: sawhorse and a second woodpile (2), lean-to shed with a handcart (3). */
+function cabinExtras(level: number, W: number, D: number): void {
+  const logC = [0x8a5a30, 0x7a4e2a, 0x946236];
+  const log = (x: number, y: number, z: number, len: number, along: "x" | "z", c: number): void => {
+    const lg = mesh(new THREE.CylinderGeometry(0.2, 0.2, len, 10), std(logC[c % 3]!, 0.85));
+    if (along === "x") lg.rotation.z = Math.PI / 2;
+    else lg.rotation.x = Math.PI / 2;
+    lg.position.set(x, y, z);
+    root.add(lg);
+  };
+  // L2: a sawhorse with a half-cut log out front, and a tall second stack at the front-left corner.
+  const hx = -1.6, hz = D / 2 + 1.5;
+  for (const dx of [-0.6, 0.6])
+    for (const k of [-1, 1]) {
+      const leg = mesh(new THREE.BoxGeometry(0.1, 1.0, 0.1), std(0x6a4426));
+      leg.position.set(hx + dx, 0.45, hz + k * 0.18);
+      leg.rotation.x = k * 0.35;
+      root.add(leg);
+    }
+  log(hx, 0.98, hz, 2.2, "x", 1);
+  const saw = mesh(new THREE.BoxGeometry(0.9, 0.22, 0.03), new THREE.MeshStandardMaterial({ color: 0xc8ccd4, metalness: 0.7, roughness: 0.3 }));
+  saw.position.set(hx + 0.3, 1.3, hz);
+  saw.rotation.z = 0.5;
+  root.add(saw);
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 4 - r; k++) log(-W / 2 + 0.4 + k * 0.42 + r * 0.21, 0.2 + r * 0.36, D / 2 + 0.6, 1.0, "z", k + r + 1);
+  if (level < 3) return;
+  // L3: a lean-to shed against the right gable end, full of split logs, and a loaded handcart.
+  const lx = W / 2 + 0.3, depth = 1.8;
+  for (const z of [-D / 2 + 0.2, 0.1]) {
+    const p = mesh(new THREE.BoxGeometry(0.18, 1.7, 0.18), std(0x6a4426));
+    p.position.set(lx + depth, 0.85, z);
+    root.add(p);
+  }
+  const roof = mesh(new THREE.BoxGeometry(depth + 0.5, 0.1, D / 2 + 0.6), std(0x6c4226, 0.92));
+  roof.position.set(lx + depth / 2, 1.95, -D / 4 - 0.05);
+  roof.rotation.z = -0.3;
+  root.add(roof);
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 5; k++) log(lx + 0.3 + k * 0.32, 0.2 + r * 0.36, -D / 4, D / 2 - 0.2, "z", k + r);
+  const cx = 1.9, cz = D / 2 + 1.7;
+  const bed = mesh(new THREE.BoxGeometry(1.7, 0.45, 1.0), std(0x7a4e2a));
+  bed.position.set(cx, 0.75, cz);
+  root.add(bed);
+  for (const k of [-1, 1]) {
+    const wheel = mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.12, 16), std(0x5a3a1e));
+    wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(cx, 0.48, cz + k * 0.58);
+    root.add(wheel);
+  }
+  for (const k of [-1, 1]) {
+    const shaft = mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.4, 6), std(0x6a4426));
+    shaft.rotation.z = Math.PI / 2 - 0.25;
+    shaft.position.set(cx - 1.4, 0.65, cz + k * 0.35);
+    root.add(shaft);
+  }
+  for (let r = 0; r < 2; r++) for (let k = 0; k < 3 - r; k++) log(cx, 1.15 + r * 0.36, cz - 0.3 + k * 0.3 + r * 0.15, 1.6, "x", k + r);
+}
+
+/** Forge level 2: a second, roaring chimney, bellows, a weapon rack and quench barrel. */
+function forgeExtras(W: number, D: number, H: number): void {
+  const chim = mesh(lumpy(new THREE.BoxGeometry(0.7, 2.0, 0.7, 2, 3, 2), 0.02, 4, false), std(0x7a746a, 0.95));
+  chim.position.set(-W / 2 + 1.0, H + 1.2, 0.5);
+  root.add(chim);
+  const glow = mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), FLAME(0x401008, 0xff6a10, 2.2));
+  glow.position.set(-W / 2 + 1.0, H + 2.22, 0.5);
+  root.add(glow);
+  for (const [dx, h] of [[0, 0.8], [0.15, 0.5], [-0.14, 0.55]] as const) {
+    const f = mesh(new THREE.ConeGeometry(0.18, h, 8), FLAME(0xffb030, 0xff7a10, 2.2));
+    f.position.set(-W / 2 + 1.0 + dx, H + 2.26 + h / 2, 0.5);
+    root.add(f);
+  }
+  const mouth2 = mesh(new THREE.BoxGeometry(1.0, 0.8, 0.1), FLAME(0x2a1408, 0xff8a30, 1.8));
+  mouth2.position.set(0.6, 0.6, D / 2 + 0.02);
+  root.add(mouth2);
+  // Bellows: leather wedge on a frame beside the furnace.
+  const bel = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.3, 3), std(0x6a3a1e, 0.8));
+  bel.rotation.x = Math.PI / 2;
+  bel.position.set(-W / 2 - 0.6, 0.7, D / 2 - 0.4);
+  root.add(bel);
+  // Weapon rack with swords along the side.
+  const rail = mesh(new THREE.BoxGeometry(0.12, 0.12, 2.0), std(0x6a4426));
+  rail.position.set(W / 2 + 0.6, 1.4, 0.4);
+  root.add(rail);
+  for (let k = 0; k < 4; k++) {
+    const blade = mesh(new THREE.BoxGeometry(0.05, 1.3, 0.14), new THREE.MeshStandardMaterial({ color: 0xd8dce4, metalness: 0.8, roughness: 0.25 }));
+    blade.position.set(W / 2 + 0.66, 0.8, -0.4 + k * 0.5);
+    root.add(blade);
+    const guard = mesh(new THREE.BoxGeometry(0.08, 0.06, 0.4), GOLD());
+    guard.position.set(W / 2 + 0.66, 1.48, -0.4 + k * 0.5);
+    root.add(guard);
+  }
+  // Quench barrel.
+  const barrel = mesh(new THREE.CylinderGeometry(0.42, 0.38, 0.9, 14), std(0x7a4e2a));
+  barrel.position.set(2.5, 0.45, D / 2 + 0.9);
+  root.add(barrel);
+  for (const y of [0.15, 0.75]) {
+    const hoop = mesh(new THREE.TorusGeometry(0.42, 0.03, 6, 16), IRON());
+    hoop.rotation.x = Math.PI / 2;
+    hoop.position.set(2.5, y, D / 2 + 0.9);
+    root.add(hoop);
+  }
 }
 
 /** Enemy battering ram: covered wagon (red horde hide roof) with an iron-capped log pointing at the camera. */
@@ -1531,6 +1773,19 @@ function stakeModel(iron: boolean): void {
     forge();
     root.rotation.y = 0.5;
   },
+  catapult1: () => { catapultBody(1); root.rotation.y = -0.35; },
+  catapult2: () => { catapultBody(2); root.rotation.y = -0.35; },
+  catapult3: () => { catapultBody(3); root.rotation.y = -0.35; },
+  catapult4: () => { catapultBody(4); root.rotation.y = -0.35; },
+  cabin1: () => { cabin(1); root.rotation.y = -0.55; },
+  cabin2: () => { cabin(2); root.rotation.y = -0.55; },
+  cabin3: () => { cabin(3); root.rotation.y = -0.55; },
+  tent1: () => { tent(1); root.rotation.y = -Math.PI / 2 + 0.75; },
+  tent2: () => { tent(2); root.rotation.y = -Math.PI / 2 + 0.75; },
+  tent3: () => { tent(3); root.rotation.y = -Math.PI / 2 + 0.75; },
+  tent4: () => { tent(4); root.rotation.y = -Math.PI / 2 + 0.75; },
+  forge1: () => { forge(1); root.rotation.y = 0.5; },
+  forge2: () => { forge(2); root.rotation.y = 0.5; },
   watch1: () => { watchtowerModel(1); root.rotation.y = -0.4; },
   watch2: () => { watchtowerModel(2); root.rotation.y = -0.4; },
   watch3: () => { watchtowerModel(3); root.rotation.y = -0.4; },

@@ -487,7 +487,7 @@ export function drawBarracks(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plo
   ctx.translate(x, y + 18);
   ctx.transform(1, 0, -gust * 0.03, 1 - Math.abs(gust) * 0.01, 0, 0);
   ctx.translate(-x, -(y + 18));
-  const drew = buildingSprite(ctx, "tent", x, y + 18);
+  const drew = buildingSprite(ctx, `tent${Math.max(1, Math.min(4, p.level))}`, x, y + 18);
   ctx.restore();
   if (drew) {
     ctx.restore();
@@ -597,7 +597,7 @@ export function drawCatapult(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plo
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2;
   ctx.lineJoin = "round";
-  const body3d = buildingSprite(ctx, "catapult", x, y + 14);
+  const body3d = buildingSprite(ctx, `catapult${Math.max(1, Math.min(4, p.level))}`, x, y + 14);
   if (!body3d) {
   softShadow(ctx, x + 10, y + 18, 40, 12, 0.34);
   // A spoked wheel seen nearly side-on: dark rim, lit hub, spokes that jolt when it fires.
@@ -771,7 +771,7 @@ export function drawLumberCamp(env: DrawEnv, ctx: CanvasRenderingContext2D, p: P
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2;
   ctx.lineJoin = "round";
-  if (buildingSprite(ctx, "cabin", x, y + 20)) {
+  if (buildingSprite(ctx, `cabin${Math.max(1, Math.min(3, p.level))}`, x, y + 20)) {
     // Thin wood smoke from the stone chimney at the back.
     chimneySmoke(ctx, x + CABIN_CHIMNEY.x, y + CABIN_CHIMNEY.y, env.time + 3.7, 0.8, 0x9a, env.gustAt(x));
     ctx.restore();
@@ -873,7 +873,7 @@ export function drawForge(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp, 
   ctx.translate(-x, -(y + 20));
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2;
-  if (buildingSprite(ctx, "forge", x, y + 22)) {
+  if (buildingSprite(ctx, `forge${Math.max(1, Math.min(2, p.level))}`, x, y + 22)) {
     // Animated life on top of the 3D smithy: chimney smoke, the smith hammering, sparks.
     chimneySmoke(ctx, x + FORGE_FX.smokeX, y + FORGE_FX.smokeY, env.time, working ? 1 : 0.35, 0x5a, env.gustAt(x));
     // The smith (rendered character) works the anvil; sparks fly on the downstroke.
