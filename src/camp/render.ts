@@ -4646,6 +4646,57 @@ fx.shake(0.15);
     });
   }
 
+  /** Boss special telegraph: in the last 0.9 s before a summon / second-phase power / frost nova, the
+   *  area it will cover fills in from the boss outward and a "!" pops over its head. */
+  private drawBossTell(ctx: CanvasRenderingContext2D, e: Enemy): void {
+    const W = 0.9;
+    const d = e.def;
+    let left = Infinity, r = 0, col = "";
+    const consider = (t: number | undefined, rad: number, c: string) => {
+      if (t !== undefined && t > 0 && t < W && t < left) { left = t; r = rad; col = c; }
+    };
+    if (d.summon) consider(e.abilityTimer, d.radius * 2.6, "176,112,255");
+    const P2: Record<string, string> = { slam: "255,120,60", warcry: "255,80,80", boulders: "200,150,90", curse: "150,255,120", eruption: "255,90,30", tide: "90,180,255", bloodmoon: "230,30,50", graverise: "184,154,255" };
+    if (d.phase2 && e.enraged && d.phase2.every > 0) consider(e.phaseTimer, Math.min(240, Math.max(d.radius * 2.6, d.phase2.radius)), P2[d.phase2.kind] ?? "255,120,60");
+    if (d.frostNova && e.enraged) consider(e.novaTimer, Math.min(260, d.frostNova.radius), "154,230,255");
+    if (!col) return;
+    const u = 1 - left / W; // 0 → 1 as it comes due
+    const ease = 1 - (1 - u) ** 3;
+    const gy = e.y + d.radius * 0.6;
+    ctx.save();
+    // The target area: a soft fill growing out from the boss, and its edge as a ring that brightens.
+    ctx.fillStyle = `rgba(${col},${(0.14 + 0.2 * u).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(e.x, gy, r * ease, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${col},${(0.55 + 0.45 * u).toFixed(3)})`;
+    ctx.lineWidth = 3 + u * 3;
+    ctx.setLineDash([10, 7]);
+    ctx.lineDashOffset = -this.time * 40;
+    ctx.beginPath();
+    ctx.arc(e.x, gy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // "!" over the head: pops in with an overshoot, then throbs.
+    const pop = u < 0.25 ? 1 + 1.6 * (u / 0.25 - 1) ** 3 + 0.6 * (u / 0.25 - 1) ** 2 : 1 + Math.sin(this.time * 20) * 0.08;
+    const hx = e.x, hy = e.y - d.radius * 2.6 - 10;
+    ctx.translate(hx, hy);
+    ctx.scale(pop, pop);
+    ctx.fillStyle = `rgb(${col})`;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = `900 22px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("!", 0, 1);
+    ctx.restore();
+  }
+
   /** Strike telegraph: in the last ~0.35 s before an enemy's blow lands, a red ring tightens under
    *  it and a glint flares on its weapon side, so incoming hits read before they connect. */
   private drawStrikeTell(ctx: CanvasRenderingContext2D, e: Enemy): void {
@@ -4696,6 +4747,7 @@ fx.shake(0.15);
       ctx.restore();
     }
     this.drawStrikeTell(ctx, e);
+    if (e.def.boss) this.drawBossTell(ctx, e);
     const id = e.def.id;
     const lunge = e.attacking ? Math.max(0, 1 - (e.def.attackInterval - e.attackTimer) / 0.2) : 0;
     const flash = e.flash > 0;
