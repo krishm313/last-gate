@@ -6,6 +6,7 @@ import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate, QUALITIES, type Quality } from "./settings";
 import { nextGoals } from "../core/goals";
+import { mastered, masteryGoals, masteryPerk } from "../core/mastery";
 import { cleanHeat, HEAT_BY_ID, HEATS, heatGold } from "../core/heat";
 import { WEEKLY, weeklyFor } from "../core/weekly";
 import { exportSave, importSave } from "./save";
@@ -1294,6 +1295,7 @@ export class Hub {
       else if (!unlocked) card.onclick = () => this.denied(card);
       body.append(card);
       if (selected) body.append(this.vetLookRow(save, h.id));
+      if (selected) body.append(this.masteryPanel(save, h.id));
       if (selected) skills = this.skillPanel(save, h.id);
       // The skill tree goes after the selected hero, or after the newly unlocked ones if any.
       if (skills && (lastFresh ? h.id === lastFresh : selected)) { body.append(skills); skills = null; }
@@ -1317,6 +1319,31 @@ export class Hub {
       this.cb.onHeroLook?.(id, !on);
     };
     return b;
+  }
+
+  /** Hero mastery: three goals, then the capstone (an empowered ability). */
+  private masteryPanel(save: SaveData, hero: HeroId): HTMLElement {
+    const done = mastered(save, hero);
+    const box = el("div", `lgs-panel lgy-panel${done ? " done" : ""}`);
+    const goals = masteryGoals(save, hero);
+    const n = goals.filter((g) => g.cur >= g.goal).length;
+    const head = el("div", "lgs-head");
+    head.append(el("div", "lgs-title", done ? "🏅 Mastered!" : "🏅 Mastery"), el("div", `lgs-pts${done ? " has" : ""}`, `${n} / 3`));
+    box.append(head);
+    for (const g of goals) {
+      const ok = g.cur >= g.goal;
+      const row = el("div", `lgy-row${ok ? " ok" : ""}`);
+      const bar = el("div", "lgg-bar");
+      const fill = el("i", "");
+      fill.style.width = `${Math.min(100, (g.cur / g.goal) * 100)}%`;
+      bar.append(fill);
+      const mid = el("div", "lgg-mid");
+      mid.append(el("div", "lgg-text", `${g.icon} ${g.text}`), bar);
+      row.append(mid, el("div", "lgy-num", ok ? "✔" : `${Math.min(g.cur, g.goal)} / ${g.goal}`));
+      box.append(row);
+    }
+    box.append(el("div", "lgy-perk", `${done ? "⚡ Active:" : "🔒 Reward:"} ${masteryPerk(hero)}`));
+    return box;
   }
 
   /** Cosmetic hero flair: a trail or halo worn by whichever hero you play. */

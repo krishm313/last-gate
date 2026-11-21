@@ -1,5 +1,6 @@
 import { HERO_BY_ID, vetLookOn, type HeroId } from "../core/heroes";
 import { ASCEND, type SaveData } from "../core/meta";
+import { MASTERY, mastered } from "../core/mastery";
 import { skillMods } from "../core/skills";
 import { activeFlair } from "../core/flair";
 import { baseMods } from "./blessings";
@@ -61,6 +62,11 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   s.heroFlair = activeFlair(save);
   s.ability = HERO_BY_ID[hero].ability;
   s.abilityCooldown = HERO_BY_ID[hero].cooldown;
+  // Hero mastery capstone: an empowered ability that recharges faster.
+  if (mastered(save, hero)) {
+    s.abilityPower = MASTERY.power;
+    s.abilityCooldown *= MASTERY.cooldown;
+  }
   // Hero skill tree.
   const k = skillMods(save.heroes?.[hero]?.skills ?? []);
   m.heroDamage *= k.heroDamage;

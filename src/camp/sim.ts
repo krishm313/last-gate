@@ -542,6 +542,8 @@ export interface Camp {
   crit: number;
   ability: AbilityId;
   abilityCooldown: number;
+  /** Hero mastery: ability strength multiplier. */
+  abilityPower: number;
   /** 0..1, usable at 1 (charges during waves). */
   abilityCharge: number;
   overclock: number;
@@ -725,6 +727,8 @@ export interface CampSetup {
   critChance?: number;
   ability?: AbilityId;
   abilityCooldown?: number;
+  /** Hero mastery: ability strength multiplier (1 = normal). */
+  abilityPower?: number;
   /** Extra enemy HP multiplier (daily twists). */
   enemyHpMult?: number;
   eliteChance?: number;
@@ -819,6 +823,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     heroVet: setup.heroVet ?? false,
     ability: setup.ability ?? "arrowRain",
     abilityCooldown: setup.abilityCooldown ?? 18,
+    abilityPower: setup.abilityPower ?? 1,
     abilityCharge: 0.6,
     overclock: 0,
     bloodmoon: 0,
@@ -1391,19 +1396,21 @@ export function abilityReady(c: Camp): boolean {
 
 function useAbility(c: Camp): void {
   const h = c.hero;
-  const dmg = CAMP.heroDamage * c.mods.heroDamage * levelDamage(c);
+  const P = c.abilityPower;
+  const dmg = CAMP.heroDamage * c.mods.heroDamage * levelDamage(c) * P;
   c.abilityCharge = 0;
   switch (c.ability) {
     case "arrowRain": {
       // Arrows rain on enemies near the hero (or anywhere if none are near).
       const near = c.enemies.filter((e) => Math.hypot(e.x - h.x, e.y - h.y) < 340);
       const pool = near.length ? near : c.enemies;
-      for (let i = 0; i < 30; i++) {
+      // (Mastery: more arrows, each at normal strength.)
+      for (let i = 0, n = Math.round(30 * P); i < n; i++) {
         const e = pool.length ? pool[Math.floor(range(c.rng, 0, pool.length))]! : null;
         const t = 0.3 + range(c.rng, 0, 1.1);
         const x = e ? e.x + range(c.rng, -10, 10) : h.x + range(c.rng, -150, 150);
         const y = e ? e.y + (e.attacking ? 0 : enemySpeed(c, e) * t) : h.y - range(c.rng, 60, 260);
-        c.strikes.push({ x, y, t, total: t, damage: dmg * 2.5 });
+        c.strikes.push({ x, y, t, total: t, damage: (dmg / P) * 2.5 });
       }
       break;
     }
@@ -1436,15 +1443,15 @@ function useAbility(c: Camp): void {
       c.events.push({ type: "boom", x: h.x, y: h.y, r: 150, kind: "nova" });
       break;
     case "overclock":
-      c.overclock = 5;
+      c.overclock = 5 * P;
       break;
     case "snare": {
       // Snare Field: vines root everything near the Warden; rooted foes are easier to hurt.
       let n = 0;
       for (const e of c.enemies) {
         if (e.def.flying || Math.hypot(e.x - h.x, e.y - h.y) > SNARE.radius) continue;
-        e.stunTime = Math.max(e.stunTime, e.def.boss ? SNARE.bossTime : SNARE.time);
-        e.snared = SNARE.time;
+        e.stunTime = Math.max(e.stunTime, (e.def.boss ? SNARE.bossTime : SNARE.time) * P);
+        e.snared = SNARE.time * P;
         n++;
       }
       c.events.push({ type: "boom", x: h.x, y: h.y, r: SNARE.radius, kind: "snare", n });
@@ -1466,22 +1473,23 @@ function useAbility(c: Camp): void {
     }
     case "callToArms": {
       // Militia fall in around the Marshal and hold that spot (they reach over the wall at the gate).
-      for (let i = 0; i < MILITIA.count; i++) {
-        const a = (i / MILITIA.count) * Math.PI * 2 + Math.PI / 4;
+      const nMil = Math.round(MILITIA.count * P);
+      for (let i = 0; i < nMil; i++) {
+        const a = (i / nMil) * Math.PI * 2 + Math.PI / 4;
         const px = Math.max(60, Math.min(MAP_W - 60, h.x + Math.cos(a) * 54));
         const py = Math.max(WALL_Y + 24, h.y + Math.sin(a) * 36);
         const hp = Math.round(MILITIA.hp * c.mods.allyPower);
         c.allies.push({ id: c.nextId++, x: h.x, y: h.y, hp, maxHp: hp, cooldown: i * 0.15, postX: px, postY: py, respawn: 0, facing: -Math.PI / 2, swinging: 0, temp: MILITIA.life });
       }
-      c.events.push({ type: "callToArms", x: h.x, y: h.y, n: MILITIA.count });
+      c.events.push({ type: "callToArms", x: h.x, y: h.y, n: nMil });
       break;
     }
     case "sanctuary": {
       // Heal everything on our side; keep the charge if nothing is hurt.
       let healed = 0;
       const mend = (hp: number, max: number, amt: number) => { const n = Math.min(max - hp, amt); healed += n; return hp + n; };
-      c.hallHp = mend(c.hallHp, c.hallMaxHp, c.hallMaxHp * SANCTUARY.hall);
-      for (const sg of c.segments) if (sg.hp > 0) sg.hp = mend(sg.hp, sg.maxHp, sg.maxHp * SANCTUARY.wall);
+      c.hallHp = mend(c.hallHp, c.hallMaxHp, c.hallMaxHp * SANCTUARY.hall * P);
+      for (const sg of c.segments) if (sg.hp > 0) sg.hp = mend(sg.hp, sg.maxHp, sg.maxHp * SANCTUARY.wall * P);
       h.hp = mend(h.hp, h.maxHp, h.maxHp);
       for (const a of c.allies) if (a.respawn <= 0) a.hp = mend(a.hp, a.maxHp, a.maxHp);
       if (healed < 1) {

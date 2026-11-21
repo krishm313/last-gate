@@ -39,6 +39,7 @@ import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
 import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS, starsFor } from "../core/meta";
 import { buyFlair } from "../core/flair";
+import { heroWins } from "../core/mastery";
 import { cleanHeat, HEAT_BY_ID, heatAllowed, heatGold } from "../core/heat";
 import { recordWeekly, WEEKLY, weeklyFor, weeklyReward, type Gauntlet } from "../core/weekly";
 import { Hub } from "../ui/hub";
@@ -1040,7 +1041,10 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   const pts = grantHeroXp(save, heroId, nightsThisRun);
   const rec = { date: todayString(), hero: heroId, won, nights: nightsThisRun, kills: c.kills, minutes: Math.round((c.time / 60) * 10) / 10 };
   newSkillPoints = pts > 0 ? { hero: HERO_BY_ID[heroId].name, n: pts } : null;
-  if (won) save.stats[`won_${heroId}`] = 1;
+  if (won) {
+    save.stats[`won_${heroId}`] = 1;
+    save.stats[`wins_${heroId}`] = heroWins(save, heroId) + 1;
+  }
   nightsThisRun = 0;
   if (dailyRun) return finishDaily(c, won, abandoned, dailyRun, rec);
   if (weeklyRun) return finishWeekly(c, won, abandoned, weeklyRun, rec);

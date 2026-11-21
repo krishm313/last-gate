@@ -1504,3 +1504,12 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgb-note { margin: calc(-6 * var(--u)) 0 calc(8 * var(--u)); font-weight: 700; font-size: calc(11 * var(--tu)); color: #cfd8f0; }
 .lgb-card { --rc: #8ad05a; --rg: #8ad05a66; }
 .lgb-card .card-rarity { background: #5a9a3a; color: #fff; }
+
+/* Heroes tab: mastery goals and capstone. */
+.lgy-panel.done { box-shadow: 0 0 0 calc(2 * var(--u)) #ffd84a, 0 0 calc(14 * var(--u)) #ffd84a55; }
+.lgy-panel.done .lgs-title { color: #ffe27a; animation: lgh-glow 2s ease-in-out infinite; }
+.lgy-row { display: flex; align-items: center; gap: calc(8 * var(--u)); margin-top: calc(6 * var(--u)); }
+.lgy-row.ok .lgg-text { color: #b8f060; }
+.lgy-num { flex: none; font-weight: 900; font-size: calc(11 * var(--tu)); color: #cfe0ff; min-width: calc(48 * var(--u)); text-align: right; }
+.lgy-row.ok .lgy-num { color: #b8f060; }
+.lgy-perk { margin-top: calc(8 * var(--u)); font-weight: 800; font-size: calc(11 * var(--tu)); color: #ffd84a; line-height: 1.3; }
