@@ -312,6 +312,15 @@ window.addEventListener("pointerdown", () => sfx.unlock(), { capture: true });
 
 // ---- Virtual joystick: touch anywhere, drag to move. Keyboard WASD/arrows also work. ----
 const JOY_R = 48;
+/** Thumb stick response: a small dead zone (a resting thumb's jitter doesn't walk the hero) and full
+ *  speed a little before the rim, with a gentle ease in between for precise short steps. */
+function joyCurve(x: number, y: number): Vec {
+  const m = Math.hypot(x, y);
+  const DEAD = 0.1, FULL = 0.85;
+  if (m <= DEAD) return { x: 0, y: 0 };
+  const k = Math.min(1, (m - DEAD) / (FULL - DEAD)) ** 0.85;
+  return { x: (x / m) * k, y: (y / m) * k };
+}
 let joyId: number | null = null;
 let joyOrigin: Vec = { x: 0, y: 0 };
 let joyVec: Vec = { x: 0, y: 0 };
@@ -352,7 +361,7 @@ canvas.addEventListener("pointermove", (ev) => {
     dx = p.x - joyOrigin.x;
     dy = p.y - joyOrigin.y;
   }
-  joyVec = { x: dx / JOY_R, y: dy / JOY_R };
+  joyVec = joyCurve(dx / JOY_R, dy / JOY_R);
 });
 const endJoy = (ev: PointerEvent) => {
   if (ev.pointerId !== joyId) return;
