@@ -1053,17 +1053,29 @@ export class CampRenderer {
         case "coinSpend":
           if (this.flyers.length < 40) this.flyers.push({ from: ev.from, to: ev.to, t: 0 });
           break;
-        case "build":
+        case "build": {
           this.builtAt.set(ev.plot, this.time);
-          fx.burst(ev.x, ev.y, "#ffe08a", 26, 220, { max: 0.6, size: 3.5, gravity: -30 });
+          const upgrade = ev.level > 1 && ev.kind !== "repair";
+          fx.burst(ev.x, ev.y, "#ffe08a", upgrade ? 34 : 26, upgrade ? 260 : 220, { max: 0.7, size: 3.5, gravity: -30 });
           fx.burst(ev.x, ev.y, "#c8a070", 14, 160, { max: 0.6, size: 4, gravity: 300, shape: "chunk" });
           fx.rings.push({ x: ev.x, y: ev.y, r: 70, color: "#ffe08a", life: 0.5, max: 0.5, width: 5 });
+          if (upgrade) {
+            // Workmen's dust: puffs burst from both sides as it crouches, a second, wider gold ring as
+            // it springs up, and a fountain of sparks off the top.
+            for (const side of [-1, 1]) fx.burst(ev.x + side * 30, ev.y + 8, "#f4ecd8", 6, 90, { max: 0.5, size: 6, gravity: -20, drag: 3, shape: "dot" });
+            fx.rings.push({ x: ev.x, y: ev.y - 10, r: 110, color: "#fff2b0", life: 0.7, max: 0.7, width: 3 });
+            fx.burst(ev.x, ev.y - 50, "#fff2b0", 18, 240, { max: 0.8, size: 2.6, gravity: 260, shape: "spark" });
+          }
           // High enough to clear the King's coin stack and tag while he stands on the plot.
-          fx.number(ev.x, ev.y - 112, ev.level === 1 && ev.kind !== "repair" ? "BUILT!" : ev.kind === "repair" ? "REPAIRED!" : "UPGRADED!", "#ffe66a", 20, 1.1);
-fx.shake(0.15);
+          const plot = this.lastCamp?.plots.find((q) => q.id === ev.plot);
+          const maxed = !!plot && plot.level >= plot.maxLevel;
+          const label = ev.kind === "repair" ? "REPAIRED!" : ev.level === 1 ? "BUILT!" : maxed ? `★ LV ${ev.level} MAX!` : `LV ${ev.level}!`;
+          fx.number(ev.x, ev.y - 112, label, maxed ? "#ffd23a" : "#ffe66a", upgrade ? 26 : 20, upgrade ? 1.3 : 1.1);
+          fx.shake(upgrade ? 0.22 : 0.15);
           // A low dust cloud rolls out from the base as the building lands at the end of its rise.
-          if (ev.kind !== "repair") this.buildDust.push({ x: ev.x, y: ev.y + 16, t: this.time + 0.3 });
+          if (ev.kind !== "repair") this.buildDust.push({ x: ev.x, y: ev.y + 16, t: this.time + (upgrade ? 0.14 : 0.3) });
           break;
+        }
         case "wallHit":
           this.waveHits += 1;
           this.segHitAt[ev.seg] = this.time;
@@ -6061,7 +6073,18 @@ fx.shake(0.15);
   }
 
   private drawHero(ctx: CanvasRenderingContext2D, c: Camp): void {
-    this.withCheer(ctx, 0, c.hero.x, c.hero.y + 12, () => this.drawHeroInner(ctx, c));
+    // Standing on a building that's just been built or upgraded: the hero turns see-through for the
+    // beat so the upgrade animation underneath isn't hidden by the King himself.
+    const h = c.hero;
+    const under = c.plots.find((p) => Math.abs(p.x - h.x) < CAMP.plotHalf && Math.abs(p.y - h.y) < CAMP.plotHalf);
+    const upT = under ? this.time - (this.builtAt.get(under.id) ?? -9) : 9;
+    const ghost = upT >= 0 && upT < 1.1 ? 0.35 + 0.65 * Math.max(0, (upT - 0.75) / 0.35) : 1;
+    if (ghost < 1) {
+      ctx.save();
+      ctx.globalAlpha *= ghost;
+      this.withCheer(ctx, 0, c.hero.x, c.hero.y + 12, () => this.drawHeroInner(ctx, c));
+      ctx.restore();
+    } else this.withCheer(ctx, 0, c.hero.x, c.hero.y + 12, () => this.drawHeroInner(ctx, c));
     if (!c.hero.dead && c.heroFlair !== "none") this.drawFlairFront(ctx, c, c.hero.x, c.hero.y);
     if (!c.hero.dead) this.drawCastFlourish(ctx, c.hero.x, c.hero.y);
   }

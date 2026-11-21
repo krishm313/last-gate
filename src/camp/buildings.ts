@@ -136,7 +136,7 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   const { x, y } = p;
   // Pop when just built/upgraded.
   const since = env.time - (env.builtAt.get(p.id) ?? -9);
-  const [sx, sy] = riseScale(since);
+  const [sx, sy] = riseScale(since, p.level);
   ctx.save();
   ctx.translate(x, y + 16);
   ctx.scale(sx, sy);
@@ -473,7 +473,7 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
 export function drawBarracks(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot): void {
   const { x, y } = p;
   const since = env.time - (env.builtAt.get(p.id) ?? -9);
-  const [sx, sy] = riseScale(since);
+  const [sx, sy] = riseScale(since, p.level);
   ctx.save();
   ctx.translate(x, y + 18);
   ctx.scale(sx, sy);
@@ -588,7 +588,7 @@ export function drawBarracks(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plo
 export function drawCatapult(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot): void {
   const { x, y } = p;
   const since = env.time - (env.builtAt.get(p.id) ?? -9);
-  const [sx, sy] = riseScale(since);
+  const [sx, sy] = riseScale(since, p.level);
   const recoil = Math.max(0, 1 - p.fired / 0.35);
   ctx.save();
   ctx.translate(x, y + 16);
@@ -763,7 +763,7 @@ function drawTorsion(ctx: CanvasRenderingContext2D, x: number, y: number, ink: b
 export function drawLumberCamp(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot): void {
   const { x, y } = p;
   const since = env.time - (env.builtAt.get(p.id) ?? -9);
-  const [sx, sy] = riseScale(since);
+  const [sx, sy] = riseScale(since, p.level);
   ctx.save();
   ctx.translate(x, y + 20);
   ctx.scale(sx, sy);
@@ -865,7 +865,7 @@ export function drawLumberCamp(env: DrawEnv, ctx: CanvasRenderingContext2D, p: P
 export function drawForge(env: DrawEnv, ctx: CanvasRenderingContext2D, c: Camp, p: Plot): void {
   const { x, y } = p;
   const since = env.time - (env.builtAt.get(p.id) ?? -9);
-  const [sx, sy] = riseScale(since);
+  const [sx, sy] = riseScale(since, p.level);
   const working = c.forgeLogs > 0 && c.forgeBows < 15;
   ctx.save();
   ctx.translate(x, y + 20);
@@ -1538,7 +1538,20 @@ export function outlined(ctx: CanvasRenderingContext2D, text: string, x: number,
  * Build / upgrade animation, applied around a building's base: it grows up out of the ground
  * (thin and tall first), overshoots, then settles with a little squash — instead of a flat pop.
  */
-export function riseScale(since: number): [number, number] {
+export function riseScale(since: number, level = 1): [number, number] {
+  // Upgrades (level 2+) don't regrow from the ground: the building crouches (anticipation), then
+  // springs up past full height and rings down to rest, keeping its volume (wider when squashed).
+  if (level > 1) {
+    const A = 0.12, T = 0.85;
+    if (since >= T || since < 0) return [1, 1];
+    let h: number;
+    if (since < A) h = 1 - 0.2 * Math.sin(((since / A) * Math.PI) / 2);
+    else {
+      const t = since - A;
+      h = 1 - 0.2 * Math.exp(-5.5 * t) * Math.cos(15 * t);
+    }
+    return [1 + (1 - h) * 0.55, h];
+  }
   const T = 0.55;
   if (since >= T || since < 0) return [1, 1];
   const t = since / T;
