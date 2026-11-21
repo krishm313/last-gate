@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
+import { PRE_MASTERY, CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
 
 /** Icons for buildings named in blessing requirements. */
 const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
@@ -29,7 +29,23 @@ const BUILD_INFO: Record<string, { name: string; desc: string }> = {
 };
 
 /** "Now → next" lines for the building the hero is standing on. */
+/** Mastery: what a building's top level adds (the level past its old max). */
+const BUILD_MASTERY_TEXT: Record<string, string> = {
+  catapult: "Firestorm Mastery — boulders set the whole splash ablaze",
+  mage: "Storm Mastery — the first foe struck is stunned (not bosses)",
+  spikes: "Iron Maw — deeper stakes: 30 dmg/s, slows 45%",
+};
+
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
+  const r = plotInfoBase(c, p);
+  const pre = PRE_MASTERY[p.kind];
+  if (pre === undefined || p.level < pre) return r;
+  const text = p.kind === "tower" ? MASTERY_TEXT[p.spec ?? "none"]! : BUILD_MASTERY_TEXT[p.kind];
+  if (!text) return r;
+  return { ...r, lines: [...r.lines, p.level > pre ? `★ Mastered: ${text}` : `★ Next: ${text}`] };
+}
+
+function plotInfoBase(c: Camp, p: Plot): { title: string; lines: string[] } {
   const next = plotMaxed(p) ? null : p.level + 1;
   const arrow = (a: string | number, b: string | number | null) => (b === null ? `${a}` : `${a} → ${b}`);
   switch (p.kind) {
@@ -44,7 +60,6 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
           `Damage ${arrow(cur.damage, nx?.damage ?? null)}`,
           `Archers ${arrow(cur.archers, nx?.archers ?? null)} · Range ${arrow(cur.range, nx?.range ?? null)}`,
           ...(sp ? [sp.desc] : p.level === 2 ? ["At Lv 3: choose Fire, Frost or Volley"] : []),
-          ...(next === 5 ? [`★ Next: ${MASTERY_TEXT[p.spec ?? "none"]}`] : p.level >= 5 ? [`★ Mastered: ${MASTERY_TEXT[p.spec ?? "none"]}`] : []),
           p.bows ? `Bows ${p.bows}/10 (+${p.bows * 6}% dmg)` : "Bring bows from the forge for +6% each",
         ],
       };

@@ -1,4 +1,4 @@
-import { carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, siegeRepairLocked, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
+import { PRE_MASTERY, carryCap, chooseBlessing, chooseTowerSpec, towersAwaitingSpec, LUMBER_PILE, type TowerSpec, plotCost, plotLogCost, plotMaxed, siegeRepairLocked, step, type Camp, type CampInput, type Plot, type Vec } from "./sim";
 import { GATE_SEGMENTS, INCOME_PILE, SEGMENT_W, WALL_Y } from "./world";
 
 const GATE_X = ((GATE_SEGMENTS[0]! + GATE_SEGMENTS[GATE_SEGMENTS.length - 1]! + 1) / 2) * SEGMENT_W;
@@ -47,7 +47,7 @@ export function campBotInput(c: Camp): CampInput {
   const towersBuilt = c.plots.filter((p) => p.kind === "tower" && p.level > 0).length;
   const candidates = c.plots.filter(
     // (Spec Mastery, a tower's 5th level, is a player's choice: the balance bot stops at level 4.)
-    (p) => !plotMaxed(p) && !(p.kind === "tower" && p.level >= 4) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
+    (p) => !plotMaxed(p) && !(PRE_MASTERY[p.kind] !== undefined && p.level >= PRE_MASTERY[p.kind]!) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
   );
   let target: Plot | undefined;
   const breached = c.segments.some((sg) => sg.hp <= 0);

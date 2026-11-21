@@ -1107,7 +1107,12 @@ fx.shake(0.15);
           }
           break;
         case "boom":
-          if (ev.kind === "boulder") {
+          if (ev.kind === "boulder" || ev.kind === "firestorm") {
+            // Firestorm Mastery: the boulder bursts into a ring of flame.
+            if (ev.kind === "firestorm") {
+              fx.rings.push({ x: ev.x, y: ev.y, r: ev.r * 1.1, color: "#ff7a2a", life: 0.45, max: 0.45, width: 6 });
+              fx.burst(ev.x, ev.y, "#ffb040", 14, 200, { max: 0.6, size: 3.2, gravity: -60, shape: "spark" });
+            }
             fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#c8a878", life: 0.35, max: 0.35, width: 5 });
             fx.burst(ev.x, ev.y, "#a08860", 16, 220, { max: 0.6, size: 4, gravity: 340, shape: "chunk" });
             fx.burst(ev.x, ev.y, "#6a6258", 6, 260, { max: 0.7, size: 5, gravity: 420, shape: "chunk" });

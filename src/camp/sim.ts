@@ -164,13 +164,19 @@ export interface Plot {
 }
 
 /** Spike trap: a strip of stakes in front of the gate that wounds and slows foes walking through. */
-export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps: [10, 16, 24], slow: [0.25, 0.3, 0.35] };
+export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps: [10, 16, 24, 30], slow: [0.25, 0.3, 0.35, 0.45] };
+/** Building masteries (top levels a balance bot never buys): catapult flames, mage stun. */
+export const BUILD_MASTERY = { catapultBurn: 0.35, catapultBurnTime: 3, mageStun: 0.5 };
+/** The level each building topped out at before its mastery level (the balance bot stops here). */
+export const PRE_MASTERY: Partial<Record<PlotKind, number>> = { tower: 4, catapult: 3, mage: 3, spikes: 3 };
 
 /** Mage tower: chain lightning that ignores armour (level 1..3). */
 export const MAGE_LEVELS = [
   { damage: 24, range: 300, every: 2.4, chains: 2 },
   { damage: 34, range: 320, every: 2.0, chains: 3 },
   { damage: 48, range: 340, every: 1.7, chains: 4 },
+  // level 4: Storm Mastery — the first foe struck is stunned for a moment
+  { damage: 52, range: 350, every: 1.6, chains: 5 },
 ];
 export const MAGE = { hop: 110, falloff: 0.8 };
 /** Banner-bearer aura (kept in one place so the sim and the renderer agree). */
@@ -455,7 +461,7 @@ export type CampEvent =
   | { type: "plotUnlocked"; label: string; x: number; y: number }
   | { type: "thief"; x: number; y: number }
   | { type: "thiefEscaped" }
-  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "snare"; n?: number }
+  | { type: "boom"; x: number; y: number; r: number; kind: "nova" | "bash" | "boulder" | "firestorm" | "snare"; n?: number }
   | { type: "lance"; x: number; y: number; x2: number; y2: number; n: number }
   | { type: "noTarget"; x: number; y: number; text?: string }
   | { type: "deploy"; id: EnemyId; lane: number; count: number }
@@ -567,7 +573,7 @@ export interface Camp {
   heroXp: number;
   /** Run stats for the end screen / loss tips. */
   runStats: { breaches: number; flyerHallDamage: number; heroDeaths: number; bosses: number; dmg: Record<string, number>; stuns?: number; fires?: number; burnTime?: number; tunnelers?: number; casts?: number; flares?: number };
-  strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number }[];
+  strikes: { x: number; y: number; t: number; total: number; damage: number; radius?: number; fromX?: number; fromY?: number; burn?: boolean }[];
   /** Acid pools (the Alchemist): `delay` until the flask lands, then `t` seconds left. */
   acid: { x: number; y: number; r: number; t: number; delay: number; dps: number; fromX: number; fromY: number }[];
   owned: Record<string, number>;
@@ -767,15 +773,15 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("lumber", "lumber", "Lumber Camp", 150, 850, [15, 40, 80], 3), locked: true, unlockWave: 1 },
     { ...makePlot("forge", "forge", "Forge", 580, 850, [30, 70], 2, [0, 8]), locked: true, unlockWave: 3 },
     { ...makePlot("barracks", "barracks", "Barracks", BARRACKS.x, BARRACKS.y, [35, 60, 100], 3, [4, 8, 12]), locked: true, unlockWave: 2 },
-    { ...makePlot("cat-1", "catapult", "Catapult", 230, WALL_Y + 215, [45, 80, 140], 3, [6, 10, 16]), locked: true, unlockWave: 4 },
-    { ...makePlot("cat-2", "catapult", "Catapult", 490, WALL_Y + 215, [45, 80, 140], 3, [6, 10, 16]), locked: true, unlockWave: 4 },
+    { ...makePlot("cat-1", "catapult", "Catapult", 230, WALL_Y + 215, [45, 80, 140, 220], 4, [6, 10, 16, 22]), locked: true, unlockWave: 4 },
+    { ...makePlot("cat-2", "catapult", "Catapult", 490, WALL_Y + 215, [45, 80, 140, 220], 4, [6, 10, 16, 22]), locked: true, unlockWave: 4 },
     { ...makePlot("hall", "hall", "Upgrade Hall", HALL.x - 130, HALL.y + 70, [60, 150], 2, [6, 16]), locked: true, unlockWave: 5 },
     { ...makePlot("tower-5", "tower", "Archer Tower", 170, towerY, [40, 70, 120, 200, 310], 5, [0, 0, 8, 14, 20]), locked: true },
     { ...makePlot("tower-6", "tower", "Archer Tower", 550, towerY, [40, 70, 120, 200, 310], 5, [0, 0, 8, 14, 20]), locked: true },
     makePlot("repair", "repair", "Repair Wall", 310, WALL_Y + 158, [15], 999),
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
-    { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
-    { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140], 3), locked: true, unlockWave: 4 },
+    { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90, 150], 4, [4, 8, 12, 18]), locked: true, unlockWave: 3 },
+    { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140, 230], 4, [0, 0, 0, 18]), locked: true, unlockWave: 4 },
     { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120], 3), locked: true, unlockWave: 5 },
     { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110], 2, [6, 12]), locked: true, unlockWave: 5 },
   ];
@@ -1559,6 +1565,8 @@ export const CATAPULT_LEVELS = [
   { damage: 26, radius: 46, interval: 3.6 },
   { damage: 40, radius: 52, interval: 3.2 },
   { damage: 60, radius: 58, interval: 2.8 },
+  // level 4: Firestorm Mastery — boulders burst into flame (burning everyone in the splash)
+  { damage: 66, radius: 62, interval: 2.7 },
 ];
 
 /** Catapults lob boulders at the densest enemy cluster outside the wall. */
@@ -1586,7 +1594,7 @@ function updateCatapults(c: Camp): void {
     }
     const flight = 1;
     const ty = best.y + (best.attacking ? 0 : enemySpeed(c, best) * flight);
-    c.strikes.push({ x: best.x, y: ty, t: flight, total: flight, damage: st.damage * c.mods.towerDamage * c.mods.catapultDamage * towerScale(c), radius: st.radius * Math.sqrt(c.mods.catapultDamage), fromX: p.x, fromY: p.y - 20 });
+    c.strikes.push({ x: best.x, y: ty, t: flight, total: flight, damage: st.damage * c.mods.towerDamage * c.mods.catapultDamage * towerScale(c), radius: st.radius * Math.sqrt(c.mods.catapultDamage), fromX: p.x, fromY: p.y - 20, ...(p.level >= 4 ? { burn: true } : {}) });
     p.facing = Math.atan2(ty - p.y, best.x - p.x);
     p.cooldown += st.interval;
     p.fired = 0;
@@ -1621,8 +1629,16 @@ function updateStrikes(c: Camp): void {
     st.t -= STEP;
     if (st.t > 0) continue;
     if (st.radius) {
-      for (const e of c.enemies) if (!e.def.flying && (e.x - st.x) ** 2 + (e.y - st.y) ** 2 < (st.radius + e.def.radius) ** 2) damageEnemy(c, e, st.damage, "tower", false, "catapults");
-      c.events.push({ type: "boom", x: st.x, y: st.y, r: st.radius, kind: "boulder" });
+      for (const e of c.enemies) {
+        if (e.def.flying || (e.x - st.x) ** 2 + (e.y - st.y) ** 2 >= (st.radius + e.def.radius) ** 2) continue;
+        damageEnemy(c, e, st.damage, "tower", false, "catapults");
+        // Firestorm Mastery: the splash sets everyone in it ablaze.
+        if (st.burn) {
+          e.burnDps = Math.max(e.burnTime > 0 ? e.burnDps : 0, st.damage * BUILD_MASTERY.catapultBurn);
+          e.burnTime = Math.max(e.burnTime, BUILD_MASTERY.catapultBurnTime);
+        }
+      }
+      c.events.push({ type: "boom", x: st.x, y: st.y, r: st.radius, kind: st.burn ? "firestorm" : "boulder" });
       continue;
     }
     let best: Enemy | null = null;
@@ -2353,6 +2369,8 @@ function updateMage(c: Camp): void {
     const points: Vec[] = [from];
     let dmg = st.damage * towerScale(c) * c.mods.mageDamage;
     for (let i = 0; i <= st.chains + c.mods.mageChains && cur; i++) {
+      // Storm Mastery: the first foe struck is stunned for a moment (bosses shrug it off).
+      if (i === 0 && p.level >= 4 && !cur.def.boss) cur.stunTime = Math.max(cur.stunTime, BUILD_MASTERY.mageStun);
       struck.add(cur);
       points.push({ x: cur.x, y: cur.y - cur.def.radius * 0.6 });
       // Arcane: armour doesn't help.
