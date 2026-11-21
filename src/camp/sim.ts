@@ -3,7 +3,7 @@ import { ENEMIES, type EnemyDef, type EnemyId } from "../core/enemies";
 import { chance, createRng, range, type Rng } from "../core/rng";
 import { enemyHp, planWave, type ChapterDef, type Spawn } from "../core/waves";
 import type { AbilityId } from "../core/heroes";
-import { BLESSING_BY_ID, baseMods, rollBlessings, type Blessing, type CampMods } from "./blessings";
+import { merchantPool, BLESSING_BY_ID, baseMods, rollBlessings, type Blessing, type CampMods } from "./blessings";
 import {
   FOREST_Y, GATE_SEGMENTS, HALL, HERO_SPAWN, INCOME_PILE, MAP_H, MAP_W, SEGMENTS, SPAWN_Y, STEP,
   WALL_THICK, WALL_Y, segmentCenter, segmentIndexAt,
@@ -213,6 +213,47 @@ export const NIGHT_EVENT_INFO: Record<NightEvent, { icon: string; name: string; 
 };
 export const NIGHT_EVENTS = { chance: 0.25, eliteChance: 0.2, eliteBonus: (wave: number) => 10 + 3 * wave, treasureGold: 2, swarmHp: 0.5, thiefAt: 14 };
 
+/** Daytime visitors: a Cursed Shrine (opt-in Elite Raid) or a Wandering Merchant selling one blessing. */
+export type VisitorKind = "shrine" | "merchant";
+export interface Visitor {
+  kind: VisitorKind;
+  x: number;
+  y: number;
+  /** Merchant: coins paid so far / the price; shrine: seconds stood on it. */
+  paid: number;
+  price: number;
+  stand: number;
+  /** Merchant: time banked toward the next coin. */
+  acc: number;
+  /** Merchant: the blessing on sale. */
+  offer: string | null;
+  done: boolean;
+}
+export const VISITOR = { chance: 0.3, spot: { x: 360, y: 872 }, radius: 36, shrineHold: 1.3, payEvery: 0.07 };
+const RARITY_PRICE: Record<string, [number, number]> = { common: [8, 1.5], rare: [12, 2], epic: [16, 3], legendary: [22, 4] };
+
+function hash01(seed: number, wave: number, salt: number): number {
+  let h = (seed * 2654435761 + wave * 40503 + salt * 2246822519) | 0;
+  h = Math.imul(h ^ (h >>> 15), 2654435761);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/** Tomorrow's visitor (or none), hashed from (seed, wave) — never touches the run's RNG. */
+export function rollVisitor(c: Camp): Visitor | null {
+  if (c.reverse || c.classicBlessings || c.chapter.id === 98 || c.wave < 2) return null;
+  if (!c.chapter.endless && c.wave >= c.chapter.waves.length - 1) return null; // not before the final night
+  const u = hash01(c.seed, c.wave, 7);
+  if (u >= VISITOR.chance) return null;
+  const base = { x: VISITOR.spot.x, y: VISITOR.spot.y, paid: 0, stand: 0, acc: 0, done: false };
+  if (u < VISITOR.chance * 0.45) return { ...base, kind: "shrine", price: 0, offer: null };
+  const pool = merchantPool(c.owned, new Set(c.plots.filter((p) => p.level > 0).map((p) => p.kind)));
+  if (!pool.length) return null;
+  const b = pool[Math.floor(hash01(c.seed, c.wave, 11) * pool.length)]!;
+  const [p0, pw] = RARITY_PRICE[b.rarity]!;
+  return { ...base, kind: "merchant", price: Math.round(p0 + pw * c.wave), offer: b.id };
+}
+
 /** Tonight's event (or none), hashed from (seed, wave) so it never touches the run's RNG stream. */
 export function rollNightEvent(seed: number, wave: number, ok: boolean): NightEvent | null {
   if (!ok || wave < 3) return null;
@@ -343,6 +384,8 @@ export type CampEvent =
   /** A tower reached the specialisation level: the player picks Fire / Frost / Volley. */
   | { type: "specChoice"; plot: string }
   | { type: "specHit"; spec: TowerSpec; x: number; y: number }
+  /** Visitors: arrived at dawn, accepted (shrine) / bought (merchant), left at nightfall. */
+  | { type: "visitor"; kind: VisitorKind; action: "arrive" | "accept" | "buy" | "leave"; x: number; y: number; id?: string }
   /** A rule-changing blessing fired (for its visual): ricochet, thorns, wildfire, cull, volley. */
   | { type: "rule"; rule: "ricochet" | "thorns" | "wildfire" | "cull" | "volley"; x: number; y: number }
   | { type: "spikeHit"; x: number; y: number }
@@ -416,6 +459,13 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** Today's visitor in camp (build phase only). */
+  visitor: Visitor | null;
+  /** The shrine was accepted: tonight is an Elite Raid, and the next pick adds a rule card. */
+  cursed: boolean;
+  shrineReward: boolean;
+  /** Set by the balance bot each step: visitors are a player's choice, so the bot never triggers them. */
+  botDriven?: boolean;
   /** Tonight's event (null on ordinary nights). */
   nightEvent: NightEvent | null;
   /** Treasure Night: whether the mid-night goblin has run yet. */
@@ -768,6 +818,9 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     coinVolley: 0,
     nightEvent: null,
     eventThief: false,
+    visitor: null,
+    cursed: false,
+    shrineReward: false,
     strikes: [],
     acid: [],
     crit: setup.critChance ?? 0.08,
@@ -938,6 +991,7 @@ function updateHero(c: Camp, input: CampInput): void {
 
   updateForgeHauling(c);
   updatePaying(c);
+  if (c.phase === "build") updateVisitor(c);
 }
 
 /** Buildings a Fire Imp goes for, and whether a building is on fire (out of action). */
@@ -2440,6 +2494,16 @@ function startWave(c: Camp): void {
   // Night events: never in dailies, Siege Lord or Boss Rush, nor on boss, breather or final nights.
   const finalNight = !c.chapter.endless && c.wave >= c.chapter.waves.length;
   c.nightEvent = rollNightEvent(c.seed, c.wave, !c.reverse && !c.classicBlessings && c.chapter.id !== 98 && !plan.boss && !plan.breather && !finalNight);
+  if (c.cursed) {
+    // The shrine's bargain: an Elite Raid tonight (on top of any boss), a rule card at dawn.
+    c.nightEvent = "elite";
+    c.cursed = false;
+    c.shrineReward = true;
+  }
+  if (c.visitor) {
+    c.events.push({ type: "visitor", kind: c.visitor.kind, action: "leave", x: c.visitor.x, y: c.visitor.y });
+    c.visitor = null;
+  }
   c.eventThief = false;
   // Elite Raid: fewer foes, but far more of them elite.
   if (c.nightEvent === "elite") c.queue = c.queue.filter((sp, i) => ENEMIES[sp.enemy].boss || i % 5 !== 4);
@@ -2569,7 +2633,8 @@ export function step(c: Camp, input: CampInput): void {
         c.events.push({ type: "plotUnlocked", label: p.label, x: p.x, y: p.y });
       }
     }
-    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings);
+    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings, c.shrineReward);
+    c.shrineReward = false;
     if (c.offers.length) {
       c.phase = "pick";
       c.events.push({ type: "offers" });
@@ -2581,6 +2646,41 @@ function beginBuild(c: Camp): void {
   c.phase = "build";
   c.weather = "clear";
   c.timer = CAMP.intermission;
+  c.visitor = rollVisitor(c);
+  if (c.visitor) c.events.push({ type: "visitor", kind: c.visitor.kind, action: "arrive", x: c.visitor.x, y: c.visitor.y, ...(c.visitor.offer ? { id: c.visitor.offer } : {}) });
+}
+
+/** Standing on today's visitor: hold to accept the shrine, or pay the merchant coin by coin. */
+function updateVisitor(c: Camp): void {
+  const v = c.visitor, h = c.hero;
+  if (!v || v.done || c.botDriven || h.dead) return;
+  if ((h.x - v.x) ** 2 + (h.y - v.y) ** 2 > VISITOR.radius ** 2) {
+    v.stand = 0;
+    return;
+  }
+  v.stand += STEP;
+  if (v.kind === "shrine") {
+    if (v.stand >= VISITOR.shrineHold) {
+      v.done = true;
+      c.cursed = true;
+      c.events.push({ type: "visitor", kind: "shrine", action: "accept", x: v.x, y: v.y });
+    }
+    return;
+  }
+  // Merchant: a short grace (walking past doesn't spend), then a coin every payEvery seconds.
+  if (v.stand < 0.3) return;
+  v.acc += STEP;
+  while (v.acc >= VISITOR.payEvery && v.paid < v.price && h.coins > 0) {
+    v.acc -= VISITOR.payEvery;
+    h.coins -= 1;
+    v.paid += 1;
+    c.events.push({ type: "coinSpend", from: { x: h.x, y: h.y - 20 }, to: { x: v.x, y: v.y - 10 } });
+  }
+  if (v.paid >= v.price && v.offer) {
+    v.done = true;
+    applyBlessing(c, v.offer);
+    c.events.push({ type: "visitor", kind: "merchant", action: "buy", x: v.x, y: v.y, id: v.offer });
+  }
 }
 
 function builtKinds(c: Camp): Set<string> {

@@ -5,6 +5,8 @@ import { FONT } from "../ui/font";
 import { createRng, next } from "../core/rng";
 import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
+import { drawVisitor, VISITOR_LEAVE, type VisitorAnim } from "./visitors";
+import { BLESSING_BY_ID } from "./blessings";
 import { ACID, BANNER_R, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
@@ -954,6 +956,31 @@ export class CampRenderer {
             fx.rings.push({ x: ev.x, y: ev.y, r: 16, color: "#9ae6ff", life: 0.25, max: 0.25, width: 2 });
           } else fx.burst(ev.x, ev.y, "#ffe08a", 3, 80, { max: 0.2, size: 2, shape: "spark" });
           break;
+        case "visitor": {
+          const a = this.visitorAnim;
+          if (ev.action === "arrive") {
+            this.visitorAnim = { kind: ev.kind, x: ev.x, y: ev.y, offer: ev.id ?? null, price: 0, arriveAt: this.time, leaveAt: null, doneAt: null };
+            if (ev.kind === "shrine") {
+              fx.burst(ev.x, ev.y + 8, "#8a7a6a", 10, 120, { max: 0.6, size: 4, gravity: 300, shape: "chunk" });
+              fx.rings.push({ x: ev.x, y: ev.y + 8, r: 46, color: "#b88aff", life: 0.5, max: 0.5, width: 3 });
+              fx.shake(0.15);
+            }
+          } else if (a && ev.action === "accept") {
+            a.doneAt = this.time;
+            fx.rings.push({ x: ev.x, y: ev.y - 20, r: 90, color: "#ff5a5a", life: 0.6, max: 0.6, width: 5 });
+            fx.burst(ev.x, ev.y - 30, "#c070ff", 18, 200, { max: 0.7, size: 3, gravity: -40, shape: "spark" });
+            fx.shake(0.3);
+            this.say(["What have I done…", "Bring them on!", "A deal is a deal."]);
+          } else if (a && ev.action === "buy") {
+            a.doneAt = this.time;
+            fx.burst(ev.x, ev.y - 40, "#ffe680", 16, 180, { max: 0.6, size: 2.6, gravity: 120, shape: "spark" });
+            fx.rings.push({ x: ev.x, y: ev.y - 20, r: 60, color: "#ffd84a", life: 0.45, max: 0.45, width: 4 });
+            const b = ev.id ? BLESSING_BY_ID[ev.id] : null;
+            if (b) fx.number(ev.x, ev.y - 96, `${b.icon} ${b.name}!`, "#ffe27a", 14, 1.1);
+            this.say(["A fine purchase!", "Worth every coin.", "Ooh, shiny."]);
+          } else if (a && ev.action === "leave") a.leaveAt = this.time;
+          break;
+        }
         case "rule":
           // Rule-changing blessings: each gets its own small, readable flourish.
           if (ev.rule === "ricochet") {
@@ -1299,6 +1326,7 @@ fx.shake(0.15);
       this.lightning = 0;
       this.nextBolt = 6;
       this.heroFell = null;
+      this.visitorAnim = null;
       this.enemyMove.clear();
       this.corpses = [];
       // A fresh run: the King drops onto the field.
@@ -1536,6 +1564,12 @@ fx.shake(0.15);
         ctx.globalAlpha = 1;
       },
     });
+    // Today's visitor (merchant cart / cursed shrine), depth-sorted with the camp.
+    const va = this.visitorAnim;
+    if (va && (va.leaveAt === null || this.time - va.leaveAt < VISITOR_LEAVE)) {
+      if (c.visitor) va.price = c.visitor.price;
+      items.push({ y: va.y + 12, draw: () => drawVisitor(ctx, c, va, this.time) });
+    }
     // Spike trap before the gate: three staggered rows of stakes, each row depth-sorted with the foes.
     const spikePlot = c.plots.find((q) => q.kind === "spikes");
     if (spikePlot && spikePlot.level > 0) for (let row = 0; row < 3; row++) items.push({ y: SPIKES.y0 + 12 + row * 18, draw: () => this.drawSpikeRow(ctx, spikePlot.level, row) });
@@ -3334,6 +3368,8 @@ fx.shake(0.15);
   /** 0 = full day, 1 = full night; eases between them over ~2 s (dusk / dawn). */
   night = 0;
   private nightLayer: HTMLCanvasElement | null = null;
+  /** Today's visitor on screen (kept through its leave animation). */
+  private visitorAnim: VisitorAnim | null = null;
 
   /** World-space light sources at night: the hero's lantern, the hall, built plots, wall torches. */
   /** b: the base line of the object the light belongs to (where it stands), so the pool lands right when the view is flipped. */

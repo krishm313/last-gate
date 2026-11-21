@@ -151,7 +151,12 @@ export function ruleNight(wave: number, classic: boolean): boolean {
   return !classic && wave > 0 && wave % 3 === 0;
 }
 
-export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false): Blessing[] {
+/** Blessings the Wandering Merchant could sell right now (regular ones the run could still take). */
+export function merchantPool(owned: Record<string, number>, built: Set<string>): Blessing[] {
+  return BLESSINGS.filter((b) => !b.rule && !b.requires && (owned[b.id] ?? 0) < b.max && (!b.needsBuilding || built.has(b.needsBuilding)) && b.id !== "lucky");
+}
+
+export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false, forceRule = false): Blessing[] {
   const ok = (b: Blessing) =>
     !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding));
   const pool = BLESSINGS.filter((b) => !b.rule && ok(b));
@@ -163,7 +168,7 @@ export function rollBlessings(rng: Rng, wave: number, owned: Record<string, numb
     pool.splice(pool.indexOf(b), 1);
   }
   // Rule night: one extra card from the rule-changers (combos weigh in once their parts are owned).
-  if (ruleNight(wave, classic)) {
+  if (ruleNight(wave, classic) || (forceRule && !classic)) {
     const rules = BLESSINGS.filter((b) => b.rule && ok(b));
     if (rules.length) out.push(weighted(rng, rules, (x) => (x.requires ? 3 : 1)));
   }

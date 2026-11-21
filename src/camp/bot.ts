@@ -92,6 +92,7 @@ export function campBotPick(c: Camp): string {
 
 /** One sim step driven by the bot, including blessing picks. */
 export function campBotStep(c: Camp): void {
+  c.botDriven = true;
   if (c.phase === "pick") chooseBlessing(c, campBotPick(c));
   // Specialise towers in rotation (frost by the gate, fire and volley on the flanks).
   const ROT: TowerSpec[] = ["fire", "frost", "volley"];
