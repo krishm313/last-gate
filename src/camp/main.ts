@@ -27,7 +27,7 @@ import { claimGift } from "../core/gift";
 import { claimDailySiege, dailySiegeFor } from "../core/dailySiege";
 import type { HeroId } from "../core/heroes";
 import { deploy, REVERSE, SIEGES, siegeStars, WAR_CARDS, type CampSetup } from "./sim";
-import { chooseBlessing, chooseBuilding, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
+import { PRE_MASTERY, chooseBlessing, chooseBuilding, chooseTowerSpec, WEATHER_INFO, NIGHT_EVENT_INFO, createCamp, drainEvents, plotCost, plotLogCost, rerollBlessings, spawnEnemy, spawnThief, step, type Camp, type CampEvent, type Vec } from "./sim";
 import { CampRenderer } from "./render";
 import { BLESSING_BY_ID } from "./blessings";
 import { buildStrip, CampHud } from "./hud";
@@ -1606,6 +1606,14 @@ function frame(now: number) {
             return true;
           },
         );
+      if (ev.type === "build" && ev.kind !== "repair") {
+        const pm = PRE_MASTERY[ev.kind];
+        if (pm !== undefined && ev.level === pm + 1) {
+          const NAMES: Record<string, string> = { tower: "Spec Mastery", catapult: "Firestorm", mage: "Storm", spikes: "Iron Maw", barracks: "Veterans", healer: "Sanctum", watch: "Eagle Eye" };
+          hud.banner("★ MASTERED!", NAMES[ev.kind] ?? "Mastery");
+          sfx.unlockChime();
+        }
+      }
       if (ev.type === "bloodmoon" && !c.bossNight) hud.banner("🌕 Blood Moon!", "Foes run and strike faster — hold the line", "red");
       if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
       if (ev.type === "heroDown") hud.banner("You fell!", "You'll rise again at the hall…", "red"); // (the corner chip counts the seconds)

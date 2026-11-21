@@ -1070,8 +1070,21 @@ export class CampRenderer {
           const plot = this.lastCamp?.plots.find((q) => q.id === ev.plot);
           const maxed = !!plot && plot.level >= plot.maxLevel;
           const label = ev.kind === "repair" ? "REPAIRED!" : ev.level === 1 ? "BUILT!" : maxed ? `★ LV ${ev.level} MAX!` : `LV ${ev.level}!`;
-          fx.number(ev.x, ev.y - 112, label, maxed ? "#ffd23a" : "#ffe66a", upgrade ? 26 : 20, upgrade ? 1.3 : 1.1);
+          const mastery = !!plot && ev.kind !== "repair" && PRE_MASTERY[plot.kind] !== undefined && ev.level === PRE_MASTERY[plot.kind]! + 1;
+          // (Mastery gets the big "★ MASTERED!" banner instead of the small level tag.)
+          if (!mastery || this.ambient) fx.number(ev.x, ev.y - 112, label, maxed ? "#ffd23a" : "#ffe66a", upgrade ? 26 : 20, upgrade ? 1.3 : 1.1);
           fx.shake(upgrade ? 0.22 : 0.15);
+          // Mastery reached: a column of light from the sky, a broad gold shockwave and a slow-mo beat.
+          if (plot && ev.kind !== "repair" && PRE_MASTERY[plot.kind] !== undefined && ev.level === PRE_MASTERY[plot.kind]! + 1 && !this.ambient) {
+            this.masteryBeams.push({ x: ev.x, y: ev.y, t: this.time });
+            fx.rings.push({ x: ev.x, y: ev.y, r: 190, color: "#ffd84a", life: 0.9, max: 0.9, width: 8 });
+            fx.burst(ev.x, ev.y - 60, "#ffe680", 30, 300, { max: 1.1, size: 3, gravity: 200, shape: "spark" });
+            fx.burst(ev.x, ev.y - 60, "#ffffff", 12, 200, { max: 0.8, size: 2.4, gravity: 120, shape: "spark" });
+            if (!fx.calm) fx.slowmo = Math.max(fx.slowmo, 0.5);
+            fx.flash = 0.25;
+            fx.flashColor = "#fff2b0";
+            fx.shake(0.35);
+          }
           // A low dust cloud rolls out from the base as the building lands at the end of its rise.
           if (ev.kind !== "repair") this.buildDust.push({ x: ev.x, y: ev.y + 16, t: this.time + (upgrade ? 0.14 : 0.3) });
           break;
@@ -1800,6 +1813,7 @@ export class CampRenderer {
       }
     }
     this.buildDust = this.buildDust.filter((d) => this.time < d.t);
+    this.drawMasteryBeams(ctx);
     this.drawFlyers(ctx, dt);
     this.fx.draw(ctx);
 
@@ -5896,6 +5910,38 @@ export class CampRenderer {
   private castAt: { x: number; y: number; t: number; color: "heal" | "summon" }[] = [];
   /** Pending build-landing dust clouds (fired at time t). */
   private buildDust: { x: number; y: number; t: number }[] = [];
+  /** Mastery moments: a column of light from the sky onto the building (1.2 s). */
+  private masteryBeams: { x: number; y: number; t: number }[] = [];
+
+  private drawMasteryBeams(ctx: CanvasRenderingContext2D): void {
+    if (!this.masteryBeams.length) return;
+    this.masteryBeams = this.masteryBeams.filter((b) => this.time - b.t < 1.2);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (const b of this.masteryBeams) {
+      const u = (this.time - b.t) / 1.2;
+      // Slams down fast, holds, then thins out.
+      const drop = Math.min(1, u / 0.12);
+      const a = u < 0.7 ? 1 : 1 - (u - 0.7) / 0.3;
+      const w = 34 * (u < 0.12 ? 0.4 + 0.6 * drop : 1 - (u - 0.12) * 0.45);
+      const top = b.y - 900, bot = top + (b.y + 20 - top) * drop;
+      const g = ctx.createLinearGradient(b.x - w, 0, b.x + w, 0);
+      g.addColorStop(0, "rgba(255,226,120,0)");
+      g.addColorStop(0.5, `rgba(255,244,200,${(0.75 * a).toFixed(3)})`);
+      g.addColorStop(1, "rgba(255,226,120,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(b.x - w, top, w * 2, bot - top);
+      // Pool of light where it lands.
+      const p = ctx.createRadialGradient(b.x, b.y + 14, 4, b.x, b.y + 14, 70);
+      p.addColorStop(0, `rgba(255,240,180,${(0.7 * a * drop).toFixed(3)})`);
+      p.addColorStop(1, "rgba(255,240,180,0)");
+      ctx.fillStyle = p;
+      ctx.beginPath();
+      ctx.ellipse(b.x, b.y + 14, 70, 26, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   /** When each knight last appeared (spawn or respawn), for the fade-in. */
   private allySeen = new Map<number, number>();
   private allyFalls: { x: number; y: number; t: number; flip: boolean; landed: boolean }[] = [];
