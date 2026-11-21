@@ -30,7 +30,10 @@ export type EnemyId =
   | "raven"
   | "imp"
   | "tunneler"
-  | "stalker";
+  | "stalker"
+  | "phalanx"
+  | "climber"
+  | "bomber";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -98,6 +101,12 @@ export interface EnemyDef {
   blink?: { every: number; dist: number };
   /** At the wall it digs under for this many seconds (can't be hit), then surfaces inside the camp. */
   tunneler?: number;
+  /** Shield wall: foes in a lane `width` px either side and up to `depth` px behind it take half damage. */
+  guard?: { width: number; depth: number };
+  /** At the wall it climbs over for this many seconds (still hittable), then drops inside the camp. */
+  climber?: number;
+  /** Balloon bomber: ignores the hero, hovers this far above the hall and bombs it (gateDamage per bomb). */
+  bomber?: { hover: number };
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
@@ -124,6 +133,9 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   sapper: { ...base, id: "sapper", name: "Sapper", hp: 26, speed: 58, radius: 11, gateDamage: 45, gold: 2, color: "#2a2a2a", cost: 3, kamikaze: true },
   thief: { ...base, id: "thief", name: "Treasure Goblin", hp: 60, speed: 95, radius: 10, gateDamage: 0, gold: 12, color: "#d8b030", cost: 0, crossing: true },
   knight: { ...base, id: "knight", name: "Black Knight", hp: 70, speed: 34, radius: 14, gateDamage: 12, attackInterval: 1.2, gold: 4, color: "#2e3440", cost: 4, armor: 0.4 },
+  phalanx: { ...base, id: "phalanx", name: "Shield Wall", hp: 90, speed: 24, radius: 15, gateDamage: 8, attackInterval: 1.3, gold: 4, color: "#5a6a8a", cost: 4, shield: true, slowResist: 0.6, guard: { width: 34, depth: 95 } },
+  climber: { ...base, id: "climber", name: "Wall Climber", hp: 22, speed: 58, radius: 10, gateDamage: 4, attackInterval: 0.8, gold: 2, color: "#7aa03a", cost: 2, climber: 2.4 },
+  bomber: { ...base, id: "bomber", name: "Balloon Bomber", hp: 30, speed: 34, radius: 14, gateDamage: 9, attackInterval: 2.6, gold: 4, color: "#c8503a", cost: 3, flying: true, bomber: { hover: 135 } },
   stalker: { ...base, id: "stalker", name: "Shadowstalker", hp: 32, speed: 34, radius: 11, gateDamage: 6, gold: 3, color: "#3a2a5a", cost: 3, blink: { every: 3.8, dist: 64 } },
   wraith: { ...base, id: "wraith", name: "Wraith", hp: 30, speed: 52, radius: 11, gateDamage: 7, gold: 3, color: "#8a9ac0", cost: 2.5, armorCycle: { on: 1.4, off: 1.8, reduction: 1 } },
   ogre: { ...base, id: "ogre", name: "Ogre Champion", hp: 600, speed: 20, radius: 28, gateDamage: 30, attackInterval: 1.5, gold: 25, color: "#6a7a3a", cost: 0, slowResist: 0.4, boss: true, phase2: { kind: "slam", every: 5, radius: 130, power: 18 } },
@@ -190,6 +202,9 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.aura) t.push("rallies nearby foes");
   if (d.towerHunter) t.push("dives at towers");
   if (d.blink) t.push("blinks forward");
+  if (d.guard) t.push("shelters foes behind it");
+  if (d.climber) t.push("climbs over the wall");
+  if (d.bomber) t.push("bombs the hall from above");
   if (d.tunneler) t.push("digs under the wall");
   if (d.arsonist) t.push("sets buildings ablaze");
   if (d.frostNova) t.push("freezes towers when hurt");

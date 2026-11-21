@@ -1726,6 +1726,114 @@ function mageTowerModel(level: number): void {
 }
 
 /** One spike-trap stake (wood, or dark iron with a bright tip). */
+/** Balloon Bomber envelope: a patched, striped hot-air balloon with rigging lines down to the basket ring. */
+function balloonEnvelope(): void {
+  const g = new THREE.SphereGeometry(1.6, 32, 20);
+  // Teardrop: narrow the bottom into a neck.
+  const pos = g.attributes.position!;
+  const col: number[] = [];
+  const red = new THREE.Color(0xc8402e), cream = new THREE.Color(0xf0e2c0);
+  for (let i = 0; i < pos.count; i++) {
+    let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const t = (y + 1.6) / 3.2; // 0 bottom .. 1 top
+    const k = t < 0.45 ? 0.35 + (t / 0.45) * 0.65 : 1;
+    x *= k; z *= k;
+    if (t < 0.45) y -= (0.45 - t) * 1.2;
+    pos.setXYZ(i, x, y * 1.12, z);
+    const a = Math.atan2(z, x);
+    const stripe = Math.floor(((a + Math.PI) / (Math.PI * 2)) * 8) % 2 === 0;
+    const c = stripe ? red : cream;
+    col.push(c.r, c.g, c.b);
+  }
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  const env = mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 }));
+  env.position.y = 3.4;
+  root.add(env);
+  // Load band round the neck, and rigging lines down to where the basket hangs.
+  const band = mesh(new THREE.TorusGeometry(0.62, 0.07, 6, 18), std(0x6a4426));
+  band.rotation.x = Math.PI / 2;
+  band.position.y = 1.75;
+  root.add(band);
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2;
+    const top = new THREE.Vector3(Math.cos(a) * 0.6, 1.75, Math.sin(a) * 0.6);
+    const bot = new THREE.Vector3(Math.cos(a) * 0.42, 0.55, Math.sin(a) * 0.42);
+    const len = top.distanceTo(bot);
+    const rope = mesh(new THREE.CylinderGeometry(0.025, 0.025, len, 4), std(0x3a2a1a));
+    rope.position.copy(top.clone().add(bot).multiplyScalar(0.5));
+    rope.lookAt(bot);
+    rope.rotateX(Math.PI / 2);
+    root.add(rope);
+  }
+  // Burner flame at the neck.
+  const flame = mesh(new THREE.ConeGeometry(0.2, 0.55, 8), new THREE.MeshStandardMaterial({ color: 0xffb040, emissive: 0xff7a10, emissiveIntensity: 2 }));
+  flame.position.y = 1.55;
+  flame.rotation.x = Math.PI;
+  root.add(flame);
+  ground.visible = false;
+}
+/** Balloon Bomber basket: wicker tub with a rim, sandbags and a couple of bombs hanging off it. */
+function balloonBasket(): void {
+  const tub = mesh(lumpy(new THREE.CylinderGeometry(0.55, 0.45, 0.6, 14, 2), 0.02), std(0xb88a4a, 0.95));
+  tub.position.y = 0.3;
+  root.add(tub);
+  for (const y of [0.12, 0.3, 0.48]) {
+    const weave = mesh(new THREE.TorusGeometry(0.52 - (0.48 - y) * 0.15, 0.03, 4, 18), std(0x8a6030, 0.95));
+    weave.rotation.x = Math.PI / 2;
+    weave.position.y = y;
+    root.add(weave);
+  }
+  const rim = mesh(new THREE.TorusGeometry(0.56, 0.06, 6, 18), std(0x6a4426));
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.6;
+  root.add(rim);
+  for (const a of [0.6, 2.4, 4.0]) {
+    const bag = mesh(lumpy(new THREE.SphereGeometry(0.16, 8, 6), 0.03), std(0xc8b088, 0.95));
+    bag.scale.y = 1.3;
+    bag.position.set(Math.cos(a) * 0.6, 0.25, Math.sin(a) * 0.6);
+    root.add(bag);
+  }
+  for (const a of [1.3, 1.9]) {
+    const bomb = mesh(new THREE.SphereGeometry(0.17, 12, 8), new THREE.MeshStandardMaterial({ color: 0x24242a, metalness: 0.4, roughness: 0.45 }));
+    bomb.position.set(Math.cos(a) * 0.62, 0.05, Math.sin(a) * 0.62);
+    root.add(bomb);
+  }
+  ground.visible = false;
+}
+/** Shield Wall's tower shield: a tall curved iron-rimmed scutum with a boss and a red horde emblem. */
+function towerShield(): void {
+  const g = new THREE.CylinderGeometry(1.6, 1.6, 2.4, 20, 4, true, -0.42, 0.84);
+  const sh = mesh(lumpy(g, 0.01), new THREE.MeshStandardMaterial({ color: 0x4a5670, roughness: 0.7, side: THREE.DoubleSide }));
+  sh.position.set(0, 1.2, -1.45);
+  root.add(sh);
+  const rimM = new THREE.MeshStandardMaterial({ color: 0x9aa0aa, metalness: 0.75, roughness: 0.35 });
+  for (const y of [0.04, 2.36]) {
+    const rim = mesh(new THREE.CylinderGeometry(1.63, 1.63, 0.1, 20, 1, true, -0.43, 0.86), new THREE.MeshStandardMaterial({ color: 0x9aa0aa, metalness: 0.75, roughness: 0.35, side: THREE.DoubleSide }));
+    rim.position.set(0, y, -1.45);
+    root.add(rim);
+  }
+  for (const a of [-0.42, 0.42]) {
+    const edge = mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), rimM);
+    edge.position.set(Math.sin(a) * 1.6, 1.2, Math.cos(a) * 1.6 - 1.45);
+    root.add(edge);
+  }
+  const boss = mesh(new THREE.SphereGeometry(0.28, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), rimM);
+  boss.rotation.x = Math.PI / 2;
+  boss.position.set(0, 1.25, 0.17);
+  root.add(boss);
+  const emblem = mesh(new THREE.CircleGeometry(0.5, 3), new THREE.MeshStandardMaterial({ color: 0xb8302a, roughness: 0.8 }));
+  emblem.position.set(0, 1.55, 0.16);
+  emblem.rotation.z = -Math.PI / 2;
+  root.add(emblem);
+  for (const [x, y] of [[-0.45, 0.35], [0.45, 0.35], [-0.45, 2.05], [0.45, 2.05]] as const) {
+    const rivet = mesh(new THREE.SphereGeometry(0.06, 6, 4), rimM);
+    rivet.position.set(x, y, 0.16);
+    root.add(rivet);
+  }
+  ground.visible = false;
+}
+
 function stakeModel(iron: boolean): void {
   const s = mesh(lumpy(new THREE.ConeGeometry(0.22, 2.2, 6, 3), 0.03), std(iron ? 0x4a4e5a : 0xa8743e, iron ? 0.45 : 0.85));
   s.position.y = 1.1;
@@ -1801,6 +1909,9 @@ function stakeModel(iron: boolean): void {
   mage4: () => { mageTowerModel(4); root.rotation.y = 0.3; },
   stake: () => stakeModel(false),
   stake_iron: () => stakeModel(true),
+  balloon: balloonEnvelope,
+  basket: balloonBasket,
+  towershield: towerShield,
   tower1: () => tower(1, "back"), tower2: () => tower(2, "back"), tower3: () => tower(3, "back"), tower4: () => tower(4, "back"),
   tower1f: () => tower(1, "front"), tower2f: () => tower(2, "front"), tower3f: () => tower(3, "front"), tower4f: () => tower(4, "front"),
   pine, round: roundTree, bush, rock, stump,

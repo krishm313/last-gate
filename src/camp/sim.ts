@@ -120,6 +120,10 @@ export interface Enemy {
   /** Tunneler: seconds left digging under the wall (untargetable), and whether it has dug yet. */
   burrow?: number;
   dug?: boolean;
+  /** Wall Climber: seconds left scaling the wall (hittable). */
+  climb?: number;
+  /** Behind a Shield Wall this step (takes less damage). */
+  guarded?: boolean;
   /** What it is currently hitting, for rendering lunges. */
   attacking: boolean;
   inside: boolean;
@@ -443,6 +447,11 @@ export type CampEvent =
   | { type: "flask"; x: number; y: number }
   | { type: "acidSplash"; x: number; y: number; r: number; n: number }
   | { type: "emerge"; x: number; y: number }
+  /** Wall Climber starts up the wall / drops over it inside the camp. */
+  | { type: "climb"; x: number; y: number }
+  | { type: "climbOver"; x: number; y: number }
+  /** Balloon Bomber lets a bomb go: it falls from (x, y) onto (tx, ty). */
+  | { type: "bombDrop"; x: number; y: number; tx: number; ty: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
   | { type: "mageZap"; points: Vec[] }
   /** Healer's tent mended someone (throttled): green motes rise from each point. */
@@ -1766,11 +1775,14 @@ function updateArrows(c: Camp): void {
   c.arrows = c.arrows.filter((a) => a.life > 0);
 }
 
+/** Damage cut for foes sheltering behind a Shield Wall. */
+const GUARD_CUT = 0.5;
 /** Current damage reduction from armour and armour cycles (1 = immune). */
 export function reduction(e: Enemy): number {
   if (e.burrow && e.burrow > 0) return 1;
   let r = e.def.armor ?? 0;
   if (e.rallied) r = 1 - (1 - r) * (1 - RALLY.armor);
+  if (e.guarded) r = 1 - (1 - r) * (1 - GUARD_CUT);
   if (e.elite === "armored") r = 1 - (1 - r) * (1 - ELITE.armor);
   const cyc = e.def.armorCycle;
   if (cyc && e.age % (cyc.on + cyc.off) >= cyc.off) r = 1 - (1 - r) * (1 - cyc.reduction);
@@ -2101,6 +2113,20 @@ function updateEnemy(c: Camp, e: Enemy): void {
     return;
   }
 
+  // Wall Climber on the wall: scales it (arrows and the hero can still hit it), then drops inside.
+  if (e.climb && e.climb > 0) {
+    const startY = WALL_Y - WALL_THICK / 2 - def.radius;
+    const endY = WALL_Y + WALL_THICK / 2 + def.radius + 14;
+    e.y += ((endY - startY) / (def.climber ?? 2.4)) * STEP * (e.slowTime > 0 ? 1 - e.slowPct * 0.5 : 1);
+    e.climb -= STEP;
+    if (e.climb <= 0 || e.y >= endY) {
+      e.climb = 0;
+      e.y = endY;
+      c.events.push({ type: "climbOver", x: e.x, y: e.y });
+    }
+    return;
+  }
+
   if (def.crossing) {
     // Treasure goblin: dash across and vanish off the far side.
     if (moveToward(c, e, e.targetX ?? MAP_W + 40, e.y + Math.sin(c.time * 6 + e.sway) * 3) < 6) {
@@ -2180,12 +2206,27 @@ function updateEnemy(c: Camp, e: Enemy): void {
   // wall: with the wall between them (foe outside, hero inside, segment intact) it batters the wall.
   // (Siege Lord only for now: in the campaign the hero holding the gate is part of the tuned balance.)
   const walledOff = !!c.reverse && !def.flying && e.y < WALL_Y && h.y > WALL_Y && wallIntact(c, segmentIndexAt(e.x));
-  if (!def.kamikaze && def.behavior !== "ranged" && !walledOff && heroD < (def.flying ? 160 : 70)) {
+  if (!def.kamikaze && !def.bomber && def.behavior !== "ranged" && !walledOff && heroD < (def.flying ? 160 : 70)) {
     if (heroD > reach) moveToward(c, e, h.x, h.y);
     else attackTick(c, e, () => damageHero(c, def.gateDamage));
     return;
   }
 
+  if (def.bomber) {
+    // Balloon Bomber: drifts over the wall to a spot above the hall and drops bombs on it from there —
+    // out of the wall towers' reach, so the King has to go up and pop it.
+    const hx = HALL.x + Math.sin(e.age * 0.45 + e.sway) * 90;
+    const hy = HALL.y - def.bomber.hover;
+    if (Math.hypot(hx - e.x, hy - e.y) > 14) moveToward(c, e, hx, hy);
+    else
+      attackTick(c, e, () => {
+        const tx = HALL.x + Math.sin(e.age * 3.1 + e.id) * 26, ty = HALL.y - 12;
+        c.events.push({ type: "bombDrop", x: e.x, y: e.y - def.radius * 0.2, tx, ty });
+        damageHall(c, def.gateDamage, tx, ty);
+        c.runStats.flyerHallDamage += def.gateDamage;
+      });
+    return;
+  }
   if (def.flying && def.behavior !== "ranged") {
     // Flyers ignore the wall and go for the hall (ranged flyers like the dragon strafe and shoot instead).
     if (Math.hypot(HALL.x - e.x, HALL.y - e.y) > HALL.r + def.radius) moveToward(c, e, HALL.x, HALL.y);
@@ -2225,6 +2266,12 @@ function updateEnemy(c: Camp, e: Enemy): void {
     }
     if (e.y < wallFront - 1) {
       moveToward(c, e, e.x + Math.sin(c.time * 2 + e.sway) * 2, wallFront);
+      return;
+    }
+    if (def.climber && !e.dug) {
+      e.dug = true;
+      e.climb = def.climber;
+      c.events.push({ type: "climb", x: e.x, y: e.y });
       return;
     }
     if (def.tunneler && !e.dug) {
@@ -2268,6 +2315,17 @@ function updateEnemy(c: Camp, e: Enemy): void {
 
 function updateRally(c: Camp): void {
   const bearers = c.enemies.filter((e) => e.def.aura && e.hp > 0);
+  // Shield Walls: foes marching in the lane behind one (outside the wall) shelter behind its shields.
+  const walls = c.enemies.filter((e) => e.def.guard && e.hp > 0 && e.y < WALL_Y);
+  for (const e of c.enemies) {
+    e.guarded = false;
+    if (!walls.length || e.def.flying || e.def.guard || e.def.boss) continue;
+    for (const w of walls) {
+      const g = w.def.guard!;
+      const dy = w.y - e.y;
+      if (dy > 4 && dy < g.depth && Math.abs(w.x - e.x) < g.width) { e.guarded = true; break; }
+    }
+  }
   for (const e of c.enemies) {
     e.rallied = false;
     if (e.warcry && e.warcry > 0) {
