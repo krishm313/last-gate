@@ -63,6 +63,8 @@ export interface SaveData {
   perms: Record<string, number>;
   /** Ascensions so far (each a permanent Crown bonus). */
   crowns?: number;
+  /** Cosmetics bought in the Royal Bazaar (flair ids). */
+  bought?: string[];
   hero: HeroId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
@@ -120,6 +122,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.best))) if (chapterIds.has(Number(k)) || Number(k) === ENDLESS_ID) d.best[Number(k)] = Math.max(0, Math.min(9999, Math.floor(num(v, 0))));
   for (const p of PERMS) d.perms[p.id] = Math.max(0, Math.min(p.max, Math.floor(num(rec(r.perms)[p.id], 0))));
   d.crowns = Math.max(0, Math.min(ASCEND.maxCrowns, Math.floor(num(r.crowns, 0))));
+  d.bought = Array.isArray(r.bought) ? [...new Set(r.bought.filter((x): x is string => typeof x === "string" && x.length <= 20))] : [];
   d.hero = r.hero && r.hero in HERO_BY_ID ? r.hero : "ranger";
   d.runs = Math.floor(num(r.runs, 0));
   d.wins = Math.floor(num(r.wins, 0));

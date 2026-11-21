@@ -3368,6 +3368,8 @@ fx.shake(0.15);
   /** 0 = full day, 1 = full night; eases between them over ~2 s (dusk / dawn). */
   night = 0;
   private nightLayer: HTMLCanvasElement | null = null;
+  /** Rainbow Trail: how far the standing rainbow has unfurled (0..1). */
+  private rainbowK = 0;
   /** Today's visitor on screen (kept through its leave animation). */
   private visitorAnim: VisitorAnim | null = null;
 
@@ -5071,6 +5073,114 @@ fx.shake(0.15);
   /** Cosmetic hero flair: a halo or a trail shed while walking (render-only, from the save). */
   private flairAcc = 0;
   private flairLastT = 0;
+  /** Butterfly Escort: three butterflies on a loop around the hero, wings flapping; `front` picks the near half. */
+  private drawButterflies(ctx: CanvasRenderingContext2D, x: number, y: number, front: boolean): void {
+    const cols = [["#ff8ac8", "#ffd0ea"], ["#7ac8ff", "#d6f0ff"], ["#ffd24a", "#fff0b0"]];
+    ctx.save();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = INK;
+    for (let i = 0; i < 3; i++) {
+      const a = this.time * (1.1 + i * 0.17) + i * 2.1;
+      if (Math.sin(a) >= 0 !== front) continue;
+      const r = 38 + Math.sin(this.time * 0.9 + i) * 6;
+      const bx = x + Math.cos(a) * r, by = y - 20 + Math.sin(a) * 14 + Math.sin(this.time * 2.6 + i * 1.7) * 8;
+      const flap = 0.2 + 0.8 * Math.abs(Math.sin(this.time * 13 + i * 1.3));
+      const dir = Math.cos(a + Math.PI / 2) >= 0 ? 1 : -1;
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.scale(dir * 2.2, 2.2);
+      for (const side of [-1, 1]) {
+        ctx.save();
+        ctx.scale(side * flap, 1);
+        ctx.fillStyle = cols[i]![0]!;
+        ctx.beginPath(); ctx.ellipse(3.2, -2.2, 3.6, 2.8, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = cols[i]![1]!;
+        ctx.beginPath(); ctx.ellipse(2.6, 2, 2.4, 1.9, 0.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+      ctx.fillStyle = INK;
+      ctx.fillRect(-0.7, -3, 1.4, 6);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  /** Flair parts that belong in front of the hero (drawn after the body). */
+  private drawFlairFront(ctx: CanvasRenderingContext2D, c: Camp, x: number, y: number): void {
+    const f = c.heroFlair;
+    if (f === "butterfly") this.drawButterflies(ctx, x, y, true);
+    else if (f === "storm") {
+      // Storm Crown: two charged orbs circle above the head; a jagged arc snaps between them.
+      const hy = y - 22;
+      const o = [0, Math.PI].map((ph) => ({ x: x + Math.cos(this.time * 2.4 + ph) * 34, y: hy + Math.sin(this.time * 2.4 + ph) * 12 }));
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const g = this.blob("flair-storm", [[0, "rgba(160,220,255,0.95)"], [1, "rgba(60,140,255,0)"]]);
+      for (const p of o) this.drawBlob(ctx, g, p.x, p.y, 16, 16, 0.9);
+      ctx.restore();
+      ctx.fillStyle = "#eaf6ff";
+      for (const p of o) { ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2); ctx.fill(); }
+      const beat = Math.floor(this.time * 7);
+      if (beat % 3 !== 2) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(210,240,255,0.95)";
+        ctx.lineWidth = 2.6;
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(o[0]!.x, o[0]!.y);
+        for (let k = 1; k < 5; k++) {
+          const u = k / 5;
+          const jit = Math.sin(beat * 12.9898 + k * 78.233) * 9;
+          ctx.lineTo(o[0]!.x + (o[1]!.x - o[0]!.x) * u, o[0]!.y + (o[1]!.y - o[0]!.y) * u + jit);
+        }
+        ctx.lineTo(o[1]!.x, o[1]!.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    } else if (f === "starfall") {
+      // Starfall: four-pointed stars drift down around the hero, twinkling, and wink out on landing.
+      ctx.save();
+      ctx.strokeStyle = "rgba(60,30,120,0.6)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        const cyc = this.time * 0.55 + i / 6;
+        const ph = cyc % 1, n = Math.floor(cyc);
+        const sx = x + Math.sin(i * 7.31 + n * 3.7) * 40, sy = y - 90 + ph * 100;
+        const r = 8.5 * (ph > 0.85 ? (1 - ph) / 0.15 : Math.min(1, ph / 0.15)) * (0.8 + 0.2 * Math.sin(this.time * 9 + i));
+        if (r <= 0.1) continue;
+        ctx.fillStyle = i % 2 ? "#fff6c0" : "#e2d4ff";
+        ctx.beginPath();
+        for (let k = 0; k < 8; k++) {
+          const ang = (k * Math.PI) / 4 + this.time * 1.5;
+          const rr = k % 2 ? r * 0.38 : r;
+          ctx.lineTo(sx + Math.cos(ang) * rr, sy + Math.sin(ang) * rr);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else if (f === "midas") {
+      // Midas Steps: three gold coins spin on edge as they circle the feet (front half drawn here).
+      for (let i = 0; i < 3; i++) {
+        const a = this.time * 1.9 + (i * Math.PI * 2) / 3;
+        if (Math.sin(a) < 0) continue;
+        const cx = x + Math.cos(a) * 30, cy = y + 8 + Math.sin(a) * 10 - Math.abs(Math.sin(this.time * 5 + i)) * 4;
+        const spin = Math.cos(this.time * 7 + i * 1.7);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(Math.max(0.15, Math.abs(spin)), 1);
+        ctx.fillStyle = spin > 0 ? "#ffd23a" : "#e8a818";
+        ctx.strokeStyle = "#6a3e06";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#fff3b0";
+        ctx.fillRect(-1, -3.5, 2, 7);
+        ctx.restore();
+      }
+    }
+  }
+
   private drawFlair(ctx: CanvasRenderingContext2D, c: Camp, x: number, y: number, moving: boolean): void {
     const dt = Math.min(0.1, Math.max(0, this.time - this.flairLastT));
     this.flairLastT = this.time;
@@ -5147,6 +5257,63 @@ fx.shake(0.15);
       while (this.flairAcc > 0.09) {
         this.flairAcc -= 0.09;
         this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, "#ffe27a", 1, 18, { max: 0.7, size: 2.6, gravity: -24, drag: 2, shape: "spark" });
+      }
+      return;
+    }
+    if (f === "butterfly") {
+      // Butterfly Escort: the half of the loop behind the hero is drawn here, the near half after him.
+      tint("rgba(220,170,255,0.7)", 0.5);
+      this.drawButterflies(ctx, x, y, false);
+      return;
+    }
+    if (f === "rainbow") {
+      // Rainbow Trail: a little rainbow arcs over the hero while standing; colour-cycling motes on the move.
+      tint("rgba(255,255,255,0.55)", 0.45);
+      const still = moving ? 0 : 1;
+      this.rainbowK += (still - this.rainbowK) * Math.min(1, dt * 6);
+      if (this.rainbowK > 0.02) {
+        ctx.save();
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = "round";
+        const RC = ["#ff5a5a", "#ffa63a", "#ffe04a", "#6ad86a", "#4ab0ff", "#a87aff"];
+        const k = this.rainbowK;
+        for (let j = 0; j < RC.length; j++) {
+          ctx.strokeStyle = RC[j]!;
+          ctx.globalAlpha = 0.75 * k;
+          ctx.beginPath();
+          ctx.arc(x, y - 18, (26 - j * 2.4) * (0.6 + 0.4 * k), Math.PI * (1.05 + (1 - k) * 0.4), Math.PI * (1.95 - (1 - k) * 0.4));
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      if (moving) this.flairAcc += dt;
+      while (this.flairAcc > 0.045) {
+        this.flairAcc -= 0.045;
+        const hue = (this.time * 260) % 360;
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, `hsl(${hue.toFixed(0)},95%,62%)`, 1, 22, { max: 0.9, size: 4, gravity: -20, drag: 2.5, shape: "chunk" });
+      }
+      return;
+    }
+    if (f === "storm") {
+      tint("rgba(110,190,255,0.75)", 0.55);
+      if (moving) this.flairAcc += dt;
+      while (this.flairAcc > 0.08) {
+        this.flairAcc -= 0.08;
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 9, y + 8, "#9ad8ff", 1, 60, { max: 0.35, size: 2.2, shape: "spark" });
+      }
+      return;
+    }
+    if (f === "starfall") {
+      tint("rgba(170,140,255,0.75)", 0.55);
+      return;
+    }
+    if (f === "midas") {
+      // Midas Steps: gold underfoot — coins flip up from each step (the glint is drawn in front).
+      tint("rgba(255,200,60,0.85)", 0.65);
+      if (moving) this.flairAcc += dt;
+      while (this.flairAcc > 0.11) {
+        this.flairAcc -= 0.11;
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 7, y + 10, Math.sin(this.time * 33) > 0 ? "#ffd23a" : "#ffb81a", 1, 70, { max: 0.55, size: 4.2, gravity: 420, drag: 1, shape: "chunk" });
       }
       return;
     }
@@ -5751,6 +5918,7 @@ fx.shake(0.15);
 
   private drawHero(ctx: CanvasRenderingContext2D, c: Camp): void {
     this.withCheer(ctx, 0, c.hero.x, c.hero.y + 12, () => this.drawHeroInner(ctx, c));
+    if (!c.hero.dead && c.heroFlair !== "none") this.drawFlairFront(ctx, c, c.hero.x, c.hero.y);
     if (!c.hero.dead) this.drawCastFlourish(ctx, c.hero.x, c.hero.y);
   }
 

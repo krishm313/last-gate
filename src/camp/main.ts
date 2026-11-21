@@ -38,6 +38,7 @@ import type { GameEvent } from "../core/events";
 import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
 import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
+import { buyFlair } from "../core/flair";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -248,6 +249,12 @@ const hub = new Hub(uiRoot, {
     save.difficulty = id;
     writeSave(save);
     hub.showHub(save, "battle");
+  },
+  onBuyFlair: (id) => {
+    if (!buyFlair(save, id)) return;
+    writeSave(save);
+    sfx.unlockChime();
+    hub.showHub(save, "heroes");
   },
   onFlair: (id) => {
     save.flair = id;

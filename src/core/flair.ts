@@ -9,7 +9,11 @@ export interface FlairDef {
   /** How to unlock it (shown while locked). */
   how: string;
   unlocked: (s: SaveData) => boolean;
+  /** Shop flair: bought with gold instead of earned. */
+  price?: number;
 }
+
+const bought = (id: string) => (s: SaveData) => (s.bought ?? []).includes(id);
 
 const stars = (s: SaveData) => Object.entries(s.stars).reduce((a, [id, v]) => a + (Number(id) < 98 ? v : 0), 0);
 
@@ -29,6 +33,12 @@ const ALL_FLAIRS: FlairDef[] = [
   { id: "fair", name: "Fairground Lights", icon: "🎪", how: "Earn 9 mini-game stars", unlocked: (s) => miniStars(s) >= 9 },
   { id: "warlord", name: "Warlord's Smoke", icon: "🚩", how: "Take the Hollow Keep (Siege 5)", unlocked: (s) => (s.mini.siege5?.stars ?? 0) > 0 },
   { id: "toxic", name: "Toxic Bubbles", icon: "🧪", how: "Win a run with the Alchemist", unlocked: (s) => (s.stats.won_alchemist ?? 0) > 0 || s.history.some((r) => r.won && r.hero === "alchemist") },
+  // Royal Bazaar: flairs bought with gold (an endgame gold sink).
+  { id: "butterfly", name: "Butterfly Escort", icon: "🦋", how: "Royal Bazaar", price: 450, unlocked: bought("butterfly") },
+  { id: "rainbow", name: "Rainbow Trail", icon: "🌈", how: "Royal Bazaar", price: 600, unlocked: bought("rainbow") },
+  { id: "storm", name: "Storm Crown", icon: "⚡", how: "Royal Bazaar", price: 800, unlocked: bought("storm") },
+  { id: "starfall", name: "Starfall", icon: "🌠", how: "Royal Bazaar", price: 1000, unlocked: bought("starfall") },
+  { id: "midas", name: "Midas Steps", icon: "🪙", how: "Royal Bazaar", price: 1500, unlocked: bought("midas") },
   { id: "crown", name: "Royal Crown", icon: "👑", how: "Open the Royal Gift 7 days in a row", unlocked: (s) => (s.stats.giftBest ?? 0) >= 7 },
 ];
 
@@ -41,4 +51,14 @@ export const FLAIR_BY_ID: Record<string, FlairDef> = Object.fromEntries(FLAIRS.m
 export function activeFlair(s: SaveData): string {
   const f = FLAIR_BY_ID[s.flair];
   return f && f.unlocked(s) ? f.id : "none";
+}
+
+/** Buy a shop flair (and wear it). False if unknown, not for sale, owned, or too expensive. */
+export function buyFlair(s: SaveData, id: string): boolean {
+  const f = FLAIR_BY_ID[id];
+  if (!f?.price || f.unlocked(s) || s.gold < f.price) return false;
+  s.gold -= f.price;
+  s.bought = [...(s.bought ?? []), id];
+  s.flair = id;
+  return true;
 }

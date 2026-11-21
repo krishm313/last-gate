@@ -1473,3 +1473,11 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lga-big-sub { position: relative; font-weight: 800; font-size: 3.6vmin; color: #fff; animation: lga-pop 0.45s cubic-bezier(.2,1.6,.4,1) 0.9s both; }
 @keyframes lga-pop { from { transform: scale(0.3); opacity: 0; } }
 .lg-calm .lga-big, .lg-calm .lga-rays, .lg-calm .lga-crown, .lg-calm .lga-card.ready::before { animation: none; }
+
+/* Hero flair: the Royal Bazaar (flairs for gold). */
+.lgf-bazaar { font-weight: 900; font-size: calc(12 * var(--tu)); color: #ffd84a; margin: calc(10 * var(--u)) 0 calc(4 * var(--u)); text-shadow: 0 calc(1.5 * var(--u)) 0 #1d1208; }
+.lgf-chip.shop { filter: none; opacity: 1; background: linear-gradient(#3a2a10, #22180a); }
+.lgf-chip.shop .lgf-how { color: #ffd84a; font-weight: 900; }
+.lgf-chip.shop.afford { box-shadow: 0 0 0 calc(2 * var(--u)) #ffd84a, 0 0 calc(10 * var(--u)) #ffd84a66; }
+.lgf-chip.shop.confirm { background: linear-gradient(#6a4810, #3a2606); }
+.lgf-chip.shop .lgf-icon { animation: lga-bob 2.4s ease-in-out infinite; }

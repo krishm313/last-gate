@@ -115,6 +115,8 @@ export interface HubCallbacks {
   onResetSkills?: (hero: HeroId) => void;
   /** Toggled a hero's Veteran look. */
   onHeroLook?: (hero: HeroId, on: boolean) => void;
+  /** Bought a Royal Bazaar flair. */
+  onBuyFlair?: (id: string) => void;
   /** Picked a cosmetic hero flair. */
   onFlair?: (id: string) => void;
   /** Picked a campaign difficulty. */
@@ -1253,22 +1255,42 @@ export class Hub {
     const owned = FLAIRS.filter((f) => f.unlocked(save)).length;
     head.append(el("div", "lgs-title", "Hero flair"), el("div", "lgs-pts", `${owned - 1} / ${FLAIRS.length - 1}`));
     panel.append(head);
-    const grid = el("div", "lgf-grid");
     const active = activeFlair(save);
-    for (const f of FLAIRS) {
+    const chipFor = (f: (typeof FLAIRS)[number]) => {
       const open = f.unlocked(save);
       const on = active === f.id;
-      const chip = el("button", `lgf-chip${on ? " on" : ""}${open ? "" : " locked"}`);
-      chip.append(el("div", "lgf-icon", open ? f.icon : "🔒"), el("div", "lgf-name", f.name), el("div", "lgf-how", on ? "Wearing" : open ? "Tap to wear" : f.how));
+      const shop = !!f.price && !open;
+      const chip = el("button", `lgf-chip${on ? " on" : ""}${open ? "" : " locked"}${shop ? " shop" : ""}${shop && save.gold >= f.price! ? " afford" : ""}`);
+      chip.append(el("div", "lgf-icon", open || shop ? f.icon : "🔒"), el("div", "lgf-name", f.name), el("div", "lgf-how", on ? "Wearing" : open ? "Tap to wear" : shop ? `● ${f.price}` : f.how));
       if (open && !on)
         chip.onclick = () => {
           this.cb.onClick();
           this.cb.onFlair?.(f.id);
         };
-      else if (!open) chip.onclick = () => this.denied(chip);
-      grid.append(chip);
-    }
+      else if (shop) {
+        let armed = false;
+        chip.onclick = () => {
+          if (save.gold < f.price!) return this.denied(chip);
+          if (!armed) {
+            armed = true;
+            chip.classList.add("confirm");
+            chip.querySelector(".lgf-how")!.textContent = "Tap again to buy";
+            window.setTimeout(() => { armed = false; chip.classList.remove("confirm"); chip.querySelector(".lgf-how")!.textContent = `● ${f.price}`; }, 2600);
+            return;
+          }
+          this.cb.onBuyFlair?.(f.id);
+        };
+      } else if (!open) chip.onclick = () => this.denied(chip);
+      return chip;
+    };
+    const grid = el("div", "lgf-grid");
+    for (const f of FLAIRS) if (!f.price) grid.append(chipFor(f));
     panel.append(grid);
+    // Royal Bazaar: flairs for gold.
+    panel.append(el("div", "lgf-bazaar", "🛒 Royal Bazaar — flairs for gold"));
+    const shop = el("div", "lgf-grid");
+    for (const f of FLAIRS) if (f.price) shop.append(chipFor(f));
+    panel.append(shop);
     return panel;
   }
 
