@@ -1833,11 +1833,12 @@ function enemyAbilities(c: Camp, e: Enemy): void {
     if (def.phase2?.kind === "curse") {
       // The Hag's curse: every foe near her is mended at once as she turns.
       const p2 = def.phase2;
-      for (const o of c.enemies) if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 <= p2.radius ** 2) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * p2.power);
+      for (const o of c.enemies) if (o.hp > 0 && (o.x - e.x) ** 2 + (o.y - e.y) ** 2 <= p2.radius ** 2) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * p2.power);
       c.events.push({ type: "curse", x: e.x, y: e.y, r: p2.radius });
     }
   }
-  if (def.regen) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * def.regen * STEP);
+  // (Never brings back a foe already brought to 0 this step: it still falls.)
+  if (def.regen && e.hp > 0) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * def.regen * STEP);
   if (e.y < 0 || e.stunTime > 0) return;
   if (def.heal) {
     e.healTimer -= STEP;
@@ -1845,7 +1846,7 @@ function enemyAbilities(c: Camp, e: Enemy): void {
       e.healTimer += def.heal.interval;
       let healed = false;
       for (const o of c.enemies) {
-        if (o === e || o.hp >= o.maxHp || (o.x - e.x) ** 2 + (o.y - e.y) ** 2 > def.heal.range ** 2) continue;
+        if (o === e || o.hp <= 0 || o.hp >= o.maxHp || (o.x - e.x) ** 2 + (o.y - e.y) ** 2 > def.heal.range ** 2) continue;
         o.hp = Math.min(o.maxHp, o.hp + o.maxHp * def.heal.frac);
         healed = true;
       }
