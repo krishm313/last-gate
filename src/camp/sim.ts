@@ -168,7 +168,12 @@ export const SPIKES = { x0: 300, x1: 420, y0: WALL_Y - 78, y1: WALL_Y - 18, dps:
 /** Building masteries (top levels a balance bot never buys): catapult flames, mage stun. */
 export const BUILD_MASTERY = { catapultBurn: 0.35, catapultBurnTime: 3, mageStun: 0.5 };
 /** The level each building topped out at before its mastery level (the balance bot stops here). */
-export const PRE_MASTERY: Partial<Record<PlotKind, number>> = { tower: 4, catapult: 3, mage: 3, spikes: 3 };
+export const PRE_MASTERY: Partial<Record<PlotKind, number>> = { tower: 4, catapult: 3, mage: 3, spikes: 3, barracks: 3 };
+/** Barracks Veterans (mastery): the garrison's soldiers are tougher, hit harder and get up sooner. */
+export const VETERANS = { hp: 1.6, damage: 1.5, respawn: 4 };
+function veterans(c: Camp): boolean {
+  return c.plots.some((p) => p.kind === "barracks" && p.level > (PRE_MASTERY.barracks ?? 99));
+}
 
 /** Mage tower: chain lightning that ignores armour (level 1..3). */
 export const MAGE_LEVELS = [
@@ -772,7 +777,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     makePlot("tower-4", "tower", "Archer Tower", 630, towerY, [30, 55, 110, 190, 300], 5, [0, 0, 6, 12, 20]),
     { ...makePlot("lumber", "lumber", "Lumber Camp", 150, 850, [15, 40, 80], 3), locked: true, unlockWave: 1 },
     { ...makePlot("forge", "forge", "Forge", 580, 850, [30, 70], 2, [0, 8]), locked: true, unlockWave: 3 },
-    { ...makePlot("barracks", "barracks", "Barracks", BARRACKS.x, BARRACKS.y, [35, 60, 100], 3, [4, 8, 12]), locked: true, unlockWave: 2 },
+    { ...makePlot("barracks", "barracks", "Barracks", BARRACKS.x, BARRACKS.y, [35, 60, 100, 170], 4, [4, 8, 12, 18]), locked: true, unlockWave: 2 },
     { ...makePlot("cat-1", "catapult", "Catapult", 230, WALL_Y + 215, [45, 80, 140, 220], 4, [6, 10, 16, 22]), locked: true, unlockWave: 4 },
     { ...makePlot("cat-2", "catapult", "Catapult", 490, WALL_Y + 215, [45, 80, 140, 220], 4, [6, 10, 16, 22]), locked: true, unlockWave: 4 },
     { ...makePlot("hall", "hall", "Upgrade Hall", HALL.x - 130, HALL.y + 70, [60, 150], 2, [6, 16]), locked: true, unlockWave: 5 },
@@ -1177,7 +1182,7 @@ function completePlot(c: Camp, p: Plot): void {
           c.events.push({ type: "plotUnlocked", label: q.label, x: q.x, y: q.y });
         }
   }
-  if (p.kind === "barracks") {
+  if (p.kind === "barracks" && p.level <= (PRE_MASTERY.barracks ?? 99)) {
     const i = c.allies.length;
     const postX = 345 + (i % 3) * 15 - 15 + (i - 1) * 8;
     c.allies.push({ id: c.nextId++, x: p.x, y: p.y, hp: ALLY.hp, maxHp: ALLY.hp, cooldown: 0, postX, postY: WALL_Y + 45 + (i % 2) * 14, respawn: 0, facing: -Math.PI / 2, swinging: 0 });
@@ -1206,10 +1211,11 @@ export function towersAwaitingSpec(c: Camp): Plot[] {
 function updateAllies(c: Camp): void {
   // Summoned militia march off when their time is up (or when they fall).
   if (c.allies.some((a) => a.temp !== undefined && (a.temp <= 0 || a.hp <= 0))) c.allies = c.allies.filter((a) => a.temp === undefined || (a.temp > 0 && a.hp > 0));
+  const vet = veterans(c);
   for (const a of c.allies) {
     a.swinging = Math.max(0, a.swinging - STEP);
     if (a.temp !== undefined) a.temp -= STEP;
-    else a.maxHp = Math.round(ALLY.hp * c.mods.allyPower);
+    else a.maxHp = Math.round(ALLY.hp * c.mods.allyPower * (vet ? VETERANS.hp : 1));
     if (a.respawn > 0) {
       a.respawn -= STEP;
       if (a.respawn <= 0) {
@@ -1253,7 +1259,7 @@ function updateAllies(c: Camp): void {
       if (a.cooldown <= 0) {
         a.cooldown = 1 / ALLY.rate;
         a.swinging = 0.25;
-        damageEnemy(c, target, ALLY.damage * c.mods.towerDamage * c.mods.allyPower * towerScale(c), "tower", false, "soldiers");
+        damageEnemy(c, target, ALLY.damage * c.mods.towerDamage * c.mods.allyPower * towerScale(c) * (vet && a.temp === undefined ? VETERANS.damage : 1), "tower", false, "soldiers");
       }
     }
   }
@@ -1263,7 +1269,7 @@ function damageAlly(c: Camp, a: Ally, raw: number): void {
   a.hp -= raw;
   if (a.hp <= 0) {
     a.hp = 0;
-    a.respawn = a.temp !== undefined ? 0 : ALLY.respawn;
+    a.respawn = a.temp !== undefined ? 0 : veterans(c) ? VETERANS.respawn : ALLY.respawn;
     c.events.push({ type: "allyDown", x: a.x, y: a.y });
   }
 }

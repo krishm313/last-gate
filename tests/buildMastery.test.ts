@@ -48,3 +48,26 @@ describe("building masteries", () => {
     expect(BUILD_MASTERY.mageStun).toBeGreaterThan(0);
   });
 });
+
+describe("Barracks Veterans", () => {
+  it("adds no fourth soldier, but the garrison gets tougher and stronger", async () => {
+    const { VETERANS } = await import("../src/camp/sim");
+    const c = camp();
+    const b = c.plots.find((q) => q.kind === "barracks")!;
+    b.locked = false;
+    c.mods.carry = 999;
+    c.hero.coins = 999;
+    c.hero.logs = 99;
+    c.hero.dead = false;
+    c.phase = "build";
+    c.timer = 99;
+    c.hero.x = b.x;
+    c.hero.y = b.y;
+    for (let i = 0; i < 40 / STEP && b.level < 4; i++) step(c, still);
+    expect(b.level).toBe(4);
+    expect(c.allies.length).toBe(3);
+    step(c, still);
+    const hp = c.allies[0]!.maxHp;
+    expect(hp).toBeCloseTo(Math.round(90 * c.mods.allyPower * VETERANS.hp), 0);
+  });
+});

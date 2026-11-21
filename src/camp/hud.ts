@@ -34,6 +34,7 @@ const BUILD_MASTERY_TEXT: Record<string, string> = {
   catapult: "Firestorm Mastery — boulders set the whole splash ablaze",
   mage: "Storm Mastery — the first foe struck is stunned (not bosses)",
   spikes: "Iron Maw — deeper stakes: 30 dmg/s, slows 45%",
+  barracks: "Veterans — soldiers +60% HP, +50% damage, back up in 4 s",
 };
 
 function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
@@ -71,7 +72,7 @@ function plotInfoBase(c: Camp, p: Plot): { title: string; lines: string[] } {
       return { title: `Catapult · Lv ${p.level}`, lines: [`Splash damage ${arrow(cur.damage, nx?.damage ?? null)}`, `Radius ${arrow(cur.radius, nx?.radius ?? null)}`] };
     }
     case "barracks":
-      return { title: p.level ? `Barracks · Lv ${p.level}` : "Build: Barracks", lines: [`Soldiers ${arrow(p.level, next)}`, "They guard the gate and fight anything that breaks in"] };
+      return { title: p.level ? `Barracks · Lv ${p.level}` : "Build: Barracks", lines: [`Soldiers ${arrow(Math.min(3, p.level), next ? Math.min(3, next) : null)}`, "They guard the gate and fight anything that breaks in"] };
     case "lumber":
       if (!p.level) return { title: "Build: Lumber Camp", lines: ["A woodcutter chops logs into a pile here", "Logs unlock tower Lv 3–4, catapults and stone walls"] };
       return { title: `Lumber Camp · Lv ${p.level}`, lines: [`Woodcutters ${arrow(p.level, next)}`, `Log pile ${c.lumberPile}/${CAMP.lumberCap}`] };
