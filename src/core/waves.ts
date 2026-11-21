@@ -40,6 +40,10 @@ export interface ChapterDef {
   /** Endless: waves cycle forever with a rotating boss every 5 waves; there is no victory. */
   /** Night weather odds for this chapter (defaults to the global odds). */
   weatherOdds?: { rain: number; fog: number; storm: number };
+  /** Hard / Nightmare: bad weather is this many times as likely. */
+  weatherMult?: number;
+  /** Nightmare: a Blood Moon surge strikes mid-night every Nth (non-boss) night. */
+  bloodEvery?: number;
   endless?: boolean;
   /** Endless: a boss every N nights (default 5; a weekly twist can change it). */
   bossEvery?: number;

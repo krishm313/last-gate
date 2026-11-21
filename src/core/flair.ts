@@ -1,5 +1,6 @@
 import type { SaveData } from "./meta";
 import { SIDE_GAMES_ENABLED } from "./features";
+import { diffClears } from "./achievements";
 
 /** Cosmetic hero flair (a trail / halo drawn around the hero), unlocked by milestones. */
 export interface FlairDef {
@@ -33,6 +34,8 @@ const ALL_FLAIRS: FlairDef[] = [
   { id: "fair", name: "Fairground Lights", icon: "🎪", how: "Earn 9 mini-game stars", unlocked: (s) => miniStars(s) >= 9 },
   { id: "warlord", name: "Warlord's Smoke", icon: "🚩", how: "Take the Hollow Keep (Siege 5)", unlocked: (s) => (s.mini.siege5?.stars ?? 0) > 0 },
   { id: "toxic", name: "Toxic Bubbles", icon: "🧪", how: "Win a run with the Alchemist", unlocked: (s) => (s.stats.won_alchemist ?? 0) > 0 || s.history.some((r) => r.won && r.hero === "alchemist") },
+  { id: "iron", name: "Iron Will", icon: "⚙️", how: "Clear 5 chapters on Hard", unlocked: (s) => diffClears(s, 1) >= 5 },
+  { id: "nightcrown", name: "Nightmare Crown", icon: "🩸", how: "Clear 3 chapters on Nightmare", unlocked: (s) => diffClears(s, 2) >= 3 },
   // Royal Bazaar: flairs bought with gold (an endgame gold sink).
   { id: "butterfly", name: "Butterfly Escort", icon: "🦋", how: "Royal Bazaar", price: 450, unlocked: bought("butterfly") },
   { id: "rainbow", name: "Rainbow Trail", icon: "🌈", how: "Royal Bazaar", price: 600, unlocked: bought("rainbow") },

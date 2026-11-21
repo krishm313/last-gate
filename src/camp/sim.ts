@@ -266,6 +266,16 @@ export function rollNightEvent(seed: number, wave: number, ok: boolean): NightEv
   return k < 0.55 ? "treasure" : "swarm";
 }
 
+/** Bad-weather odds scaled (Hard / Nightmare), never past 85% in total. */
+export function scaleOdds(o: { rain: number; fog: number; storm: number }, k: number): { rain: number; fog: number; storm: number } {
+  if (k === 1) return o;
+  const sum = (o.rain + o.fog + o.storm) * k;
+  const f = sum > 0.85 ? (0.85 / sum) * k : k;
+  return { rain: o.rain * f, fog: o.fog * f, storm: o.storm * f };
+}
+/** Nightmare's Blood Moon surge: when it strikes in the night and how long it lasts. */
+export const BLOOD_SURGE = { at: 10, secs: 16 };
+
 /** Multiplier on tower / mage range from tonight's weather. */
 export function weatherRange(c: Camp): number {
   return c.weather === "rain" ? WEATHER.rain.towerRange : c.weather === "fog" ? WEATHER.fog.towerRange : 1;
@@ -461,6 +471,8 @@ export interface CampInput {
 }
 
 export interface Camp {
+  /** Tonight has a boss (no Nightmare Blood Moon surge on those). */
+  bossNight?: boolean;
   /** Building draft waiting on the player (kinds to choose from), else null. */
   buildChoice: PlotKind[] | null;
   /** Today's visitor in camp (build phase only). */
@@ -2492,7 +2504,7 @@ export function spawnThief(c: Camp): void {
 
 function startWave(c: Camp): void {
   c.wave += 1;
-  c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather, c.chapter.weatherOdds);
+  c.weather = rollWeather(c.seed, c.wave, !!c.chapter.waves[c.wave - 1]?.breather, scaleOdds(c.chapter.weatherOdds ?? WEATHER.odds, c.chapter.weatherMult ?? 1));
   c.stormTimer = WEATHER.storm.every;
   const plan = planWave(c.chapter, c.wave, c.seed);
   c.queue = c.reverse ? [] : plan.spawns.slice();
@@ -2510,6 +2522,7 @@ function startWave(c: Camp): void {
     c.visitor = null;
   }
   c.eventThief = false;
+  c.bossNight = !!plan.boss;
   // Elite Raid: fewer foes, but far more of them elite.
   if (c.nightEvent === "elite") c.queue = c.queue.filter((sp, i) => ENEMIES[sp.enemy].boss || i % 5 !== 4);
   if (c.nightEvent === "swarm") {
@@ -2547,6 +2560,12 @@ export function step(c: Camp, input: CampInput): void {
     while (c.queue.length && c.queue[0]!.at <= c.waveTime) spawnEnemy(c, c.queue.shift()!);
     if (c.reverse) c.reverse.chest = Math.min(REVERSE.cap, c.reverse.chest + REVERSE.income * STEP);
     else if (c.waveTime >= 6 && c.waveTime - STEP < 6) maybeSpawnThief(c);
+    // Nightmare: every Nth non-boss night, a Blood Moon surge rises partway through.
+    const be = c.chapter.bloodEvery;
+    if (be && !c.reverse && !c.bossNight && c.wave % be === 0 && c.waveTime >= BLOOD_SURGE.at && c.waveTime - STEP < BLOOD_SURGE.at) {
+      c.bloodmoon = Math.max(c.bloodmoon, BLOOD_SURGE.secs);
+      c.events.push({ type: "bloodmoon", x: MAP_W / 2, y: FOREST_Y + 80 });
+    }
     // Treasure Night: a goblin is guaranteed (on top of the usual chance).
     if (c.nightEvent === "treasure" && !c.eventThief && c.waveTime >= NIGHT_EVENTS.thiefAt) {
       c.eventThief = true;

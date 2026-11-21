@@ -25,6 +25,11 @@ export function foesMet(s: SaveData): number {
   return (Object.keys(ENEMIES) as string[]).filter((id) => foeMet(s, id)).length;
 }
 
+/** Campaign chapters (1–10) cleared on at least this difficulty rank (1 Hard, 2 Nightmare). */
+export function diffClears(s: SaveData, rank: number): number {
+  return Object.entries(s.diffCleared).filter(([id, v]) => Number(id) >= 1 && Number(id) <= 10 && v >= rank).length;
+}
+
 export function heroesWon(s: SaveData): number {
   return HEROES.filter((h) => heroHasWon(s, h.id)).length;
 }
@@ -47,6 +52,10 @@ const ALL_ACHIEVEMENTS: Achievement[] = [
   { id: "caldera", name: "Through the Fire", desc: "Clear chapter 7, Ashen Caldera", icon: "🌋", goal: 1, reward: 900, progress: (s) => ((s.stars[7] ?? 0) > 0 ? 1 : 0) },
   { id: "hardclear", name: "Hardened", desc: "Clear any chapter on Hard", icon: "💀", goal: 1, reward: 300, progress: (s) => (Object.values(s.diffCleared).some((v) => v >= 1) ? 1 : 0) },
   { id: "nightmare", name: "Stuff of Nightmares", desc: "Clear any chapter on Nightmare", icon: "☠️", goal: 1, reward: 600, progress: (s) => (Object.values(s.diffCleared).some((v) => v >= 2) ? 1 : 0) },
+  { id: "hard5", name: "Weathered", desc: "Clear 5 chapters on Hard", icon: "🌫️", goal: 5, reward: 600, progress: (s) => diffClears(s, 1) },
+  { id: "hardall", name: "Iron Campaign", desc: "Clear all 10 chapters on Hard", icon: "⚙️", goal: 10, reward: 1500, progress: (s) => diffClears(s, 1) },
+  { id: "nightmare3", name: "Moonstruck", desc: "Clear 3 chapters on Nightmare", icon: "🌕", goal: 3, reward: 1200, progress: (s) => diffClears(s, 2) },
+  { id: "nightmareall", name: "Lord of Nightmares", desc: "Clear all 10 chapters on Nightmare", icon: "☠️", goal: 10, reward: 3000, progress: (s) => diffClears(s, 2) },
   { id: "elites", name: "Elite Hunter", desc: "Defeat 25 elite foes", icon: "🎖️", goal: 25, reward: 250, progress: stat("elites") },
   { id: "wyrm", name: "Wyrmslayer", desc: "Defeat the Frost Wyrm", icon: "🐉", goal: 1, reward: 300, progress: stat("frostwyrm") },
   { id: "tidebreaker", name: "Tidebreaker", desc: "Defeat the Drowned King", icon: "🔱", goal: 1, reward: 450, progress: stat("drowned") },

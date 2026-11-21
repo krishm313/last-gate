@@ -1543,6 +1543,7 @@ function frame(now: number) {
             return true;
           },
         );
+      if (ev.type === "bloodmoon" && !c.bossNight) hud.banner("🌕 Blood Moon!", "Foes run and strike faster — hold the line", "red");
       if (ev.type === "wallBreak") hud.banner("Breach!", "Enemies are pouring in — repair the wall", "red");
       if (ev.type === "heroDown") hud.banner("You fell!", "You'll rise again at the hall…", "red"); // (the corner chip counts the seconds)
       if ((ev.type === "won" || ev.type === "lost") && c.reverse) finishSiege(c);

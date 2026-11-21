@@ -5222,9 +5222,11 @@ fx.shake(0.15);
       }
       return;
     }
-    if (f === "crown") {
+    if (f === "crown" || f === "nightcrown") {
       // Royal Crown: three little gold crowns circling the hero's feet, with gold dust when walking.
-      tint("rgba(255,214,90,0.75)", 0.6);
+      // Nightmare Crown: the same in blood-dark iron with a red glow and crimson embers.
+      const night = f === "nightcrown";
+      tint(night ? "rgba(180,20,40,0.8)" : "rgba(255,214,90,0.75)", 0.6);
       ctx.save();
       for (let i = 0; i < 3; i++) {
         const a = this.time * 1.8 + (i * Math.PI * 2) / 3;
@@ -5238,8 +5240,8 @@ fx.shake(0.15);
         ctx.lineTo(cx + 6.5, cy - 3);
         ctx.lineTo(cx + 6, cy + 3);
         ctx.closePath();
-        ctx.fillStyle = "#ffd23a";
-        ctx.strokeStyle = "#6a3e06";
+        ctx.fillStyle = night ? "#3a0a14" : "#ffd23a";
+        ctx.strokeStyle = night ? "#ff4a5a" : "#6a3e06";
         ctx.lineWidth = 1.2;
         ctx.fill();
         ctx.stroke();
@@ -5256,7 +5258,7 @@ fx.shake(0.15);
       if (moving) this.flairAcc += dt;
       while (this.flairAcc > 0.09) {
         this.flairAcc -= 0.09;
-        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, "#ffe27a", 1, 18, { max: 0.7, size: 2.6, gravity: -24, drag: 2, shape: "spark" });
+        this.fx.burst(x + Math.sin(this.time * 91.7) * 8, y + 8, night ? "#ff3a4a" : "#ffe27a", 1, 18, { max: 0.7, size: 2.6, gravity: -24, drag: 2, shape: "spark" });
       }
       return;
     }
@@ -5318,6 +5320,7 @@ fx.shake(0.15);
       return;
     }
     if (f === "ember") tint("rgba(255,110,30,0.75)", 0.55);
+    if (f === "iron") tint("rgba(170,185,205,0.8)", 0.6);
     if (f === "fair") tint("rgba(255,110,210,0.8)", 0.6);
     if (f === "warlord") tint("rgba(160,20,30,0.75)", 0.6);
     if (f === "toxic") tint("rgba(150,255,60,0.85)", 0.7);
@@ -5344,6 +5347,7 @@ fx.shake(0.15);
         this.fx.burst(x + jx, y + 4 + jy, cols[Math.floor((this.time * 17 + jx) % 5 + 5) % 5]!, 1, 40, { max: 1.0, size: 4.4, gravity: 50, drag: 2, shape: "chunk" });
       } else if (f === "toxic") this.fx.burst(x + jx, y + 6 + jy, alt ? "#f4ffb0" : "#b8ff3a", 1, 16, { max: 1.3, size: alt ? 3.2 : 5.2, gravity: -48, drag: 2.4, shape: "dot" });
       else if (f === "warlord") this.fx.burst(x + jx * 1.3, y + 8 + jy, alt ? "#ff3a2a" : "#3a1010", 1, 18, { max: 1.2, size: alt ? 2.8 : 5, gravity: -60, drag: 2, shape: "dot" });
+      else if (f === "iron") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8eef8" : "#8a9ab0", 1, 40, { max: 0.6, size: alt ? 2.4 : 3.4, gravity: 160, drag: 1.5, shape: alt ? "spark" : "chunk" });
       else if (f === "seafoam") this.fx.burst(x + jx, y + 8 + jy, alt ? "#e8fffc" : "#6ad8d0", 1, 18, { max: 1.0, size: alt ? 2.6 : 3.8, gravity: -36, drag: 2.4, shape: "dot" });
     }
     if (this.flairAcc > 1) this.flairAcc = 0;
