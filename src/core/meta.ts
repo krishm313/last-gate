@@ -1,6 +1,7 @@
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
+import { cleanHeat } from "./heat";
 import { sanitizeEndlessTop, sanitizeHistory, type EndlessBest, type RunRecord } from "./history";
 import { newQuestState, sanitizeQuests, type QuestState } from "./quests";
 import { newHeroProgress, sanitizeHeroProgress, skillPoints, type HeroProgress } from "./skills";
@@ -65,6 +66,8 @@ export interface SaveData {
   crowns?: number;
   /** Cosmetics bought in the Royal Bazaar (flair ids). */
   bought?: string[];
+  /** Heat modifiers switched on for campaign / Endless runs. */
+  heat?: string[];
   hero: HeroId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
@@ -122,6 +125,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.best))) if (chapterIds.has(Number(k)) || Number(k) === ENDLESS_ID) d.best[Number(k)] = Math.max(0, Math.min(9999, Math.floor(num(v, 0))));
   for (const p of PERMS) d.perms[p.id] = Math.max(0, Math.min(p.max, Math.floor(num(rec(r.perms)[p.id], 0))));
   d.crowns = Math.max(0, Math.min(ASCEND.maxCrowns, Math.floor(num(r.crowns, 0))));
+  d.heat = cleanHeat(r.heat);
   d.bought = Array.isArray(r.bought) ? [...new Set(r.bought.filter((x): x is string => typeof x === "string" && x.length <= 20))] : [];
   d.hero = r.hero && r.hero in HERO_BY_ID ? r.hero : "ranger";
   d.runs = Math.floor(num(r.runs, 0));
@@ -214,6 +218,8 @@ export interface RunResult {
   goldFromKills: number;
   /** Campaign difficulty played (default normal). */
   difficulty?: DifficultyId;
+  /** Heat gold multiplier for this run (default 1). */
+  heatMult?: number;
 }
 
 export interface RunReward {
@@ -229,6 +235,8 @@ export interface RunReward {
   milestones?: number[];
   /** First clear on Hard (1) / Nightmare (2) this run. */
   hardClear?: number;
+  /** Extra gold from Heat (already included in `gold`). */
+  heatBonus?: number;
   /** Daily: extra gold for the current daily streak. */
   streakBonus?: number;
 }
@@ -245,6 +253,20 @@ export function nextEndlessMilestone(s: SaveData): number {
 
 /** Applies a finished run to the save and returns what was earned. */
 export function applyRun(s: SaveData, r: RunResult): RunReward {
+  const reward = applyRunBase(s, r);
+  // Heat: a bonus on top of everything the run paid.
+  const k = Math.max(1, r.heatMult ?? 1);
+  if (k > 1 && reward.gold > 0) {
+    const bonus = Math.min(MAX_GOLD - s.gold, Math.round(reward.gold * (k - 1)));
+    s.gold += bonus;
+    s.stats.goldEarned = (s.stats.goldEarned ?? 0) + bonus;
+    reward.gold += bonus;
+    reward.heatBonus = bonus;
+  }
+  return reward;
+}
+
+function applyRunBase(s: SaveData, r: RunResult): RunReward {
   // Late-campaign wins (chapter 7 onward, any difficulty) feed a weekly quest.
   if (r.won && r.chapter >= 7 && r.chapter !== ENDLESS_ID) s.stats.lateWins = (s.stats.lateWins ?? 0) + 1;
   // Endless pays like a mid-campaign chapter per wave held.

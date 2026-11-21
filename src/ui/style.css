@@ -1481,3 +1481,21 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgf-chip.shop.afford { box-shadow: 0 0 0 calc(2 * var(--u)) #ffd84a, 0 0 calc(10 * var(--u)) #ffd84a66; }
 .lgf-chip.shop.confirm { background: linear-gradient(#6a4810, #3a2606); }
 .lgf-chip.shop .lgf-icon { animation: lga-bob 2.4s ease-in-out infinite; }
+
+/* Heat: challenge toggles in the chapter / Endless sheet. */
+.lgh-panel { margin: calc(8 * var(--u)) 0; padding: calc(8 * var(--u)) calc(10 * var(--u)); border-radius: calc(14 * var(--u)); background: #12223fcc; border: calc(3 * var(--u)) solid #1d1208; transition: background 0.3s, box-shadow 0.3s; }
+.lgh-panel.hot { background: linear-gradient(135deg, #4a1a10e6, #2a0e08e6); box-shadow: 0 0 calc(14 * var(--u)) #ff6a3a66; }
+.lgh-head { display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: calc(14 * var(--tu)); color: #fff; margin-bottom: calc(6 * var(--u)); }
+.lgh-mult { font-size: calc(11 * var(--tu)); color: #b8c4e0; font-weight: 800; }
+.lgh-mult.hot { color: #ffd84a; font-size: calc(13 * var(--tu)); animation: lgh-glow 1.6s ease-in-out infinite; }
+@keyframes lgh-glow { 50% { text-shadow: 0 0 calc(8 * var(--u)) #ff9a3a; } }
+.lgh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(6 * var(--u)); }
+.lgh-chip { font: inherit; color: #fff; text-align: center; background: #0c1830; border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(5 * var(--u)) calc(3 * var(--u)); cursor: pointer; transition: transform 0.12s, background 0.2s, box-shadow 0.2s; }
+.lgh-chip.on { background: linear-gradient(#c84a1a, #7a2208); box-shadow: 0 0 0 calc(2 * var(--u)) #ffb04a, 0 0 calc(10 * var(--u)) #ff6a2a88; }
+.lgh-chip.pulse { animation: lgh-pop 0.35s cubic-bezier(.2,1.8,.4,1); }
+@keyframes lgh-pop { 40% { transform: scale(1.1) rotate(-2deg); } }
+.lgh-icon { font-size: calc(18 * var(--tu)); line-height: 1.1; }
+.lgh-chip.on .lgh-icon { animation: lga-bob 1.4s ease-in-out infinite; }
+.lgh-name { font-weight: 900; font-size: calc(10 * var(--tu)); }
+.lgh-desc { font-weight: 700; font-size: calc(8.5 * var(--tu)); color: #cfd8f0; line-height: 1.15; }
+.lgh-gold { font-weight: 900; font-size: calc(9 * var(--tu)); color: #ffd84a; margin-top: calc(2 * var(--u)); }

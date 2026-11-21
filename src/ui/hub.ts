@@ -6,6 +6,7 @@ import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
 import { canVibrate, QUALITIES, type Quality } from "./settings";
 import { nextGoals } from "../core/goals";
+import { cleanHeat, HEATS, heatGold } from "../core/heat";
 import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
@@ -115,6 +116,8 @@ export interface HubCallbacks {
   onResetSkills?: (hero: HeroId) => void;
   /** Toggled a hero's Veteran look. */
   onHeroLook?: (hero: HeroId, on: boolean) => void;
+  /** Heat toggles changed (save.heat already updated; persist it). */
+  onHeat?: () => void;
   /** Bought a Royal Bazaar flair. */
   onBuyFlair?: (id: string) => void;
   /** Picked a cosmetic hero flair. */
@@ -398,7 +401,7 @@ export class Hub {
     const rushStars = save.stars[BOSS_RUSH.id] ?? 0;
     const tiles: { cls: string; icon: string; name: string; sub: string; open: boolean; fresh: boolean; go: () => void }[] = [
       { cls: "siege", icon: "⚔️", name: "Siege Lord", sub: !siegeOpen ? "Clear ch. 1" : (save.mini.siege1?.stars ?? 0) > 0 && dailySiegeOpen(save.stats, todayString()) ? "🗓️ Daily open" : `★ ${siegeTotal}/${SIEGES.length * 3}`, open: siegeOpen, fresh: false, go: () => this.siegeSheet(save) },
-      { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]} · ${endlessTwistFor().icon}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card) },
+      { cls: "endless", icon: "♾️", name: "Endless", sub: open ? (save.best[ENDLESS.id] ? `Night ${save.best[ENDLESS.id]} · ${endlessTwistFor().icon}` : `${endlessTwistFor().icon} This week`) : "Clear ch. 1", open, fresh: open && !seen.has(ENDLESS.id), go: () => this.modeSheet(save, card, true) },
 ...(SIDE_GAMES_ENABLED ? [{ cls: "fair", icon: "🎪", name: "Fair", sub: `${openMinis(save.stars).length ? `★ ${Object.entries(save.mini).reduce((a, [k, m]) => a + (k.startsWith("siege") ? 0 : m.stars), 0)}/${this.sideGames().length * 3}` : "Clear ch. 1"}`, open: openMinis(save.stars).length > 0, fresh: false, go: () => this.fairSheet(save) }] : []),
       { cls: "rush", icon: "👑", name: "Boss Rush", sub: rushOpen ? (rushStars ? "★".repeat(rushStars) + "☆".repeat(3 - rushStars) : "10 bosses") : "Clear ch. 5", open: rushOpen, fresh: rushFresh, go: () => this.modeSheet(save, rushCard) },
     ];
@@ -535,9 +538,10 @@ export class Hub {
   }
 
   /** A mode's full card in a sheet (from the modes row), with a way back to the map. */
-  private modeSheet(save: SaveData, card: HTMLElement): void {
+  private modeSheet(save: SaveData, card: HTMLElement, heat = false): void {
     const box = el("div", "panel pop-in lgm-sheet");
     box.append(card);
+    if (heat) box.append(this.heatPanel(save));
     box.append(this.button("Back to the map", "btn btn-ghost", () => this.showHub(save, "battle")));
     this.show(box);
   }
@@ -677,9 +681,44 @@ export class Hub {
   }
 
   /** A chapter's details, opened from the map. */
+  /** Heat: challenge toggles for a run (saved), with the gold multiplier they add up to. */
+  private heatPanel(save: SaveData): HTMLElement {
+    const box = el("div", "lgh-panel");
+    const head = el("div", "lgh-head");
+    const grid = el("div", "lgh-grid");
+    const paint = () => {
+      const on = cleanHeat(save.heat);
+      const k = heatGold(on);
+      head.replaceChildren(el("span", "", "🔥 Heat"), el("span", `lgh-mult${on.length ? " hot" : ""}`, on.length ? `gold ×${k.toFixed(2)}` : "off — tap to raise the stakes"));
+      box.classList.toggle("hot", on.length > 0);
+      for (const chip of grid.children) chip.classList.toggle("on", on.includes((chip as HTMLElement).dataset.id!));
+    };
+    for (const h of HEATS) {
+      const chip = el("button", "lgh-chip");
+      chip.dataset.id = h.id;
+      chip.append(el("div", "lgh-icon", h.icon), el("div", "lgh-name", h.name), el("div", "lgh-desc", h.desc), el("div", "lgh-gold", `+${Math.round(h.gold * 100)}% gold`));
+      chip.onclick = () => {
+        this.cb.onClick();
+        const on = cleanHeat(save.heat);
+        save.heat = on.includes(h.id) ? on.filter((x) => x !== h.id) : [...on, h.id];
+        this.cb.onHeat?.();
+        paint();
+        chip.classList.remove("pulse");
+        void chip.offsetWidth;
+        chip.classList.add("pulse");
+      };
+      grid.append(chip);
+    }
+    box.append(head, grid);
+    paint();
+    return box;
+  }
+
   private chapterSheet(save: SaveData, ch: (typeof CHAPTERS)[number], diff: (typeof DIFFICULTIES)[number], seen: Set<number>): void {
     const box = el("div", "panel pop-in lgm-sheet");
     box.append(this.chapterCard(save, ch, diff, seen));
+    // Heat opens once the chapter has been cleared (a veteran's dial, not a new player's trap).
+    if ((save.stars[ch.id] ?? 0) > 0) box.append(this.heatPanel(save));
     box.append(this.button("Back to the map", "btn btn-ghost", () => this.showHub(save, "battle")));
     this.show(box);
   }
@@ -1573,6 +1612,7 @@ export class Hub {
     if (reward.winBonus) row(reward.firstClear ? "First victory bonus" : "Victory bonus", `● ${reward.winBonus}`);
     if (reward.streakBonus) row(`🔥 Streak bonus (${r.dailyStreak ?? 0} days)`, `● ${reward.streakBonus}`, "best");
     if (reward.milestoneBonus) row(`Milestone${reward.milestones!.length > 1 ? "s" : ""}: night ${reward.milestones!.join(", ")}`, `● ${reward.milestoneBonus}`, "best");
+    if (reward.heatBonus) row("🔥 Heat bonus", `● ${reward.heatBonus}`, "best");
     const total = row("Gold earned", `● 0`, "total");
     // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
     const nRows = rows.childElementCount;

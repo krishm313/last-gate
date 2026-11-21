@@ -39,6 +39,7 @@ import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
 import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
 import { buyFlair } from "../core/flair";
+import { cleanHeat, HEAT_BY_ID, heatAllowed, heatGold } from "../core/heat";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -250,6 +251,7 @@ const hub = new Hub(uiRoot, {
     writeSave(save);
     hub.showHub(save, "battle");
   },
+  onHeat: () => writeSave(save),
   onBuyFlair: (id) => {
     if (!buyFlair(save, id)) return;
     writeSave(save);
@@ -381,6 +383,9 @@ function moveInput(): Vec {
   return d > 1 ? { x: x / d, y: y / d } : { x, y };
 }
 
+/** Heat gold multiplier of the run in progress (1 = no heat). */
+let runHeatMult = 1;
+
 function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.now() >>> 0) ^ 0xca4b, diff: DifficultyId = save.difficulty, weatherOdds?: { rain: number; fog: number; storm: number }) {
   sfx.unlock();
   dailyRun = null;
@@ -399,6 +404,22 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
     window.setTimeout(() => hud.toast(`${twist.icon} This week: ${twist.name} — ${twist.desc}`), 500);
   }
   if (weatherOdds) played = { ...played, weatherOdds };
+  // Heat: the challenge modifiers switched on in the chapter sheet.
+  const heat = heatAllowed(id) && !setup.classicBlessings ? cleanHeat(save.heat) : [];
+  runHeatMult = heatGold(heat);
+  if (heat.length) {
+    setup = { ...setup, mods: { ...setup.mods! } };
+    for (const hid of heat) {
+      const h = HEAT_BY_ID[hid]!;
+      if (h.hp) setup.enemyHpMult = (setup.enemyHpMult ?? 1) * h.hp;
+      if (h.elite) setup.eliteChance = (setup.eliteChance ?? 0) + h.elite;
+      if (h.speed) played = { ...played, speedMult: played.speedMult * h.speed };
+      if (h.wall) setup.mods!.wallHp *= h.wall;
+      if (h.income) setup.mods!.income *= h.income;
+      if (h.noRerolls) setup.mods!.rerolls = 0;
+    }
+    window.setTimeout(() => hud.toast(`🔥 Heat ${heat.map((x) => HEAT_BY_ID[x]!.icon).join("")} · gold ×${runHeatMult.toFixed(2)}`), 700);
+  }
   camp = createCamp(seed, played, setup);
   preloadChapterArt(played);
   if (dd.rank > 0) window.setTimeout(() => hud.toast(`${dd.icon} ${dd.name}: ${dd.desc}`), 400);
@@ -977,7 +998,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   const prevBest = save.best[c.chapter.id] ?? 0;
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
-  const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD), difficulty: runDifficulty });
+  const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD), difficulty: runDifficulty, heatMult: dailyRun ? 1 : runHeatMult });
   pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
   if (c.chapter.endless) pushEndlessTop(save.endlessTop, { nights: rec.nights, hero: rec.hero, date: rec.date });
   writeSave(save);
