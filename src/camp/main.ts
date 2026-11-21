@@ -37,7 +37,7 @@ import { atlasDebug, crispCache, crispStats, preloadAnims, preloadAnimsFor } fro
 import type { GameEvent } from "../core/events";
 import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
+import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS } from "../core/meta";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
 import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
@@ -260,6 +260,13 @@ const hub = new Hub(uiRoot, {
     hub.showHub(save, "heroes");
   },
   onSettings: () => showMenuSettings(),
+  onAscend: () => {
+    if (!ascend(save)) return;
+    writeSave(save);
+    sfx.unlockChime();
+    hub.showHub(save, "armory");
+    hub.celebrateAscend(save.crowns ?? 1);
+  },
   onReset: () => {
     save = resetSave();
     tutorial.reset();

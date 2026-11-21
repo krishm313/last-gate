@@ -1448,3 +1448,28 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .card-rule .card-desc { grid-area: desc; }
 .card-rule .card-tag { grid-area: tag; justify-self: start; }
 .card-rule .card-rarity, .card-rule .card-lvl, .card-rule .card-pips, .card-rule .card-combo { display: none; }
+
+/* Armory: Ascension card and the crown-drop celebration. */
+.lga-card { position: relative; background: linear-gradient(135deg, #3a2a10, #1e1608); border: calc(3 * var(--u)) solid #1d1208; box-shadow: 0 0 0 calc(2 * var(--u)) #c8a040, 0 calc(4 * var(--u)) 0 #0006; border-radius: calc(14 * var(--u)); padding: calc(10 * var(--u)) calc(12 * var(--u)); margin: calc(6 * var(--u)) 0 calc(10 * var(--u)); text-align: center; }
+.lga-card.ready { background: linear-gradient(135deg, #6a4810, #2a1a06); box-shadow: 0 0 0 calc(2.5 * var(--u)) #ffd84a, 0 0 calc(18 * var(--u)) #ffd84a88, 0 calc(4 * var(--u)) 0 #0006; overflow: hidden; }
+.lga-card.ready::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, #fff4 45%, transparent 60%); transform: translateX(-100%); animation: lga-sheen 2.8s ease-in-out infinite; pointer-events: none; }
+@keyframes lga-sheen { 60%, 100% { transform: translateX(100%); } }
+.lga-crown { font-size: calc(34 * var(--tu)); line-height: 1; animation: lga-bob 2.2s ease-in-out infinite; filter: drop-shadow(0 calc(3 * var(--u)) 0 #1d1208); }
+@keyframes lga-bob { 50% { transform: translateY(calc(-4 * var(--u))) rotate(-4deg); } }
+.lga-title { font-weight: 900; font-size: calc(15 * var(--tu)); color: #ffe27a; text-shadow: 0 calc(1.5 * var(--u)) 0 #1d1208; margin-top: calc(2 * var(--u)); }
+.lga-desc { font-weight: 700; font-size: calc(11 * var(--tu)); color: #f0e0c0; margin: calc(4 * var(--u)) 0 calc(6 * var(--u)); line-height: 1.3; }
+.lga-btn { pointer-events: auto; }
+.lga-btn.confirm { background: linear-gradient(#ff7a5a, #c83a2a) !important; }
+.lga-tease { text-align: center; font-weight: 800; font-size: calc(11 * var(--tu)); color: #b8c4e0; margin: calc(2 * var(--u)) 0 calc(8 * var(--u)); }
+.lga-celebrate { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #3a2a0acc, #000c 70%); pointer-events: none; animation: lga-fade-in 0.25s ease-out both; }
+.lga-celebrate.out { animation: lga-fade-out 0.5s ease-in both; }
+@keyframes lga-fade-in { from { opacity: 0; } }
+@keyframes lga-fade-out { to { opacity: 0; } }
+.lga-rays { position: absolute; width: 140vmin; height: 140vmin; background: repeating-conic-gradient(#ffd84a33 0 10deg, transparent 10deg 20deg); border-radius: 50%; -webkit-mask: radial-gradient(circle, #000 20%, transparent 65%); mask: radial-gradient(circle, #000 20%, transparent 65%); animation: lga-spin 9s linear infinite; }
+@keyframes lga-spin { to { transform: rotate(360deg); } }
+.lga-big { position: relative; font-size: 28vmin; line-height: 1; filter: drop-shadow(0 1vmin 0 #1d1208) drop-shadow(0 0 4vmin #ffd84a); animation: lga-drop 0.9s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes lga-drop { 0% { transform: translateY(-80vh) rotate(-25deg) scale(0.6); } 60% { transform: translateY(2vh) rotate(6deg) scale(1.08, 0.92); } 80% { transform: translateY(-1vh) rotate(-2deg) scale(0.97, 1.03); } 100% { transform: none; } }
+.lga-big-text { position: relative; font-weight: 900; font-size: 9vmin; color: #ffe27a; text-shadow: 0 0.6vmin 0 #1d1208; animation: lga-pop 0.45s cubic-bezier(.2,1.6,.4,1) 0.7s both; }
+.lga-big-sub { position: relative; font-weight: 800; font-size: 3.6vmin; color: #fff; animation: lga-pop 0.45s cubic-bezier(.2,1.6,.4,1) 0.9s both; }
+@keyframes lga-pop { from { transform: scale(0.3); opacity: 0; } }
+.lg-calm .lga-big, .lg-calm .lga-rays, .lg-calm .lga-crown, .lg-calm .lga-card.ready::before { animation: none; }

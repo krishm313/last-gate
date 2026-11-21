@@ -1,5 +1,5 @@
 import { HERO_BY_ID, vetLookOn, type HeroId } from "../core/heroes";
-import type { SaveData } from "../core/meta";
+import { ASCEND, type SaveData } from "../core/meta";
 import { skillMods } from "../core/skills";
 import { activeFlair } from "../core/flair";
 import { baseMods } from "./blessings";
@@ -47,6 +47,13 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   m.heroDamage *= 1 + 0.03 * lv("legacy");
   m.towerDamage *= 1 + 0.03 * lv("legacy");
   m.wallHp *= 1 + 0.03 * lv("legacy");
+  // Crowns (Ascension): a permanent edge on damage, walls and gold.
+  const cr = save.crowns ?? 0;
+  m.heroDamage *= 1 + ASCEND.power * cr;
+  m.towerDamage *= 1 + ASCEND.power * cr;
+  m.wallHp *= 1 + ASCEND.power * cr;
+  m.drops *= 1 + ASCEND.gold * cr;
+  m.income *= 1 + ASCEND.gold * cr;
   const h = CAMP_HEROES[hero];
   h.apply(s);
   s.heroLook = h.look;

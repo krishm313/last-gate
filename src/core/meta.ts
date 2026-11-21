@@ -47,8 +47,12 @@ export const PERMS: PermDef[] = [
 
 export const PERM_BY_ID: Record<string, PermDef> = Object.fromEntries(PERMS.map((p) => [p.id, p]));
 
-export function permCost(p: PermDef, level: number): number {
-  return Math.round((p.baseCost * p.costGrowth ** level) / 5) * 5;
+/** Ascension: reset a fully maxed Armory for a Crown — a permanent bonus — and buy it all back (at a
+ *  higher price per Crown, so gold matters again in the endgame). */
+export const ASCEND = { maxCrowns: 10, power: 0.06, gold: 0.1, cost: 0.3 };
+
+export function permCost(p: PermDef, level: number, crowns = 0): number {
+  return Math.round((p.baseCost * p.costGrowth ** level * (1 + ASCEND.cost * crowns)) / 5) * 5;
 }
 
 export interface SaveData {
@@ -57,6 +61,8 @@ export interface SaveData {
   /** chapter id → best stars (0..3). */
   stars: Record<number, number>;
   perms: Record<string, number>;
+  /** Ascensions so far (each a permanent Crown bonus). */
+  crowns?: number;
   hero: HeroId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
@@ -113,6 +119,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stars))) if (chapterIds.has(Number(k))) d.stars[Number(k)] = Math.max(0, Math.min(3, Math.floor(num(v, 0))));
   for (const [k, v] of Object.entries(rec(r.best))) if (chapterIds.has(Number(k)) || Number(k) === ENDLESS_ID) d.best[Number(k)] = Math.max(0, Math.min(9999, Math.floor(num(v, 0))));
   for (const p of PERMS) d.perms[p.id] = Math.max(0, Math.min(p.max, Math.floor(num(rec(r.perms)[p.id], 0))));
+  d.crowns = Math.max(0, Math.min(ASCEND.maxCrowns, Math.floor(num(r.crowns, 0))));
   d.hero = r.hero && r.hero in HERO_BY_ID ? r.hero : "ranger";
   d.runs = Math.floor(num(r.runs, 0));
   d.wins = Math.floor(num(r.wins, 0));
@@ -167,14 +174,26 @@ export function canBuy(s: SaveData, id: string): boolean {
   const p = PERM_BY_ID[id];
   if (!p || !permOpen(s, p)) return false;
   const lvl = s.perms[id] ?? 0;
-  return lvl < p.max && s.gold >= permCost(p, lvl);
+  return lvl < p.max && s.gold >= permCost(p, lvl, s.crowns ?? 0);
+}
+
+/** Every Armory upgrade (the capstone too) is at max, and there's a Crown left to earn. */
+export function canAscend(s: SaveData): boolean {
+  return (s.crowns ?? 0) < ASCEND.maxCrowns && PERMS.every((p) => (s.perms[p.id] ?? 0) >= p.max);
+}
+
+export function ascend(s: SaveData): boolean {
+  if (!canAscend(s)) return false;
+  for (const p of PERMS) s.perms[p.id] = 0;
+  s.crowns = (s.crowns ?? 0) + 1;
+  return true;
 }
 
 export function buyPerm(s: SaveData, id: string): boolean {
   if (!canBuy(s, id)) return false;
   const p = PERM_BY_ID[id]!;
   const lvl = s.perms[id] ?? 0;
-  s.gold -= permCost(p, lvl);
+  s.gold -= permCost(p, lvl, s.crowns ?? 0);
   s.perms[id] = lvl + 1;
   return true;
 }

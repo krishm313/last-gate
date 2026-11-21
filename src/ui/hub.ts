@@ -23,7 +23,7 @@ import { activeFlair, FLAIRS } from "../core/flair";
 import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../core/difficulty";
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, VET_NIGHTS, vetLookOn, vetLookOpen, type HeroId } from "../core/heroes";
-import { canBuy, permOpen, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
+import { ASCEND, canAscend, canBuy, permOpen, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
 import { CAMP_HEROES } from "../camp/meta";
 
 /** Painted portraits cut from the owner's character sheet. */
@@ -106,6 +106,8 @@ export interface HubCallbacks {
   onPlay: (chapter: number) => void;
   onSelectHero: (id: HeroId) => void;
   onBuy: (permId: string) => void;
+  /** Ascend: reset the maxed Armory for a Crown. */
+  onAscend?: () => void;
   onReset: () => void;
   onClaim: (id: string) => void;
   /** Learn / reset a hero skill (Heroes tab). */
@@ -239,7 +241,7 @@ export class Hub {
     titleRow.append(el("h1", "title", "Last Gate"), Object.assign(this.button("⚙", "gear-btn", () => this.cb.onSettings()), { title: "Settings", ariaLabel: "Settings" }));
     head.append(titleRow);
     const res = el("div", "hub-res");
-    res.append(el("span", `res-gold${this.justBought || this.justClaimed ? " spent" : ""}`, `● ${fmtGold(save.gold)}`), el("span", "res-stars", `★ ${totalStars(save)}/${CHAPTERS.length * 3} · 🏆 ${save.claimed.length}/${ACHIEVEMENTS.length}`));
+    res.append(el("span", `res-gold${this.justBought || this.justClaimed ? " spent" : ""}`, `● ${fmtGold(save.gold)}`), el("span", "res-stars", `${save.crowns ? `👑 ${save.crowns} · ` : ""}★ ${totalStars(save)}/${CHAPTERS.length * 3} · 🏆 ${save.claimed.length}/${ACHIEVEMENTS.length}`));
     head.append(res);
     wrap.append(head);
     const tabs = el("div", "tabs");
@@ -1315,8 +1317,49 @@ export class Hub {
     return panel;
   }
 
+  /** Ascension card: ready (every upgrade maxed), the Crowns earned so far, or a teaser. */
+  private ascendCard(save: SaveData): HTMLElement {
+    const cr = save.crowns ?? 0;
+    const bonus = (n: number) => `+${Math.round(ASCEND.power * n * 100)}% damage & wall HP · +${Math.round(ASCEND.gold * n * 100)}% gold`;
+    if (canAscend(save)) {
+      const box = el("div", "lga-card ready");
+      box.append(el("div", "lga-crown", "👑"), el("div", "lga-title", `Ascend — earn Crown ${cr + 1}`));
+      box.append(el("div", "lga-desc", `Every upgrade resets to 0 and you buy them back. Forever after: ${bonus(cr + 1)}. Upgrades cost +${Math.round(ASCEND.cost * 100)}% per Crown.`));
+      let armed = false;
+      const go = this.button("👑 Ascend", "btn lga-btn", () => {
+        if (!armed) {
+          armed = true;
+          go.textContent = "Tap again to Ascend";
+          go.classList.add("confirm");
+          window.setTimeout(() => { armed = false; go.textContent = "👑 Ascend"; go.classList.remove("confirm"); }, 2600);
+          return;
+        }
+        this.cb.onAscend?.();
+      });
+      box.append(go);
+      return box;
+    }
+    if (cr > 0) {
+      const box = el("div", "lga-card");
+      box.append(el("div", "lga-title", `${"👑".repeat(Math.min(cr, 5))}${cr > 5 ? ` ×${cr}` : ""} Crown${cr > 1 ? "s" : ""}: ${bonus(cr)}`));
+      if (cr < ASCEND.maxCrowns) box.append(el("div", "lga-desc", "Max every upgrade again to earn the next Crown."));
+      return box;
+    }
+    return el("div", "lga-tease", "👑 Max every upgrade to unlock Ascension");
+  }
+
+  /** Full-screen crown drop after ascending. */
+  celebrateAscend(crowns: number): void {
+    const fx = el("div", "lga-celebrate");
+    fx.append(el("div", "lga-rays"), el("div", "lga-big", "👑"), el("div", "lga-big-text", `Crown ${crowns}!`), el("div", "lga-big-sub", "The Armory is yours to rebuild"));
+    document.body.append(fx);
+    window.setTimeout(() => fx.classList.add("out"), 2300);
+    window.setTimeout(() => fx.remove(), 2800);
+  }
+
   private armoryTab(body: HTMLElement, save: SaveData): void {
     body.append(el("div", "hub-hint", "Permanent upgrades. Every run earns gold — even the ones you lose."));
+    body.append(this.ascendCard(save));
     const grid = el("div", "perm-grid");
     for (const p of PERMS) {
       const lvl = save.perms[p.id] ?? 0;
@@ -1335,7 +1378,7 @@ export class Hub {
         el("div", "perm-name", p.name),
         el("div", "perm-desc", lvl === 0 ? `Next: ${text(1)}` : maxed ? text(lvl) : upgradeText(text(lvl), text(lvl + 1))),
         pips,
-        el("div", "perm-cost", maxed ? "MAX" : open ? `● ${permCost(p, lvl)}` : "🔒 Max all others"),
+        el("div", "perm-cost", maxed ? "MAX" : open ? `● ${permCost(p, lvl, save.crowns ?? 0)}` : "🔒 Max all others"),
       );
       if (!maxed && open)
         card.onclick = () => {
@@ -1345,7 +1388,7 @@ export class Hub {
             return;
           }
           this.cb.onClick();
-          this.justBought = { id: p.id, cost: permCost(p, lvl) };
+          this.justBought = { id: p.id, cost: permCost(p, lvl, save.crowns ?? 0) };
           this.cb.onBuy(p.id);
         };
       grid.append(card);
