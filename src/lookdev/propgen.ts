@@ -1202,6 +1202,299 @@ function boulder(): void {
   root.add(b);
 }
 
+
+// ---- Rebuilt camp pieces (were flat canvas drawings in the game): watchtower, healer's tent, merchant
+// cart, cursed shrine, mage tower, spike stake. 1 scene unit = 10 world units, origin = base centre. ----
+const woodM = (c: number) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
+
+/** Watchtower (levels 1–3): splayed timber stilts with braces, a railed lookout, a roof; taller and
+ *  sturdier per level, a stone footing and a gold-trimmed roof at the top level. */
+function watchtowerModel(level: number): void {
+  const H = 6.2 + level * 1.1, top = 1.5;
+  const spread = 1.5, deckW = 2.6;
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    const leg = mesh(lumpy(new THREE.CylinderGeometry(0.13, 0.2, H + 0.2, 7, 4), 0.04), woodM(0x6a4426));
+    // Legs lean in toward the deck.
+    leg.position.set(x * (spread + deckW * 0.4) / 2, H / 2, z * (spread + deckW * 0.4) / 2);
+    leg.rotation.z = -x * 0.08;
+    leg.rotation.x = z * 0.08;
+    root.add(leg);
+  }
+  // Cross braces on the front and sides, one pair per storey.
+  const storeys = 1 + level;
+  for (let k = 0; k < storeys; k++) {
+    const y0 = (H / storeys) * k + 0.4, y1 = (H / storeys) * (k + 1);
+    for (const z of [-1, 1]) for (const d of [-1, 1]) {
+      const len = Math.hypot(spread * 1.25, y1 - y0);
+      const br = mesh(new THREE.CylinderGeometry(0.06, 0.06, len, 5), woodM(0x4e3218));
+      br.position.set(0, (y0 + y1) / 2, z * 1.05);
+      br.rotation.z = d * Math.atan2(spread * 1.25, y1 - y0);
+      root.add(br);
+    }
+  }
+  if (level >= 3) {
+    const foot = mesh(lumpy(new THREE.CylinderGeometry(1.9, 2.1, 0.7, 10, 2), 0.05, 3, false), std(0x9a968c, 0.95));
+    foot.position.y = 0.35;
+    root.add(foot);
+  }
+  // Ladder up the front.
+  for (const x of [-0.3, 0.3]) {
+    const rail = mesh(new THREE.CylinderGeometry(0.04, 0.04, H, 5), woodM(0x8a5a30));
+    rail.position.set(x, H / 2, 1.35);
+    rail.rotation.x = -0.08;
+    root.add(rail);
+  }
+  for (let r = 0.6; r < H; r += 0.55) {
+    const rung = mesh(new THREE.BoxGeometry(0.62, 0.05, 0.06), woodM(0x9a6a38));
+    rung.position.set(0, r, 1.35 + (r - H / 2) * 0.08);
+    root.add(rung);
+  }
+  // Lookout deck + railing posts + plank walls.
+  const deck = mesh(new THREE.BoxGeometry(deckW, 0.22, deckW), woodM(0xb07a44));
+  deck.position.y = H;
+  root.add(deck);
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    const post = mesh(new THREE.BoxGeometry(0.16, top, 0.16), woodM(0x7a4e2a));
+    post.position.set(x * deckW * 0.45, H + top / 2, z * deckW * 0.45);
+    root.add(post);
+  }
+  for (const [x, z, w, d] of [[0, deckW * 0.45, deckW * 0.95, 0.1], [0, -deckW * 0.45, deckW * 0.95, 0.1], [deckW * 0.45, 0, 0.1, deckW * 0.95], [-deckW * 0.45, 0, 0.1, deckW * 0.95]] as const) {
+    const wall = mesh(new THREE.BoxGeometry(w, 0.6, d), woodM(0x9a6a38));
+    wall.position.set(x, H + 0.4, z);
+    root.add(wall);
+  }
+  // Pyramid roof (gold-trimmed at the top level) with a pennant.
+  const roof = mesh(new THREE.ConeGeometry(deckW * 0.82, 1.3, 4), std(level >= 3 ? 0x2e5a9a : 0x8a3a2a, 0.75));
+  roof.position.y = H + top + 0.55;
+  roof.rotation.y = Math.PI / 4;
+  root.add(roof);
+  if (level >= 3) {
+    const trim = mesh(new THREE.TorusGeometry(deckW * 0.6, 0.06, 6, 4), std(0xd8a82a, 0.4));
+    trim.rotation.x = Math.PI / 2;
+    trim.rotation.z = Math.PI / 4;
+    trim.position.y = H + top - 0.05;
+    root.add(trim);
+  }
+  const pole = mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 5), woodM(0x5a3a1c));
+  pole.position.y = H + top + 1.6;
+  root.add(pole);
+  const flag = mesh(new THREE.PlaneGeometry(0.8, 0.45), new THREE.MeshStandardMaterial({ color: level >= 2 ? 0xe0a82a : 0x3d6aa8, roughness: 0.8, side: THREE.DoubleSide }));
+  flag.position.set(0.42, H + top + 1.9, 0);
+  root.add(flag);
+  // Lantern hanging under the roof.
+  const lamp = mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffc860, emissive: 0xffa030, emissiveIntensity: 1.2 }));
+  lamp.position.set(0, H + top - 0.35, deckW * 0.3);
+  root.add(lamp);
+}
+
+/** Healer's tent (levels 1–4): a white canvas tent with red stripes and a red-cross banner, broader
+ *  per level; a second awning at level 3, a gold cross and laurel banner at mastery. */
+function healerTentModel(level: number): void {
+  const W = 4.4 + level * 0.5, D = 3.4 + level * 0.25, H = 3.2 + level * 0.25;
+  const seg = 10;
+  const g = new THREE.BufferGeometry();
+  const pos: number[] = [], col: number[] = [];
+  const white = new THREE.Color(0xf4efe4), red = new THREE.Color(0xc8382a);
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < seg; i++) {
+      const x0 = -W / 2 + (W * i) / seg, x1 = -W / 2 + (W * (i + 1)) / seg;
+      const c = i % 3 === 1 ? red : white;
+      const p = [[x0, 0, (side * D) / 2], [x1, 0, (side * D) / 2], [x1, H, 0], [x0, 0, (side * D) / 2], [x1, H, 0], [x0, H, 0]];
+      if (side < 0) p.reverse();
+      for (const v of p) { pos.push(v[0]!, v[1]!, v[2]!); col.push(c.r, c.g, c.b); }
+    }
+  }
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  root.add(mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide })));
+  for (const ex of [-W / 2, W / 2]) {
+    const tri = new THREE.Shape();
+    tri.moveTo(-D / 2, 0); tri.lineTo(0, H); tri.lineTo(D / 2, 0); tri.lineTo(-D / 2, 0);
+    const m = mesh(new THREE.ShapeGeometry(tri), std(0xece6da, 0.9));
+    m.rotation.y = Math.PI / 2;
+    m.position.x = ex;
+    root.add(m);
+  }
+  // Doorway flap (dark) on the front end, tied back.
+  const door = new THREE.Shape();
+  door.moveTo(-0.8, 0); door.lineTo(0, 2.0); door.lineTo(0.8, 0); door.lineTo(-0.8, 0);
+  const dm = mesh(new THREE.ShapeGeometry(door), std(0x3a2a20, 1));
+  dm.rotation.y = Math.PI / 2;
+  dm.position.x = W / 2 + 0.02;
+  root.add(dm);
+  // Ridge pole with a banner: red cross on white (gold cross at mastery).
+  const pole = mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.0, 6), woodM(0x6a4426));
+  pole.position.set(-W / 2 + 0.3, H + 0.9, 0);
+  root.add(pole);
+  const flag = mesh(new THREE.PlaneGeometry(1.1, 0.75), new THREE.MeshStandardMaterial({ color: 0xf4efe4, roughness: 0.8, side: THREE.DoubleSide }));
+  flag.position.set(-W / 2 + 0.88, H + 1.5, 0);
+  root.add(flag);
+  const crossCol = level >= 4 ? 0xe0b030 : 0xd83a2a;
+  for (const [w, h] of [[0.5, 0.15], [0.15, 0.5]] as const) {
+    const c = mesh(new THREE.BoxGeometry(w, h, 0.02), std(crossCol, 0.6));
+    c.position.set(-W / 2 + 0.88, H + 1.5, 0.02);
+    root.add(c);
+  }
+  if (level >= 3) {
+    // A front awning on poles (a field hospital).
+    const aw = mesh(new THREE.BoxGeometry(W * 0.7, 0.08, 1.4), std(0xe8e2d4, 0.9));
+    aw.position.set(0, 1.9, D / 2 + 0.6);
+    aw.rotation.x = 0.18;
+    root.add(aw);
+    for (const x of [-W * 0.33, W * 0.33]) {
+      const p = mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.9, 5), woodM(0x7a4e2a));
+      p.position.set(x, 0.95, D / 2 + 1.2);
+      root.add(p);
+    }
+  }
+  // Supplies by the door: a cot and a crate of bottles.
+  const crate = mesh(new THREE.BoxGeometry(0.8, 0.55, 0.6), woodM(0x9a6a38));
+  crate.position.set(W / 2 - 0.2, 0.28, D / 2 + 0.3);
+  root.add(crate);
+  for (let i = 0; i < 3; i++) {
+    const b = mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.32, 6), new THREE.MeshStandardMaterial({ color: 0x6ad06a, roughness: 0.3, emissive: 0x2a8a2a, emissiveIntensity: 0.3 }));
+    b.position.set(W / 2 - 0.45 + i * 0.25, 0.72, D / 2 + 0.3);
+    root.add(b);
+  }
+}
+
+/** Wandering merchant's cart: wooden wagon, striped awning on posts, sacks and crates, two wheels. */
+function merchantCartModel(): void {
+  const body = mesh(lumpy(new THREE.BoxGeometry(4.6, 1.3, 2.4, 3, 2, 2), 0.02, 3, false), woodM(0xa06a38));
+  body.position.y = 1.35;
+  root.add(body);
+  for (let i = -2; i <= 2; i++) {
+    const plank = mesh(new THREE.BoxGeometry(0.05, 1.25, 2.42), woodM(0x6a4422));
+    plank.position.set(i * 0.92, 1.35, 0);
+    root.add(plank);
+  }
+  for (const x of [-1.5, 1.5]) for (const z of [-1.3, 1.3]) {
+    const w = mesh(new THREE.TorusGeometry(0.62, 0.12, 6, 14), woodM(0x5a3a1c));
+    w.position.set(x, 0.66, z);
+    root.add(w);
+    for (let k = 0; k < 4; k++) {
+      const sp = mesh(new THREE.BoxGeometry(0.06, 1.2, 0.06), woodM(0x7a4e2a));
+      sp.position.set(x, 0.66, z);
+      sp.rotation.z = (k * Math.PI) / 4;
+      root.add(sp);
+    }
+  }
+  // Awning on four posts: red/cream stripes.
+  for (const x of [-2.1, 2.1]) for (const z of [-1.0, 1.0]) {
+    const p = mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 5), woodM(0x7a4e2a));
+    p.position.set(x, 3.1, z);
+    root.add(p);
+  }
+  for (let i = 0; i < 7; i++) {
+    const strip = mesh(new THREE.BoxGeometry(4.8 / 7, 0.1, 2.8), std(i % 2 ? 0xf4ecd8 : 0xd8443a, 0.85));
+    strip.position.set(-2.4 + (i + 0.5) * (4.8 / 7), 4.25 - Math.abs(i - 3) * 0.02, 0);
+    strip.rotation.x = 0.1;
+    root.add(strip);
+  }
+  // Wares: sacks, a crate and glowing bottles.
+  for (const [x, z] of [[-1.3, 0.3], [-0.6, -0.5]] as const) {
+    const sack = mesh(lumpy(new THREE.SphereGeometry(0.55, 8, 6), 0.06), std(0xd8c08a, 0.95));
+    sack.scale.set(1, 0.8, 1);
+    sack.position.set(x, 2.3, z);
+    root.add(sack);
+  }
+  const crate = mesh(new THREE.BoxGeometry(0.9, 0.7, 0.9), woodM(0x8a5a30));
+  crate.position.set(0.9, 2.35, 0.1);
+  root.add(crate);
+  for (let i = 0; i < 3; i++) {
+    const b = mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.42, 6), new THREE.MeshStandardMaterial({ color: [0x6ac0e8, 0xe86aa8, 0xffd23a][i]!, roughness: 0.25, emissive: [0x2a6a9a, 0x9a2a5a, 0x9a7a1a][i]!, emissiveIntensity: 0.35 }));
+    b.position.set(1.8 + (i % 2) * 0.2, 2.25, -0.5 + i * 0.35);
+    root.add(b);
+  }
+  // Shaft poles out the front.
+  for (const z of [-0.6, 0.6]) {
+    const sh = mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.2, 5), woodM(0x6a4426));
+    sh.rotation.z = Math.PI / 2 - 0.12;
+    sh.position.set(3.3, 1.0, z);
+    root.add(sh);
+  }
+}
+
+/** Cursed shrine: a rune-cut obelisk on a stepped base, with a violet glowing eye and runes. */
+function shrineModel(): void {
+  const base = mesh(lumpy(new THREE.BoxGeometry(3.2, 0.5, 3.2, 3, 2, 3), 0.05, 3, false), std(0x6a6a78, 0.95));
+  base.position.y = 0.25;
+  root.add(base);
+  const step = mesh(lumpy(new THREE.BoxGeometry(2.4, 0.4, 2.4, 3, 2, 3), 0.04, 3, false), std(0x7a7a88, 0.95));
+  step.position.y = 0.7;
+  root.add(step);
+  const obG = new THREE.CylinderGeometry(0.55, 0.95, 5.2, 4, 3);
+  const ob = mesh(lumpy(obG, 0.04, 3, false), std(0x8a8a9a, 0.9));
+  ob.rotation.y = Math.PI / 4;
+  ob.position.y = 3.5;
+  root.add(ob);
+  const cap = mesh(new THREE.ConeGeometry(0.62, 0.8, 4), std(0x7a7a88, 0.9));
+  cap.rotation.y = Math.PI / 4;
+  cap.position.y = 6.5;
+  root.add(cap);
+  const glow = new THREE.MeshStandardMaterial({ color: 0xc89aff, emissive: 0xa060ff, emissiveIntensity: 2.2 });
+  const eye = mesh(new THREE.SphereGeometry(0.28, 10, 8), glow);
+  eye.scale.set(1.4, 0.8, 0.4);
+  eye.position.set(0, 4.6, 0.72);
+  root.add(eye);
+  for (const [y, w, h] of [[3.4, 0.12, 0.7], [3.4, 0.5, 0.1], [2.4, 0.4, 0.1], [2.1, 0.1, 0.5]] as const) {
+    const r = mesh(new THREE.BoxGeometry(w, h, 0.05), glow);
+    r.position.set(0, y, 0.84);
+    root.add(r);
+  }
+}
+
+/** Mage tower (levels 1–4): a tapering stone spire with rune bands and a floating crystal; taller per
+ *  level, a gold-banded crown and a bigger crystal at mastery. */
+function mageTowerModel(level: number): void {
+  const H = 4.8 + level * 0.8;
+  const g = lumpy(new THREE.CylinderGeometry(1.0, 1.7, H, 8, 6), 0.035, 3, false);
+  const spire = mesh(shadeByHeight(g, 0xb4aec4, 0.7, 1.1), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }));
+  spire.position.y = H / 2;
+  root.add(spire);
+  const rune = new THREE.MeshStandardMaterial({ color: 0xa58aff, emissive: 0x7a50ff, emissiveIntensity: 1.6 });
+  for (let k = 1; k <= level; k++) {
+    const y = (H * k) / (level + 1);
+    const r = 1.7 - (0.7 * y) / H;
+    const band = mesh(new THREE.TorusGeometry(r + 0.03, 0.06, 6, 16), rune);
+    band.rotation.x = Math.PI / 2;
+    band.position.y = y;
+    root.add(band);
+  }
+  // Doorway and a window.
+  const door = mesh(new THREE.BoxGeometry(0.7, 1.2, 0.1), std(0x2a2038, 1));
+  door.position.set(0, 0.6, 1.62);
+  root.add(door);
+  const win = mesh(new THREE.BoxGeometry(0.35, 0.5, 0.1), new THREE.MeshStandardMaterial({ color: 0xffd890, emissive: 0xffb040, emissiveIntensity: 1.2 }));
+  win.position.set(0, H * 0.62, 1.28);
+  root.add(win);
+  // Crown ring of merlons (gold at mastery).
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const m = mesh(new THREE.BoxGeometry(0.32, 0.4, 0.32), std(level >= 4 ? 0xd8a82a : 0x9a94aa, level >= 4 ? 0.4 : 0.9));
+    m.position.set(Math.cos(a) * 1.0, H + 0.2, Math.sin(a) * 1.0);
+    root.add(m);
+  }
+  // Floating crystal above.
+  const cr = mesh(new THREE.OctahedronGeometry(0.55 + level * 0.08), new THREE.MeshStandardMaterial({ color: 0xc8a8ff, emissive: 0x8a50ff, emissiveIntensity: 1.4, roughness: 0.2 }));
+  cr.scale.set(0.8, 1.4, 0.8);
+  cr.position.y = H + 1.4;
+  root.add(cr);
+}
+
+/** One spike-trap stake (wood, or dark iron with a bright tip). */
+function stakeModel(iron: boolean): void {
+  const s = mesh(lumpy(new THREE.ConeGeometry(0.22, 2.2, 6, 3), 0.03), std(iron ? 0x4a4e5a : 0xa8743e, iron ? 0.45 : 0.85));
+  s.position.y = 1.1;
+  s.rotation.z = -0.35;
+  root.add(s);
+  const tip = mesh(new THREE.ConeGeometry(0.1, 0.4, 6), std(iron ? 0xf4f4f8 : 0xe8d0a0, iron ? 0.3 : 0.7));
+  tip.position.set(0.37, 2.1, 0);
+  tip.rotation.z = -0.35;
+  root.add(tip);
+}
+
 ({
   boulder,
   cat_arm: () => catapultArm(true),
@@ -1238,6 +1531,21 @@ function boulder(): void {
     forge();
     root.rotation.y = 0.5;
   },
+  watch1: () => { watchtowerModel(1); root.rotation.y = -0.4; },
+  watch2: () => { watchtowerModel(2); root.rotation.y = -0.4; },
+  watch3: () => { watchtowerModel(3); root.rotation.y = -0.4; },
+  healer1: () => { healerTentModel(1); root.rotation.y = -Math.PI / 2 + 0.7; },
+  healer2: () => { healerTentModel(2); root.rotation.y = -Math.PI / 2 + 0.7; },
+  healer3: () => { healerTentModel(3); root.rotation.y = -Math.PI / 2 + 0.7; },
+  healer4: () => { healerTentModel(4); root.rotation.y = -Math.PI / 2 + 0.7; },
+  cart: () => { merchantCartModel(); root.rotation.y = -0.35; },
+  shrine: () => { shrineModel(); root.rotation.y = 0.2; },
+  mage1: () => { mageTowerModel(1); root.rotation.y = 0.3; },
+  mage2: () => { mageTowerModel(2); root.rotation.y = 0.3; },
+  mage3: () => { mageTowerModel(3); root.rotation.y = 0.3; },
+  mage4: () => { mageTowerModel(4); root.rotation.y = 0.3; },
+  stake: () => stakeModel(false),
+  stake_iron: () => stakeModel(true),
   tower1: () => tower(1, "back"), tower2: () => tower(2, "back"), tower3: () => tower(3, "back"), tower4: () => tower(4, "back"),
   tower1f: () => tower(1, "front"), tower2f: () => tower(2, "front"), tower3f: () => tower(3, "front"), tower4f: () => tower(4, "front"),
   pine, round: roundTree, bush, rock, stump,

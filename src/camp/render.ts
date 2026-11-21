@@ -8,7 +8,7 @@ import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeT
 import { drawVisitor, VISITOR_LEAVE, type VisitorAnim } from "./visitors";
 import { BLESSING_BY_ID } from "./blessings";
 import { ACID, BANNER_R, PRE_MASTERY, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
-import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
+import { buildingSprite, riseScale, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
   type Ally, type Camp, type CampEvent, type Enemy, type Plot, type Vec, type Worker,
@@ -265,8 +265,21 @@ export class CampRenderer {
     ctx.restore();
   }
 
+  /** A 3D-rendered building sprite standing on its plot, with the shared build / upgrade bounce. */
+  private builtSprite(ctx: CanvasRenderingContext2D, p: Plot, name: string, baseDy: number, scale = 1): boolean {
+    const since = this.time - (this.builtAt.get(p.id) ?? -9);
+    const [sx, sy] = riseScale(since, p.level);
+    ctx.save();
+    ctx.translate(p.x, p.y + baseDy);
+    ctx.scale(sx, sy);
+    const ok = buildingSprite(ctx, name, 0, 0, scale);
+    ctx.restore();
+    return ok;
+  }
+
   /** Healer's tent: a striped canvas tent with a red-cross banner, and a soft green aura on the ground. */
   private drawHealerTent(ctx: CanvasRenderingContext2D, p: Plot): void {
+    if (this.builtSprite(ctx, p, `healer${Math.min(4, p.level)}`, 18, 0.82)) return;
     const { x, y } = p;
     const since = this.time - (this.builtAt.get(p.id) ?? -9);
     const s = (since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1) * (0.9 + p.level * 0.07);
@@ -306,6 +319,16 @@ export class CampRenderer {
 
   /** Watchtower: a tall timber lookout on stilts with a lantern and pennant; lights up the towers it boosts. */
   private drawWatchtower(ctx: CanvasRenderingContext2D, p: Plot): void {
+    if (this.builtSprite(ctx, p, `watch${Math.min(3, p.level)}`, 16)) {
+      // The lookout's lantern still glows (brighter at night).
+      const glow = 0.5 + this.night * 0.5 + Math.sin(this.time * 3) * 0.08;
+      const ly = p.y + 16 - (p.level >= 3 ? 118 : 96 + p.level * 4);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      this.drawBlob(ctx, this.blob("lantern", [[0, "rgba(255,210,120,1)"], [1, "rgba(255,160,60,0)"]]), p.x, ly, 16, 16, glow * 0.8);
+      ctx.restore();
+      return;
+    }
     const { x, y } = p;
     const since = this.time - (this.builtAt.get(p.id) ?? -9);
     const rise = since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1;
@@ -415,6 +438,7 @@ export class CampRenderer {
   }
 
   private drawMageTower(ctx: CanvasRenderingContext2D, p: Plot): void {
+    if (this.builtSprite(ctx, p, `mage${Math.min(4, p.level)}`, 14)) return;
     const { x, y } = p;
     const since = this.time - (this.builtAt.get(p.id) ?? -9);
     const rise = since < 0.5 ? 1 - (1 - since / 0.5) ** 3 : 1;
@@ -486,6 +510,16 @@ export class CampRenderer {
       const len = 13 + ((i * 7 + row * 3) % 5);
       const lean = -0.35 + ((i * 13 + row * 5) % 7) * 0.05;
       const tx = x + Math.sin(lean) * len + jig, ty = y - Math.cos(lean) * len;
+      // The 3D-rendered stake (iron at Iron Maw), leaning a little differently each, jolting when hit.
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(lean + 0.35 + jig * 0.04);
+      const drew = buildingSprite(ctx, level >= 4 ? "stake_iron" : "stake", 0, 0, 0.55 + len * 0.015);
+      ctx.restore();
+      if (drew) {
+        if (near) { ctx.fillStyle = "#ff6a4a"; ctx.beginPath(); ctx.arc(tx, ty, 1.8, 0, Math.PI * 2); ctx.fill(); }
+        continue;
+      }
       ctx.strokeStyle = "rgba(0,0,0,0.25)";
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(x + 2, y + 2); ctx.lineTo(tx + 6, y + 4); ctx.stroke();

@@ -1,5 +1,6 @@
 import { FONT } from "../ui/font";
 import { INK, softShadow } from "./art";
+import { buildingSprite } from "./buildings";
 import { BLESSING_BY_ID } from "./blessings";
 import { VISITOR, type Camp, type VisitorKind } from "./sim";
 
@@ -56,6 +57,20 @@ function bubble(ctx: CanvasRenderingContext2D, x: number, y: number, lines: stri
   ctx.restore();
 }
 
+function merchantSign(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t: number, x: number, y: number, since: number): void {
+  const v = c.visitor;
+  // The sign: what's for sale and the price (with the paid bar while you stand there).
+  const b = a.offer ? BLESSING_BY_ID[a.offer] : null;
+  if (b && a.leaveAt === null) {
+    const pop = easeOutBack(clamp01((since - 0.9) / 0.45));
+    if (a.doneAt === null) bubble(ctx, x, y - 70 + Math.sin(t * 2.4) * 1.5, [`${b.icon} ${b.name} · ● ${a.price}`, b.desc], "#ffd84a", pop, v && v.paid > 0 ? v.paid / v.price : undefined);
+    else {
+      const k = clamp01((t - a.doneAt) / 0.35);
+      bubble(ctx, x, y - 70, ["✔ SOLD! Pleasure doing business"], "#5cc23c", easeOutBack(k) * (t - a.doneAt < 2.5 ? 1 : Math.max(0, 1 - (t - a.doneAt - 2.5) / 0.3)));
+    }
+  }
+}
+
 /** The Wandering Merchant: a cart that rolls in, a hooded trader who waves you over, and the wares on a sign. */
 function drawMerchant(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t: number): void {
   const v = c.visitor;
@@ -66,13 +81,24 @@ function drawMerchant(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t:
   const rolling = since < 1.1 || a.leaveAt !== null;
   const x = a.x + dx, y = a.y;
   const near = !!v && (c.hero.x - a.x) ** 2 + (c.hero.y - a.y) ** 2 < (VISITOR.radius + 30) ** 2;
+  // Settling bounce once the cart stops; a gentle rock while it rolls.
+  const bob = rolling ? Math.sin(t * 18) * 1.2 : Math.max(0, 1 - (since - 1.1) / 0.5) * Math.sin((since - 1.1) * 20) * 2;
+  // The 3D-rendered cart (rocks on its wheels while rolling, squashes as it settles).
+  ctx.save();
+  ctx.translate(x, y + 18);
+  ctx.rotate(rolling ? Math.sin(t * 9) * 0.025 : 0);
+  ctx.scale(1 + Math.abs(bob) * 0.012, 1 - Math.abs(bob) * 0.015);
+  const drew3d = buildingSprite(ctx, "cart", 0, 0, 0.95);
+  ctx.restore();
+  if (drew3d) {
+    merchantSign(ctx, c, a, t, x, y, since);
+    return;
+  }
   softShadow(ctx, x + 4, y + 14, 44, 9, 0.3);
   ctx.save();
   ctx.translate(x, y);
   ctx.lineJoin = "round";
   ctx.strokeStyle = INK;
-  // Settling bounce once the cart stops; a gentle rock while it rolls.
-  const bob = rolling ? Math.sin(t * 18) * 1.2 : Math.max(0, 1 - (since - 1.1) / 0.5) * Math.sin((since - 1.1) * 20) * 2;
   // Trader (behind the cart): hooded, head bobbing; waves when the hero comes close.
   const hb = Math.sin(t * 3) * 1.2;
   ctx.lineWidth = 2;
@@ -138,16 +164,7 @@ function drawMerchant(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t:
     ctx.restore();
   }
   ctx.restore();
-  // The sign: what's for sale and the price (with the paid bar while you stand there).
-  const b = a.offer ? BLESSING_BY_ID[a.offer] : null;
-  if (b && a.leaveAt === null) {
-    const pop = easeOutBack(clamp01((since - 0.9) / 0.45));
-    if (a.doneAt === null) bubble(ctx, x, y - 70 + Math.sin(t * 2.4) * 1.5, [`${b.icon} ${b.name} · ● ${a.price}`, b.desc], "#ffd84a", pop, v && v.paid > 0 ? v.paid / v.price : undefined);
-    else {
-      const k = clamp01((t - a.doneAt) / 0.35);
-      bubble(ctx, x, y - 70, ["✔ SOLD! Pleasure doing business"], "#5cc23c", easeOutBack(k) * (t - a.doneAt < 2.5 ? 1 : Math.max(0, 1 - (t - a.doneAt - 2.5) / 0.3)));
-    }
-  }
+  merchantSign(ctx, c, a, t, x, y, since);
 }
 
 /** The Cursed Shrine: a rune-carved stone that rises from the earth, with wisps circling it. */
@@ -163,7 +180,6 @@ function drawShrine(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t: n
   const pulse = 0.6 + 0.4 * Math.sin(t * (accepted ? 7 : 3));
   // Standing on it: a ring fills around the base.
   const hold = v && !v.done ? clamp01(v.stand / VISITOR.shrineHold) : 0;
-  softShadow(ctx, x + 5, y + 12, 26 * rise, 7, 0.32);
   if (hold > 0) {
     ctx.save();
     ctx.strokeStyle = `rgba(${glowCol},0.9)`;
@@ -172,13 +188,28 @@ function drawShrine(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t: n
     ctx.beginPath(); ctx.ellipse(x, y + 10, 36, 13, 0, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * hold); ctx.stroke();
     ctx.restore();
   }
+  // The 3D-rendered obelisk rising out of the ground (falls back to the drawn one while loading).
+  ctx.save();
+  ctx.translate(x, y + 12);
+  ctx.scale(1 + (1 - Math.min(1, rise)) * 0.3, rise);
+  const drew3d = buildingSprite(ctx, "shrine", 0, 0, 0.82);
+  ctx.restore();
+  if (!drew3d) softShadow(ctx, x + 5, y + 12, 26 * rise, 7, 0.32);
   ctx.save();
   ctx.translate(x, y + 10);
   ctx.scale(1, rise);
   ctx.lineJoin = "round";
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2.2;
+  if (drew3d) {
+    // Over the sprite: the rune eye pulses (red once the bargain is struck).
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `rgba(${glowCol},${(0.35 + 0.45 * pulse).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(0, -46, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
   // Base slab and obelisk.
+  if (!drew3d) {
   ctx.fillStyle = "#6a6a78";
   ctx.beginPath(); ctx.roundRect(-20, -8, 40, 10, 3); ctx.fill(); ctx.stroke();
   const stone = ctx.createLinearGradient(-14, 0, 14, 0);
@@ -194,6 +225,7 @@ function drawShrine(ctx: CanvasRenderingContext2D, c: Camp, a: VisitorAnim, t: n
   ctx.fillStyle = `rgba(${glowCol},${0.4 + 0.4 * pulse})`;
   ctx.fillRect(-1.5, -28, 3, 9);
   ctx.fillRect(-4.5, -24, 9, 2.5);
+  }
   ctx.restore();
   // Two wisps orbit the stone (in front when below it, behind when above — a cheap depth cue).
   for (let i = 0; i < 2; i++) {
