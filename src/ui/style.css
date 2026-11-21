@@ -1416,3 +1416,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgs2-info:empty { visibility: hidden; }
 
 .toast-host.below-boss { top: calc(146 * var(--u)); }
+
+/* Settings → Show FPS readout (battle only), and the Graphics quality row. */
+.lg-fps { position: absolute; left: calc(8 * var(--u)); bottom: calc(6 * var(--u)); font-size: calc(10 * var(--tu)); font-weight: 900; color: #fff; background: #000a; border-radius: calc(6 * var(--u)); padding: calc(2 * var(--u)) calc(6 * var(--u)); pointer-events: none; z-index: 5; font-variant-numeric: tabular-nums; }
+.lgq-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.lgq-hint { font-size: calc(10 * var(--tu)); font-weight: 700; color: #b8c4e0; }
+.lgq-val { background: #ffd84a; color: #2a1606; border: calc(2 * var(--u)) solid #1d1208; border-radius: calc(10 * var(--u)); padding: calc(2 * var(--u)) calc(10 * var(--u)); font-size: calc(13 * var(--tu)); }

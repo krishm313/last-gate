@@ -515,7 +515,15 @@ export class CampRenderer {
    * cheaper effects (smoothness beats the last bit of sharpness; Low Power Mode's 30 fps cap lands
    * here too, which saves battery). Only ever steps down; drawing only, never the sim.
    */
+  /** False when the player picked a fixed graphics quality (Settings): no automatic step-down. */
+  auto = true;
+  /** Current quality tier (0 = best). */
+  get qualityTier(): number {
+    return this.tier;
+  }
+
   perfSample(realDt: number): void {
+    if (!this.auto) return;
     // A single long stall (tab switch, asset load, GC) is not steady lag — don't let it cost quality.
     if (this.tier >= CampRenderer.TIERS.length - 1 || realDt > 0.25) return;
     this.perfAcc += realDt;

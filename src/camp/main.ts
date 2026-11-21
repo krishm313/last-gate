@@ -59,19 +59,28 @@ const tutorial = new Tutorial();
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const uiRoot = document.getElementById("ui") as HTMLDivElement;
 const renderer = new CampRenderer(canvas);
-{
-  // Phones start one quality step down (2× density on a 3× screen is all fill, no visible gain over
-  // 1.5× in motion), and every device starts at the lowest tier it has needed before.
-  const QKEY = "lastgate.quality";
-  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
-  let saved = 0;
-  try { saved = Number(localStorage.getItem(QKEY)) || 0; } catch { /* storage blocked */ }
-  renderer.setTier(Math.max(saved, coarse ? 1 : 0));
-  renderer.onTier = (t) => { try { localStorage.setItem(QKEY, String(t)); } catch { /* storage blocked */ } };
+const QKEY = "lastgate.quality";
+renderer.onTier = (t) => { try { localStorage.setItem(QKEY, String(t)); } catch { /* storage blocked */ } };
+/** Graphics quality from Settings. Auto: phones start one step down (2× density on a 3× screen is all
+ *  fill, no visible gain over 1.5× in motion) and every device starts at the lowest tier it has needed
+ *  before. Smooth / Pretty pin a tier. */
+function applyQuality(fresh = false): void {
+  if (settings.quality === "auto") {
+    if (fresh) try { localStorage.removeItem(QKEY); } catch { /* storage blocked */ }
+    const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+    let saved = 0;
+    try { saved = Number(localStorage.getItem(QKEY)) || 0; } catch { /* storage blocked */ }
+    renderer.auto = true;
+    renderer.setTier(Math.max(saved, coarse ? 1 : 0));
+  } else {
+    renderer.auto = false;
+    renderer.setTier(settings.quality === "smooth" ? 2 : 0);
+  }
 }
 const sfx = new Sfx();
 const music = new Music(() => sfx.context, () => sfx.musicOutput);
 const settings = loadSettings();
+applyQuality();
 sfx.setChannels(settings.music, settings.sfx, settings.musicVol, settings.sfxVol);
 /** Screen shake / flashes / slow-mo follow the shake and reduced-motion settings. */
 function applyMotion(): void {
@@ -257,6 +266,14 @@ const hub = new Hub(uiRoot, {
     hub.showHub(save, "battle");
   },
 });
+hub.quality = {
+  get: () => settings.quality,
+  set: (q) => {
+    settings.quality = q;
+    saveSettings(settings);
+    applyQuality(true);
+  },
+};
 hub.volume = {
   get: (k) => (k === "music" ? settings.musicVol : settings.sfxVol),
   set: (k, v) => setVolume(k === "music" ? "musicVol" : "sfxVol", v),
@@ -443,7 +460,7 @@ function startDaily() {
   hud.banner(`Daily: ${d.twist.name}`, d.twist.desc);
 }
 
-type ToggleKey = "music" | "sfx" | "shake" | "haptics" | "calm" | "bigText";
+type ToggleKey = "music" | "sfx" | "shake" | "haptics" | "calm" | "bigText" | "fps";
 
 function toggleSetting(k: string) {
   const key = k as ToggleKey;
@@ -1334,12 +1351,31 @@ function playSfx(ev: CampEvent, c: Camp) {
   }
 }
 
+/** Settings → Show FPS: a small readout of real frame rate and graphics tier during battles. */
+const fpsEl = document.createElement("div");
+fpsEl.className = "lg-fps";
+uiRoot.append(fpsEl);
+let fpsAcc = 0, fpsN = 0;
+function updateFps(realDt: number): void {
+  const on = settings.fps && !!camp && document.visibilityState === "visible";
+  fpsEl.style.display = on ? "" : "none";
+  if (!on) return;
+  fpsAcc += realDt;
+  fpsN++;
+  if (fpsAcc < 0.5) return;
+  const QN = ["Pretty", "High", "Smooth", "Smoothest"];
+  fpsEl.textContent = `${Math.round(fpsN / fpsAcc)} fps · ${QN[renderer.qualityTier] ?? ""}${renderer.auto ? " (auto)" : ""}`;
+  fpsAcc = 0;
+  fpsN = 0;
+}
+
 function frame(now: number) {
   pollPad(onKey, () => (camp?.phase === "build" || camp?.phase === "wave") && !paused, camp?.phase === "pick");
   const realDt = Math.min(0.1, (now - last) / 1000);
   last = now;
   // Only real play tunes the battle's pixel density (a slow menu backdrop shouldn't blur the game).
   if (document.visibilityState === "visible" && !paused && camp) renderer.perfSample(realDt);
+  updateFps(realDt);
   const dt = (renderer.fx.slowmo > 0 && !settings.calm ? realDt * 0.3 : realDt) * gameSpeed;
   const c = camp;
   if (c && !paused && !specChoosing) {

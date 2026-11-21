@@ -4,7 +4,7 @@ import { fairPick, openMinis } from "../mini/fair";
 import { SIDE_GAMES_ENABLED } from "../core/features";
 import { getJson, removeItem, setItem } from "./store";
 import { HINT_FLAGS } from "./save";
-import { canVibrate } from "./settings";
+import { canVibrate, QUALITIES, type Quality } from "./settings";
 import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
@@ -75,6 +75,7 @@ function damageBreakdown(dmg?: Record<string, number>): HTMLElement | null {
 function settingLabels(): Record<string, string> {
   const l: Record<string, string> = { music: "🎵 Music", sfx: "🔔 Sound effects", shake: "📳 Screen shake", calm: "🌙 Reduced motion", bigText: "🔠 Large text" };
   if (canVibrate) l.haptics = "📱 Vibration";
+  l.fps = "📈 Show FPS";
   return l;
 }
 
@@ -180,6 +181,8 @@ export class Hub {
   private justPicked: string | null = null;
   /** Live volume control for the settings screens (set by the game). */
   volume: { get: (k: "music" | "sfx") => number; set: (k: "music" | "sfx", v: number) => void } | null = null;
+  /** Graphics quality row (Settings + pause): current value and a setter. */
+  quality: { get: () => Quality; set: (q: Quality) => void } | null = null;
 
   constructor(root: HTMLElement, private cb: HubCallbacks) {
     root.append(this.overlay);
@@ -1523,6 +1526,31 @@ export class Hub {
 
   /** Settings from the menu: the same switches as the pause menu, plus how-to-play. */
   /** Volume slider under the Music / Sound effects toggles. */
+  /** Graphics row: tap cycles Auto → Smooth → Pretty (shown before the toggles). */
+  private appendQuality(grid: HTMLElement): void {
+    const q = this.quality;
+    if (!q) return;
+    const NAMES: Record<Quality, string> = { auto: "Auto", smooth: "Smooth", pretty: "Pretty" };
+    const HINT: Record<Quality, string> = { auto: "adjusts to your device", smooth: "fastest, simpler effects", pretty: "every effect, sharpest" };
+    const row = el("button", "setting lgq-row");
+    const val = el("span", "lgq-val");
+    const hint = el("span", "lgq-hint");
+    const paint = () => {
+      val.textContent = NAMES[q.get()];
+      hint.textContent = HINT[q.get()];
+    };
+    const left = el("span", "lgq-left");
+    left.append(el("span", "", "✨ Graphics"), hint);
+    row.append(left, val);
+    paint();
+    row.onclick = () => {
+      this.cb.onClick();
+      q.set(QUALITIES[(QUALITIES.indexOf(q.get()) + 1) % QUALITIES.length]!);
+      paint();
+    };
+    grid.append(row);
+  }
+
   private appendVolume(grid: HTMLElement, k: string): void {
     if (!this.volume || (k !== "music" && k !== "sfx")) return;
     const ch = k;
@@ -1550,6 +1578,7 @@ export class Hub {
     box.append(el("h1", "title", "Settings"));
     const grid = el("div", "settings");
     const labels: Record<string, string> = settingLabels();
+    this.appendQuality(grid);
     for (const k of Object.keys(labels)) {
       const row = el("button", `setting${values[k] ? " on" : ""}`);
       row.setAttribute("aria-pressed", String(!!values[k]));
@@ -1602,6 +1631,7 @@ export class Hub {
     if (settings) {
       const grid = el("div", "settings");
       const labels: Record<string, string> = settingLabels();
+      this.appendQuality(grid);
       for (const k of Object.keys(labels)) {
         const row = el("button", `setting${settings.values[k] ? " on" : ""}`);
         row.setAttribute("aria-pressed", String(!!settings.values[k]));
