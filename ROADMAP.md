@@ -14,6 +14,11 @@ Goal: a game that keeps getting better — new features and content first, polis
 | 6 | **Polish & new ideas** (ongoing) | ✅ bug sweeps · ✅ coachmarks · ✅ perf · ✅ accessibility · ✅ Watchtower · ✅ The Warden · ✅ chapter 7 + Magma Titan + Fire Imp · ✅ Endless twists · ✅ daily twists · ✅ damage breakdown · ✅ A/B balance bot |
 | 5 | **Sound & feel** ✅ DONE | Adaptive music that builds through a night, boss theme · Richer SFX + haptics |
 
+| 7 | **Smooth & solid** (owner Nov 21: "fix them all") | ☐ S1 FPS/quality readout (Settings toggle) · ☐ S2 Quality: Auto / Smooth / Pretty · ☐ S3 maxed buildings cached as sprites · ☐ S4 effects budget (coin piles, glow caps) · ☐ S5 hit feel (hitstop, flash, per-weapon sfx) · ☐ S6 one-thumb control tuning · ☐ S7 busy-night readability (boss telegraphs, outlines) · ☐ S8 late-chapter balance curve (bots ch3 13% / ch5 0% / ch8 6%) · ☐ S9 first-five-minutes pass · ☐ S10 broader regression bots (late camps, all bosses, Siege) |
+| 8 | **Replay & endgame** (owner Nov 21: "feels as if i finished the game… repetitive or expected" → "fix them all") | ☐ R1 rule-changing blessings + combos · ☐ R2 night events (merchant, cursed shrine, elite raid, treasure night) · ☐ R3 building draft per run · ☐ R4 Ascension (reset maxed Armory → crown bonus + new tier) · ☐ R5 cosmetics shop for gold · ☐ R6 Next-goals panel (missing trophies/stars/milestones) · ☐ R7 Hard/Nightmare rule changes + own trophies/rewards · ☐ R8 opt-in challenge levels (Heat) · ☐ R9 weekly challenge runs · ☐ R10 hero mastery quests + capstones |
+
+Order (owner approved all): S1, S2 → R6 → R1 → R2 → R4 → R5 → R8 → R3 → R7 → R9 → R10 → S3–S10 interleaved (S8 with every sim change). Each item ships in small verified slices; balance rule applies to every sim change.
+
 Polish between features: anything chunky, unreadable at night, overlapping, or not visible when it fires.
 
 ## Per-feature pipeline
