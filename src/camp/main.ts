@@ -281,21 +281,26 @@ let joyOrigin: Vec = { x: 0, y: 0 };
 let joyVec: Vec = { x: 0, y: 0 };
 const keys = new Set<string>();
 
-function toView(ev: PointerEvent): Vec {
-  const r = canvas.getBoundingClientRect();
+/** Canvas box, measured once per touch: reading it on every pointermove forces a layout whenever
+ *  the HUD changed that frame, which made dragging stutter on busy nights. */
+let canvasRect: DOMRect | null = null;
+window.addEventListener("resize", () => (canvasRect = null));
+function toView(ev: PointerEvent, fresh = false): Vec {
+  if (fresh || !canvasRect) canvasRect = canvas.getBoundingClientRect();
+  const r = canvasRect;
   return { x: ((ev.clientX - r.left) / r.width) * VIEW_W, y: ((ev.clientY - r.top) / r.height) * VIEW_H };
 }
 canvas.addEventListener("pointerdown", (ev) => {
   // Siege Lord: tapping the battlefield sends the picked card down the lane under the finger.
   if (camp?.reverse && !paused) {
-    const v = toView(ev);
+    const v = toView(ev, true);
     siegeBar.tapField(renderer.laneAt(v.x));
     return;
   }
   if (joyId !== null) return;
   joyId = ev.pointerId;
   canvas.setPointerCapture(ev.pointerId);
-  joyOrigin = toView(ev);
+  joyOrigin = toView(ev, true);
   joyVec = { x: 0, y: 0 };
 });
 canvas.addEventListener("pointermove", (ev) => {
