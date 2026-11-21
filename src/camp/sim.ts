@@ -441,6 +441,10 @@ export type CampEvent =
   | { type: "curse"; x: number; y: number; r: number }
   | { type: "tide"; y: number; h: number }
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
+  /** Boss signatures: the Bone Dragon's fire breath across the wall (x0..x1), the Colossus's quake, the Troll's bog spit. */
+  | { type: "breath"; x: number; y: number; x0: number; x1: number }
+  | { type: "quake"; x: number; y: number; r: number }
+  | { type: "bog"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "blink"; x0: number; y0: number; x: number; y: number }
@@ -550,7 +554,7 @@ export interface Camp {
   /** Boulders lobbed by the Siege Golem (phase 2): land on a tower and stun it. */
   lobs: { x: number; y: number; plot: string; t: number; dur: number; stun: number }[];
   /** Lava pools from the Magma Titan's eruptions: burn whoever stands in them (hero, soldiers, foes). */
-  pools: { x: number; y: number; r: number; t: number; dur: number; dps: number }[];
+  pools: { x: number; y: number; r: number; t: number; dur: number; dps: number; /** Marsh Troll's bog: slows instead of burning. */ bog?: number }[];
   /** Drowned King's tides: a band of water (y..y+h) that slows everyone wading through it. */
   tides: { y: number; h: number; t: number; dur: number; slow: number }[];
   incomePile: number;
@@ -1023,7 +1027,7 @@ function updateHero(c: Camp, input: CampInput): void {
   h.moving = len > 0.05;
   if (h.moving) {
     const k = Math.min(1, len);
-    const spd = CAMP.heroSpeed * c.mods.heroSpeed * tideSlow(c, h.y);
+    const spd = CAMP.heroSpeed * c.mods.heroSpeed * tideSlow(c, h.y) * bogSlow(c, h.x, h.y);
     const vx = (input.move.x / len) * k * spd * STEP;
     const vy = (input.move.y / len) * k * spd * STEP;
     // Side bounds keep the hero out of the trunks of the tree line down both edges.
@@ -2018,6 +2022,35 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     const made = spots.map((q) => ({ x: q.x, y: q.y, r: 48 }));
     for (const q of made) c.pools.push({ ...q, t: 0, dur: 5, dps: p2.power });
     c.events.push({ type: "eruption", x: e.x, y: e.y, pools: made });
+  } else if (p2.kind === "breath") {
+    // Fire breath: a sheet of flame down onto the wall in front of the dragon — scorches the wall
+    // sections under it and smokes out the archer towers there for a moment.
+    const x0 = Math.max(0, e.x - p2.radius), x1 = Math.min(MAP_W, e.x + p2.radius);
+    for (let i = segmentIndexAt(x0); i <= segmentIndexAt(x1); i++) damageWall(c, i, p2.power);
+    for (const p of c.plots) {
+      if (p.kind !== "tower" || p.level === 0 || p.x < x0 || p.x > x1) continue;
+      p.stun = Math.max(p.stun ?? 0, 1.6);
+      c.events.push({ type: "towerStunned", plot: p.id, x: p.x, y: p.y - 30 });
+    }
+    c.events.push({ type: "breath", x: e.x, y: e.y, x0, x1 });
+  } else if (p2.kind === "quake") {
+    // Quake: the ground heaves around the Colossus — towers in reach are rocked still, the wall cracks.
+    for (const p of c.plots) {
+      if (p.kind !== "tower" || p.level === 0 || !near(p.x, p.y)) continue;
+      p.stun = Math.max(p.stun ?? 0, p2.power);
+      c.events.push({ type: "towerStunned", plot: p.id, x: p.x, y: p.y - 30 });
+    }
+    for (let i = 0; i < SEGMENTS; i++) if (Math.abs(segmentCenter(i) - e.x) < p2.radius && Math.abs(WALL_Y - e.y) < p2.radius) damageWall(c, i, 25);
+    c.events.push({ type: "quake", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "bog") {
+    // Bog spit: three pools of sucking marsh — one where the King stands if he's close — that slow
+    // anyone wading through (not the troll's kin: foes ignore it).
+    const spots: Vec[] = [];
+    if (c.hero.hp > 0 && (c.hero.x - e.x) ** 2 + (c.hero.y - e.y) ** 2 <= (p2.radius * 1.6) ** 2) spots.push({ x: c.hero.x, y: c.hero.y });
+    while (spots.length < 3) spots.push({ x: Math.max(60, Math.min(MAP_W - 60, e.x + range(c.rng, -p2.radius * 0.8, p2.radius * 0.8))), y: WALL_Y + range(c.rng, 30, 180) });
+    const made = spots.map((q) => ({ x: q.x, y: q.y, r: 52 }));
+    for (const q of made) c.pools.push({ ...q, t: 0, dur: 6, dps: 0, bog: p2.power });
+    c.events.push({ type: "bog", x: e.x, y: e.y, pools: made });
   } else if (p2.kind === "boulders") {
     // Boulder toss at the nearest archer tower in reach: lands after a short flight and stuns it.
     let t: Plot | null = null, best = Infinity;
@@ -2034,6 +2067,12 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
   }
 }
 
+/** Slow factor from the Marsh Troll's bog pools at a spot (1 = clear ground). */
+export function bogSlow(c: Camp, x: number, y: number): number {
+  let k = 1;
+  for (const l of c.pools) if (l.bog && (x - l.x) ** 2 + (y - l.y) ** 2 <= l.r * l.r) k = Math.min(k, 1 - l.bog);
+  return k;
+}
 /** Slow factor from tides at a height (1 = dry). */
 export function tideSlow(c: Camp, y: number): number {
   let k = 1;
@@ -2062,6 +2101,7 @@ function updatePools(c: Camp): void {
     l.t += STEP;
     const r2 = l.r * l.r;
     const h = c.hero;
+    if (l.bog) continue; // (slows — see bogSlow — but doesn't burn)
     if (h.hp > 0 && !h.dead && (h.x - l.x) ** 2 + (h.y - l.y) ** 2 <= r2) damageHero(c, l.dps * STEP);
     for (const a of c.allies) if (a.respawn <= 0 && (a.x - l.x) ** 2 + (a.y - l.y) ** 2 <= r2) damageAlly(c, a, l.dps * STEP);
     // The lava doesn't care whose side you're on: walkers crossing it burn too (bosses shrug it off).

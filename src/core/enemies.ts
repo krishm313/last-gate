@@ -110,7 +110,7 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
-  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise"; every: number; radius: number; power: number };
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise" | "breath" | "quake" | "bog"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -139,7 +139,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   stalker: { ...base, id: "stalker", name: "Shadowstalker", hp: 32, speed: 34, radius: 11, gateDamage: 6, gold: 3, color: "#3a2a5a", cost: 3, blink: { every: 3.8, dist: 64 } },
   wraith: { ...base, id: "wraith", name: "Wraith", hp: 30, speed: 52, radius: 11, gateDamage: 7, gold: 3, color: "#8a9ac0", cost: 2.5, armorCycle: { on: 1.4, off: 1.8, reduction: 1 } },
   ogre: { ...base, id: "ogre", name: "Ogre Champion", hp: 600, speed: 20, radius: 28, gateDamage: 30, attackInterval: 1.5, gold: 25, color: "#6a7a3a", cost: 0, slowResist: 0.4, boss: true, phase2: { kind: "slam", every: 5, radius: 130, power: 18 } },
-  troll: { ...base, id: "troll", name: "Marsh Troll", hp: 700, speed: 22, radius: 26, gateDamage: 30, attackInterval: 1.4, gold: 30, color: "#4a7a5a", cost: 0, slowResist: 0.5, boss: true, regen: 0.015 },
+  troll: { ...base, id: "troll", name: "Marsh Troll", hp: 700, speed: 22, radius: 26, gateDamage: 30, attackInterval: 1.4, gold: 30, color: "#4a7a5a", cost: 0, slowResist: 0.5, boss: true, regen: 0.015, phase2: { kind: "bog", every: 8, radius: 260, power: 0.45 } },
   hag: {
     ...base, id: "hag", name: "The Swamp Hag", hp: 1600, speed: 16, radius: 26, gateDamage: 35, attackInterval: 1.4, gold: 80, color: "#4a5a2a",
     cost: 0, slowResist: 0.4, boss: true, behavior: "summoner", heal: { frac: 0.08, range: 150, interval: 3 }, phase2: { kind: "curse", every: 0, radius: 320, power: 0.15 },
@@ -153,10 +153,12 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     ...base, id: "dragon", name: "The Bone Dragon", hp: 1400, speed: 30, radius: 30, gateDamage: 14, attackInterval: 3, gold: 140, color: "#d8d0b8",
     cost: 0, slowResist: 0.3, boss: true, flying: true, behavior: "ranged", stopY: 170, strafe: 70, boltKind: "fireball",
     summon: { enemy: "bat", count: 4, interval: 7, enraged: "wraith" },
+    phase2: { kind: "breath", every: 9, radius: 150, power: 60 },
   },
   colossus: {
     ...base, id: "colossus", name: "The Iron Colossus", hp: 2600, speed: 12, radius: 38, gateDamage: 60, attackInterval: 2, gold: 220, color: "#4a4e58",
     cost: 0, slowResist: 0.15, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "ram", count: 1, interval: 9, enraged: "sapper" },
+    phase2: { kind: "quake", every: 10, radius: 230, power: 2.2 },
   },
   frostwyrm: {
     ...base, id: "frostwyrm", name: "The Frost Wyrm", hp: 3200, speed: 28, radius: 32, gateDamage: 24, attackInterval: 2.4, gold: 240, color: "#9ad4ff",
@@ -210,6 +212,9 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.frostNova) t.push("freezes towers when hurt");
   if (d.phase2?.kind === "eruption") t.push("erupts lava when hurt");
   if (d.phase2?.kind === "tide") t.push("calls the tide when hurt");
+  if (d.phase2?.kind === "breath") t.push("breathes fire on the wall when hurt");
+  if (d.phase2?.kind === "quake") t.push("quakes the ground when hurt");
+  if (d.phase2?.kind === "bog") t.push("spits sucking bog when hurt");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");
