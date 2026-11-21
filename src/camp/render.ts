@@ -7,7 +7,7 @@ import { drawBossCard, drawDanger, drawMood } from "./overlays";
 import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeTreeSprite, softShadow, type IconKind } from "./art";
 import { drawVisitor, VISITOR_LEAVE, type VisitorAnim } from "./visitors";
 import { BLESSING_BY_ID } from "./blessings";
-import { ACID, BANNER_R, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
+import { ACID, BANNER_R, PRE_MASTERY, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
 import { buildingSprite, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, FORGE_IN, FORGE_OUT, GROVE, LUMBER_PILE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
@@ -373,6 +373,47 @@ export class CampRenderer {
   }
 
   /** Mage tower: a stone spire with a floating arcane crystal that flares when it casts. */
+  /** Mastery: a breathing glow of the building's colour pooled at its base. */
+  private drawMasteryGlow(ctx: CanvasRenderingContext2D, p: Plot, col: string): void {
+    const k = 0.65 + 0.35 * Math.sin(this.time * 3 + p.x * 0.01);
+    const g = ctx.createRadialGradient(p.x, p.y + 14, 4, p.x, p.y + 14, 52);
+    g.addColorStop(0, `rgba(${col},${(0.75 * k).toFixed(3)})`);
+    g.addColorStop(0.55, `rgba(${col},${(0.3 * k).toFixed(3)})`);
+    g.addColorStop(1, `rgba(${col},0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y + 14, 52, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /** Mastery: a small gold star badge bobbing over the building (pops in when mastered). */
+  private drawMasteryStar(ctx: CanvasRenderingContext2D, p: Plot, h: number): void {
+    const since = this.time - (this.builtAt.get(p.id) ?? -9);
+    const pop = since < 0.5 ? 1 + 2.2 * (Math.min(1, since / 0.5) - 1) ** 3 + 1.2 * (Math.min(1, since / 0.5) - 1) ** 2 : 1;
+    const x = p.x, y = p.y - h + Math.sin(this.time * 2.4 + p.x) * 2.5;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(pop, pop);
+    ctx.rotate(Math.sin(this.time * 1.7 + p.x) * 0.12);
+    ctx.fillStyle = "#ffd23a";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 ? 4.2 : 9.5;
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,240,0.85)";
+    ctx.beginPath();
+    ctx.arc(-2, -3, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   private drawMageTower(ctx: CanvasRenderingContext2D, p: Plot): void {
     const { x, y } = p;
     const since = this.time - (this.builtAt.get(p.id) ?? -9);
@@ -451,10 +492,10 @@ export class CampRenderer {
       ctx.strokeStyle = INK;
       ctx.lineWidth = 4.2;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke();
-      ctx.strokeStyle = level >= 3 ? "#a8a8b0" : "#a8743e";
+      ctx.strokeStyle = level >= 4 ? "#4a4e5a" : level >= 3 ? "#a8a8b0" : "#a8743e";
       ctx.lineWidth = 2.2;
       ctx.stroke();
-      ctx.fillStyle = near ? "#ff6a4a" : level >= 2 ? "#e8e8ee" : "#d8b07a";
+      ctx.fillStyle = near ? "#ff6a4a" : level >= 4 ? "#ffffff" : level >= 2 ? "#e8e8ee" : "#d8b07a";
       ctx.beginPath(); ctx.arc(tx, ty, 1.6, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
@@ -1604,11 +1645,13 @@ fx.shake(0.15);
       items.push({ y: -1e6, draw: () => this.drawWatchReach(ctx, c, p) });
       items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawWatchtower(ctx, p)) });
     }
-    for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => this.drawMageTower(ctx, p)) });
+    for (const p of c.plots) if (p.kind === "mage" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 30, 110, () => { if (p.level > (PRE_MASTERY.mage ?? 9)) this.drawMasteryGlow(ctx, p, "170,120,255"); this.drawMageTower(ctx, p); }) });
     for (const p of c.plots) if (p.kind === "barracks" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawBarracks(this, ctx, p)) });
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
     for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => this.drawAlly(ctx, c, a) });
-    for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => drawCatapult(this, ctx, p)) });
+    for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => { if (p.level > (PRE_MASTERY.catapult ?? 9)) this.drawMasteryGlow(ctx, p, "255,120,40"); drawCatapult(this, ctx, p); }) });
+    // Mastered buildings wear a bobbing gold star (towers fly their star pennant instead).
+    for (const p of c.plots) if ((p.kind === "catapult" || p.kind === "mage") && p.level > (PRE_MASTERY[p.kind] ?? 9)) items.push({ y: p.y + 11, draw: () => this.drawMasteryStar(ctx, p, p.kind === "mage" ? 104 : 62) });
     for (const p of c.plots) if (p.kind === "lumber" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 50, 70, () => drawLumberCamp(this, ctx, p)) });
     for (const p of c.plots)
       if (p.kind === "forge" && p.level > 0) {
