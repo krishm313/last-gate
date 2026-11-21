@@ -592,8 +592,19 @@ export class CampHud {
     if ([...this.toastHost.children].some((n) => (n as HTMLElement).dataset.key === key && !n.classList.contains("out"))) return;
     node.dataset.key = key;
     this.toastHost.append(node);
+    this.capToasts();
     window.setTimeout(() => node.classList.add("out"), 3600);
     window.setTimeout(() => node.remove(), 4100);
+  }
+
+  /** At most two toasts at once: a burst (bestiary + trophy + quest at a wave's end) would otherwise
+   *  stack into a wall over the pick cards; the oldest fade out early. */
+  private capToasts(): void {
+    const live = [...this.toastHost.children].filter((n) => !n.classList.contains("out"));
+    for (const n of live.slice(0, Math.max(0, live.length - 2))) {
+      n.classList.add("out");
+      window.setTimeout(() => n.remove(), 450);
+    }
   }
 
   toast(text: string): void {
@@ -601,6 +612,7 @@ export class CampHud {
     if ([...this.toastHost.children].some((n) => n.textContent === text && !n.classList.contains("out"))) return;
     const t = el("div", "toast", text);
     this.toastHost.append(t);
+    this.capToasts();
     window.setTimeout(() => t.classList.add("out"), 2600);
     window.setTimeout(() => t.remove(), 3100);
   }
