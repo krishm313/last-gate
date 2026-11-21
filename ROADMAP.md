@@ -538,6 +538,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 - Royal courier: hall income flies to the King wherever he is (no walk back to collect).
 
 ## Investigated, not shipped
+- (Nov 21) Warm night light pools into a low-res layer + one bounded blit at tier 1: headless A/B 15.8 vs 15.7 ms/frame (no gain; GPU fill win unproven) — reverted.
 - Campaign walkers hitting the hero through a standing wall (fixed in Siege Lord only): enabling the same rule in the campaign is neutral for chapters 1–8 (campsim 16 runs 100/6/6/6) but makes chapter 10 harder (32 runs: 25% → 13%, losses pile up on the final night). No clean compensation without a new mechanic or a global wall buff that would soften chapters 1–8, so the campaign keeps today's behaviour.
 
 ## Self-reviews
