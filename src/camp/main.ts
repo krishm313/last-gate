@@ -446,6 +446,7 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
   refreshQuests(save);
   nightsThisRun = 0;
   earnedThisRun = [];
+  heldNews = [];
   knownQuests = new Set(questViews(save).filter((v) => v.done).map((v) => v.slot.id));
   flawlessWaves = 0;
   specChoosing = false;
@@ -1253,19 +1254,32 @@ let newSkillPoints: { hero: string; n: number } | null = null;
 let knownQuests = new Set<string>();
 /** Trophies and quests finished during this run (listed on the end screen). */
 let earnedThisRun: string[] = [];
+/** Trophy / quest / bestiary news earned mid-night: held until the night is cleared so fights stay free
+ *  of text, then shown as one combined toast (owner: "too much to read mid game"). */
+let heldNews: { full: string; short: string }[] = [];
+function newsToast(full: string, short = full): void {
+  if (camp && (camp.phase === "wave" || camp.phase === "pick")) heldNews.push({ full, short });
+  else hud.toast(full);
+}
+function flushNews(): void {
+  if (!heldNews.length) return;
+  const items = heldNews;
+  heldNews = [];
+  hud.toast(items.length === 1 ? items[0]!.full : items.slice(0, 4).map((n) => n.short).join("  ·  ") + (items.length > 4 ? `  ·  +${items.length - 4}` : ""));
+}
 function announceTrophies(): void {
   for (const v of questViews(save)) {
     if (!v.done || knownQuests.has(v.slot.id)) continue;
     knownQuests.add(v.slot.id);
     earnedThisRun.push(`📜 ${v.def.desc}`);
-    hud.toast(`📜 Quest complete: ${v.def.desc}`);
+    newsToast(`📜 Quest complete: ${v.def.desc}`, "📜 Quest done");
     sfx.unlockChime();
   }
   for (const a of claimable(save)) {
     if (knownTrophies.has(a.id)) continue;
     knownTrophies.add(a.id);
     earnedThisRun.push(`🏆 ${a.name}`);
-    hud.toast(`🏆 Trophy unlocked: ${a.name}`);
+    newsToast(`🏆 Trophy unlocked: ${a.name}`, `🏆 ${a.name}`);
     sfx.unlockChime();
   }
 }
@@ -1510,7 +1524,7 @@ function frame(now: number) {
       // First kill of a foe kind: it joins the Bestiary (bosses get their own banner already).
       const newFoe = ev.type === "kill" && !ev.enemy.boss && !foeMet(save, ev.enemy.id) ? ev.enemy.name : null;
       trackStats(ev);
-      if (newFoe) hud.toast(`📖 New in the Bestiary: ${newFoe}`);
+      if (newFoe) newsToast(`📖 New in the Bestiary: ${newFoe}`, `📖 ${newFoe}`);
       if (ev.type === "waveStart") waveStartTally = { kills: c.kills, gold: c.goldEarned, hits: 0 };
       if (ev.type === "wallHit" || ev.type === "hallHit") waveStartTally.hits += 1;
       // Endless: the moment you pass your best wave, celebrate it in-run (once).
@@ -1628,6 +1642,11 @@ function frame(now: number) {
     });
     music.boss = c.enemies.some((e) => e.def.boss);
     if (events.length) announceTrophies();
+    // Held news comes out once the night is over (at the dawn build phase; the end screen lists it on a loss/win).
+    if (heldNews.length && c.phase !== "wave") {
+      if (c.phase === "build") flushNews();
+      else if (c.phase !== "pick") heldNews = [];
+    }
     if (renderer.takeFlawless()) sfx.unlockChime();
     const streakTier = renderer.takeStreakCall();
     if (streakTier) {

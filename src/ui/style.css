@@ -1054,6 +1054,9 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .spec-frost { --rc: #7ad8ff; --rg: #7ad8ff88; }
 .spec-volley { --rc: #ffd84a; --rg: #ffd84a88; }
 .spec-card .card-rarity { background: var(--rc); color: #1d1208 !important; }
+/* Tower path: one glance, one tap — short cards, no empty lower half. */
+.spec-pick .card.spec-card { min-height: 0; height: auto; flex: 1 1 0; padding-bottom: calc(14 * var(--u)); }
+.spec-pick .card.spec-card .card-desc { flex: none; font-weight: 800; }
 
 /* Combo badge sits inside the card under the rarity tag (cards clip their edges), glowing. */
 .card .card-combo {
@@ -1438,16 +1441,10 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgg-label { font-weight: 800; font-size: calc(10.5 * var(--tu)); color: #cfe0ff; white-space: nowrap; }
 .lgg-reward { font-weight: 900; font-size: calc(11 * var(--tu)); color: #ffd84a; }
 
-/* Rule night: the fourth, rule-changing card spans the row under the regular three. */
-.cards:has(.card-rule) { flex-wrap: wrap; }
-.card.card-rule { flex: 1 1 100%; display: grid; grid-template-columns: auto 1fr; grid-template-areas: "head head" "icon name" "icon desc" "icon tag"; column-gap: calc(10 * var(--u)); row-gap: calc(2 * var(--u)); grid-auto-rows: min-content; align-content: center; align-items: center; text-align: left; min-height: 0; height: auto; animation-delay: 0.24s; background: linear-gradient(135deg, #3a1f6e, #1c1240) !important; border-color: #c89cff !important; box-shadow: 0 0 0 calc(2 * var(--u)) #6a3fb0, 0 0 calc(14 * var(--u)) #9a6aff88; padding: calc(8 * var(--u)) calc(12 * var(--u)); }
-.card-rule .card-rulehead { grid-area: head; font-size: calc(9.5 * var(--tu)); font-weight: 900; letter-spacing: 0.06em; color: #e8d4ff; margin-bottom: calc(2 * var(--u)); }
-.card-rule .card-icon { grid-area: icon; font-size: calc(30 * var(--tu)); width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
-.card-rule .card-desc { font-size: calc(12 * var(--tu)); }
-.card-rule .card-name { grid-area: name; }
-.card-rule .card-desc { grid-area: desc; }
-.card-rule .card-tag { grid-area: tag; justify-self: start; }
-.card-rule .card-rarity, .card-rule .card-lvl, .card-rule .card-pips, .card-rule .card-combo { display: none; }
+/* Rule night: one of the three cards is a rule-changer — same size as its neighbours, picked out in violet. */
+.card.card-rule { background: linear-gradient(160deg, #3a1f6e, #1c1240) !important; border-color: #c89cff !important; box-shadow: 0 0 0 calc(2 * var(--u)) #6a3fb0, 0 0 calc(16 * var(--u)) #9a6aff99; animation-delay: 0.16s; }
+.card-rule .card-rulehead { font-size: calc(9.5 * var(--tu)); font-weight: 900; letter-spacing: 0.08em; color: #1c1240; background: #e0c8ff; border-radius: calc(6 * var(--u)); padding: calc(1 * var(--u)) calc(6 * var(--u)); align-self: center; }
+.card-rule .card-rarity, .card-rule .card-pips { display: none; }
 
 /* Armory: Ascension card and the crown-drop celebration. */
 .lga-card { position: relative; background: linear-gradient(135deg, #3a2a10, #1e1608); border: calc(3 * var(--u)) solid #1d1208; box-shadow: 0 0 0 calc(2 * var(--u)) #c8a040, 0 calc(4 * var(--u)) 0 #0006; border-radius: calc(14 * var(--u)); padding: calc(10 * var(--u)) calc(12 * var(--u)); margin: calc(6 * var(--u)) 0 calc(10 * var(--u)); text-align: center; }

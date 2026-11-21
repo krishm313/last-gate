@@ -318,10 +318,10 @@ export function eliteChance(c: Camp): number {
 /** Tower specialisations, offered when a tower reaches level 3. */
 export type TowerSpec = "fire" | "frost" | "volley";
 export const TOWER_SPEC_LEVEL = 3;
-export const TOWER_SPECS: Record<TowerSpec, { name: string; icon: string; desc: string }> = {
-  fire: { name: "Fire Archers", icon: "🔥", desc: "Arrows set foes ablaze: burning damage over time." },
-  frost: { name: "Frost Archers", icon: "❄️", desc: "Arrows chill foes: they move 40% slower." },
-  volley: { name: "Volley Archers", icon: "🏹", desc: "Each shot also hits 2 more foes nearby." },
+export const TOWER_SPECS: Record<TowerSpec, { name: string; icon: string; desc: string; short: string }> = {
+  fire: { name: "Fire Archers", icon: "🔥", desc: "Arrows set foes ablaze: burning damage over time.", short: "Burns foes" },
+  frost: { name: "Frost Archers", icon: "❄️", desc: "Arrows chill foes: they move 40% slower.", short: "Slows foes" },
+  volley: { name: "Volley Archers", icon: "🏹", desc: "Each shot also hits 2 more foes nearby.", short: "Hits 3 at once" },
 };
 /** Tuning for the specialisations. */
 /** Building draft (pick which new building opens first). Off: the owner found two prompts per dawn

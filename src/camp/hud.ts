@@ -494,7 +494,7 @@ export class CampHud {
         b.max > 1 ? levelPips(owned, b.max) : el("div", "card-lvl", "Unique"),
       );
       if (b.rule)
-        card.insertBefore(el("div", "card-rulehead", b.requires ? `✨ RULE COMBO · ${comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "").join(" + ")}` : "✨ RULE CARD · changes how you play"), card.firstChild);
+        card.insertBefore(el("div", "card-rulehead", "✨ RULE"), card.firstChild);
       if (b.requires) {
         // Parts: the blessings it combines, plus the building it needs (if any).
         const parts = comboParts(b).map((id) => BLESSING_BY_ID[id]?.icon ?? "");
@@ -575,14 +575,15 @@ export class CampHud {
   /** A tower reached level 3: pick its specialisation (the game waits). */
   showSpecChoice(onChoose: (spec: TowerSpec) => void): void {
     const wrap = el("div", "pick spec-pick");
-    wrap.append(el("h2", "pick-title", "Specialise your tower"), el("p", "pick-sub", "Your archers master a new art — choose one"));
+    wrap.append(el("h2", "pick-title", "Tower path"));
     const cards = el("div", "cards");
     const armedAt = performance.now() + 450;
     (Object.keys(TOWER_SPECS) as TowerSpec[]).forEach((id, i) => {
       const sp = TOWER_SPECS[id];
       const card = el("button", `card spec-card spec-${id}`);
       card.style.animationDelay = `${i * 0.08}s`;
-      card.append(el("div", "card-rarity", "Tower"), el("div", "card-icon", sp.icon), el("div", "card-name", sp.name), el("div", "card-desc", sp.desc));
+      // One glance, one tap: icon, name and a three-word effect (the full text lives in the plot info).
+      card.append(el("div", "card-icon", sp.icon), el("div", "card-name", sp.name.replace(" Archers", "")), el("div", "card-desc", sp.short));
       card.onclick = () => {
         if (performance.now() < armedAt || wrap.classList.contains("chosen-one")) return;
         wrap.classList.add("chosen-one");

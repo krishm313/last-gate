@@ -167,10 +167,15 @@ export function rollBlessings(rng: Rng, wave: number, owned: Record<string, numb
     out.push(b);
     pool.splice(pool.indexOf(b), 1);
   }
-  // Rule night: one extra card from the rule-changers (combos weigh in once their parts are owned).
+  // Rule night: one of the three cards becomes a rule-changer (combos weigh in once their parts are
+  // owned). It replaces the last card rather than adding a fourth: less to read mid-game.
   if (ruleNight(wave, classic) || (forceRule && !classic)) {
     const rules = BLESSINGS.filter((b) => b.rule && ok(b));
-    if (rules.length) out.push(weighted(rng, rules, (x) => (x.requires ? 3 : 1)));
+    if (rules.length) {
+      const r = weighted(rng, rules, (x) => (x.requires ? 3 : 1));
+      if (out.length >= n) out[out.length - 1] = r;
+      else out.push(r);
+    }
   }
   return out;
 }
