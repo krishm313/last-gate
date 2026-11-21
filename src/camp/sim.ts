@@ -1,3 +1,4 @@
+import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { CHAPTERS } from "../core/chapters";
 import { ENEMIES, type EnemyDef, type EnemyId } from "../core/enemies";
 import { chance, createRng, range, type Rng } from "../core/rng";
@@ -367,6 +368,8 @@ export interface Arrow {
   crit?: number;
   /** Fired by a Spec-Mastery tower (its path's effect is stronger). */
   master?: boolean;
+  /** The King's weapon that fired it (crossbow bolts pierce, staff orbs burst). */
+  weapon?: WeaponId;
   /** Ricochet: bounces left, and the foes already hit (no bouncing back). */
   bounce?: number;
   hit?: number[];
@@ -443,6 +446,9 @@ export type CampEvent =
   | { type: "eruption"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   /** Boss signatures: the Bone Dragon's fire breath across the wall (x0..x1), the Colossus's quake, the Troll's bog spit. */
   | { type: "breath"; x: number; y: number; x0: number; x1: number }
+  /** The King's weapon: a crossbow bolt punching through (from → to), a staff orb bursting. */
+  | { type: "pierce"; x: number; y: number; tx: number; ty: number }
+  | { type: "orbBurst"; x: number; y: number; r: number }
   | { type: "quake"; x: number; y: number; r: number }
   | { type: "bog"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
@@ -507,8 +513,10 @@ export interface CampInput {
 }
 
 export interface Camp {
-  /** This run's camp layout (mirrored / shuffled pads and their drop-off spots). */
+  /** This run's camp layout (mirrored pads and their drop-off spots). */
   lay: CampLayout;
+  /** The King's weapon this run. */
+  weapon: WeaponId;
   /** Tonight has a boss (no Nightmare Blood Moon surge on those). */
   bossNight?: boolean;
   /** Building draft waiting on the player (kinds to choose from), else null. */
@@ -809,6 +817,8 @@ export interface CampSetup {
   classicBlessings?: boolean;
   /** Siege Lord (reverse mode): the player sends the horde; the defence is played by the bot. */
   reverse?: boolean;
+  /** The King's weapon (default: the hero's own attack). */
+  weapon?: WeaponId;
   /** Force a camp layout (tests, tools); default: hashed from the seed. */
   layout?: CampLayout;
   /** Siege Lord: sieges already won (opens the later war cards). */
@@ -852,6 +862,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
   applyLayout(plots, lay);
   const camp: Camp = {
     lay,
+    weapon: setup.weapon ?? "own",
     seed,
     rng: createRng(seed),
     chapter,
@@ -985,7 +996,7 @@ export function wallIntact(c: Camp, seg: number): boolean {
 
 /** The hero's attack range (the Lancer reaches farther). */
 export function heroRange(c: Camp): number {
-  return CAMP.heroRange * c.mods.heroRange;
+  return CAMP.heroRange * c.mods.heroRange * WEAPON_BY_ID[c.weapon].range;
 }
 
 function heroAttackTarget(c: Camp): Enemy | null {
@@ -1057,8 +1068,9 @@ function updateHero(c: Camp, input: CampInput): void {
   if (t) {
     h.facing = Math.atan2(t.y - h.y, t.x - h.x);
     if (h.cooldown <= 0) {
-      h.cooldown = 1 / (CAMP.heroFireRate * c.mods.heroRate);
-      const dmg = heroShotDamage(c);
+      const wpn = WEAPON_BY_ID[c.weapon];
+      h.cooldown = 1 / (CAMP.heroFireRate * c.mods.heroRate * wpn.rate);
+      const dmg = heroShotDamage(c) * wpn.damage;
       fireArrow(c, h, t, dmg, "hero");
       // Split shot: extra arrows at the next-nearest enemies.
       if (c.mods.heroMultishot > 0) {
@@ -1375,6 +1387,7 @@ function updateWorkers(c: Camp): void {
 function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec, crit?: number, master = false): void {
   const a: Arrow = { id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}), ...(master ? { master } : {}) };
   if (owner === "hero" && c.mods.ricochet > 0) a.bounce = c.mods.ricochet;
+  if (owner === "hero" && c.weapon !== "own") a.weapon = c.weapon;
   c.arrows.push(a);
   c.events.push({ type: "shoot", owner, x: from.x, y: from.y });
 }
@@ -1719,6 +1732,33 @@ function updateStrikes(c: Camp): void {
   c.strikes = c.strikes.filter((s) => s.t > 0);
 }
 
+/** Crossbow bolts punch through into the nearest foe behind the one hit; staff orbs burst on foes close by. */
+function heroWeaponHit(c: Camp, a: Arrow, t: Enemy): void {
+  const w = WEAPON_BY_ID[a.weapon!];
+  if (w.pierce) {
+    const dx = Math.cos(a.angle), dy = Math.sin(a.angle);
+    let next: Enemy | null = null, bd = Infinity;
+    for (const e of c.enemies) {
+      if (e === t || e.hp <= 0 || (e.burrow && e.burrow > 0)) continue;
+      const rx = e.x - t.x, ry = e.y - t.y;
+      const along = rx * dx + ry * dy, across = Math.abs(rx * dy - ry * dx);
+      if (along > 0 && along < 90 && across < 22 + e.def.radius && along < bd) { bd = along; next = e; }
+    }
+    if (next) {
+      damageEnemy(c, next, a.damage * w.pierce, "hero");
+      c.events.push({ type: "pierce", x: t.x, y: t.y, tx: next.x, ty: next.y });
+    }
+  }
+  if (w.splash) {
+    const r2 = w.splash.radius ** 2;
+    for (const e of c.enemies) {
+      if (e === t || e.hp <= 0 || (e.burrow && e.burrow > 0) || (e.x - t.x) ** 2 + (e.y - t.y) ** 2 > r2) continue;
+      damageEnemy(c, e, a.damage * w.splash.share, "hero");
+    }
+    c.events.push({ type: "orbBurst", x: t.x, y: t.y - t.def.radius * 0.5, r: w.splash.radius });
+  }
+}
+
 /** Damage multiplier for arrows a Shieldbearer takes on its shield (head-on). */
 const SHIELD_BLOCK = 0.6;
 
@@ -1734,6 +1774,7 @@ function updateArrows(c: Camp): void {
       // Shieldbearers block arrows that hit them head-on (flying almost straight up the map).
       const blocked = t.def.shield && Math.sin(a.angle) < -0.85 ? SHIELD_BLOCK : 1;
       damageEnemy(c, t, a.damage * (crit ? 2 : 1) * blocked, a.owner, crit);
+      if (a.weapon) heroWeaponHit(c, a, t);
       if (a.owner === "hero") {
         // Culling Blade: hero arrows finish off weakened (non-boss) foes.
         if (c.mods.cull > 0 && !t.def.boss && t.hp > 0 && t.hp < t.maxHp * c.mods.cull) {

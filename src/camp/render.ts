@@ -1402,6 +1402,17 @@ export class CampRenderer {
           fx.number(ev.x, ev.y - 60, "ERUPTION!", "#ffa060", 16, 1);
           fx.shake(0.4);
           break;
+        case "pierce": {
+          // The bolt bursts out of the back of the first foe: a white streak on into the next.
+          fx.burst(ev.x, ev.y - 8, "#e8e0d0", 6, 140, { max: 0.25, size: 2, gravity: 200, shape: "dot" });
+          const n = 5;
+          for (let k = 1; k <= n; k++) fx.burst(ev.x + ((ev.tx - ev.x) * k) / n, ev.y - 8 + ((ev.ty - ev.y) * k) / n, "rgba(255,255,255,0.8)", 1, 10, { max: 0.18, size: 2.4, gravity: 0, shape: "dot" });
+          break;
+        }
+        case "orbBurst":
+          fx.rings.push({ x: ev.x, y: ev.y, r: ev.r, color: "#b890ff", life: 0.28, max: 0.28, width: 3 });
+          fx.burst(ev.x, ev.y, "#c8a0ff", 10, 130, { max: 0.35, size: 2.4, gravity: 0, shape: "dot" });
+          break;
         case "breath":
           this.breaths.push({ x: ev.x, y: ev.y, x0: ev.x0, x1: ev.x1, t: this.time });
           fx.number(ev.x, WALL_Y - 70, "FIRE BREATH!", "#ffa060", 16, 1);
@@ -7046,6 +7057,50 @@ export class CampRenderer {
     }
   }
 
+  /** Hero weapons in flight: a heavy crossbow bolt with a white streak, or a crackling arcane orb. */
+  private drawWeaponShot(ctx: CanvasRenderingContext2D, a: { x: number; y: number; angle: number; id: number; weapon?: string }): void {
+    ctx.save();
+    ctx.translate(a.x, a.y - 8);
+    ctx.rotate(a.angle);
+    if (a.weapon === "crossbow") {
+      // Motion streak, then a short thick bolt: dark shaft, iron head, red vanes.
+      const sg = ctx.createLinearGradient(-34, 0, 0, 0);
+      sg.addColorStop(0, "rgba(255,255,255,0)");
+      sg.addColorStop(1, "rgba(255,255,255,0.75)");
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(0, 0); ctx.stroke();
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 4.4;
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(7, 0); ctx.stroke();
+      ctx.strokeStyle = "#6a4a2a";
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+      ctx.fillStyle = "#c8ccd4";
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(5, -3.6); ctx.lineTo(5, 3.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#c8302a";
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(-7, -4); ctx.lineTo(-5, 0); ctx.lineTo(-7, 4); ctx.closePath(); ctx.fill();
+    } else {
+      // Arcane orb: a violet comet tail, a bright core and a crackle of sparks.
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 4; i >= 1; i--) this.drawBlob(ctx, this.blob("orbglow", [[0, "rgba(200,150,255,0.95)"], [1, "rgba(120,60,255,0)"]]), -i * 6, 0, 9 - i, 8 - i, 0.22 * (5 - i));
+      this.drawBlob(ctx, this.blob("orbglow", [[0, "rgba(200,150,255,0.95)"], [1, "rgba(120,60,255,0)"]]), 0, 0, 16, 16, 0.8);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#f4ecff";
+      ctx.strokeStyle = "#5a2ab0";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(0, 0, 4.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (this.fx.particles.length < 400 && Math.floor(this.time * 30 + a.id) % 3 === 0) {
+        ctx.restore();
+        this.fx.burst(a.x, a.y - 8, "#c8a0ff", 1, 40, { max: 0.3, size: 2, gravity: 0, shape: "dot" });
+        return;
+      }
+    }
+    ctx.restore();
+  }
+
   private drawArrows(ctx: CanvasRenderingContext2D, c: Camp): void {
     this.drawPlantedArrows(ctx, c);
     ctx.lineCap = "round";
@@ -7081,6 +7136,10 @@ export class CampRenderer {
       ctx.globalAlpha = 1;
     }
     for (const a of c.arrows) {
+      if (a.weapon) {
+        this.drawWeaponShot(ctx, a);
+        continue;
+      }
       if (a.owner === "hero" && c.heroLook === "hero") {
         // The King's sword swing sends out a golden crescent slash.
         const pulse = 1 + Math.sin(this.time * 30 + a.id) * 0.08;

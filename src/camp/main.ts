@@ -261,6 +261,11 @@ const hub = new Hub(uiRoot, {
     sfx.unlockChime();
     hub.showHub(save, "heroes");
   },
+  onWeapon: (id) => {
+    save.weapon = id;
+    writeSave(save);
+    hub.showHub(save, "heroes");
+  },
   onFlair: (id) => {
     save.flair = id;
     writeSave(save);

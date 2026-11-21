@@ -1,5 +1,6 @@
+import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { HERO_BY_ID, vetLookOn, type HeroId } from "../core/heroes";
-import { ASCEND, type SaveData } from "../core/meta";
+import { ASCEND, type SaveData, totalStars } from "../core/meta";
 import { MASTERY, mastered } from "../core/mastery";
 import { skillMods } from "../core/skills";
 import { activeFlair } from "../core/flair";
@@ -26,6 +27,11 @@ export const CAMP_HEROES: Record<HeroId, { look: string; passive: string; apply:
 };
 
 /** Turn the save's permanent upgrades + chosen hero into a run's starting setup. */
+/** The weapon the King carries: the saved pick if it's unlocked, else the hero's own attack. */
+export function weaponFor(save: SaveData): WeaponId {
+  const w = save.weapon ? WEAPON_BY_ID[save.weapon] : undefined;
+  return w && totalStars(save) >= w.stars ? w.id : "own";
+}
 export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): CampSetup {
   const lv = (id: string) => save.perms[id] ?? 0;
   const s: CampSetup = { mods: baseMods(), startCoins: 12, prebuilt: [], critChance: 0.08 };
@@ -60,6 +66,7 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   s.heroLook = h.look;
   s.heroVet = vetLookOn(save, hero);
   s.heroFlair = activeFlair(save);
+  s.weapon = weaponFor(save);
   s.ability = HERO_BY_ID[hero].ability;
   s.abilityCooldown = HERO_BY_ID[hero].cooldown;
   // Hero mastery capstone: an empowered ability that recharges faster.

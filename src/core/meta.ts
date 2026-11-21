@@ -1,3 +1,4 @@
+import type { WeaponId } from "./weapons";
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
@@ -71,6 +72,8 @@ export interface SaveData {
   /** This week's Weekly Gauntlet result. */
   weekly?: { week: number; best: number; stars: number; won: boolean };
   hero: HeroId;
+  /** The weapon the hero carries (default: the hero's own attack). */
+  weapon?: WeaponId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
   runs: number;
@@ -139,6 +142,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   for (const [k, v] of Object.entries(rec(r.stats))) d.stats[k] = Math.max(0, Math.floor(num(v, 0)));
   if (Array.isArray(r.claimed)) d.claimed = r.claimed.filter((x): x is string => typeof x === "string");
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
+  const wpn = (r as { weapon?: unknown }).weapon;
+  if (wpn === "crossbow" || wpn === "staff" || wpn === "own") d.weapon = wpn;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
   d.difficulty = isDifficulty((r as { difficulty?: unknown }).difficulty) ? (r as { difficulty: DifficultyId }).difficulty : "normal";
   for (const [k, v] of Object.entries(rec((r as { diffCleared?: unknown }).diffCleared))) if (chapterIds.has(Number(k))) d.diffCleared[Number(k)] = Math.max(0, Math.min(2, Math.floor(num(v, 0))));

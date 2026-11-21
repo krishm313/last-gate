@@ -1513,3 +1513,7 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 
 /* While the blessing pick is up, toasts move to the bottom so they never cover the cards. */
 #ui:has(.overlay .pick) .toast-host { top: auto; bottom: calc(70 * var(--u)); }
+
+/* Weapon picker (Heroes tab): the equipped weapon's full line under the chips. */
+.lgw-weapon-desc { font-size: calc(11 * var(--tu)); color: #dce8ff; opacity: 0.9; margin-top: calc(6 * var(--u)); text-align: center; }
+.lgw-weapons .lgf-how { font-size: calc(9 * var(--tu)); }
