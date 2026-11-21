@@ -71,7 +71,11 @@ export const TOWER_LEVELS = [
   { damage: 14, range: 270, rate: 1.35, archers: 2 },
   { damage: 21, range: 290, rate: 1.6, archers: 2 },
   { damage: 30, range: 310, rate: 1.9, archers: 3 },
+  // level 5: Spec Mastery (the tower's Fire / Frost / Volley path, deepened)
+  { damage: 34, range: 320, rate: 2.0, archers: 3 },
 ];
+/** Spec Mastery (tower level 5): what each path gains. */
+export const MASTERY_SPEC = { fireBurn: 2, fireTime: 1.5, frostSlow: 0.6, frostDmg: 1, volleyExtra: 4, volleyDmg: 0.65 };
 
 // ---------------------------------------------------------------------------------------------
 // State
@@ -340,6 +344,8 @@ export interface Arrow {
   spec?: TowerSpec;
   /** Hawkeye: chance this tower arrow crits (towers normally can't). */
   crit?: number;
+  /** Fired by a Spec-Mastery tower (its path's effect is stronger). */
+  master?: boolean;
   /** Ricochet: bounces left, and the foes already hit (no bouncing back). */
   bounce?: number;
   hit?: number[];
@@ -754,18 +760,18 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
   });
   const towerY = WALL_Y + 42;
   const plots: Plot[] = [
-    makePlot("tower-1", "tower", "Archer Tower", 90, towerY, [10, 35, 80, 150], 4, [0, 0, 6, 12]),
-    makePlot("tower-2", "tower", "Archer Tower", 250, towerY, [20, 45, 95, 170], 4, [0, 0, 6, 12]),
-    makePlot("tower-3", "tower", "Archer Tower", 470, towerY, [20, 45, 95, 170], 4, [0, 0, 6, 12]),
-    makePlot("tower-4", "tower", "Archer Tower", 630, towerY, [30, 55, 110, 190], 4, [0, 0, 6, 12]),
+    makePlot("tower-1", "tower", "Archer Tower", 90, towerY, [10, 35, 80, 150, 260], 5, [0, 0, 6, 12, 20]),
+    makePlot("tower-2", "tower", "Archer Tower", 250, towerY, [20, 45, 95, 170, 280], 5, [0, 0, 6, 12, 20]),
+    makePlot("tower-3", "tower", "Archer Tower", 470, towerY, [20, 45, 95, 170, 280], 5, [0, 0, 6, 12, 20]),
+    makePlot("tower-4", "tower", "Archer Tower", 630, towerY, [30, 55, 110, 190, 300], 5, [0, 0, 6, 12, 20]),
     { ...makePlot("lumber", "lumber", "Lumber Camp", 150, 850, [15, 40, 80], 3), locked: true, unlockWave: 1 },
     { ...makePlot("forge", "forge", "Forge", 580, 850, [30, 70], 2, [0, 8]), locked: true, unlockWave: 3 },
     { ...makePlot("barracks", "barracks", "Barracks", BARRACKS.x, BARRACKS.y, [35, 60, 100], 3, [4, 8, 12]), locked: true, unlockWave: 2 },
     { ...makePlot("cat-1", "catapult", "Catapult", 230, WALL_Y + 215, [45, 80, 140], 3, [6, 10, 16]), locked: true, unlockWave: 4 },
     { ...makePlot("cat-2", "catapult", "Catapult", 490, WALL_Y + 215, [45, 80, 140], 3, [6, 10, 16]), locked: true, unlockWave: 4 },
     { ...makePlot("hall", "hall", "Upgrade Hall", HALL.x - 130, HALL.y + 70, [60, 150], 2, [6, 16]), locked: true, unlockWave: 5 },
-    { ...makePlot("tower-5", "tower", "Archer Tower", 170, towerY, [40, 70, 120, 200], 4, [0, 0, 8, 14]), locked: true },
-    { ...makePlot("tower-6", "tower", "Archer Tower", 550, towerY, [40, 70, 120, 200], 4, [0, 0, 8, 14]), locked: true },
+    { ...makePlot("tower-5", "tower", "Archer Tower", 170, towerY, [40, 70, 120, 200, 310], 5, [0, 0, 8, 14, 20]), locked: true },
+    { ...makePlot("tower-6", "tower", "Archer Tower", 550, towerY, [40, 70, 120, 200, 310], 5, [0, 0, 8, 14, 20]), locked: true },
     makePlot("repair", "repair", "Repair Wall", 310, WALL_Y + 158, [15], 999),
     { ...makePlot("fortify", "fortify", "Fortify Wall", 410, WALL_Y + 158, [40, 90, 170], 3, [5, 10, 15]), locked: true, unlockWave: 3 },
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90], 3, [4, 8, 12]), locked: true, unlockWave: 3 },
@@ -1296,8 +1302,8 @@ function updateWorkers(c: Camp): void {
 // ---------------------------------------------------------------------------------------------
 // Towers & arrows
 
-function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec, crit?: number): void {
-  const a: Arrow = { id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}) };
+function fireArrow(c: Camp, from: Vec, target: Enemy, damage: number, owner: "hero" | "tower", spec?: TowerSpec, crit?: number, master = false): void {
+  const a: Arrow = { id: c.nextId++, x: from.x, y: from.y - 10, target: target.id, damage, owner, life: 2, angle: Math.atan2(target.y - from.y, target.x - from.x), spec, ...(crit ? { crit } : {}), ...(master ? { master } : {}) };
   if (owner === "hero" && c.mods.ricochet > 0) a.bounce = c.mods.ricochet;
   c.arrows.push(a);
   c.events.push({ type: "shoot", owner, x: from.x, y: from.y });
@@ -1358,14 +1364,15 @@ function updateTowers(c: Camp): void {
     const hawk = wb.clear && c.mods.hawkeye > 0;
     const dmg = st.damage * c.mods.towerDamage * towerScale(c) * (1 + BOW_DAMAGE * p.bows) * (hawk ? 1.1 : 1);
     const from = { x: p.x, y: p.y - 18 };
-    fireArrow(c, from, best, p.spec === "frost" ? dmg * SPEC.frostDmg : dmg, "tower", p.spec, hawk ? c.mods.hawkeye : undefined);
+    const master = p.level >= 5;
+    fireArrow(c, from, best, p.spec === "frost" ? dmg * (master ? MASTERY_SPEC.frostDmg : SPEC.frostDmg) : dmg, "tower", p.spec, hawk ? c.mods.hawkeye : undefined, master);
     if (p.spec === "volley") {
       // Volley: the same shot also looses arrows at the nearest other foes in range.
       const others = c.enemies
         .filter((e) => e !== best && e.y >= SPAWN_Y + 10 && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 <= range ** 2)
         .sort((a, b) => (a.x - best!.x) ** 2 + (a.y - best!.y) ** 2 - ((b.x - best!.x) ** 2 + (b.y - best!.y) ** 2))
-        .slice(0, SPEC.volleyExtra);
-      for (const o of others) fireArrow(c, from, o, dmg * SPEC.volleyDmg, "tower", "volley");
+        .slice(0, master ? MASTERY_SPEC.volleyExtra : SPEC.volleyExtra);
+      for (const o of others) fireArrow(c, from, o, dmg * (master ? MASTERY_SPEC.volleyDmg : SPEC.volleyDmg), "tower", "volley", undefined, master);
     }
   }
 }
@@ -1679,10 +1686,10 @@ function updateArrows(c: Camp): void {
       }
       if (a.spec) c.events.push({ type: "specHit", spec: a.spec, x: t.x, y: t.y - t.def.radius * 0.6 });
       if (a.spec === "fire") {
-        t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn * (c.weather === "rain" ? WEATHER.rain.burn : 1));
-        t.burnTime = Math.max(t.burnTime, SPEC.fireTime);
+        t.burnDps = Math.max(t.burnTime > 0 ? t.burnDps : 0, a.damage * SPEC.fireBurn * (a.master ? MASTERY_SPEC.fireBurn : 1) * (c.weather === "rain" ? WEATHER.rain.burn : 1));
+        t.burnTime = Math.max(t.burnTime, SPEC.fireTime + (a.master ? MASTERY_SPEC.fireTime : 0));
       } else if (a.spec === "frost") {
-        t.slowPct = Math.max(t.slowTime > 0 ? t.slowPct : 0, SPEC.frostSlow);
+        t.slowPct = Math.max(t.slowTime > 0 ? t.slowPct : 0, a.master ? MASTERY_SPEC.frostSlow : SPEC.frostSlow);
         t.slowTime = Math.max(t.slowTime, SPEC.frostTime);
       }
       a.life = 0;

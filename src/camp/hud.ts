@@ -7,6 +7,13 @@ import { CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed,
 
 /** Icons for buildings named in blessing requirements. */
 const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
+/** Tower Spec Mastery (level 5), per path. */
+const MASTERY_TEXT: Record<string, string> = {
+  fire: "Fire Mastery — burns twice as hard, 1.5 s longer",
+  frost: "Frost Mastery — slows 60%, no damage penalty",
+  volley: "Volley Mastery — 4 extra arrows, each stronger",
+  none: "Mastery — the tower's strongest form",
+};
 /** Building draft cards: what each building does, in a line. */
 const BUILD_INFO: Record<string, { name: string; desc: string }> = {
   forge: { name: "Forge", desc: "Forges bows that make every tower hit harder" },
@@ -37,6 +44,7 @@ function plotInfo(c: Camp, p: Plot): { title: string; lines: string[] } {
           `Damage ${arrow(cur.damage, nx?.damage ?? null)}`,
           `Archers ${arrow(cur.archers, nx?.archers ?? null)} · Range ${arrow(cur.range, nx?.range ?? null)}`,
           ...(sp ? [sp.desc] : p.level === 2 ? ["At Lv 3: choose Fire, Frost or Volley"] : []),
+          ...(next === 5 ? [`★ Next: ${MASTERY_TEXT[p.spec ?? "none"]}`] : p.level >= 5 ? [`★ Mastered: ${MASTERY_TEXT[p.spec ?? "none"]}`] : []),
           p.bows ? `Bows ${p.bows}/10 (+${p.bows * 6}% dmg)` : "Bring bows from the forge for +6% each",
         ],
       };

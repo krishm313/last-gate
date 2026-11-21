@@ -126,6 +126,8 @@ export interface DrawEnv {
   towerFrozen: Set<string>;
 }
 
+/** Spec Mastery: last emit beat per tower (one rising mote per beat). */
+const masteryBeat = new Map<string, number>();
 /** Last left/right facing of each tower archer (render-only memory for the facing dead zone). */
 const archerFlip = new Map<string, boolean>();
 
@@ -142,6 +144,26 @@ export function drawTower(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot):
   const tall = 34 + p.level * 6;
   const timg = towerAtlas();
   const lv = Math.min(4, Math.max(1, p.level));
+  // Spec Mastery (level 5): a glow of the path's colour breathes under the tower.
+  if (p.level >= 5) {
+    const col = p.spec === "fire" ? "255,110,40" : p.spec === "frost" ? "110,200,255" : "255,200,60";
+    const k = 0.65 + 0.35 * Math.sin(env.time * 3 + x * 0.01);
+    const g = ctx.createRadialGradient(x, y + 12, 4, x, y + 12, 54);
+    g.addColorStop(0, `rgba(${col},${(0.8 * k).toFixed(3)})`);
+    g.addColorStop(0.5, `rgba(${col},${(0.35 * k).toFixed(3)})`);
+    g.addColorStop(1, `rgba(${col},0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 12, 54, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // …and its path drifts up off it now and then: embers, frost motes or gold sparks.
+    const beat = Math.floor(env.time * 4 + x);
+    if (beat !== masteryBeat.get(p.id) && env.fx.particles.length < 300) {
+      masteryBeat.set(p.id, beat);
+      const mote = p.spec === "fire" ? "#ff9a3a" : p.spec === "frost" ? "#c8f0ff" : "#ffe27a";
+      env.fx.burst(x + Math.sin(beat * 2.3) * 22, y + 4, mote, 1, 18, { max: 1.1, size: 2.6, gravity: -55, drag: 1.5, shape: p.spec === "frost" ? "chunk" : "spark" });
+    }
+  }
   if (timg) towerPart(ctx, timg, `tower${lv}`, x, y + 4);
   // Long soft shadow cast down-right by the shared top-left light (taller towers, longer shadow).
   if (!timg) softShadow(ctx, x + 8 + tall * 0.18, y + 18, 34 + tall * 0.12, 11, 0.34);

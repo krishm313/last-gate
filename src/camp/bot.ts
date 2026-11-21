@@ -46,7 +46,8 @@ export function campBotInput(c: Camp): CampInput {
   // Only consider plots whose log needs we can actually meet; prefer a couple of towers before the lumber camp.
   const towersBuilt = c.plots.filter((p) => p.kind === "tower" && p.level > 0).length;
   const candidates = c.plots.filter(
-    (p) => !plotMaxed(p) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
+    // (Spec Mastery, a tower's 5th level, is a player's choice: the balance bot stops at level 4.)
+    (p) => !plotMaxed(p) && !(p.kind === "tower" && p.level >= 4) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
   );
   let target: Plot | undefined;
   const breached = c.segments.some((sg) => sg.hp <= 0);
