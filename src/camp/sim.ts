@@ -1,3 +1,4 @@
+import { PET, type PetId } from "../core/pets";
 import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { CHAPTERS } from "../core/chapters";
 import { ENEMIES, type EnemyDef, type EnemyId } from "../core/enemies";
@@ -340,6 +341,18 @@ export const WILDFIRE = { range: 55, dps: 0.8 };
 export const BANNER_R = 130;
 export const SPEC = { fireBurn: 0.45, fireTime: 3, frostSlow: 0.4, frostTime: 1.6, frostDmg: 0.9, volleyExtra: 2, volleyDmg: 0.55 };
 
+export interface PetState {
+  kind: Exclude<PetId, "none">;
+  x: number;
+  y: number;
+  state: "follow" | "fetch" | "dive" | "return";
+  /** Falcon: seconds to the next dive. */
+  t: number;
+  /** Coin (hound) or enemy (falcon) it's after. */
+  target: number;
+  moving: boolean;
+}
+
 export interface Coin {
   id: number;
   x: number;
@@ -448,6 +461,9 @@ export type CampEvent =
   | { type: "breath"; x: number; y: number; x0: number; x1: number }
   /** The King's weapon: a crossbow bolt punching through (from → to), a staff orb bursting. */
   | { type: "pierce"; x: number; y: number; tx: number; ty: number }
+  /** Companion pet: the hound flicks a coin to the King; the falcon strikes a foe. */
+  | { type: "petFetch"; x: number; y: number }
+  | { type: "petStrike"; x: number; y: number }
   | { type: "orbBurst"; x: number; y: number; r: number }
   | { type: "quake"; x: number; y: number; r: number }
   | { type: "bog"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
@@ -517,6 +533,8 @@ export interface Camp {
   lay: CampLayout;
   /** The King's weapon this run. */
   weapon: WeaponId;
+  /** Companion pet, if any: where it is and what it's doing. */
+  pet: PetState | null;
   /** Tonight has a boss (no Nightmare Blood Moon surge on those). */
   bossNight?: boolean;
   /** Building draft waiting on the player (kinds to choose from), else null. */
@@ -819,6 +837,8 @@ export interface CampSetup {
   reverse?: boolean;
   /** The King's weapon (default: the hero's own attack). */
   weapon?: WeaponId;
+  /** Companion pet (default none). */
+  pet?: PetId;
   /** Force a camp layout (tests, tools); default: hashed from the seed. */
   layout?: CampLayout;
   /** Siege Lord: sieges already won (opens the later war cards). */
@@ -863,6 +883,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
   const camp: Camp = {
     lay,
     weapon: setup.weapon ?? "own",
+    pet: setup.pet && setup.pet !== "none" ? { kind: setup.pet, x: lay.heroSpawn.x - 24, y: lay.heroSpawn.y + 10, state: "follow", t: 1, target: 0, moving: false } : null,
     seed,
     rng: createRng(seed),
     chapter,
@@ -2499,6 +2520,85 @@ function dropCoins(c: Camp, x: number, y: number, n: number): void {
   }
 }
 
+/** Companion pet: the hound fetches stray coins, the falcon circles and dives at foes near the King. */
+function updatePet(c: Camp): void {
+  const p = c.pet;
+  if (!p) return;
+  const h = c.hero;
+  const goTo = (x: number, y: number, speed: number): number => {
+    const d = Math.hypot(x - p.x, y - p.y);
+    if (d > 0.5) {
+      const k = Math.min(d, speed * STEP) / d;
+      p.x += (x - p.x) * k;
+      p.y += (y - p.y) * k;
+    }
+    return d;
+  };
+  // Heel spot: just behind and beside the King (the falcon hovers over him instead).
+  const side = Math.cos(h.facing) >= 0 ? -1 : 1;
+  const hx = h.x + side * 26, hy = h.y + (p.kind === "falcon" ? -6 : 8);
+  p.moving = false;
+  if (p.kind === "hound") {
+    if (p.state === "fetch") {
+      const k = c.coins.find((q) => q.id === p.target);
+      if (!k || k.homing || h.dead || h.coins >= carryCap(c)) p.state = "follow";
+      else {
+        p.moving = true;
+        if (goTo(k.x, k.y, PET.houndSpeed) < 10) {
+          k.homing = true; // the magnet carries it the rest of the way
+          c.events.push({ type: "petFetch", x: k.x, y: k.y });
+          p.state = "follow";
+        }
+        return;
+      }
+    }
+    // Look for a coin lying out of the King's magnet reach.
+    if (!h.dead && h.coins < carryCap(c)) {
+      let best: Coin | null = null, bd = PET.houndReach ** 2;
+      for (const k of c.coins) {
+        if (k.z > 0 || k.homing) continue;
+        const d = (k.x - h.x) ** 2 + (k.y - h.y) ** 2;
+        if (d < bd) { bd = d; best = k; }
+      }
+      if (best) { p.state = "fetch"; p.target = best.id; return; }
+    }
+    if (Math.hypot(hx - p.x, hy - p.y) > 6) { p.moving = true; goTo(hx, hy, Math.max(PET.houndSpeed * 0.8, Math.hypot(hx - p.x, hy - p.y) * 3)); }
+    return;
+  }
+  // Falcon.
+  p.t -= STEP;
+  if (p.state === "dive") {
+    const e = c.enemies.find((q) => q.id === p.target && q.hp > 0);
+    if (!e) p.state = "return";
+    else {
+      p.moving = true;
+      if (goTo(e.x, e.y - e.def.radius, PET.falconSpeed) < 12) {
+        damageEnemy(c, e, heroShotDamage(c) * PET.falconDamage, "hero", false, "pet");
+        c.events.push({ type: "petStrike", x: e.x, y: e.y - e.def.radius });
+        p.state = "return";
+      }
+      return;
+    }
+  }
+  if (p.state === "return") {
+    p.moving = true;
+    if (goTo(hx, hy, PET.falconSpeed * 0.7) < 10) p.state = "follow";
+    return;
+  }
+  if (p.t <= 0 && !h.dead) {
+    let best: Enemy | null = null, bd = PET.falconReach ** 2;
+    for (const e of c.enemies) {
+      if (e.hp <= 0 || e.y < SPAWN_Y + 10 || (e.burrow && e.burrow > 0)) continue;
+      const d = (e.x - h.x) ** 2 + (e.y - h.y) ** 2;
+      if (d < bd) { bd = d; best = e; }
+    }
+    if (best) { p.state = "dive"; p.target = best.id; p.t = PET.falconEvery; return; }
+    p.t = 0.4;
+  }
+  p.moving = Math.hypot(hx - p.x, hy - p.y) > 4;
+  goTo(hx, hy, Math.max(200, Math.hypot(hx - p.x, hy - p.y) * 4));
+}
+
 function updateCoins(c: Camp): void {
   const h = c.hero;
   for (const k of c.coins) {
@@ -2826,6 +2926,7 @@ export function step(c: Camp, input: CampInput): void {
   updateStrikes(c);
   updateAcid(c);
   reap(c);
+  updatePet(c);
   updateCoins(c);
 
   if (c.hallHp <= 0) {

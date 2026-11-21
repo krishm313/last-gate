@@ -1,3 +1,4 @@
+import { PET_BY_ID, type PetId } from "../core/pets";
 import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { HERO_BY_ID, vetLookOn, type HeroId } from "../core/heroes";
 import { ASCEND, type SaveData, totalStars } from "../core/meta";
@@ -31,6 +32,11 @@ export const CAMP_HEROES: Record<HeroId, { look: string; passive: string; apply:
 export function weaponFor(save: SaveData): WeaponId {
   const w = save.weapon ? WEAPON_BY_ID[save.weapon] : undefined;
   return w && totalStars(save) >= w.stars ? w.id : "own";
+}
+/** The pet that comes along: the saved pick if it's unlocked, else none. */
+export function petFor(save: SaveData): PetId {
+  const p = save.pet ? PET_BY_ID[save.pet] : undefined;
+  return p && totalStars(save) >= p.stars ? p.id : "none";
 }
 export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): CampSetup {
   const lv = (id: string) => save.perms[id] ?? 0;
@@ -67,6 +73,7 @@ export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): Cam
   s.heroVet = vetLookOn(save, hero);
   s.heroFlair = activeFlair(save);
   s.weapon = weaponFor(save);
+  s.pet = petFor(save);
   s.ability = HERO_BY_ID[hero].ability;
   s.abilityCooldown = HERO_BY_ID[hero].cooldown;
   // Hero mastery capstone: an empowered ability that recharges faster.

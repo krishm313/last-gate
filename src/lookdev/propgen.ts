@@ -1726,6 +1726,108 @@ function mageTowerModel(level: number): void {
 }
 
 /** One spike-trap stake (wood, or dark iron with a bright tip). */
+/** Companion Hound: a lean tan hunting dog standing side-on, ears up, tail high, red collar. */
+function houndModel(): void {
+  const fur = std(0xb8844a, 0.85), dark = std(0x6a4426, 0.85), light = std(0xe8d0a8, 0.85);
+  const body = mesh(lumpy(new THREE.CapsuleGeometry(0.42, 1.3, 6, 12), 0.02), fur);
+  body.rotation.z = Math.PI / 2;
+  body.position.set(0, 1.15, 0);
+  root.add(body);
+  const chest = mesh(new THREE.SphereGeometry(0.4, 14, 10), light);
+  chest.position.set(0.72, 1.05, 0);
+  chest.scale.set(0.9, 1, 0.9);
+  root.add(chest);
+  for (const [x, z] of [[0.6, 0.22], [0.6, -0.22], [-0.6, 0.22], [-0.6, -0.22]] as const) {
+    const leg = mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.95, 8), x > 0 ? light : fur);
+    leg.position.set(x, 0.48, z);
+    root.add(leg);
+    const paw = mesh(new THREE.SphereGeometry(0.11, 8, 6), dark);
+    paw.position.set(x + 0.04, 0.05, z);
+    root.add(paw);
+  }
+  const neck = mesh(new THREE.CylinderGeometry(0.2, 0.28, 0.55, 10), fur);
+  neck.position.set(0.95, 1.5, 0);
+  neck.rotation.z = -0.7;
+  root.add(neck);
+  const collar = mesh(new THREE.TorusGeometry(0.24, 0.06, 6, 14), std(0xc8302a, 0.6));
+  collar.position.set(0.92, 1.45, 0);
+  collar.rotation.y = Math.PI / 2;
+  collar.rotation.x = 0.7;
+  root.add(collar);
+  const tag = mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshStandardMaterial({ color: 0xf2c443, metalness: 0.8, roughness: 0.3 }));
+  tag.position.set(1.02, 1.28, 0);
+  root.add(tag);
+  const head = mesh(new THREE.SphereGeometry(0.3, 14, 10), fur);
+  head.position.set(1.2, 1.82, 0);
+  root.add(head);
+  const snout = mesh(new THREE.CylinderGeometry(0.12, 0.17, 0.42, 10), light);
+  snout.rotation.z = Math.PI / 2;
+  snout.position.set(1.48, 1.74, 0);
+  root.add(snout);
+  const nose = mesh(new THREE.SphereGeometry(0.07, 8, 6), std(0x1a1410, 0.4));
+  nose.position.set(1.7, 1.76, 0);
+  root.add(nose);
+  for (const z of [0.15, -0.15]) {
+    const ear = mesh(new THREE.ConeGeometry(0.1, 0.3, 6), dark);
+    ear.position.set(1.12, 2.1, z);
+    ear.rotation.z = 0.25;
+    root.add(ear);
+    const eye = mesh(new THREE.SphereGeometry(0.045, 6, 4), std(0x1a1410, 0.3));
+    eye.position.set(1.4, 1.9, z * 0.9);
+    root.add(eye);
+  }
+  const tail = mesh(new THREE.CylinderGeometry(0.05, 0.09, 0.75, 8), fur);
+  tail.position.set(-0.95, 1.6, 0);
+  tail.rotation.z = 0.6;
+  root.add(tail);
+}
+/** Companion Falcon: a peregrine with wings spread mid-glide, barred chest, hooked beak. */
+function falconModel(): void {
+  const slate = std(0x4a5468, 0.8), cream = std(0xe8dcc0, 0.85), gold = std(0xf2c443, 0.5);
+  const body = mesh(new THREE.SphereGeometry(0.38, 14, 10), slate);
+  body.scale.set(1.5, 0.9, 0.9);
+  body.position.y = 1.6;
+  root.add(body);
+  const chest = mesh(new THREE.SphereGeometry(0.3, 12, 8), cream);
+  chest.scale.set(1.2, 0.9, 0.8);
+  chest.position.set(0.2, 1.52, 0);
+  root.add(chest);
+  const head = mesh(new THREE.SphereGeometry(0.22, 12, 8), slate);
+  head.position.set(0.62, 1.78, 0);
+  root.add(head);
+  const beak = mesh(new THREE.ConeGeometry(0.07, 0.2, 6), gold);
+  beak.rotation.z = -Math.PI / 2 - 0.4;
+  beak.position.set(0.86, 1.72, 0);
+  root.add(beak);
+  for (const z of [0.12, -0.12]) {
+    const eye = mesh(new THREE.SphereGeometry(0.04, 6, 4), std(0x1a1410, 0.3));
+    eye.position.set(0.74, 1.84, z);
+    root.add(eye);
+  }
+  // Wings: tapered feathered blades swept back from the shoulders.
+  for (const side of [1, -1]) {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.quadraticCurveTo(0.05, side * 0.9, -0.3, side * 1.55);
+    shape.lineTo(-0.7, side * 1.6);
+    shape.quadraticCurveTo(-0.55, side * 0.8, -0.6, side * 0.5);
+    shape.lineTo(-0.45, 0);
+    shape.lineTo(0, 0);
+    const wing = mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.05, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: 0x3e4658, roughness: 0.8, side: THREE.DoubleSide }));
+    wing.rotation.x = -Math.PI / 2;
+    wing.position.set(0.25, 1.68, 0);
+    wing.rotation.z = 0;
+    wing.rotation.y = side * 0.18;
+    root.add(wing);
+  }
+  const tail = mesh(new THREE.ConeGeometry(0.22, 0.6, 4), slate);
+  tail.rotation.z = Math.PI / 2;
+  tail.scale.set(1, 1, 0.3);
+  tail.position.set(-0.75, 1.58, 0);
+  root.add(tail);
+  ground.visible = false;
+}
+
 /** Balloon Bomber envelope: a patched, striped hot-air balloon with rigging lines down to the basket ring. */
 function balloonEnvelope(): void {
   const g = new THREE.SphereGeometry(1.6, 32, 20);
@@ -1910,6 +2012,8 @@ function stakeModel(iron: boolean): void {
   stake: () => stakeModel(false),
   stake_iron: () => stakeModel(true),
   balloon: balloonEnvelope,
+  hound: () => { houndModel(); root.rotation.y = -0.35; },
+  falcon: () => { falconModel(); root.rotation.y = -0.5; root.rotation.x = 0.35; },
   basket: balloonBasket,
   towershield: towerShield,
   tower1: () => tower(1, "back"), tower2: () => tower(2, "back"), tower3: () => tower(3, "back"), tower4: () => tower(4, "back"),

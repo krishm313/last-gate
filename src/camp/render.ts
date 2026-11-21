@@ -1402,6 +1402,16 @@ export class CampRenderer {
           fx.number(ev.x, ev.y - 60, "ERUPTION!", "#ffa060", 16, 1);
           fx.shake(0.4);
           break;
+        case "petFetch":
+          // The hound noses a stray coin up into the air toward the King.
+          fx.burst(ev.x, ev.y, "#ffd84a", 5, 90, { max: 0.35, size: 2.4, gravity: 260, shape: "dot" });
+          fx.burst(ev.x, ev.y + 2, "rgba(206,190,160,0.75)", 3, 30, { max: 0.35, size: 4, gravity: -10, drag: 4 });
+          break;
+        case "petStrike":
+          // Talons: a feather burst, a white slash ring and a sharp little hit.
+          fx.burst(ev.x, ev.y, "#e8dcc0", 6, 110, { max: 0.5, size: 2.6, gravity: 120, drag: 2, shape: "chunk" });
+          fx.rings.push({ x: ev.x, y: ev.y, r: 18, color: "#ffffff", life: 0.2, max: 0.2, width: 2.5 });
+          break;
         case "pierce": {
           // The bolt bursts out of the back of the first foe: a white streak on into the next.
           fx.burst(ev.x, ev.y - 8, "#e8e0d0", 6, 140, { max: 0.25, size: 2, gravity: 200, shape: "dot" });
@@ -1830,6 +1840,7 @@ export class CampRenderer {
     // Flyers sort above everything on the ground (they pass over trees and buildings).
     // (Flyers sort on top; `a` keeps their real base so the flipped view mirrors them about it.)
     for (const e of c.enemies) items.push({ y: e.def.flying ? (this.flip ? e.y - 2000 : e.y + 2000) : e.y, a: e.y, draw: () => this.drawEnemy(ctx, c, e) });
+    if (c.pet) { const pet = c.pet; items.push({ y: pet.kind === "falcon" ? pet.y + 2000 : pet.y, a: pet.y, draw: () => this.drawPet(ctx, pet) }); }
     if (!c.hero.dead) {
       this.heroFell = null;
       // Standing in the open gate (the hero can walk through it), they'd sort behind the gate boards and
@@ -6288,6 +6299,53 @@ export class CampRenderer {
       if (this.fx.particles.length < 400) this.fx.burst(bx + 2, by - 10, Math.sin(this.time * 40) > 0 ? "#ffe080" : "#ff8a20", 1, 40, { max: 0.25, size: 2, gravity: 60, shape: "dot" });
     }
     this.bombs = this.bombs.filter((b) => this.time - b.t < DUR);
+  }
+
+  /** Companion pet: the hound lopes along at the King's heel (bounding hop, flips to face where it
+   *  runs); the falcon glides overhead, wingbeats while it flies, banks into turns and stoops on a dive. */
+  private petPrev = { x: 0, y: 0, flip: false, ph: 0, bank: 0 };
+  private drawPet(ctx: CanvasRenderingContext2D, p: NonNullable<Camp["pet"]>): void {
+    const pv = this.petPrev;
+    const dx = p.x - pv.x, dy = p.y - pv.y;
+    const sp = Math.hypot(dx, dy);
+    if (Math.abs(dx) > 0.2) pv.flip = dx < 0;
+    pv.ph += sp * 0.16;
+    pv.x = p.x;
+    pv.y = p.y;
+    if (p.kind === "hound") {
+      const hop = p.moving ? Math.abs(Math.sin(pv.ph)) : 0;
+      const breathe = p.moving ? 0 : Math.sin(this.time * 3) * 0.02;
+      softShadow(ctx, p.x, p.y + 2, 19 - hop * 4, 5.5, 0.32);
+      ctx.save();
+      ctx.translate(p.x, p.y + 2 - hop * 5);
+      // Squash on landing, stretch at the top of the bound.
+      const st = p.moving ? 1 + (hop - 0.5) * 0.12 : 1 + breathe;
+      ctx.scale((pv.flip ? -1 : 1) / st, st);
+      ctx.rotate(p.moving ? Math.cos(pv.ph) * 0.08 : 0);
+      if (!buildingSprite(ctx, "hound", 0, 0, 1.35)) {
+        ctx.fillStyle = "#b8844a"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(0, -9, 13, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+      return;
+    }
+    // Falcon: altitude above its ground spot, shadow below.
+    const diving = p.state === "dive";
+    const alt = diving ? 18 : 46 + Math.sin(this.time * 1.8) * 4;
+    softShadow(ctx, p.x, p.y + 4, 9, 3, diving ? 0.3 : 0.18);
+    pv.bank += ((Math.max(-1, Math.min(1, dx * 0.25))) - pv.bank) * 0.15;
+    ctx.save();
+    ctx.translate(p.x, p.y - alt);
+    ctx.rotate(diving ? Math.atan2(dy, Math.abs(dx) + 0.01) * 0.6 * (pv.flip ? -1 : 1) : pv.bank * 0.35);
+    // Wingbeat: a quick vertical squash of the spread wings (glides when it's just hovering).
+    const beat = p.moving && !diving ? 0.72 + 0.28 * Math.abs(Math.cos(this.time * 13)) : diving ? 0.62 : 0.9 + 0.1 * Math.cos(this.time * 4);
+    ctx.scale(pv.flip ? -1 : 1, beat);
+    if (!buildingSprite(ctx, "falcon", 0, 22, 1.6)) {
+      ctx.fillStyle = "#4a5468"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(0, 0, 10, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+    if (diving && this.fx.particles.length < 400 && Math.floor(this.time * 30) % 2 === 0) this.fx.burst(p.x, p.y - alt, "rgba(255,255,255,0.7)", 1, 10, { max: 0.2, size: 2.2, gravity: 0, shape: "dot" });
   }
 
   /** Balloon Bomber: a striped 3D balloon with a goblin bombardier leaning out of its basket. */

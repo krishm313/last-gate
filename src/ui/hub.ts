@@ -1,4 +1,5 @@
 import { WEAPONS, WEAPON_BY_ID, type WeaponId } from "../core/weapons";
+import { PETS, type PetId } from "../core/pets";
 import { GIFT_GOLD, giftView } from "../core/gift";
 import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
@@ -28,7 +29,7 @@ import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, VET_NIGHTS, vetLookOn, vetLookOpen, type HeroId } from "../core/heroes";
 import { ASCEND, canAscend, canBuy, permOpen, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
-import { CAMP_HEROES, weaponFor } from "../camp/meta";
+import { CAMP_HEROES, petFor, weaponFor } from "../camp/meta";
 
 /** Painted portraits cut from the owner's character sheet. */
 const HERO_PORTRAIT: Record<string, string> = {
@@ -128,6 +129,7 @@ export interface HubCallbacks {
   /** Picked a cosmetic hero flair. */
   onFlair?: (id: string) => void;
   onWeapon?: (id: WeaponId) => void;
+  onPet?: (id: PetId) => void;
   /** Picked a campaign difficulty. */
   onDifficulty?: (id: DifficultyId) => void;
   /** Opened today's Royal Gift chest (Battle tab); returns the gold it held. */
@@ -1299,6 +1301,7 @@ export class Hub {
       if (selected) body.append(this.vetLookRow(save, h.id));
       if (selected) body.append(this.masteryPanel(save, h.id));
       if (selected) body.append(this.weaponPanel(save));
+      if (selected) body.append(this.petPanel(save));
       if (selected) skills = this.skillPanel(save, h.id);
       // The skill tree goes after the selected hero, or after the newly unlocked ones if any.
       if (skills && (lastFresh ? h.id === lastFresh : selected)) { body.append(skills); skills = null; }
@@ -1350,6 +1353,31 @@ export class Hub {
   }
 
   /** Cosmetic hero flair: a trail or halo worn by whichever hero you play. */
+  /** Pet picker: a companion that follows the hero through every run, opened by stars. */
+  private petPanel(save: SaveData): HTMLElement {
+    const panel = el("div", "lgs-panel lgf-panel lgw-weapons lgp-pets");
+    const head = el("div", "lgs-head");
+    const have = totalStars(save);
+    head.append(el("div", "lgs-title", "Companion"), el("div", "lgs-pts", `${PETS.filter((p) => p.id !== "none" && have >= p.stars).length} / ${PETS.length - 1}`));
+    panel.append(head);
+    const active = petFor(save);
+    const grid = el("div", "lgf-grid");
+    for (const p of PETS) {
+      const open = have >= p.stars, on = active === p.id;
+      const chip = el("button", `lgf-chip${on ? " on" : ""}${open ? "" : " locked"}`);
+      chip.append(el("div", "lgf-icon", open ? p.icon : "🔒"), el("div", "lgf-name", p.name), el("div", "lgf-how", on ? (p.id === "none" ? "Alone" : "With you") : open ? p.desc : `${have} / ${p.stars} ★`));
+      if (open && !on)
+        chip.onclick = () => {
+          this.cb.onClick();
+          this.cb.onPet?.(p.id);
+        };
+      else if (!open) chip.onclick = () => this.denied(chip);
+      grid.append(chip);
+    }
+    panel.append(grid);
+    return panel;
+  }
+
   /** Weapon picker: reshapes every hero's auto-attack (Signature / Crossbow / War Staff), opened by stars. */
   private weaponPanel(save: SaveData): HTMLElement {
     const panel = el("div", "lgs-panel lgf-panel lgw-weapons");

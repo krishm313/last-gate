@@ -1,4 +1,5 @@
 import type { WeaponId } from "./weapons";
+import type { PetId } from "./pets";
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
@@ -74,6 +75,8 @@ export interface SaveData {
   hero: HeroId;
   /** The weapon the hero carries (default: the hero's own attack). */
   weapon?: WeaponId;
+  /** Companion pet (default: none). */
+  pet?: PetId;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
   runs: number;
@@ -144,6 +147,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   const dl = (r as { daily?: unknown }).daily as { date?: unknown; best?: unknown; won?: unknown } | undefined;
   const wpn = (r as { weapon?: unknown }).weapon;
   if (wpn === "crossbow" || wpn === "staff" || wpn === "own") d.weapon = wpn;
+  const pet = (r as { pet?: unknown }).pet;
+  if (pet === "hound" || pet === "falcon" || pet === "none") d.pet = pet;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
   d.difficulty = isDifficulty((r as { difficulty?: unknown }).difficulty) ? (r as { difficulty: DifficultyId }).difficulty : "normal";
   for (const [k, v] of Object.entries(rec((r as { diffCleared?: unknown }).diffCleared))) if (chapterIds.has(Number(k))) d.diffCleared[Number(k)] = Math.max(0, Math.min(2, Math.floor(num(v, 0))));

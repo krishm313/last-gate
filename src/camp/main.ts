@@ -261,6 +261,11 @@ const hub = new Hub(uiRoot, {
     sfx.unlockChime();
     hub.showHub(save, "heroes");
   },
+  onPet: (id) => {
+    save.pet = id;
+    writeSave(save);
+    hub.showHub(save, "heroes");
+  },
   onWeapon: (id) => {
     save.weapon = id;
     writeSave(save);
