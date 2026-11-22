@@ -1517,3 +1517,13 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 /* Weapon picker (Heroes tab): the equipped weapon's full line under the chips. */
 .lgw-weapon-desc { font-size: calc(11 * var(--tu)); color: #dce8ff; opacity: 0.9; margin-top: calc(6 * var(--u)); text-align: center; }
 .lgw-weapons .lgf-how { font-size: calc(9 * var(--tu)); }
+
+/* Kingdom view (Battle tab): the realm that grows with every chapter cleared. */
+.lgk-card { position: relative; margin: calc(6 * var(--u)) 0 calc(10 * var(--u)); border-radius: calc(14 * var(--u)); overflow: hidden; border: calc(2 * var(--u)) solid #1d1208; box-shadow: 0 calc(3 * var(--u)) 0 #1d1208, inset 0 0 0 calc(2 * var(--u)) #e8c46a55; background: #6aa048; }
+.lgk-scene { display: block; width: 100%; aspect-ratio: 340 / 176; }
+.lgk-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: calc(10 * var(--u)) calc(10 * var(--u)) calc(5 * var(--u)); background: linear-gradient(transparent, #1d1208d0); text-align: left; }
+.lgk-title { font-weight: 900; font-size: calc(12.5 * var(--tu)); color: #fff4d0; text-shadow: 0 1px 0 #000; }
+.lgk-sub { font-weight: 700; font-size: calc(10.5 * var(--tu)); color: #e8dcc0; }
+.lgk-fresh { animation: lgk-pop 0.7s cubic-bezier(.2,1.6,.4,1) both; }
+.lgk-fresh .lgk-sub { color: #ffe27a; }
+@keyframes lgk-pop { 0% { transform: scale(0.94); } 100% { transform: scale(1); } }

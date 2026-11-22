@@ -1,3 +1,4 @@
+import { kingdomCard } from "./kingdom";
 import { WEAPONS, WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { PETS, type PetId } from "../core/pets";
 import { GIFT_GOLD, giftView } from "../core/gift";
@@ -329,6 +330,7 @@ export class Hub {
 
   private battleTab(body: HTMLElement, save: SaveData): void {
     body.append(el("div", "hub-hint", `Hero: ${HERO_BY_ID[save.hero].name} — pick a battlefield`));
+    if ((save.stars[1] ?? 0) > 0) body.append(kingdomCard(save));
     const news = this.newsCard(save);
     if (news) body.append(news);
     if ((save.stars[1] ?? 0) > 0) {
