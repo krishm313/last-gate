@@ -1,4 +1,4 @@
-import { CH11_ENABLED } from "./features";
+import { CH11_ENABLED, CH12_ENABLED } from "./features";
 import { ENEMIES, type EnemyId } from "./enemies";
 import { createRng, next, weighted } from "./rng";
 
@@ -128,14 +128,18 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
   return { number: wave, spawns, breather, boss: def.boss ?? null, ...(def.boss2 ? { boss2: def.boss2 } : {}), intro: def.intro ?? null };
 }
 
-const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "dragon", "colossus", "frostwyrm", "magma", "drowned", "bloodlord", "hollowking", ...(CH11_ENABLED ? (["thundergiant"] as EnemyId[]) : [])];
+const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "dragon", "colossus", "frostwyrm", "magma", "drowned", "bloodlord", "hollowking", ...(CH11_ENABLED ? (["thundergiant"] as EnemyId[]) : []), ...(CH12_ENABLED ? (["jadegeneral"] as EnemyId[]) : [])];
+/** Twin bosses: a rotation entry that brings its partner along. */
+const TWIN_PARTNER: Partial<Record<EnemyId, EnemyId>> = { jadegeneral: "crimsongeneral" };
 
 /** Endless waves: cycle the template list; every 5th wave brings the next boss in rotation. */
 function endlessWave(chapter: ChapterDef, wave: number): WaveDef {
   const base = chapter.waves[(wave - 1) % chapter.waves.length]!;
   const every = chapter.bossEvery ?? 5;
   if (wave % every !== 0) return { ...base, boss: undefined, breather: wave % 10 === 4 };
-  return { ...base, boss: ENDLESS_BOSSES[(wave / every - 1) % ENDLESS_BOSSES.length]!, breather: false };
+  const boss = ENDLESS_BOSSES[(wave / every - 1) % ENDLESS_BOSSES.length]!;
+  const boss2 = TWIN_PARTNER[boss];
+  return { ...base, boss, ...(boss2 ? { boss2 } : {}), breather: false };
 }
 
 export function enemyHp(enemy: EnemyId, hpMult: number): number {

@@ -297,6 +297,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 ## Shipped (newest first)
 - Perf fix (found by the late-game check): the boss arena's edge tint was a full-screen gradient fill every frame — boss nights had crept from 4.4 to 10.5 ms per frame (52 ms at 4× slowed CPU). It's now pre-drawn once per theme into a small canvas and stretched over the view: 5.4 ms (≈24 ms at 4×), looks the same. Also the kingdom view's animation now pauses whenever the hub is hidden.
 - Polish (playtest of a banner win on chapter 10): the end screen's gold breakdown now has a "🚩 Conquest" row, so the rows add up to "Gold earned" (the Conquest payout was in the total but had no line).
+- Endless: the Twin Generals now take their turn in the Endless boss rotation (both arrive together).
 - C (phase 10) content batch 5 — **Chapter 12, The Blossom Pass**: a spring mountain pass in pink blossom with petals on the wind, Warbands (tighter packs) and Fury (gate +40%). The finale is the game's first two-boss fight, **the Twin Generals** — Jade (Banner-bearer escort, war cry) and Crimson (Brutes, quake) share one boss bar; fell one and the other takes vengeance (faster, harder-hitting, its signature far more often). Kingdom gains a 13th landmark, the Blossom Shrine; new trophy Twinbreaker.
 - Code health: daytime life (clouds, gusts, butterflies, leaves, birds) moved into its own module.
 - Readability: foes out in the dark field at night (bats especially, and in the rain) now stand out clearly against the darkness.

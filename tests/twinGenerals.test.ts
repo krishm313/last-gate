@@ -37,3 +37,15 @@ describe("Twin Generals (ch12)", () => {
     expect(TWIN.speed).toBeGreaterThan(1);
   });
 });
+
+describe("Twin Generals in Endless (ch12)", () => {
+  it("the rotation brings both generals on their boss night", async () => {
+    const { ENDLESS } = await import("../src/core/chapters");
+    let found = false;
+    for (let w = 5; w <= 5 * 20 && !found; w += 5) {
+      const ids = planWave(ENDLESS, w, 1).spawns.map((s) => s.enemy);
+      if (ids.includes("jadegeneral")) { expect(ids).toContain("crimsongeneral"); found = true; }
+    }
+    expect(found).toBe(true);
+  });
+});
