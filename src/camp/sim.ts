@@ -1729,7 +1729,7 @@ function updateBallistas(c: Camp): void {
     }
     if (!bestN) { p.cooldown = 0; continue; }
     const hit = ballistaLine(c, p.x, p.y - 18, bestA, st.range);
-    const dmg = st.damage * c.mods.towerDamage * towerScale(c);
+    const dmg = st.damage * c.mods.towerDamage * c.mods.ballistaDamage * towerScale(c);
     for (const e of hit) damageEnemy(c, e, dmg, "tower", false, "ballista");
     p.facing = bestA;
     p.cooldown += st.interval;

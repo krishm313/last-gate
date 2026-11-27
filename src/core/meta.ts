@@ -1,6 +1,6 @@
 import type { WeaponId } from "./weapons";
 import type { PetId } from "./pets";
-import type { BannerId } from "./banners";
+import { BANNERS, type BannerId } from "./banners";
 import { sanitizeConquest, type Conquest } from "./conquest";
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
@@ -157,7 +157,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   if (pet === "hound" || pet === "falcon" || pet === "none") d.pet = pet;
   if ((r as { conquest?: unknown }).conquest !== undefined) d.conquest = sanitizeConquest((r as { conquest?: unknown }).conquest);
   const ban = (r as { banner?: unknown }).banner;
-  if (typeof ban === "string" && ["none", "bastion", "hunter", "hoard", "engineers", "levy", "pyre"].includes(ban)) d.banner = ban as BannerId;
+  if (typeof ban === "string" && BANNERS.some((b) => b.id === ban)) d.banner = ban as BannerId;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
   d.difficulty = isDifficulty((r as { difficulty?: unknown }).difficulty) ? (r as { difficulty: DifficultyId }).difficulty : "normal";
   for (const [k, v] of Object.entries(rec((r as { diffCleared?: unknown }).diffCleared))) if (chapterIds.has(Number(k))) d.diffCleared[Number(k)] = Math.max(0, Math.min(2, Math.floor(num(v, 0))));

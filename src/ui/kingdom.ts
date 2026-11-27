@@ -171,7 +171,7 @@ function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>, t = 0):
   }
   // Conquest: every War Banner with a milestone flies its flag along the horizon.
   const flown = CONQUEST_BANNERS.filter((b) => conquestDone(conquestEntry(save.conquest, b.id)) > 0);
-  const flagX = [36, 92, 132, 210, 250, 306];
+  const flagX = [36, 92, 132, 210, 250, 306, 64];
   flown.forEach((b, i) => {
     const x = flagX[i]!, y = 50;
     items.push({ y, draw: () => {

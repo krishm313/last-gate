@@ -28,6 +28,7 @@ export interface CampMods {
   rerolls: number;
   allyPower: number;
   catapultDamage: number;
+  ballistaDamage: number;
   logsPerTrip: number;
   forgeSpeed: number;
   /** Shatter: damage multiplier against slowed foes. */
@@ -68,7 +69,7 @@ export function baseMods(): CampMods {
   return {
     heroDamage: 1, heroRate: 1, heroSpeed: 1, heroHp: 1, heroMultishot: 0, heroRange: 1, carry: 0, towerDamage: 1, towerRate: 1,
     towerRange: 1, wallHp: 1, income: 1, drops: 1, burn: 0, burnMult: 1, slow: 0, hallDamage: 1, repairAfterWave: 0, magnet: 1, rerolls: 1,
-    allyPower: 1, catapultDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1, hawkeye: 0, bossDamage: 1, hallArmor: 1,
+    allyPower: 1, catapultDamage: 1, ballistaDamage: 1, logsPerTrip: 0, forgeSpeed: 1, slowedBonus: 1, thermal: 1, mageDamage: 1, mageChains: 0, healerPower: 1, spikeDamage: 1, bigGold: 1, hawkeye: 0, bossDamage: 1, hallArmor: 1,
     ricochet: 0, thorns: 0, thornSlow: 0, wildfire: 0, cull: 0, banner: 1, coinVolley: 0,
   };
 }
@@ -130,6 +131,7 @@ export const BLESSINGS: Blessing[] = [
   { id: "treasury", banner: "hoard", name: "Royal Treasury", desc: "Hall income +40%, carry +30 coins", icon: "👑", rarity: "epic", max: 1, apply: (m) => { m.income *= 1.4; m.carry += 30; } },
   { id: "siegecraft", banner: "engineers", name: "Siegecraft", desc: "Catapults and Mage Tower +35% damage; lightning hops 1 more", icon: "⚙️", rarity: "epic", max: 1, apply: (m) => { m.catapultDamage *= 1.35; m.mageDamage *= 1.35; m.mageChains += 1; } },
   { id: "brothers", banner: "levy", name: "Shield Brothers", desc: "Soldiers +40% HP and damage", icon: "🛡️", rarity: "epic", max: 1, apply: (m) => { m.allyPower *= 1.4; } },
+  { id: "ironbolts", banner: "bolts", name: "Iron-Shod Bolts", desc: "Ballista bolts +40% damage", icon: "🎯", rarity: "epic", max: 1, needsBuilding: "ballista", apply: (m) => { m.ballistaDamage *= 1.4; } },
   { id: "pyrerite", banner: "pyre", name: "Pyre Rite", desc: "Burning deals 50% more", icon: "🕯️", rarity: "epic", max: 1, apply: (m) => { m.burnMult *= 1.5; } },
   // Rule-changers: each one changes how a run plays, not just a number.
   { id: "ricochet", rule: true, name: "Ricochet", desc: "Your arrows bounce to 1 more foe (60% damage)", icon: "↪️", rarity: "epic", max: 1, newer: true, apply: (m) => { m.ricochet += 1; } },

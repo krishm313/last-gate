@@ -54,6 +54,7 @@ export function applyBanner(s: CampSetup, id: BannerId): void {
   else if (id === "engineers") { s.openEarly = [...(s.openEarly ?? []), "catapult", "mage"]; s.costMult = { ...s.costMult, catapult: 0.65, mage: 0.65 }; s.maxLevels = { ...s.maxLevels, tower: 4 }; }
   else if (id === "levy") { s.openEarly = [...(s.openEarly ?? []), "barracks"]; m.allyPower *= 1.9; m.heroDamage *= 0.8; }
   else if (id === "pyre") { m.burn += 0.7; m.towerDamage *= 0.9; }
+  else if (id === "bolts") { s.openEarly = [...(s.openEarly ?? []), "ballista"]; s.costMult = { ...s.costMult, ballista: 0.6 }; m.ballistaDamage *= 1.5; m.heroRate *= 0.75; }
 }
 export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): CampSetup {
   const lv = (id: string) => save.perms[id] ?? 0;

@@ -28,6 +28,11 @@ describe("War Banners (B1)", () => {
     expect(tower(eng).maxLevel).toBe(4);
     expect(camp("levy").plots.find((p) => p.kind === "barracks")!.locked).toBe(false);
     expect(camp("pyre").mods.burn).toBeGreaterThan(base.mods.burn);
+    const bolts = camp("bolts");
+    const pad = bolts.plots.find((p) => p.kind === "ballista")!;
+    expect(pad.locked).toBe(false);
+    expect(bolts.mods.ballistaDamage).toBeGreaterThan(base.mods.ballistaDamage);
+    expect(bolts.mods.heroRate).toBeLessThan(base.mods.heroRate);
   });
   it("every banner has an upside and (except none) a cost", () => {
     for (const b of BANNERS) { expect(b.up.length).toBeGreaterThan(5); if (b.id !== "none") expect(b.down.length).toBeGreaterThan(5); }
@@ -39,12 +44,13 @@ describe("War Banner blessings (B1)", () => {
     const { rollBlessings, BLESSINGS } = await import("../src/camp/blessings");
     const { createRng } = await import("../src/core/rng");
     const mine = BLESSINGS.filter((b) => b.banner);
-    expect(mine.length).toBe(6);
+    expect(mine.length).toBe(BANNERS.length - 1);
+    const built = new Set(["ballista", "catapult", "mage", "barracks"]);
     for (const b of mine) {
       let seen = 0, leaked = 0;
       for (let i = 0; i < 200; i++) {
-        if (rollBlessings(createRng(i), 4, {}, 3, new Set(), false, false, b.banner).some((x) => x.id === b.id)) seen++;
-        if (rollBlessings(createRng(i), 4, {}, 3, new Set(), false, false, "none").some((x) => x.id === b.id)) leaked++;
+        if (rollBlessings(createRng(i), 4, {}, 3, built, false, false, b.banner).some((x) => x.id === b.id)) seen++;
+        if (rollBlessings(createRng(i), 4, {}, 3, built, false, false, "none").some((x) => x.id === b.id)) leaked++;
       }
       expect(seen, b.id).toBeGreaterThan(20);
       expect(leaked, b.id).toBe(0);
