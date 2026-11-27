@@ -27,6 +27,10 @@ describe("fight nudge (A1)", () => {
       c.hero.x = 80;
     }
     expect(store.get("lastgate.tipFight")).toBe("done");
+    // A ranged foe shooting from deep in the field never triggers it.
+    const t2 = new Tutorial();
+    e.y = WALL_Y - 200;
+    for (let i = 0; i < 60 * 6; i++) expect(t2.fightNudge(c, 1 / 60)).toBeNull();
     for (let i = 0; i < 60 * 6; i++) expect(t.fightNudge(c, 1 / 60)).toBeNull();
   });
   it("tips skip ahead once night falls, and a towerless player at dawn with coins is told to build", async () => {

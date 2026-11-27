@@ -98,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Game-feel/clarity slice: mid-game night frame review (ch5 n5). Fix: the "foes are hitting the wall — walk over" tip fired for ranged foes shooting from deep in the field (e.g. while the Siege Golem bombards), even with the King at the gate. Now only foes within 70 px of the palisade count (+ test).
 - 2026-11-27 C content batch 4: **Bolt Masters**, a 7th War Banner (18★): Ballista opens night 1 at −40% cost, bolts +50% (new ballistaDamage mod); King shoots 25% slower. Banner blessing Iron-Shod Bolts (+40%, needs a Ballista). Bot builds the Ballista only under this banner. campsim bot wins 6 / 10 / 18% (ch5 L3 / ch8 L5 / ch10 L8) vs baselines ≈10 / 13 / 16% — fair fork. Kingdom card gained a 7th flag spot; save sanitizer now accepts any listed banner.
 - 2026-11-27 B3 slice: the five boss halos (Drowned, Blood Moon Warlord, Hollow King, Magma, Thunder Giant) were five near-copies in render.ts → one AURA table + drawBossAura in bossFx.ts (same numbers; render.ts −45 lines).
 - 2026-11-27 Playtest polish round (fresh player · rusher · ch11 endgame autoplay): flows clean, no errors. Fix: the picked blessing's floating name rose into the dawn / "New building!" banner — now drawn under the hero.

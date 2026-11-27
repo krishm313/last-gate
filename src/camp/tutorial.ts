@@ -23,6 +23,9 @@ const STEPS: Step[] = [
   { text: "🎯 You shoot automatically. Grab the coins enemies drop!", done: (c) => c.goldEarned >= 4 || c.wave > 1 },
 ];
 
+/** How far out from the wall line a foe still counts as "at the wall" (px). */
+const AT_WALL = 70;
+
 export class Tutorial {
   private step = 0;
   private state: TutorialState = { moved: 0, startCoins: 0 };
@@ -61,7 +64,9 @@ export class Tutorial {
     const h = c.hero;
     let near: Vec | null = null, nd = Infinity;
     for (const e of c.enemies) {
-      if (!e.attacking || e.inside || e.y > WALL_Y || e.def.flying) continue;
+      // Only foes at the palisade: ranged foes (archers, the Siege Golem) "attack" from deep in the field,
+      // where walking over isn't the answer.
+      if (!e.attacking || e.inside || e.y > WALL_Y || e.y < WALL_Y - AT_WALL || e.def.flying) continue;
       const d = Math.hypot(e.x - h.x, e.y - h.y);
       if (d < nd) { nd = d; near = { x: e.x, y: e.y + 30 }; }
     }
