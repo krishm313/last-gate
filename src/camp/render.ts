@@ -1448,6 +1448,16 @@ export class CampRenderer {
           fx.number(ev.x, WALL_Y - 70, "FIRE BREATH!", "#ffa060", 16, 1);
           fx.shake(0.35);
           break;
+        case "thunder":
+          this.lightning = 1;
+          for (const [k, st] of ev.strikes.entries()) {
+            this.bossFx.thunders.push({ x: st.x, y: st.y, t: this.time + k * 0.12, seed: Math.floor(this.time * 997) + k * 131 });
+            fx.burst(st.x, st.y, "#e8f0ff", 12, 220, { max: 0.45, size: 3, shape: "spark" });
+            fx.burst(st.x, st.y, "rgba(60,60,70,0.7)", 5, 60, { max: 0.9, size: 7, gravity: -30, drag: 2 });
+          }
+          fx.number(ev.x, Math.max(ev.y - 80, WALL_Y - 200), "THUNDER!", "#bcd8ff", 16, 1);
+          fx.shake(0.5);
+          break;
         case "quake":
           this.bossFx.quakes.push({ x: ev.x, y: ev.y, r: ev.r, t: this.time });
           fx.number(ev.x, ev.y - 80, "QUAKE!", "#d8c8a0", 16, 1);
@@ -1960,6 +1970,7 @@ export class CampRenderer {
     this.foeFx.drawFallingBaskets(this.foeEnv(), ctx);
     this.bossFx.drawBreaths(this.bossEnv(), ctx);
     this.bossFx.drawQuakes(this.bossEnv(), ctx);
+    this.bossFx.drawThunders(this.bossEnv(), ctx);
     this.drawFlyers(ctx, dt);
     this.fx.draw(ctx);
 
@@ -4620,6 +4631,7 @@ export class CampRenderer {
     if (e.def.id === "bloodlord") this.drawBloodAura(ctx, c, e);
     if (e.def.id === "hollowking") this.drawHollowAura(ctx, c, e);
     if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
+    if (e.def.id === "thundergiant") this.bossFx.drawThunderAura(this.bossEnv(), ctx, c, e);
     if (e.def.guard && e.y < WALL_Y) this.foeFx.drawShieldLane(this.foeEnv(), ctx, e);
     // Wall Climber: up the outside of the palisade on a grapnel rope, over the top (lifted into view
     // above the stakes), then down the inside.
@@ -4915,7 +4927,7 @@ export class CampRenderer {
       if (t !== undefined && t > 0 && t < W && t < left) { left = t; r = rad; col = c; }
     };
     if (d.summon) consider(e.abilityTimer, d.radius * 2.6, "176,112,255");
-    const P2: Record<string, string> = { slam: "255,120,60", warcry: "255,80,80", boulders: "200,150,90", curse: "150,255,120", eruption: "255,90,30", tide: "90,180,255", bloodmoon: "230,30,50", graverise: "184,154,255" };
+    const P2: Record<string, string> = { slam: "255,120,60", warcry: "255,80,80", boulders: "200,150,90", curse: "150,255,120", eruption: "255,90,30", tide: "90,180,255", bloodmoon: "230,30,50", graverise: "184,154,255", breath: "255,140,40", quake: "214,190,150", bog: "150,190,90", thunder: "150,200,255" };
     if (d.phase2 && e.enraged && d.phase2.every > 0) consider(e.phaseTimer, Math.min(240, Math.max(d.radius * 2.6, d.phase2.radius)), P2[d.phase2.kind] ?? "255,120,60");
     if (d.frostNova && e.enraged) consider(e.novaTimer, Math.min(260, d.frostNova.radius), "154,230,255");
     if (!col) return;

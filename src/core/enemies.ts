@@ -1,3 +1,4 @@
+import { CH11_ENABLED } from "./features";
 /** Enemy roster. Pure data: tune numbers here, not in the simulation. */
 export type EnemyId =
   | "footman"
@@ -34,7 +35,8 @@ export type EnemyId =
   | "phalanx"
   | "climber"
   | "bomber"
-  | "siegetower";
+  | "siegetower"
+  | "thundergiant";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -115,7 +117,7 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
-  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise" | "breath" | "quake" | "bog"; every: number; radius: number; power: number };
+  phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise" | "breath" | "quake" | "bog" | "thunder"; every: number; radius: number; power: number };
 }
 
 const base = { behavior: "melee" as Behavior, attackInterval: 1 };
@@ -140,6 +142,11 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   knight: { ...base, id: "knight", name: "Black Knight", hp: 70, speed: 34, radius: 14, gateDamage: 12, attackInterval: 1.2, gold: 4, color: "#2e3440", cost: 4, armor: 0.4 },
   phalanx: { ...base, id: "phalanx", name: "Shield Wall", hp: 90, speed: 24, radius: 15, gateDamage: 8, attackInterval: 1.3, gold: 4, color: "#5a6a8a", cost: 4, shield: true, slowResist: 0.6, guard: { width: 34, depth: 95 } },
   climber: { ...base, id: "climber", name: "Wall Climber", hp: 22, speed: 58, radius: 10, gateDamage: 4, attackInterval: 0.8, gold: 2, color: "#7aa03a", cost: 2, climber: 2.4 },
+  thundergiant: {
+    ...base, id: "thundergiant", name: "The Thunder Giant", hp: 3400, speed: 13, radius: 37, gateDamage: 70, attackInterval: 2, gold: 280, color: "#4a6a9a",
+    cost: 0, slowResist: 0.2, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "raven", count: 3, interval: 8, enraged: "climber" },
+    phase2: { kind: "thunder", every: 6.5, radius: 380, power: 2.4 },
+  },
   siegetower: { ...base, id: "siegetower", name: "Siege Tower", hp: 240, speed: 17, radius: 22, gateDamage: 6, attackInterval: 2, gold: 8, color: "#8a5a30", cost: 4, slowResist: 0.4, introCount: 1, unloads: { enemy: "climber", count: 3 } },
   bomber: { ...base, id: "bomber", name: "Balloon Bomber", hp: 30, speed: 34, radius: 14, gateDamage: 9, attackInterval: 2.6, gold: 4, color: "#c8503a", cost: 3, flying: true, bomber: { hover: 135 } },
   stalker: { ...base, id: "stalker", name: "Shadowstalker", hp: 32, speed: 34, radius: 11, gateDamage: 6, gold: 3, color: "#3a2a5a", cost: 3, blink: { every: 3.8, dist: 64 } },
@@ -222,6 +229,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.phase2?.kind === "breath") t.push("breathes fire on the wall when hurt");
   if (d.phase2?.kind === "quake") t.push("quakes the ground when hurt");
   if (d.phase2?.kind === "bog") t.push("spits sucking bog when hurt");
+  if (d.phase2?.kind === "thunder") t.push("calls lightning down when hurt");
   if (d.behavior === "summoner") t.push("summons minions");
   if (d.kamikaze) t.push("explodes on the wall");
   if (d.shield) t.push("shielded front");
@@ -233,4 +241,9 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (!d.boss && !d.flying && !d.kamikaze && d.gateDamage >= 30) t.push("smashes the wall");
   if (!d.boss && d.hp >= 100) t.push("tough");
   return t;
+}
+
+/** Foes that belong to content still switched off (kept out of the Bestiary until it ships). */
+export function enemyEnabled(id: string): boolean {
+  return id !== "thundergiant" || CH11_ENABLED;
 }

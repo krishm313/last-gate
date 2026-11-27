@@ -1,4 +1,4 @@
-import { ENEMIES } from "./enemies";
+import { enemyEnabled, ENEMIES } from "./enemies";
 import { HEROES } from "./heroes";
 import type { SaveData } from "./meta";
 import { SIDE_GAMES_ENABLED } from "./features";
@@ -22,7 +22,7 @@ export function foeMet(s: SaveData, id: string): boolean {
   return (s.stats[`met_${id}`] ?? 0) > 0 || (BOSS_STATS[id] !== undefined && (s.stats[BOSS_STATS[id]!] ?? 0) > 0);
 }
 export function foesMet(s: SaveData): number {
-  return (Object.keys(ENEMIES) as string[]).filter((id) => foeMet(s, id)).length;
+  return (Object.keys(ENEMIES) as string[]).filter((id) => enemyEnabled(id) && foeMet(s, id)).length;
 }
 
 /** Campaign chapters (1–10) cleared on at least this difficulty rank (1 Hard, 2 Nightmare). */

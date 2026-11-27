@@ -180,7 +180,7 @@ const portraits = new Map<string, string>();
 const PAINTED: Partial<Record<string, string>> = {
   footman: "enemy_footman", runner: "enemy_footman", brute: "enemy_brute", crossbow: "enemy_crossbow",
   shield: "enemy_shield", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", wraith: "enemy_wraith", stalker: "enemy_stalker", sapper: "enemy_sapper", tunneler: "enemy_sapper", phalanx: "enemy_shield", climber: "enemy_goblin", banner: "enemy_footman", knight: "enemy_knight", shaman: "enemy_shaman", hag: "elite_mage",
-  ogre: "boss", troll: "boss", warlord: "boss", golem: "boss", colossus: "boss", magma: "boss", drowned: "boss", hollowking: "hollowking",
+  ogre: "boss", troll: "boss", warlord: "boss", golem: "boss", colossus: "boss", magma: "boss", drowned: "boss", thundergiant: "boss", hollowking: "hollowking",
 };
 const FLYER_EMOJI: Partial<Record<string, string>> = { raven: "🐦‍⬛", imp: "👺", bomber: "🎈", siegetower: "🗼" };
 function portrait(id: EnemyId): string {

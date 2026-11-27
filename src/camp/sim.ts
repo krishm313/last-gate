@@ -470,6 +470,8 @@ export type CampEvent =
   | { type: "orbBurst"; x: number; y: number; r: number }
   | { type: "quake"; x: number; y: number; r: number }
   | { type: "bog"; x: number; y: number; pools: { x: number; y: number; r: number }[] }
+  /** Thunder Giant: lightning strikes called down (towers stunned, wall scorched). */
+  | { type: "thunder"; x: number; y: number; strikes: { x: number; y: number }[] }
   | { type: "boulderThrow"; x: number; y: number; tx: number; ty: number; dur: number }
   | { type: "burrow"; x: number; y: number }
   | { type: "blink"; x0: number; y0: number; x: number; y: number }
@@ -2126,6 +2128,22 @@ function bossPhaseMove(c: Camp, e: Enemy, p2: NonNullable<EnemyDef["phase2"]>): 
     }
     for (let i = 0; i < SEGMENTS; i++) if (Math.abs(segmentCenter(i) - e.x) < p2.radius && Math.abs(WALL_Y - e.y) < p2.radius) damageWall(c, i, 25);
     c.events.push({ type: "quake", x: e.x, y: e.y, r: p2.radius });
+  } else if (p2.kind === "thunder") {
+    // Thunder: three bolts from the storm — the nearest built towers in reach first (rocked still),
+    // the rest onto the wall right in front of the giant (scorched).
+    const towers = c.plots.filter((p) => p.kind === "tower" && p.level > 0 && near(p.x, p.y)).sort((a, b) => (a.x - e.x) ** 2 + (a.y - e.y) ** 2 - ((b.x - e.x) ** 2 + (b.y - e.y) ** 2)).slice(0, 3);
+    const strikes: { x: number; y: number }[] = [];
+    for (const p of towers) {
+      p.stun = Math.max(p.stun ?? 0, p2.power);
+      c.events.push({ type: "towerStunned", plot: p.id, x: p.x, y: p.y - 30 });
+      strikes.push({ x: p.x, y: p.y - 30 });
+    }
+    for (let k = 0; strikes.length < 3; k++) {
+      const x = Math.max(30, Math.min(MAP_W - 30, e.x + (k - 1) * 70));
+      damageWall(c, segmentIndexAt(x), 30);
+      strikes.push({ x, y: WALL_Y });
+    }
+    c.events.push({ type: "thunder", x: e.x, y: e.y, strikes });
   } else if (p2.kind === "bog") {
     // Bog spit: three pools of sucking marsh — one where the King stands if he's close — that slow
     // anyone wading through (not the troll's kin: foes ignore it).

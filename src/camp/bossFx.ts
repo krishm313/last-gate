@@ -170,6 +170,49 @@ export class BossFx {
     }
     ctx.restore();
   }
+
+  /** Thunder Giant strikes: jagged bolts from the storm onto each target, with a glowing scorch. */
+  thunders: { x: number; y: number; t: number; seed: number }[] = [];
+  drawThunders(env: BossFxEnv, ctx: CanvasRenderingContext2D): void {
+    if (!this.thunders.length) return;
+    const DUR = 0.5;
+    for (const b of this.thunders) {
+      const u = (env.time - b.t) / DUR;
+      if (u >= 1 || u < 0) continue;
+      const a = u < 0.15 ? 1 : 1 - (u - 0.15) / 0.85;
+      // Bolt: a zig-zag from high above down to the target, re-jittered a few times as it flickers.
+      let seed = b.seed + Math.floor(u * 12);
+      const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+      const top = b.y - 360;
+      const pts: [number, number][] = [[b.x + (rnd() - 0.5) * 60, top]];
+      for (let k = 1; k <= 9; k++) pts.push([b.x + (rnd() - 0.5) * 34 * (1 - k / 10), top + (b.y - top) * (k / 9)]);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (const [w, col] of [[9, `rgba(120,170,255,${(0.35 * a).toFixed(3)})`], [3.5, `rgba(220,235,255,${(0.95 * a).toFixed(3)})`]] as const) {
+        ctx.strokeStyle = col;
+        ctx.lineWidth = w;
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(pts[0]![0], pts[0]![1]);
+        for (const [x, y] of pts) ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+      env.drawBlob(ctx, env.blob("thunderglow", [[0, "rgba(170,210,255,0.95)"], [1, "rgba(60,110,255,0)"]]), b.x, b.y, 46, 22, 0.8 * a);
+      ctx.restore();
+    }
+    this.thunders = this.thunders.filter((b) => env.time - b.t < DUR);
+  }
+
+  /** Thunder Giant: a storm-blue halo that crackles with sparks. */
+  drawThunderAura(env: BossFxEnv, ctx: CanvasRenderingContext2D, c: Camp, e: { x: number; y: number; id: number; enraged: boolean; def: { radius: number } }): void {
+    const r = e.def.radius;
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.4 + e.id);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    env.drawBlob(ctx, env.blob("thunderaura", [[0, "rgba(120,170,255,0.9)"], [1, "rgba(40,70,200,0)"]]), e.x, e.y - r * 0.5, r * (2.2 + pulse * 0.3), r * (1.7 + pulse * 0.2), (e.enraged ? 0.55 : 0.34) + env.night * 0.25);
+    ctx.restore();
+    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && env.fx.particles.length < 400) env.fx.burst(e.x + Math.sin(c.time * 19) * r * 0.8, e.y - r * (0.3 + Math.cos(c.time * 13) * 0.6), Math.sin(c.time * 31) > 0 ? "#e8f0ff" : "#7aa8ff", 1, 60, { max: 0.25, size: 2.2, gravity: 0, shape: "spark" });
+  }
 }
 
 /** Boss arena themes: edge tint, mote colour, size (px), drift speed (px/s), sway, rise vs fall, additive glow. */
@@ -185,5 +228,6 @@ const ARENA: Record<string, { tint: string; mote: string; size: number; speed: n
   frostwyrm: { tint: "60,120,190", mote: "240,248,255", size: 2.6, speed: 40, sway: 26, rise: false, glow: false },
   drowned: { tint: "20,80,110", mote: "150,220,235", size: 2.2, speed: 50, sway: 8, rise: false, glow: true },
   bloodlord: { tint: "150,10,30", mote: "255,70,80", size: 2.2, speed: 24, sway: 18, rise: true, glow: true },
+  thundergiant: { tint: "40,60,110", mote: "200,225,255", size: 2.2, speed: 90, sway: 6, rise: false, glow: true },
   hollowking: { tint: "70,30,130", mote: "190,150,255", size: 2.6, speed: 20, sway: 24, rise: true, glow: true },
 };

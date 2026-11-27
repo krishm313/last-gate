@@ -19,7 +19,7 @@ import { canPromptInstall, needsIosHint, promptInstall } from "./install";
 import { CHAPTER_BY_ID, CHAPTERS, ENDLESS, BOSS_RUSH } from "../core/chapters";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, liveDailyStreak, timeToNextDaily, todayString } from "../core/daily";
 import { BLESSING_BY_ID } from "../camp/blessings";
-import { ENEMIES, enemyTraits } from "../core/enemies";
+import { enemyEnabled, ENEMIES, enemyTraits } from "../core/enemies";
 import { SIEGES, WAR_CARDS } from "../camp/sim";
 import { CARD_NAME } from "./siegeBar";
 import { ACHIEVEMENTS, claimable, foeMet, foesMet, heroHasWon } from "../core/achievements";
@@ -1221,7 +1221,7 @@ export class Hub {
 
   /** Bestiary: every kind of foe, revealed once you've slain one. */
   private bestiarySection(body: HTMLElement, save: SaveData): void {
-    const ids = Object.keys(ENEMIES) as (keyof typeof ENEMIES)[];
+    const ids = (Object.keys(ENEMIES) as (keyof typeof ENEMIES)[]).filter((id) => enemyEnabled(id));
     body.append(el("div", "hub-hint records-title", `📖 Bestiary · ${foesMet(save)} / ${ids.length}`));
     const grid = el("div", "lgb-grid");
     for (const id of ids) {

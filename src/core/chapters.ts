@@ -252,7 +252,7 @@ export const STORM_COAST: ChapterDef = {
     { mix: { stalker: 0.8, knight: 1.8, wraith: 1.8, crossbow: 1.5, brute: 1.3, shaman: 1, banner: 0.9, climber: 0.7 } },
     { mix: { raven: 1.6, goblin: 2, bat: 2, imp: 1.2, bomber: 0.5 }, breather: true },
     { mix: { siegetower: 0.45, phalanx: 0.7, climber: 0.6, bomber: 0.5, stalker: 0.6, shield: 2, knight: 1.8, wraith: 1.8, crossbow: 1.3, ram: 1, brute: 1.3, sapper: 1, shaman: 0.9, imp: 0.9 } },
-    { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.6, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, bomber: 0.5 }, boss: "hollowking", bossHpMult: 0.7 },
+    { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.6, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, bomber: 0.5 }, boss: "thundergiant" },
   ],
 };
 export const CHAPTERS: ChapterDef[] = CH11_ENABLED ? [...BASE_CHAPTERS, STORM_COAST] : BASE_CHAPTERS;
