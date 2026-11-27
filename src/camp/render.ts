@@ -64,6 +64,8 @@ const WINDOW_GLOW: Partial<Record<string, { base: number; spill: number; pts: [n
 
 /** Defender-side events whose popups are hidden from the attacker in Siege Lord. */
 const NO_SHAKE: Vec = { x: 0, y: 0 };
+/** How much the night's darkness thins around each foe (0..1) so the horde reads out in the black. */
+const MOONLIT = 0.78;
 /** Butterfly perch: butterfly `who` (blue) — after `after` s standing still by day it lands on the crown (offset dx, dy from the
  *  King's feet), eases in/out at these rates per second, and rests facing `head` radians. */
 const PERCH = { who: 2, after: 3, dx: 3, dy: -43, inRate: 0.45, outRate: 1.8, head: -0.25 };
@@ -3801,7 +3803,7 @@ export class CampRenderer {
       const r = e.def.radius;
       const x = this.screenX(e.x, o) + sh.x, y = this.screenY(this.uprightY(e.y - r * 0.5 - (e.def.flying ? 10 : 0), e.y), o) + sh.y;
       if (x < -40 || x > VIEW_W + 40 || y < -40 || y > VIEW_H + 40) continue;
-      this.drawBlob(g, cut, x, y, r * 1.7, r * 2.1, 0.5);
+      this.drawBlob(g, cut, x, y, r * 1.8, r * 2.2, MOONLIT);
     }
     ctx.drawImage(L, 0, 0, VIEW_W, VIEW_H);
     // Wall torches stand on a short wooden pole with an iron cup, seen as a silhouette lit warm

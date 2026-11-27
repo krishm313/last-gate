@@ -98,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Game-feel slice (ch8 n5 rain, full quality): foes out in the dark field nearly vanished (bats, brutes). Moonlit thinning of the darkness around each foe 0.5 → MOONLIT 0.78 (radius ×1.8/2.2): the horde reads, night mood kept.
 - 2026-11-27 Wild-idea slice: stand still by day for 3 s and the blue butterfly swoops in and perches on the King's crown (wings folded, opening lazily); it flits off as soon as he moves. Render-only (PERCH table), full-quality tier only like the other day life.
 - 2026-11-27 B3 slice: weather (rain + pond rings + splashes, summer sun shafts, endless crystal glints, dry-plains grit + dust devils, hollow-night mist + grave wisps, lightning with its flash/bolt state) → src/camp/weather.ts (WeatherFx + WeatherEnv; render.ts −237 lines). Checked ch2 rain, ch5 forced strike, ch4 mist.
 - 2026-11-27 C content: **Banner of the Week** — one unlocked banner featured per week (hashed rotation over the banners the player has unlocked); the first campaign win flying it that week pays +400 (save.bannerWeek, sanitized). Gold badge on its picker card ("✓" once claimed), end-screen row, run toast. Tests: rotation, one claim/week, save round-trip.
