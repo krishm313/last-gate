@@ -90,6 +90,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B3 slice 3: companions.ts. Note: the Vite dev server dies between wakes — always run tools/shots/ensure.sh in the same command as a screenshot script.
 - 2026-11-27 Ch11 ✅ SHIPPED (flag on): balance L8 7% / L10 31%, Endless rotation + Stormbreaker trophy, both flag states pass the suite. Next content batch: a new hero (needs hero art pipeline review) or chapter 12 — decide after a lanes round (feel + health).
 - 2026-11-27 Ch11 slice 4 (hidden): 3D Storm Lighthouse kingdom landmark (12th, only when CH11 is on) with a pulsing lamp; flag-on check: map pin, chapter sheet (boss named), kingdom 12/12.
 - 2026-11-27 Ch11 slice 3 (hidden): The Thunder Giant boss (walking boss body, storm-blue crackling aura, summons ravens → climbers when enraged; signature "thunder": 3 jagged lightning strikes on the nearest towers (stun) / the wall in front (scorch), screen flash, arena theme), telegraph colours for all phase-2 kinds, Bestiary gated by enemyEnabled() until CH11 ships.
