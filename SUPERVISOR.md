@@ -59,4 +59,5 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 A0 ✅ dated rotations verified for Nov 22 → Mar 2027 (Endless twists incl. Tidal from Jan 4, daily hero pool with Cleric/Marshal, weekly quests; side-game quests stay filtered). Test added.
 - 2026-11-27 Supervisor plan written; Stage A started.
