@@ -75,6 +75,28 @@ thrower on a new pad behind the wall; slow, very heavy bolts that pierce every f
 against Shield Walls / packed columns, weak against spread swarms); 3 levels with distinct 3D looks;
 mastery at max level. Bot builds it like any plot → tune cost/damage with campsim A/B.
 
+**C1 batch 5 — Chapter 12 "The Blossom Pass" (design, 2026-11-27)** — chosen over a new hero (still
+blocked on painted hero art) and over more small drops (banners/buildings just landed). Built behind
+`CH12_ENABLED` (src/core/features.ts), switched on only when every slice is done.
+- Hook: a spring mountain pass, petals on the wind — the horde's last two generals come at you
+  *together*. The first chapter with two bosses at once.
+- Affixes: "Warbands: foes come in bigger, fewer packs" · "Rockslide: a falling rock cracks a random
+  wall segment each night" (telegraphed shadow first).
+- Waves: the full late cast, packs weighted to mixed melee + support (Banner-bearers, Shamans with
+  Shield Walls); mini-boss night 5 (Ogre Champion + Marsh Troll together, reduced HP — a rehearsal).
+- Boss — **The Twin Generals**: two boss bodies (jade and crimson tints) sharing one boss bar
+  (summed HP). Each has a half-strength signature (jade: summons a Banner-bearer escort; crimson:
+  charges a wall segment). When one falls the survivor enrages: +30% speed and damage, signature
+  every 6 s, and a short "vengeance" roar (camera pan + banner). Arena theme: petal motes, warm rose tint.
+- Terrain: palette 12 "blossom" (fresh spring green, pink-blossom canopies by HSV-tinting the summer
+  props), mood 12 everywhere a mood is mapped; petals as the chapter's leaf fall.
+- Kingdom: a 12th landmark, a 3D **Blossom Shrine** (small timber gazebo under a pink tree).
+- Plumbing: like ch11 — isCampaignChapter, Endless scenery/boss rotation, weekly pool, heat; HP table
+  entry (CAMP_CHAPTER_HP[12] ≈ 3.2 — tune); achievements unchanged + a "Twinbreaker" trophy.
+Slices: (1) flag + chapter data + plumbing [hidden] → (2) terrain palette + mood + petals → (3) Twin
+Generals (two-boss bar, enrage-on-partner-death, signatures, arena) → (4) shrine landmark + Bestiary /
+portraits + trophy → (5) affixes + balance (campsim L8/L10 vs ch11) + full playtest → switch on.
+
 ## Lanes inside every batch (rough share)
 40% current stage item · 30% game feel & animation · 20% bugs / perf / code health · 10% wild idea.
 
@@ -98,6 +120,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Content batch 5 decided: Chapter 12 "The Blossom Pass" (two bosses at once — the Twin Generals), 5 slices behind CH12_ENABLED. Hero still deferred (art).
 - 2026-11-27 B3 slice: day life (cloud shadows, grass gusts, butterflies + crown perch, leaves, bird flocks) → src/camp/dayLife.ts (drawDayLife + DayLifeEnv + PERCH; render.ts −190 lines).
 - 2026-11-27 Game-feel slice (ch8 n5 rain, full quality): foes out in the dark field nearly vanished (bats, brutes). Moonlit thinning of the darkness around each foe 0.5 → MOONLIT 0.78 (radius ×1.8/2.2): the horde reads, night mood kept.
 - 2026-11-27 Wild-idea slice: stand still by day for 3 s and the blue butterfly swoops in and perches on the King's crown (wings folded, opening lazily); it flits off as soon as he moves. Render-only (PERCH table), full-quality tier only like the other day life.
