@@ -90,6 +90,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch11 slice 2 (hidden): coast palette — painted ground_11.webp (grey-green grass, pale sand) from gen_terrain.py palette 11, coast.webp props (summer atlas HSV-shifted to windswept sea-green), mood 11 wired (prop tint, painted ground, leaf colour). Checked in-game with the flag on locally.
 - 2026-11-27 Ch11 slice 1 (hidden, flag off): CH11_ENABLED switch, Storm Coast chapter data (10 waves, storm-heavy weather, Bone Dragon mini-boss, placeholder finale boss), isCampaignChapter() replaces hard-coded ≤10 in Heat / Endless scenery / weekly pools, CAMP_CHAPTER_HP[11]=3.0 (first bot pass at 2.7: L8 13%, L10 35% — too easy). Flag-on run of the suite caught a 10-chapter assumption in a test.
 - 2026-11-27 C1 batch 1 ✅ Siege Tower (4 tuning rounds; night-6 debut spiked losses, moved to night 9). Next batch idea: a chapter 11 is the big one (terrain atlas + boss) — plan it as a multi-slice batch; meanwhile keep lanes (feel, health).
 - 2026-11-27 B1 ✅ B2 ✅ (B3 continues as the code-health lane). Stage C started: C1 batch 1 = Siege Tower (rolling tower that unloads Wall Climbers at the wall; 3D prop), ch 9–10 + Endless.

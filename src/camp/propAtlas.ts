@@ -28,3 +28,5 @@ PROP_ATLAS.ash = PROP_ATLAS.summer!;
 PROP_ATLAS.sunken = PROP_ATLAS.summer!;
 /** Moor props for chapter 9 (summer atlas recoloured: wine-red heath trees and bracken, slate rocks). */
 PROP_ATLAS.moor = PROP_ATLAS.summer!;
+/** Coast props for chapter 11 (summer atlas recoloured: windswept sea-green pines and shrubs). */
+PROP_ATLAS.coast = PROP_ATLAS.summer!;

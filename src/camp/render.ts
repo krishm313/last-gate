@@ -2072,7 +2072,7 @@ export class CampRenderer {
   /** The painted ground for the current chapter, or null while it loads (rebuilds when ready). */
   private paintedGround(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
-    const id = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99].includes(this.mood) ? this.mood : 1;
+    const id = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 99].includes(this.mood) ? this.mood : 1;
     let img = this.groundImgs.get(id);
     if (!img) {
       img = new Image();
@@ -2496,7 +2496,7 @@ export class CampRenderer {
   private propImgs = new Map<string, HTMLImageElement>();
   private propCache = new Map<string, HTMLCanvasElement>();
   private propTint(): string {
-    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "moor", 10: "night" } as Record<number, string>)[this.mood] ?? "summer";
+    return ({ 2: "marsh", 3: "dry", 4: "night", 5: "autumn", 6: "winter", 7: "ash", 8: "sunken", 9: "moor", 10: "night", 11: "coast" } as Record<number, string>)[this.mood] ?? "summer";
   }
   private propAtlas(): HTMLImageElement | null {
     if (typeof Image === "undefined") return null;
@@ -4609,7 +4609,7 @@ export class CampRenderer {
     // dust where they break cover.
     if (!e.def.flying && e.y > FOREST_Y - 6 && e.y < FOREST_Y + 40 && !this.brokeCover.has(e.id)) {
       this.brokeCover.add(e.id);
-      const leaf = this.mood === 9 ? "#8a3a5a" : this.mood === 8 ? "#4a8a7a" : this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : (this.mood === 4 || this.mood === 10) ? "#4a5a48" : "#4e8a3a";
+      const leaf = this.mood === 11 ? "#5a8a78" : this.mood === 9 ? "#8a3a5a" : this.mood === 8 ? "#4a8a7a" : this.mood === 7 ? "#ff7a2a" : this.mood === 6 ? "#eef4fa" : this.mood === 5 ? "#d8742a" : this.mood === 3 ? "#b89848" : (this.mood === 4 || this.mood === 10) ? "#4a5a48" : "#4e8a3a";
       this.fx.burst(e.x, e.y - r * 0.6, leaf, 5, 60, { max: 0.8, size: 2.6, gravity: 90, drag: 2 });
       this.fx.burst(e.x, e.y + r * 0.8, "rgba(160,150,120,0.6)", 3, 30, { max: 0.4, size: 3, gravity: -10, drag: 4 });
     }
