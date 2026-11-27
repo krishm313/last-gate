@@ -63,7 +63,7 @@ function plotInfoBase(c: Camp, p: Plot): { title: string; lines: string[] } {
           `Damage ${arrow(cur.damage, nx?.damage ?? null)}`,
           `Archers ${arrow(cur.archers, nx?.archers ?? null)} · Range ${arrow(cur.range, nx?.range ?? null)}`,
           ...(sp ? [sp.desc] : p.level === 2 ? ["At Lv 3: choose Fire, Frost or Volley"] : []),
-          p.bows ? `Bows ${p.bows}/10 (+${p.bows * 6}% dmg)` : "Bring bows from the forge for +6% each",
+          ...(p.bows ? [`Bows ${p.bows}/10 (+${p.bows * 6}% dmg)`] : c.plots.some((q) => q.kind === "forge" && q.level > 0) ? ["Bring bows from the forge for +6% each"] : []),
         ],
       };
     }
@@ -655,7 +655,9 @@ export class CampHud {
       }
       return;
     }
-    const { title, lines } = plotInfo(c, p);
+    const info = plotInfo(c, p);
+    // At night the card shrinks to its title: nothing to read mid-fight.
+    const title = info.title, lines = c.phase === "wave" ? [] : info.lines;
     const key = `${p.id}|${title}|${lines.join("|")}`;
     if (key === this.infoKey) return;
     this.infoKey = key;

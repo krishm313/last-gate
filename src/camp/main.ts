@@ -1684,10 +1684,12 @@ function frame(now: number) {
       oneTip("tipBows", !!forge && c.forgeBows > 0 && c.hero.bows === 0, "🏹 Bows are ready at the Forge — pick them up and walk past your towers (+6% damage each)");
     }
     // (No tutorial tip while the hero is down: "drag to walk" means nothing until he rises.)
-    hud.setTip((c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null);
+    const tutTip = (c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null;
+    const nudge = tutTip || paused ? null : tutorial.fightNudge(c, realDt);
+    hud.setTip(tutTip ?? nudge?.text ?? null);
     // First run: the first day's sunset waits while the walk / build-a-tower tips are still up.
     if (tutorial.holdsClock && c.phase === "build" && c.wave === 0 && !dailyRun && !c.reverse) c.timer = Math.max(c.timer, 12);
-    renderer.guideOverride = tutorial.focus === "income" && c.phase === "build" ? c.lay.incomePile : null;
+    renderer.guideOverride = nudge ? nudge.at : tutorial.focus === "income" && c.phase === "build" ? c.lay.incomePile : null;
     interp.apply(c, accumulator / STEP);
     renderer.draw(c, realDt);
     interp.restore(c);

@@ -1,5 +1,6 @@
 import { getItem, setItem } from "../ui/store";
-import { carryCap, type Camp } from "./sim";
+import { carryCap, type Camp, type Vec } from "./sim";
+import { WALL_Y } from "./world";
 
 /** First-run tips. Each step shows until its condition is met, then the next one appears. */
 interface Step {
@@ -47,6 +48,35 @@ export class Tutorial {
     this.step = 0;
     this.state = { moved: 0, startCoins: 0 };
     this.active = true;
+  }
+
+  /** New players don't know the King fights by walking up to foes: while foes batter the wall far
+   *  from an idle King for a few seconds, nudge them over (tip + guide arrow). Retires itself once the
+   *  player has answered it twice. */
+  private idleFar = 0;
+  private answered = getItem("lastgate.tipFight") === "done" ? 2 : 0;
+  private nudging = false;
+  fightNudge(c: Camp, dt: number): { text: string; at: Vec } | null {
+    if (this.answered >= 2 || c.phase !== "wave" || c.hero.dead || c.reverse) { this.idleFar = 0; this.nudging = false; return null; }
+    const h = c.hero;
+    let near: Vec | null = null, nd = Infinity;
+    for (const e of c.enemies) {
+      if (!e.attacking || e.inside || e.y > WALL_Y || e.def.flying) continue;
+      const d = Math.hypot(e.x - h.x, e.y - h.y);
+      if (d < nd) { nd = d; near = { x: e.x, y: e.y + 30 }; }
+    }
+    if (!near) { this.idleFar = 0; this.nudging = false; return null; }
+    if (nd < 150) {
+      // Got there: that counts as answering the nudge.
+      if (this.nudging && ++this.answered >= 2) setItem("lastgate.tipFight", "done");
+      this.idleFar = 0;
+      this.nudging = false;
+      return null;
+    }
+    this.idleFar += dt;
+    if (this.idleFar < 4) return null;
+    this.nudging = true;
+    return { text: "⚔️ Foes are hitting the wall — walk over, you fight automatically", at: near };
   }
 
   /** Returns the tip to show (or null). */
