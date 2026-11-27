@@ -262,7 +262,9 @@ export function kingdomCard(save: SaveData): HTMLElement {
       return void requestAnimationFrame(go);
     }
     started = true;
-    if (now - last >= 33 && !document.hidden) {
+    // Hidden (the hub is display:none during a run): don't redraw — check back now and then.
+    if (cv.offsetParent === null || document.hidden) return void window.setTimeout(() => requestAnimationFrame(go), 500);
+    if (now - last >= 33) {
       last = now;
       if (!draw(cv, save, fresh, (now - t0) / 1000) && tries++ < 120) return void window.setTimeout(() => go(), 100);
     }

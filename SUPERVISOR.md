@@ -98,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Perf regression caught by the late-game gate: arena vignette full-screen gradient (≈ 6 ms in software raster) → cached small canvas (ch10 boss night 10.5 → 5.4 ms). Ch11 boss night still ≈ 8.8 ms with weather/arena off vs ch10 5.4 — look into it later (Thunder Giant aura sparks / coast terrain?). Rule: run late.mjs after any per-frame effect.
 - 2026-11-27 Polish round: banner win end screen checked (Conquest lines, Ch 11 unlock, Next: Storm Coast) — added the missing Conquest row to the gold breakdown.
 - 2026-11-27 Ballista pad moved (overlapped the Barracks). New gate for future buildings: list all plot positions and check clearance (scratchpad plots.ts) before placing a pad.
 - 2026-11-27 C1 batch 3 ✅ Ballista. Balance detour: the bot's cheapest-first rule targeted the new pad but kept getting pulled off by loose coins and other pads, stalling whole nights (ch10 16% → 2–9% even though it never built it); bisected (locked → 16%, unaffordable → 16%) and excluded it from the bot like the Forge. Strength measured by force-building: 28% of damage at first (way over) → 15.7% (vs catapults 14.2%).

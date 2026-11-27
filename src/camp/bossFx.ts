@@ -132,6 +132,29 @@ export class BossFx {
     this.quakes = this.quakes.filter((q) => env.time - q.t < DUR);
   }
 
+  /** Arena vignettes, one small canvas per tint (stretched to the view when drawn). */
+  private vignettes = new Map<string, HTMLCanvasElement | null>();
+  private vignette(tint: string, W: number, H: number): HTMLCanvasElement | null {
+    if (this.vignettes.has(tint)) return this.vignettes.get(tint)!;
+    let cv: HTMLCanvasElement | null = null;
+    if (typeof document !== "undefined") {
+      cv = document.createElement("canvas");
+      const w = 72, h = Math.round((72 * H) / W);
+      cv.width = w;
+      cv.height = h;
+      const g2 = cv.getContext("2d");
+      if (g2) {
+        const g = g2.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
+        g.addColorStop(0, `rgba(${tint},0)`);
+        g.addColorStop(1, `rgba(${tint},0.32)`);
+        g2.fillStyle = g;
+        g2.fillRect(0, 0, w, h);
+      } else cv = null;
+    }
+    this.vignettes.set(tint, cv);
+    return cv;
+  }
+
   /** Boss arena: while a boss is on the field the whole night takes on its colour — an edge tint and
    *  drifting motes in its theme (embers, snow, spores, ash, sea-mist, blood motes, wisps, dust). */
   arenaAt = -1;
@@ -145,12 +168,14 @@ export class BossFx {
     ctx.save();
     ctx.setTransform(...env.base);
     const W = VIEW_W, H = VIEW_H;
-    // Edge tint (deeper once the boss is enraged).
-    const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
-    g.addColorStop(0, `rgba(${T.tint},0)`);
-    g.addColorStop(1, `rgba(${T.tint},${(0.32 * fade).toFixed(3)})`);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+    // Edge tint (deeper once the boss is enraged): a vignette pre-drawn once per theme into a small
+    // canvas and stretched over the view — a full-screen gradient fill every frame cost ~5 ms.
+    const vig = this.vignette(T.tint, W, H);
+    if (vig) {
+      ctx.globalAlpha = Math.min(1, fade);
+      ctx.drawImage(vig, 0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
     // Motes: stateless (each one's position is a function of time), so they cost nothing to keep.
     const n = env.lite >= 2 ? 0 : env.lite >= 1 ? 16 : 34;
     ctx.fillStyle = `rgb(${T.mote})`;
