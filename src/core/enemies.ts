@@ -33,7 +33,8 @@ export type EnemyId =
   | "stalker"
   | "phalanx"
   | "climber"
-  | "bomber";
+  | "bomber"
+  | "siegetower";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -105,6 +106,10 @@ export interface EnemyDef {
   guard?: { width: number; depth: number };
   /** At the wall it climbs over for this many seconds (still hittable), then drops inside the camp. */
   climber?: number;
+  /** How many arrive in its introduction group (default DIFFICULTY.introGroup). */
+  introCount?: number;
+  /** Siege tower: on reaching the wall it lowers its ramp and unloads these foes, already climbing. */
+  unloads?: { enemy: EnemyId; count: number };
   /** Balloon bomber: ignores the hero, hovers this far above the hall and bombs it (gateDamage per bomb). */
   bomber?: { hover: number };
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
@@ -135,6 +140,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   knight: { ...base, id: "knight", name: "Black Knight", hp: 70, speed: 34, radius: 14, gateDamage: 12, attackInterval: 1.2, gold: 4, color: "#2e3440", cost: 4, armor: 0.4 },
   phalanx: { ...base, id: "phalanx", name: "Shield Wall", hp: 90, speed: 24, radius: 15, gateDamage: 8, attackInterval: 1.3, gold: 4, color: "#5a6a8a", cost: 4, shield: true, slowResist: 0.6, guard: { width: 34, depth: 95 } },
   climber: { ...base, id: "climber", name: "Wall Climber", hp: 22, speed: 58, radius: 10, gateDamage: 4, attackInterval: 0.8, gold: 2, color: "#7aa03a", cost: 2, climber: 2.4 },
+  siegetower: { ...base, id: "siegetower", name: "Siege Tower", hp: 240, speed: 17, radius: 22, gateDamage: 6, attackInterval: 2, gold: 8, color: "#8a5a30", cost: 4, slowResist: 0.4, introCount: 1, unloads: { enemy: "climber", count: 3 } },
   bomber: { ...base, id: "bomber", name: "Balloon Bomber", hp: 30, speed: 34, radius: 14, gateDamage: 9, attackInterval: 2.6, gold: 4, color: "#c8503a", cost: 3, flying: true, bomber: { hover: 135 } },
   stalker: { ...base, id: "stalker", name: "Shadowstalker", hp: 32, speed: 34, radius: 11, gateDamage: 6, gold: 3, color: "#3a2a5a", cost: 3, blink: { every: 3.8, dist: 64 } },
   wraith: { ...base, id: "wraith", name: "Wraith", hp: 30, speed: 52, radius: 11, gateDamage: 7, gold: 3, color: "#8a9ac0", cost: 2.5, armorCycle: { on: 1.4, off: 1.8, reduction: 1 } },
@@ -206,6 +212,7 @@ export function enemyTraits(d: EnemyDef): string[] {
   if (d.blink) t.push("blinks forward");
   if (d.guard) t.push("shelters foes behind it");
   if (d.climber) t.push("climbs over the wall");
+  if (d.unloads) t.push("unloads climbers at the wall");
   if (d.bomber) t.push("bombs the hall from above");
   if (d.tunneler) t.push("digs under the wall");
   if (d.arsonist) t.push("sets buildings ablaze");

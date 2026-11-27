@@ -125,6 +125,8 @@ export interface Enemy {
   dug?: boolean;
   /** Wall Climber: seconds left scaling the wall (hittable). */
   climb?: number;
+  /** Siege Tower: has lowered its ramp and unloaded its climbers. */
+  unloaded?: boolean;
   /** Behind a Shield Wall this step (takes less damage). */
   guarded?: boolean;
   /** What it is currently hitting, for rendering lunges. */
@@ -477,6 +479,8 @@ export type CampEvent =
   /** Wall Climber starts up the wall / drops over it inside the camp. */
   | { type: "climb"; x: number; y: number }
   | { type: "climbOver"; x: number; y: number }
+  /** Siege Tower reaches the wall: ramp down, climbers pour out. */
+  | { type: "unload"; x: number; y: number; count: number }
   /** Balloon Bomber lets a bomb go: it falls from (x, y) onto (tx, ty). */
   | { type: "bombDrop"; x: number; y: number; tx: number; ty: number }
   /** Mage tower bolt: the chain's path from the crystal through each foe struck. */
@@ -2386,6 +2390,17 @@ function updateEnemy(c: Camp, e: Enemy): void {
     }
     if (e.y < wallFront - 1) {
       moveToward(c, e, e.x + Math.sin(c.time * 2 + e.sway) * 2, wallFront);
+      return;
+    }
+    if (def.unloads && !e.unloaded) {
+      // Siege Tower: the ramp drops onto the palisade and its climbers pour out, already climbing.
+      e.unloaded = true;
+      for (let i = 0; i < def.unloads.count; i++) {
+        const k = spawnEnemy(c, { at: 0, enemy: def.unloads.enemy, hpMult: e.hpMult * 0.8, lane: null }, { x: Math.max(30, Math.min(MAP_W - 30, e.x + (i - (def.unloads.count - 1) / 2) * 16)), y: wallFront + 4 });
+        const kd = k.def;
+        if (kd.climber) { k.dug = true; k.climb = kd.climber * (0.75 + i * 0.12); }
+      }
+      c.events.push({ type: "unload", x: e.x, y: e.y, count: def.unloads.count });
       return;
     }
     if (def.climber && !e.dug) {

@@ -55,3 +55,22 @@ describe("C7 new foes", () => {
     expect(c.hallHp).toBeLessThan(hp0);
   });
 });
+
+describe("C1 Siege Tower", () => {
+  it("rolls to the wall and unloads its climbers, already climbing; killing it first stops them", async () => {
+    const { CHAPTER_BY_ID } = await import("../src/core/chapters");
+    const { createCamp, drainEvents, spawnEnemy, step } = await import("../src/camp/sim");
+    const { WALL_Y } = await import("../src/camp/world");
+    const c = createCamp(3, CHAPTER_BY_ID[9]!, {});
+    c.phase = "wave"; c.queue = []; c.wave = 6;
+    for (const p of c.plots) p.level = 0;
+    const t = spawnEnemy(c, { at: 0, enemy: "siegetower", hpMult: 50, lane: null }, { x: 200, y: WALL_Y - 120 });
+    let unloaded = false;
+    for (let i = 0; i < 60 * 15 && !unloaded; i++) { c.hero.x = 40; c.hero.y = 1150; step(c, { move: { x: 0, y: 0 } }); if (drainEvents(c).some((e) => e.type === "unload")) unloaded = true; }
+    expect(unloaded).toBe(true);
+    expect(t.unloaded).toBe(true);
+    const cl = c.enemies.filter((e) => e.def.id === "climber");
+    expect(cl.length).toBe(t.def.unloads!.count);
+    expect(cl.every((e) => (e.climb ?? 0) > 0 || e.y > WALL_Y)).toBe(true);
+  });
+});

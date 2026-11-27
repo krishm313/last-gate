@@ -1726,6 +1726,90 @@ function mageTowerModel(level: number): void {
 }
 
 /** One spike-trap stake (wood, or dark iron with a bright tip). */
+/** Siege Tower: a tall timber tower on four wheels, hide-covered sides, a fighting top with merlons,
+ *  and a closed drawbridge on the front (the open ramp is its own prop). */
+function siegeTowerModel(): void {
+  const wood = (c: number) => std(c, 0.88);
+  const base = mesh(new THREE.BoxGeometry(2.6, 0.45, 2.6), wood(0x5a3a1c));
+  base.position.y = 0.75;
+  root.add(base);
+  for (const [wx, wz] of [[-1.15, 1.2], [1.15, 1.2], [-1.15, -1.2], [1.15, -1.2]] as const) {
+    const w = mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.26, 18), wood(0x4a2e18));
+    w.rotation.z = Math.PI / 2;
+    w.position.set(wx * 1.15, 0.55, wz);
+    root.add(w);
+    const rim = mesh(new THREE.TorusGeometry(0.53, 0.06, 6, 18), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.6, roughness: 0.45 }));
+    rim.rotation.y = Math.PI / 2;
+    rim.position.copy(w.position);
+    rim.position.x += wx > 0 ? 0.14 : -0.14;
+    root.add(rim);
+  }
+  // Tapering timber frame (corner posts) and plank storeys.
+  const H = 5.2;
+  for (const [x, z] of [[-1.05, -1.05], [1.05, -1.05], [-1.05, 1.05], [1.05, 1.05]] as const) {
+    const post = mesh(new THREE.BoxGeometry(0.24, H, 0.24), wood(0x7a4e2a));
+    post.position.set(x * 0.92, 0.95 + H / 2, z * 0.92);
+    root.add(post);
+  }
+  const hide = [0x8a4a2e, 0x7a3e26, 0x9a5634];
+  for (let k = 0; k < 4; k++) {
+    const y = 1.3 + k * 1.2;
+    const panel = mesh(lumpy(new THREE.BoxGeometry(2.0, 1.1, 2.0, 3, 2, 3), 0.03), std(hide[k % 3]!, 0.95));
+    panel.position.y = y + 0.4;
+    root.add(panel);
+    const band = mesh(new THREE.BoxGeometry(2.1, 0.12, 2.1), wood(0x5a3a1c));
+    band.position.y = y - 0.15;
+    root.add(band);
+  }
+  // Fighting top: a wider platform with merlons.
+  const top = mesh(new THREE.BoxGeometry(2.6, 0.22, 2.6), wood(0x6a4426));
+  top.position.y = 0.95 + H;
+  root.add(top);
+  for (let i = 0; i < 4; i++)
+    for (const side of [-1, 1]) {
+      const m1 = mesh(new THREE.BoxGeometry(0.42, 0.5, 0.18), wood(0x7a4e2a));
+      m1.position.set(-0.95 + i * 0.63, 1.3 + H, side * 1.2);
+      root.add(m1);
+      const m2 = mesh(new THREE.BoxGeometry(0.18, 0.5, 0.42), wood(0x7a4e2a));
+      m2.position.set(side * 1.2, 1.3 + H, -0.95 + i * 0.63);
+      root.add(m2);
+    }
+  // Closed drawbridge on the front face, with chains.
+  const bridge = mesh(new THREE.BoxGeometry(1.5, 1.7, 0.14), wood(0x8a5a30));
+  bridge.position.set(0, 0.95 + H - 1.05, 1.08);
+  root.add(bridge);
+  for (const x of [-0.6, 0.6]) {
+    const chain = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 5), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.7, roughness: 0.4 }));
+    chain.position.set(x, 0.95 + H - 0.2, 1.12);
+    chain.rotation.x = 0.3;
+    root.add(chain);
+  }
+  // A horde banner on top.
+  const pole = mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6), wood(0x5a3a1c));
+  pole.position.set(0.9, 1.9 + H, -0.9);
+  root.add(pole);
+  const flag = mesh(new THREE.PlaneGeometry(0.8, 0.5), new THREE.MeshStandardMaterial({ color: 0xb8302a, side: THREE.DoubleSide, roughness: 0.8 }));
+  flag.position.set(1.32, 2.4 + H, -0.9);
+  root.add(flag);
+}
+/** Siege Tower's lowered ramp: a plank board with cleats and iron straps (drawn when it unloads). */
+function siegeRampModel(): void {
+  const board = mesh(new THREE.BoxGeometry(1.5, 0.14, 2.4), std(0x8a5a30, 0.88));
+  board.position.set(0, 0.07, 1.2);
+  root.add(board);
+  for (let k = 0; k < 5; k++) {
+    const cleat = mesh(new THREE.BoxGeometry(1.4, 0.08, 0.1), std(0x5a3a1c, 0.88));
+    cleat.position.set(0, 0.18, 0.3 + k * 0.45);
+    root.add(cleat);
+  }
+  for (const x of [-0.6, 0.6]) {
+    const strap = mesh(new THREE.BoxGeometry(0.1, 0.16, 2.4), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.6, roughness: 0.45 }));
+    strap.position.set(x, 0.1, 1.2);
+    root.add(strap);
+  }
+  ground.visible = false;
+}
+
 /** Companion Hound: a lean tan hunting dog standing side-on, ears up, tail high, red collar. */
 function houndModel(): void {
   const fur = std(0xb8844a, 0.85), dark = std(0x6a4426, 0.85), light = std(0xe8d0a8, 0.85);
@@ -2012,6 +2096,8 @@ function stakeModel(iron: boolean): void {
   stake: () => stakeModel(false),
   stake_iron: () => stakeModel(true),
   balloon: balloonEnvelope,
+  siegetower: () => { siegeTowerModel(); root.rotation.y = 0.25; },
+  siege_ramp: () => { siegeRampModel(); root.rotation.y = 0.25; },
   hound: () => { houndModel(); root.rotation.y = -0.35; },
   falcon: () => { falconModel(); root.rotation.y = -0.5; root.rotation.x = 0.35; },
   basket: balloonBasket,

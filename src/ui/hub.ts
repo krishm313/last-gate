@@ -2113,7 +2113,7 @@ const FOE_PORTRAIT: Record<string, string> = {
   tunneler: "enemy_sapper", phalanx: "enemy_shield", climber: "enemy_goblin", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", hag: "elite_mage", hollowking: "hollowking",
 };
 const FOE_EMOJI: Record<string, string> = {
-  bat: "🦇", raven: "🐦‍⬛", imp: "👺", bomber: "🎈", ram: "🪵", ogre: "👹", troll: "🧌", golem: "🗿", dragon: "🐉", colossus: "🛡️",
+  bat: "🦇", raven: "🐦‍⬛", imp: "👺", bomber: "🎈", siegetower: "🗼", ram: "🪵", ogre: "👹", troll: "🧌", golem: "🗿", dragon: "🐉", colossus: "🛡️",
   frostwyrm: "❄️", magma: "🌋", drowned: "🔱", warlord: "⚔️", bloodlord: "🌕", hollowking: "💀",
 };
 

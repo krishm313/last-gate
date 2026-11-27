@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 C1 batch 1 ✅ Siege Tower (4 tuning rounds; night-6 debut spiked losses, moved to night 9). Next batch idea: a chapter 11 is the big one (terrain atlas + boss) — plan it as a multi-slice batch; meanwhile keep lanes (feel, health).
 - 2026-11-27 B1 ✅ B2 ✅ (B3 continues as the code-health lane). Stage C started: C1 batch 1 = Siege Tower (rolling tower that unloads Wall Climbers at the wall; 3D prop), ch 9–10 + Endless.
 - 2026-11-27 B3 slice 2: foeFx.ts. Lesson: when cutting by doc-comment boundaries, check for undocumented methods swallowed at the end (drawParts was; restored from HEAD).
 - 2026-11-27 Game-feel slice: animated kingdom view (clouds, birds, chimney smoke, flag sway; on-screen only).

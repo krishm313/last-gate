@@ -1012,6 +1012,13 @@ export class CampRenderer {
           fx.burst(ev.x, WALL_Y - WALL_THICK / 2 - 4, "#e8e0c8", 6, 90, { max: 0.35, size: 2, gravity: 240, shape: "dot" });
           fx.burst(ev.x, WALL_Y - WALL_THICK / 2, "#a8865a", 5, 70, { max: 0.4, size: 2.6, gravity: 300, shape: "chunk" });
           break;
+        case "unload":
+          // The ramp slams down on the palisade: splinters, dust, a thud — and climbers pouring over.
+          fx.burst(ev.x, WALL_Y - WALL_THICK / 2, "#a8865a", 10, 160, { max: 0.5, size: 3.2, gravity: 360, shape: "chunk" });
+          fx.burst(ev.x, WALL_Y - WALL_THICK / 2, "rgba(206,190,160,0.85)", 8, 70, { max: 0.7, size: 7, gravity: -14, drag: 3 });
+          fx.number(ev.x, WALL_Y - 70, "Climbers!", "#ffb0a0", 15, 1);
+          if (fx.trauma < 0.35) fx.shake(0.22);
+          break;
         case "climbOver":
           // Drops down inside the camp in a puff of dust.
           fx.burst(ev.x, ev.y + 6, "rgba(206,190,160,0.8)", 8, 60, { max: 0.5, size: 4, gravity: -15, drag: 3 });
@@ -5095,6 +5102,7 @@ export class CampRenderer {
       }
     }
     else if (id === "bomber") this.foeFx.drawBomber(this.foeEnv(), ctx, c, e, flash);
+    else if (id === "siegetower") this.foeFx.drawSiegeTower(this.foeEnv(), ctx, e, flash);
     else if (id === "dragon" || id === "frostwyrm") this.drawDragon(ctx, c, e, flash);
     else {
       // Attackers swing their weapon down at the wall.

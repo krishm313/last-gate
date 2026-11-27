@@ -186,4 +186,36 @@ export class FoeFx {
       ctx.restore();
     }
   }
+
+  /** Siege Tower: a tall 3D timber tower that rocks on its wheels as it rolls; once it reaches the wall
+   *  its ramp lies down onto the palisade (the climbers it carried pour over). */
+  drawSiegeTower(env: FoeFxEnv, ctx: CanvasRenderingContext2D, e: Enemy, flash: boolean): void {
+    const r = e.def.radius;
+    const moving = !e.unloaded && !e.attacking;
+    const rock = moving ? Math.sin(env.time * 3.2 + e.sway) * 0.025 : 0;
+    const baseY = e.y + r * 0.9;
+    softShadow(ctx, e.x, baseY, r * 1.5, r * 0.5, 0.36);
+    if (e.unloaded) {
+      // Ramp down: from the tower's front (toward the wall/camera) onto the palisade.
+      if (!buildingSprite(ctx, "siege_ramp", e.x, baseY + 10, 1.9)) {
+        ctx.fillStyle = "#8a5a30"; ctx.fillRect(e.x - 12, baseY - 2, 24, 18);
+      }
+    }
+    ctx.save();
+    ctx.translate(e.x, baseY);
+    ctx.rotate(rock);
+    const ok = buildingSprite(ctx, "siegetower", 0, 0, 1);
+    if (!ok) {
+      ctx.fillStyle = "#8a5a30"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+      ctx.fillRect(-r * 0.8, -r * 3.6, r * 1.6, r * 3.6); ctx.strokeRect(-r * 0.8, -r * 3.6, r * 1.6, r * 3.6);
+    }
+    if (flash) {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      ctx.fillRect(-r * 0.9, -r * 3.8, r * 1.8, r * 3.8);
+    }
+    ctx.restore();
+    // Rolling dust from the wheels.
+    if (moving && Math.floor(env.time * 6 + e.id) % 3 === 0 && env.fx.particles.length < 400) env.fx.burst(e.x + (Math.sin(env.time * 7 + e.id) > 0 ? r : -r), baseY, "rgba(200,184,150,0.6)", 1, 30, { max: 0.5, size: 4, gravity: -10, drag: 4 });
+  }
 }

@@ -91,8 +91,9 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
   let t = 0.6;
   if (def.intro) {
     // Introduce the new enemy alone, spread across the field, so the player learns what it does.
-    for (let i = 0; i < d.introGroup; i++) {
-      spawns.push({ at: t, enemy: def.intro, hpMult, lane: (i + 0.5) / d.introGroup });
+    const n = ENEMIES[def.intro].introCount ?? d.introGroup;
+    for (let i = 0; i < n; i++) {
+      spawns.push({ at: t, enemy: def.intro, hpMult, lane: (i + 0.5) / n });
       budget -= ENEMIES[def.intro].cost;
     }
     t += 4;
