@@ -120,6 +120,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch12 slice 1 (hidden): CH12_ENABLED switch (off), BLOSSOM_PASS chapter data (10 nights, Ogre mini-boss n5, placeholder finale boss), CAMP_CHAPTER_HP[12] = 3.2; suite passes with the switch off and on.
 - 2026-11-27 Content batch 5 decided: Chapter 12 "The Blossom Pass" (two bosses at once — the Twin Generals), 5 slices behind CH12_ENABLED. Hero still deferred (art).
 - 2026-11-27 B3 slice: day life (cloud shadows, grass gusts, butterflies + crown perch, leaves, bird flocks) → src/camp/dayLife.ts (drawDayLife + DayLifeEnv + PERCH; render.ts −190 lines).
 - 2026-11-27 Game-feel slice (ch8 n5 rain, full quality): foes out in the dark field nearly vanished (bats, brutes). Moonlit thinning of the darkness around each foe 0.5 → MOONLIT 0.78 (radius ×1.8/2.2): the horde reads, night mood kept.

@@ -1,5 +1,5 @@
 import type { ChapterDef } from "./waves";
-import { CH11_ENABLED } from "./features";
+import { CH11_ENABLED, CH12_ENABLED } from "./features";
 
 /** The campaign. Each chapter is a separate 10-wave run; chapter N+1 unlocks when N is cleared. */
 const BASE_CHAPTERS: ChapterDef[] = [
@@ -255,7 +255,32 @@ export const STORM_COAST: ChapterDef = {
     { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.6, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, bomber: 0.5 }, boss: "thundergiant" },
   ],
 };
-export const CHAPTERS: ChapterDef[] = CH11_ENABLED ? [...BASE_CHAPTERS, STORM_COAST] : BASE_CHAPTERS;
+/** Chapter 12 (built behind CH12_ENABLED; SUPERVISOR.md batch 5). The finale boss is a placeholder
+ *  until the Twin Generals land (slice 3). */
+export const BLOSSOM_PASS: ChapterDef = {
+  id: 12,
+  name: "The Blossom Pass",
+  blurb: "Spring comes to the high pass, petals on the wind — and the horde's last two generals ride out together.",
+  hpMult: 4.8,
+  speedMult: 1.12,
+  gateDamageMult: 1.5,
+  affixes: ["Warbands: the horde comes in bigger packs", "Rockslide: falling rocks crack the wall"],
+  ground: ["#5e7a3e", "#6c8a48"],
+  weatherOdds: { rain: 0.2, fog: 0.15, storm: 0.05 },
+  waves: [
+    { mix: { footman: 2, shield: 1.4, banner: 0.8, shaman: 0.5 } },
+    { mix: { knight: 1.4, crossbow: 1.2, phalanx: 0.6, banner: 0.8, raven: 1 } },
+    { mix: { brute: 1.3, shield: 1.6, ram: 0.9, sapper: 1.1, climber: 0.8, imp: 0.8 } },
+    { mix: { goblin: 2, bat: 2, raven: 1.4, bomber: 0.4 }, breather: true },
+    { mix: { knight: 1.5, phalanx: 0.8, shaman: 1, banner: 1, brute: 1.1, crossbow: 1 }, boss: "ogre", bossHpMult: 0.6 },
+    { mix: { siegetower: 0.45, phalanx: 0.8, bomber: 0.6, shield: 2, brute: 1.4, ram: 0.9, sapper: 1.2, climber: 0.7 } },
+    { mix: { stalker: 0.8, knight: 1.8, wraith: 1.6, crossbow: 1.5, shaman: 1.1, banner: 1.1, phalanx: 0.7 } },
+    { mix: { raven: 1.6, goblin: 2, bat: 2, imp: 1.2, bomber: 0.5 }, breather: true },
+    { mix: { siegetower: 0.5, phalanx: 0.9, climber: 0.7, bomber: 0.5, shield: 2, knight: 1.9, wraith: 1.6, crossbow: 1.3, ram: 1, brute: 1.4, shaman: 1, banner: 1 } },
+    { mix: { footman: 2, shield: 1.4, knight: 1.7, phalanx: 0.8, crossbow: 1.2, brute: 1.2, banner: 1.1, shaman: 0.9, bomber: 0.5 }, boss: "warlord" },
+  ],
+};
+export const CHAPTERS: ChapterDef[] = [...BASE_CHAPTERS, ...(CH11_ENABLED ? [STORM_COAST] : []), ...(CH12_ENABLED ? [BLOSSOM_PASS] : [])];
 /** Campaign chapter ids (1..N): the chapters Heat, banners, Endless scenery and weekly pools draw from. */
 export function isCampaignChapter(id: number): boolean {
   return CHAPTERS.some((c) => c.id === id);

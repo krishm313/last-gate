@@ -10,3 +10,6 @@ export const SIDE_GAME_IDS = ["archery", "supply", "watch", "catapult", "dragon"
 
 /** Chapter 11 "The Storm Coast" — built in slices (see SUPERVISOR.md) and switched on when complete. */
 export const CH11_ENABLED = true;
+
+/** Chapter 12 "The Blossom Pass" — built in slices (see SUPERVISOR.md batch 5), on when complete. */
+export const CH12_ENABLED = false;
