@@ -62,21 +62,38 @@ export function kingdomProgress(save: SaveData): { raised: number; total: number
   return { raised, total: NAMES.length, next: nx ? { name: nx.name, chapter: chName } : null };
 }
 
-function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>): boolean {
+function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>, t = 0): boolean {
   const ctx = cv.getContext("2d");
   if (!ctx) return true;
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   const cw = cv.clientWidth || W;
   const k = cw / W;
-  cv.width = Math.round(W * k * dpr);
-  cv.height = Math.round(H * k * dpr);
+  const pw = Math.round(W * k * dpr), ph = Math.round(H * k * dpr);
+  if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
   ctx.setTransform(k * dpr, 0, 0, k * dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
   // Ground: a summer meadow under an evening sky band, a stone plaza round the castle and the road.
   const sky = ctx.createLinearGradient(0, 0, 0, 40);
   sky.addColorStop(0, "#f6c98a");
   sky.addColorStop(1, "#cfe4a0");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, 40);
+  // Slow clouds drifting across the sky band, and now and then a pair of birds.
+  for (let i = 0; i < 3; i++) {
+    const cx = ((t * (4 + i * 1.5) + i * 130) % (W + 120)) - 60, cy = 10 + i * 7;
+    ctx.fillStyle = "rgba(255,250,240,0.55)";
+    ctx.beginPath(); ctx.ellipse(cx, cy, 22 - i * 3, 5, 0, 0, Math.PI * 2); ctx.ellipse(cx + 10, cy - 3, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  const bt = (t % 24) / 24;
+  if (bt < 0.5) {
+    const bx = -20 + bt * 2 * (W + 40), by = 16 + Math.sin(bt * 9) * 3;
+    ctx.strokeStyle = "rgba(60,50,40,0.6)";
+    ctx.lineWidth = 0.9;
+    for (const [dx, dy] of [[0, 0], [9, 3]] as const) {
+      const f = Math.sin(t * 9 + dx) * 1.4;
+      ctx.beginPath(); ctx.moveTo(bx + dx - 3, by + dy - f); ctx.lineTo(bx + dx, by + dy); ctx.lineTo(bx + dx + 3, by + dy - f); ctx.stroke();
+    }
+  }
   const g = ctx.createLinearGradient(0, 30, 0, H);
   g.addColorStop(0, "#8fbf5a");
   g.addColorStop(1, "#5f9a3e");
@@ -156,7 +173,12 @@ function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>): boolea
   flown.forEach((b, i) => {
     const x = flagX[i]!, y = 50;
     items.push({ y, draw: () => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.transform(1, 0, Math.sin(t * 2.2 + i) * 0.06, 1, 0, 0);
+      ctx.translate(-x, -y);
       sprite(DECOR_ATLAS, dec, "banner1", x, y, 0.42, 1);
+      ctx.restore();
       const full = conquestDone(conquestEntry(save.conquest, b.id)) === 3;
       ctx.save();
       ctx.fillStyle = full ? "#ffd84a" : "#f2c443";
@@ -179,6 +201,16 @@ function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>): boolea
   } });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.draw();
+  // Chimney smoke from the Lumber Camp and the Forge, curling up and fading.
+  const smoke = (x: number, y: number, seed: number) => {
+    for (let i = 0; i < 4; i++) {
+      const u = ((t * 0.35 + i / 4 + seed) % 1);
+      ctx.fillStyle = `rgba(200,196,190,${(0.5 * (1 - u)).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(x + Math.sin(u * 5 + seed * 7) * 3 + u * 6, y - u * 22, 1.6 + u * 4, 0, Math.PI * 2); ctx.fill();
+    }
+  };
+  if (cleared(save, 1)) smoke(40, 91, 0.1);
+  if (cleared(save, 3)) smoke(109, 73, 0.6);
   return true;
 }
 
@@ -207,10 +239,20 @@ export function kingdomCard(save: SaveData): HTMLElement {
   cap.append(title, sub);
   card.append(cv, cap);
   // Draw once laid out; retry until the sprite sheets have loaded.
-  let tries = 0;
-  const go = () => {
-    if (!cv.isConnected && tries++ < 40) return void requestAnimationFrame(go);
-    if (!draw(cv, save, fresh) && tries++ < 120) window.setTimeout(go, 100);
+  // Then keep it alive (~30 fps) while it's on screen; it stops once the card leaves the page.
+  let tries = 0, last = 0, started = false;
+  const t0 = performance.now();
+  const go = (now = performance.now()) => {
+    if (!cv.isConnected) {
+      if (started || tries++ > 40) return;
+      return void requestAnimationFrame(go);
+    }
+    started = true;
+    if (now - last >= 33 && !document.hidden) {
+      last = now;
+      if (!draw(cv, save, fresh, (now - t0) / 1000) && tries++ < 120) return void window.setTimeout(() => go(), 100);
+    }
+    requestAnimationFrame(go);
   };
   requestAnimationFrame(go);
   return card;
