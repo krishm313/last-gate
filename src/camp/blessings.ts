@@ -89,6 +89,8 @@ export interface Blessing {
   newer?: boolean;
   /** Rule-changer: never in the regular three; offered as the extra ✨ card on rule nights. */
   rule?: boolean;
+  /** War Banner blessing: only offered (and often) on runs flying this banner. */
+  banner?: string;
 }
 
 export const BLESSINGS: Blessing[] = [
@@ -122,6 +124,13 @@ export const BLESSINGS: Blessing[] = [
   { id: "frost", name: "Frost Arrows", desc: "All arrows slow enemies by 35%", icon: "❄️", rarity: "epic", max: 1, apply: (m) => { m.slow = 0.35; } },
   { id: "volley", name: "Volley Fire", desc: "Towers fire 40% faster", icon: "🌧️", rarity: "epic", max: 2, requires: "eagle", apply: (m) => { m.towerRate *= 1.4; } },
   { id: "inferno", name: "Inferno", desc: "Burning doubled", icon: "☄️", rarity: "legendary", max: 1, requires: "fire", apply: (m) => { m.burnMult = 2; } },
+  // War Banner blessings: each banner brings one of its own that deepens its strategy.
+  { id: "bulwark", banner: "bastion", name: "Bulwark", desc: "Walls +15% HP and strike attackers back ×2", icon: "🏰", rarity: "epic", max: 1, apply: (m) => { m.wallHp *= 1.15; m.thorns += 2; } },
+  { id: "apex", banner: "hunter", name: "Apex Predator", desc: "Hero +20% damage, +10% speed, much wider coin magnet", icon: "🐺", rarity: "epic", max: 1, apply: (m) => { m.heroDamage *= 1.2; m.heroSpeed *= 1.1; m.magnet *= 1.5; } },
+  { id: "treasury", banner: "hoard", name: "Royal Treasury", desc: "Hall income +40%, carry +30 coins", icon: "👑", rarity: "epic", max: 1, apply: (m) => { m.income *= 1.4; m.carry += 30; } },
+  { id: "siegecraft", banner: "engineers", name: "Siegecraft", desc: "Catapults and Mage Tower +35% damage; lightning hops 1 more", icon: "⚙️", rarity: "epic", max: 1, apply: (m) => { m.catapultDamage *= 1.35; m.mageDamage *= 1.35; m.mageChains += 1; } },
+  { id: "brothers", banner: "levy", name: "Shield Brothers", desc: "Soldiers +40% HP and damage", icon: "🛡️", rarity: "epic", max: 1, apply: (m) => { m.allyPower *= 1.4; } },
+  { id: "pyrerite", banner: "pyre", name: "Pyre Rite", desc: "Burning deals 50% more", icon: "🕯️", rarity: "epic", max: 1, apply: (m) => { m.burnMult *= 1.5; } },
   // Rule-changers: each one changes how a run plays, not just a number.
   { id: "ricochet", rule: true, name: "Ricochet", desc: "Your arrows bounce to 1 more foe (60% damage)", icon: "↪️", rarity: "epic", max: 1, newer: true, apply: (m) => { m.ricochet += 1; } },
   { id: "thorns", rule: true, name: "Thorn Walls", desc: "Foes that strike the wall take the blow back ×3", icon: "🌵", rarity: "rare", max: 2, newer: true, apply: (m) => { m.thorns += 3; } },
@@ -153,17 +162,17 @@ export function ruleNight(wave: number, classic: boolean): boolean {
 
 /** Blessings the Wandering Merchant could sell right now (regular ones the run could still take). */
 export function merchantPool(owned: Record<string, number>, built: Set<string>): Blessing[] {
-  return BLESSINGS.filter((b) => !b.rule && !b.requires && (owned[b.id] ?? 0) < b.max && (!b.needsBuilding || built.has(b.needsBuilding)) && b.id !== "lucky");
+  return BLESSINGS.filter((b) => !b.rule && !b.banner && !b.requires && (owned[b.id] ?? 0) < b.max && (!b.needsBuilding || built.has(b.needsBuilding)) && b.id !== "lucky");
 }
 
-export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false, forceRule = false): Blessing[] {
+export function rollBlessings(rng: Rng, wave: number, owned: Record<string, number>, n = 3, built: Set<string> = new Set(), classic = false, forceRule = false, banner = "none"): Blessing[] {
   const ok = (b: Blessing) =>
-    !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding));
+    (!b.banner || b.banner === banner) && !(classic && b.newer) && (owned[b.id] ?? 0) < b.max && (!b.requires || comboParts(b).every((r) => (owned[r] ?? 0) > 0)) && (!b.needsBuilding || built.has(b.needsBuilding));
   const pool = BLESSINGS.filter((b) => !b.rule && ok(b));
   const w: Record<Rarity, number> = { common: Math.max(30, 64 - wave * 3), rare: 26 + wave, epic: 8 + wave * 1.5, legendary: 8 + wave };
   const out: Blessing[] = [];
   while (out.length < n && pool.length) {
-    const b = weighted(rng, pool, (x) => w[x.rarity]);
+    const b = weighted(rng, pool, (x) => w[x.rarity] * (x.banner ? 3 : 1));
     out.push(b);
     pool.splice(pool.indexOf(b), 1);
   }

@@ -33,3 +33,21 @@ describe("War Banners (B1)", () => {
     for (const b of BANNERS) { expect(b.up.length).toBeGreaterThan(5); if (b.id !== "none") expect(b.down.length).toBeGreaterThan(5); }
   });
 });
+
+describe("War Banner blessings (B1)", () => {
+  it("each banner's own blessing shows up on its runs, and never on others", async () => {
+    const { rollBlessings, BLESSINGS } = await import("../src/camp/blessings");
+    const { createRng } = await import("../src/core/rng");
+    const mine = BLESSINGS.filter((b) => b.banner);
+    expect(mine.length).toBe(6);
+    for (const b of mine) {
+      let seen = 0, leaked = 0;
+      for (let i = 0; i < 200; i++) {
+        if (rollBlessings(createRng(i), 4, {}, 3, new Set(), false, false, b.banner).some((x) => x.id === b.id)) seen++;
+        if (rollBlessings(createRng(i), 4, {}, 3, new Set(), false, false, "none").some((x) => x.id === b.id)) leaked++;
+      }
+      expect(seen, b.id).toBeGreaterThan(20);
+      expect(leaked, b.id).toBe(0);
+    }
+  });
+});

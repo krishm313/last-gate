@@ -3004,7 +3004,7 @@ export function step(c: Camp, input: CampInput): void {
       c.buildChoice = kinds.slice(0, 3);
       for (const p of due) if (!c.buildChoice.includes(p.kind)) unlockPlot(c, p);
     } else for (const p of due) unlockPlot(c, p);
-    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings, c.shrineReward);
+    c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings, c.shrineReward, c.banner);
     c.shrineReward = false;
     if (c.offers.length || c.buildChoice) {
       c.phase = "pick";
@@ -3065,7 +3065,7 @@ export function rerollsLeft(c: Camp): number {
 export function rerollBlessings(c: Camp): boolean {
   if (c.phase !== "pick" || rerollsLeft(c) <= 0) return false;
   c.rerollsUsed += 1;
-  c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings);
+  c.offers = rollBlessings(c.rng, c.wave, c.owned, 3, builtKinds(c), c.classicBlessings, false, c.banner);
   c.events.push({ type: "offers" });
   return true;
 }
