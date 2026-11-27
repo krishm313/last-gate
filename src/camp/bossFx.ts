@@ -228,17 +228,46 @@ export class BossFx {
     this.thunders = this.thunders.filter((b) => env.time - b.t < DUR);
   }
 
-  /** Thunder Giant: a storm-blue halo that crackles with sparks. */
-  drawThunderAura(env: BossFxEnv, ctx: CanvasRenderingContext2D, c: Camp, e: { x: number; y: number; id: number; enraged: boolean; def: { radius: number } }): void {
+  /** A boss's signature halo (Drowned King, Blood Moon Warlord, Hollow King, Magma Titan, Thunder Giant):
+   *  a pulsing additive glow behind it and a trickle of motes shed as it walks. Returns false for other foes. */
+  drawBossAura(env: BossFxEnv, ctx: CanvasRenderingContext2D, c: Camp, e: { x: number; y: number; id: number; enraged: boolean; def: { id: string; radius: number } }): boolean {
+    const a = AURA[e.def.id];
+    if (!a) return false;
     const r = e.def.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.4 + e.id);
+    const pulse = 0.5 + 0.5 * Math.sin(c.time * a.pulse + e.id);
+    const [sx, sy] = a.swell ?? [0.3, 0.2];
+    const flare = a.flare && c.bloodmoon > 0 ? 0.3 : 0;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    env.drawBlob(ctx, env.blob("thunderaura", [[0, "rgba(120,170,255,0.9)"], [1, "rgba(40,70,200,0)"]]), e.x, e.y - r * 0.5, r * (2.2 + pulse * 0.3), r * (1.7 + pulse * 0.2), (e.enraged ? 0.55 : 0.34) + env.night * 0.25);
+    env.drawBlob(ctx, env.blob(a.key, [[0, a.inner], [1, a.outer]]), e.x, e.y - r * 0.5, r * (a.rx + pulse * sx + flare), r * (a.ry + pulse * sy + flare * 0.6), (e.enraged ? a.alpha[1] : a.alpha[0]) + flare + env.night * 0.25);
     ctx.restore();
-    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && env.fx.particles.length < 400) env.fx.burst(e.x + Math.sin(c.time * 19) * r * 0.8, e.y - r * (0.3 + Math.cos(c.time * 13) * 0.6), Math.sin(c.time * 31) > 0 ? "#e8f0ff" : "#7aa8ff", 1, 60, { max: 0.25, size: 2.2, gravity: 0, shape: "dot" });
+    const m = a.mote;
+    if (Math.floor(c.time * m.rate + e.id) % 2 === 0 && env.fx.particles.length < 400)
+      env.fx.burst(e.x + Math.sin(c.time * m.fx) * r * m.ax, e.y - r * (m.y + Math.cos(c.time * m.fy) * m.ay), Math.sin(c.time * m.fc) > 0 ? m.colors[0] : m.colors[1], 1, m.speed, { max: m.life, size: m.size, gravity: m.gravity, shape: "dot" });
+    return true;
   }
 }
+
+/** Boss halos. Glow: blob key, inner/outer colour, pulse speed, x/y radius (× foe radius; the pulse swells
+ *  them by `swell`, default 0.3 / 0.2), alpha calm/enraged, `flare` = swells under a blood moon.
+ *  Motes: emit rate, x sway (freq, × radius), height (base + cos(freq) × amp, × radius), colour flicker freq,
+ *  two colours, burst speed, life, size, gravity. */
+type Aura = {
+  key: string; inner: string; outer: string; pulse: number; rx: number; ry: number; alpha: [number, number]; swell?: [number, number]; flare?: boolean;
+  mote: { rate: number; fx: number; ax: number; y: number; fy: number; ay: number; fc: number; colors: [string, string]; speed: number; life: number; size: number; gravity: number };
+};
+const AURA: Record<string, Aura> = {
+  drowned: { key: "seaglow", inner: "rgba(90,220,230,0.85)", outer: "rgba(20,120,160,0)", pulse: 2.2, rx: 2, ry: 1.6, alpha: [0.32, 0.5],
+    mote: { rate: 10, fx: 17, ax: 0.6, y: 0.6, fy: 0, ay: 0, fc: 29, colors: ["#9ae6ff", "#4ab0d0"], speed: 30, life: 0.6, size: 2.4, gravity: 220 } },
+  bloodlord: { key: "bloodglow", inner: "rgba(255,60,70,0.9)", outer: "rgba(160,10,40,0)", pulse: 2.6, rx: 2.1, ry: 1.6, alpha: [0.32, 0.5], flare: true,
+    mote: { rate: 10, fx: 17, ax: 0.6, y: 0.4, fy: 11, ay: 0.4, fc: 23, colors: ["#ff7a7a", "#c81a3a"], speed: 36, life: 0.7, size: 2.4, gravity: -60 } },
+  hollowking: { key: "hollowglow", inner: "rgba(170,130,255,0.9)", outer: "rgba(60,30,140,0)", pulse: 1.8, rx: 2.3, ry: 1.8, alpha: [0.36, 0.55], swell: [0.35, 0.25],
+    mote: { rate: 9, fx: 13, ax: 0.8, y: 0.2, fy: 7, ay: 0.5, fc: 19, colors: ["#e8e0ff", "#9a7aff"], speed: 30, life: 0.9, size: 2.4, gravity: -50 } },
+  magma: { key: "lavaglow", inner: "rgba(255,120,40,0.9)", outer: "rgba(255,60,10,0)", pulse: 3, rx: 2, ry: 1.6, alpha: [0.35, 0.55],
+    mote: { rate: 12, fx: 17, ax: 0.6, y: 0.4, fy: 11, ay: 0.4, fc: 23, colors: ["#ffb040", "#ff5a1a"], speed: 40, life: 0.7, size: 2.6, gravity: -80 } },
+  thundergiant: { key: "thunderaura", inner: "rgba(120,170,255,0.9)", outer: "rgba(40,70,200,0)", pulse: 2.4, rx: 2.2, ry: 1.7, alpha: [0.34, 0.55],
+    mote: { rate: 12, fx: 19, ax: 0.8, y: 0.3, fy: 13, ay: 0.6, fc: 31, colors: ["#e8f0ff", "#7aa8ff"], speed: 60, life: 0.25, size: 2.2, gravity: 0 } },
+};
 
 /** Boss arena themes: edge tint, mote colour, size (px), drift speed (px/s), sway, rise vs fall, additive glow. */
 const ARENA: Record<string, { tint: string; mote: string; size: number; speed: number; sway: number; rise: boolean; glow: boolean }> = {

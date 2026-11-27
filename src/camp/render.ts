@@ -4641,11 +4641,7 @@ export class CampRenderer {
     if (this.brokeCover.size > 300) { const live = new Set(c.enemies.map((q) => q.id)); for (const id of this.brokeCover) if (!live.has(id)) this.brokeCover.delete(id); }
     // Fresh spawns fade in out of the dark of the woods rather than popping into existence.
     if (e.elite) this.drawEliteRing(ctx, c, e);
-    if (e.def.id === "magma") this.drawMagmaAura(ctx, c, e);
-    if (e.def.id === "bloodlord") this.drawBloodAura(ctx, c, e);
-    if (e.def.id === "hollowking") this.drawHollowAura(ctx, c, e);
-    if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
-    if (e.def.id === "thundergiant") this.bossFx.drawThunderAura(this.bossEnv(), ctx, c, e);
+    if (e.def.boss) this.bossFx.drawBossAura(this.bossEnv(), ctx, c, e);
     if (e.def.guard && e.y < WALL_Y) this.foeFx.drawShieldLane(this.foeEnv(), ctx, e);
     // Wall Climber: up the outside of the palisade on a grapnel rope, over the top (lifted into view
     // above the stakes), then down the inside.
@@ -4813,51 +4809,6 @@ export class CampRenderer {
       ctx.beginPath(); ctx.ellipse(x, y, 10 + ph * 26, 3 + ph * 7, 0, 0, Math.PI * 2); ctx.globalAlpha = (1 - ph); ctx.stroke(); ctx.globalAlpha = 1;
     }
     ctx.restore();
-  }
-
-  /** The Drowned King: a cold sea-green glow and water dripping off it as it walks. */
-  private drawDrownedAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
-    const r = e.def.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.2 + e.id);
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    this.drawBlob(ctx, this.blob("seaglow", [[0, "rgba(90,220,230,0.85)"], [1, "rgba(20,120,160,0)"]]), e.x, e.y - r * 0.5, r * (2 + pulse * 0.3), r * (1.6 + pulse * 0.2), (e.enraged ? 0.5 : 0.32) + this.night * 0.25);
-    ctx.restore();
-    if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * 0.6, Math.sin(c.time * 29) > 0 ? "#9ae6ff" : "#4ab0d0", 1, 30, { max: 0.6, size: 2.4, gravity: 220, shape: "dot" });
-  }
-
-  /** The Blood Moon Warlord: a crimson halo that flares while the moon is up, shedding red motes. */
-  private drawBloodAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
-    const r = e.def.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(c.time * 2.6 + e.id);
-    const flare = c.bloodmoon > 0 ? 0.3 : 0;
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    this.drawBlob(ctx, this.blob("bloodglow", [[0, "rgba(255,60,70,0.9)"], [1, "rgba(160,10,40,0)"]]), e.x, e.y - r * 0.5, r * (2.1 + pulse * 0.3 + flare), r * (1.6 + pulse * 0.2 + flare * 0.6), (e.enraged ? 0.5 : 0.32) + flare + this.night * 0.25);
-    ctx.restore();
-    if (Math.floor(c.time * 10 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ff7a7a" : "#c81a3a", 1, 36, { max: 0.7, size: 2.4, gravity: -60, shape: "dot" });
-  }
-
-  /** The Hollow King: a cold violet pall and pale grave-motes drifting up around him. */
-  private drawHollowAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
-    const r = e.def.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(c.time * 1.8 + e.id);
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    this.drawBlob(ctx, this.blob("hollowglow", [[0, "rgba(170,130,255,0.9)"], [1, "rgba(60,30,140,0)"]]), e.x, e.y - r * 0.5, r * (2.3 + pulse * 0.35), r * (1.8 + pulse * 0.25), (e.enraged ? 0.55 : 0.36) + this.night * 0.25);
-    ctx.restore();
-    if (Math.floor(c.time * 9 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 13) * r * 0.8, e.y - r * (0.2 + Math.cos(c.time * 7) * 0.5), Math.sin(c.time * 19) > 0 ? "#e8e0ff" : "#9a7aff", 1, 30, { max: 0.9, size: 2.4, gravity: -50, shape: "dot" });
-  }
-
-  /** The Magma Titan glows from within: a molten halo and embers shed as it walks; brighter once it erupts. */
-  private drawMagmaAura(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
-    const r = e.def.radius;
-    const pulse = 0.5 + 0.5 * Math.sin(c.time * 3 + e.id);
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), e.x, e.y - r * 0.5, r * (2 + pulse * 0.3), r * (1.6 + pulse * 0.2), (e.enraged ? 0.55 : 0.35) + this.night * 0.25);
-    ctx.restore();
-    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && this.fx.particles.length < 400) this.fx.burst(e.x + Math.sin(c.time * 17) * r * 0.6, e.y - r * (0.4 + Math.cos(c.time * 11) * 0.4), Math.sin(c.time * 23) > 0 ? "#ffb040" : "#ff5a1a", 1, 40, { max: 0.7, size: 2.6, gravity: -80, shape: "dot" });
   }
 
   /** A building set ablaze by a Fire Imp: licking flames and smoke until it burns out or is stamped out. */
