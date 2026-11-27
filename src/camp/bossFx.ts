@@ -236,7 +236,7 @@ export class BossFx {
     ctx.globalCompositeOperation = "lighter";
     env.drawBlob(ctx, env.blob("thunderaura", [[0, "rgba(120,170,255,0.9)"], [1, "rgba(40,70,200,0)"]]), e.x, e.y - r * 0.5, r * (2.2 + pulse * 0.3), r * (1.7 + pulse * 0.2), (e.enraged ? 0.55 : 0.34) + env.night * 0.25);
     ctx.restore();
-    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && env.fx.particles.length < 400) env.fx.burst(e.x + Math.sin(c.time * 19) * r * 0.8, e.y - r * (0.3 + Math.cos(c.time * 13) * 0.6), Math.sin(c.time * 31) > 0 ? "#e8f0ff" : "#7aa8ff", 1, 60, { max: 0.25, size: 2.2, gravity: 0, shape: "spark" });
+    if (Math.floor(c.time * 12 + e.id) % 2 === 0 && env.fx.particles.length < 400) env.fx.burst(e.x + Math.sin(c.time * 19) * r * 0.8, e.y - r * (0.3 + Math.cos(c.time * 13) * 0.6), Math.sin(c.time * 31) > 0 ? "#e8f0ff" : "#7aa8ff", 1, 60, { max: 0.25, size: 2.2, gravity: 0, shape: "dot" });
   }
 }
 
