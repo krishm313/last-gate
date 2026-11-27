@@ -120,6 +120,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Fix: the switch-on commit had one failing test (later chapters must have a higher hpMult; my tuning put ch12 at 4.5 < ch11 4.6) — my test gate grepped output instead of checking the exit code. ch12 hpMult 4.65, HP table 2.55 to hold balance. Rule: gate commits on `npx vitest run` exit status.
 - 2026-11-27 Ch12 ✅ SHIPPED (switch on): The Blossom Pass + the Twin Generals. Balance L8 6% / L10 20%; finale flow checked live (shared bar 100% → 33% after a general falls, vengeance banner + roar, no errors); suite passes in both switch states. Not done (noted): twins are not in the Endless boss rotation (Endless spawns one boss per boss night).
 - 2026-11-27 Ch12 slice 5b (hidden) balance confirmed (96): L8 2% → softer nights 6 / 9 → L8 6%, L10 20% (ch11: 7% / 31%) — a step harder than ch11, as a later chapter should be. Next: full autoplay run with the switch on (errors, flow), then switch on.
 - 2026-11-27 Ch12 slice 5a (hidden) balance: first pass 0% / 0% (L8 / L10, 96). Tuned: chapter HP 3.2 → 2.6, hpMult 4.8 → 4.5, gate ×1.5 → ×1.4, softer night 3 / 6 mixes, generals 1900 → 1500 HP. Diagnosis by A/B: escorts off 6%, one general alone 35% → the pair hitting the wall at once doubled boss DPS; generals' gate damage 55 / 60 → 32 / 36 → L10 23% (48). Confirm run (96, L8 + L10) next.

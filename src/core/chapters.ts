@@ -260,7 +260,7 @@ export const BLOSSOM_PASS: ChapterDef = {
   id: 12,
   name: "The Blossom Pass",
   blurb: "Spring comes to the high pass, petals on the wind — and the horde's last two generals ride out together.",
-  hpMult: 4.5,
+  hpMult: 4.65,
   speedMult: 1.1,
   gateDamageMult: 1.4,
   affixes: ["Warbands: the horde charges in tighter packs", "Fury: the horde hits the gate 40% harder"],
