@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { newSave } from "../src/core/meta";
 import { kingdomProgress } from "../src/ui/kingdom";
+import { CHAPTERS } from "../src/core/chapters";
 
 describe("C11 kingdom view", () => {
   it("grows one landmark per chapter cleared and always names the next", () => {
@@ -13,7 +14,7 @@ describe("C11 kingdom view", () => {
     const p2 = kingdomProgress(s);
     expect(p2.raised).toBe(3);
     expect(p2.next?.name).toBe("Forge");
-    for (let i = 1; i <= 10; i++) s.stars[i] = 3;
+    for (const ch of CHAPTERS) s.stars[ch.id] = 3;
     const all = kingdomProgress(s);
     expect(all.raised).toBe(all.total);
     expect(all.next).toBeNull();

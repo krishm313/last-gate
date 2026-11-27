@@ -9,4 +9,4 @@ export const SIDE_GAMES_ENABLED = false;
 export const SIDE_GAME_IDS = ["archery", "supply", "watch", "catapult", "dragon", "lanterns", "forge", "bells", "mason"];
 
 /** Chapter 11 "The Storm Coast" — built in slices (see SUPERVISOR.md) and switched on when complete. */
-export const CH11_ENABLED = false;
+export const CH11_ENABLED = true;

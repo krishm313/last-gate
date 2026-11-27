@@ -1,3 +1,4 @@
+import { CH11_ENABLED } from "./features";
 import { ENEMIES, type EnemyId } from "./enemies";
 import { createRng, next, weighted } from "./rng";
 
@@ -120,7 +121,7 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
   return { number: wave, spawns, breather, boss: def.boss ?? null, intro: def.intro ?? null };
 }
 
-const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "dragon", "colossus", "frostwyrm", "magma", "drowned", "bloodlord", "hollowking"];
+const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "dragon", "colossus", "frostwyrm", "magma", "drowned", "bloodlord", "hollowking", ...(CH11_ENABLED ? (["thundergiant"] as EnemyId[]) : [])];
 
 /** Endless waves: cycle the template list; every 5th wave brings the next boss in rotation. */
 function endlessWave(chapter: ChapterDef, wave: number): WaveDef {
