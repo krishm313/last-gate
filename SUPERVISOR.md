@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B3 slice 1: bossFx.ts extracted (BossFxEnv adapter). Pattern for future slices: move a self-contained effect family + its state into a class, pass a small env object.
 - 2026-11-27 Game-feel slice: new-foe deaths (Shield Wall/Climber corpses; Balloon Bomber pop + falling basket).
 - 2026-11-27 B1 slice 3: banner blessings (one exclusive epic per banner, ×3 weight). Next: game-feel lane slice, then B1 close-out review (does a banner run *feel* different? playtest each once).
 - 2026-11-27 B1 slice 2: War Banner emblem on the plaza banners (in-run identity).
