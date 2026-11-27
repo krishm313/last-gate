@@ -324,6 +324,13 @@ export class Sfx {
         for (const [i, f] of [180, 140, 220].entries()) this.tone("sine", f, f * 0.5, 0.18, 0.18, i * 0.12);
         this.noise(0.5, 0.2, "lowpass", 500);
         break;
+      case "vengeance":
+        // A twin's partner falls: a deep two-voice roar that slides down, over a crash of drums.
+        if (!this.ok("vengeance", 1)) return;
+        this.tone("sawtooth", 120, 55, 1.4, 0.28);
+        this.tone("sawtooth", 180, 82, 1.3, 0.2, 0.05);
+        this.noise(1.1, 0.35, "lowpass", 380, 1, 0, 90);
+        break;
       case "thunder":
         if (!this.ok("thunder", 1)) return;
         this.noise(0.18, 0.55, "highpass", 1800, 1);

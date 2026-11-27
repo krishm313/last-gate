@@ -19,6 +19,8 @@ export interface WaveDef {
   intro?: EnemyId;
   /** Boss (or mini-boss) that arrives mid-wave. */
   boss?: EnemyId;
+  /** A second boss arriving beside the first (chapter 12's Twin Generals). */
+  boss2?: EnemyId;
   /** Extra HP multiplier for this wave's boss (e.g. a final boss reused as a mid-chapter mini-boss). */
   bossHpMult?: number;
   breather?: boolean;
@@ -58,6 +60,8 @@ export interface WavePlan {
   spawns: Spawn[];
   breather: boolean;
   boss: EnemyId | null;
+  /** Second boss fought alongside the first (twins). */
+  boss2?: EnemyId;
   intro: EnemyId | null;
 }
 
@@ -115,10 +119,11 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
     const at = spawns.length ? spawns[Math.floor(spawns.length / 3)]!.at : 1;
     // Bosses scale more gently with chapter than the rank and file, or they become HP sponges.
     const bossMult = chapter.hpMult ** 0.6 * d.hpGrowth ** ((wave - 1) * 0.5) * (def.bossHpMult ?? 1);
-    spawns.push({ at, enemy: def.boss, hpMult: bossMult, lane: 0.5 });
+    spawns.push({ at, enemy: def.boss, hpMult: bossMult, lane: def.boss2 ? 0.32 : 0.5 });
+    if (def.boss2) spawns.push({ at, enemy: def.boss2, hpMult: bossMult, lane: 0.68 });
     spawns.sort((a, b) => a.at - b.at);
   }
-  return { number: wave, spawns, breather, boss: def.boss ?? null, intro: def.intro ?? null };
+  return { number: wave, spawns, breather, boss: def.boss ?? null, ...(def.boss2 ? { boss2: def.boss2 } : {}), intro: def.intro ?? null };
 }
 
 const ENDLESS_BOSSES: EnemyId[] = ["ogre", "warlord", "troll", "hag", "golem", "dragon", "colossus", "frostwyrm", "magma", "drowned", "bloodlord", "hollowking", ...(CH11_ENABLED ? (["thundergiant"] as EnemyId[]) : [])];

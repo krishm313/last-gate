@@ -66,6 +66,9 @@ export const CAMP = {
 };
 
 /** Camp-mode per-chapter enemy HP tuning (the chapter tables are shared with the old gate mode). */
+/** Twin bosses (chapter 12): the shared boss-bar title, and what the survivor gains when its partner falls. */
+export const TWIN = { title: "The Twin Generals", speed: 1.2, damage: 1.3, phaseEvery: 0.6 };
+
 export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 9: 2.45, 10: 2.6, 11: 3.0, 12: 3.2, 98: 2.3, 99: 1 };
 
 export const TOWER_LEVELS = [
@@ -114,6 +117,10 @@ export interface Enemy {
   warcry?: number;
   /** Seconds until the boss's next phase-2 move. */
   phaseTimer?: number;
+  /** Twin boss whose partner fell: faster, harder-hitting, signature more often (TWIN). */
+  vengeance?: boolean;
+  /** Twin boss: max HP of partners already slain (keeps the shared boss bar from jumping). */
+  twinLost?: number;
   /** Frost Wyrm: seconds until the next frost nova (phase 2). */
   novaTimer?: number;
   /** Inside a Banner-bearer's rallying aura this step (faster, tougher). */
@@ -428,6 +435,8 @@ export type CampEvent =
   | { type: "ballista"; plot: string; x: number; y: number; tx: number; ty: number; hits: number }
   | { type: "hit"; x: number; y: number; damage: number; crit: boolean; owner: string; eid?: number }
   | { type: "kill"; x: number; y: number; enemy: EnemyDef; gold: number; eid: number; elite?: boolean }
+  /** A twin boss's partner fell: it takes vengeance. */
+  | { type: "vengeance"; x: number; y: number; name: string; fallen: string }
   | { type: "coinPickup"; x: number; y: number }
   /** A coin sent from the hall's pile straight to the King (wherever he is). */
   | { type: "courier"; x: number; y: number }
@@ -1981,7 +1990,7 @@ export function spawnEnemy(c: Camp, s: Spawn, at?: Vec): Enemy {
 export function enemySpeed(c: Camp, e: Enemy): number {
   if (e.stunTime > 0) return 0;
   const slow = e.slowTime > 0 ? e.slowPct * (e.def.slowResist ?? 1) : 0;
-  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (e.def.boss ? 1 : tideSlow(c, e.y)) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.rallied ? 1 + RALLY.speed : 1) * (c.bloodmoon > 0 && !e.def.boss ? BLOODMOON.speed : 1);
+  return e.def.speed * c.chapter.speedMult * (e.elite === "swift" ? ELITE.speed : 1) * (e.def.boss ? 1 : tideSlow(c, e.y)) * (1 - slow) * (e.enraged ? 1.5 : 1) * (e.vengeance ? TWIN.speed : 1) * (e.rallied ? 1 + RALLY.speed : 1) * (c.bloodmoon > 0 && !e.def.boss ? BLOODMOON.speed : 1);
 }
 
 function moveToward(c: Camp, e: Enemy, tx: number, ty: number): number {
@@ -2093,7 +2102,7 @@ function enemyAbilities(c: Camp, e: Enemy): void {
   if (p2 && e.enraged && p2.every > 0) {
     e.phaseTimer = (e.phaseTimer ?? 1.5) - STEP;
     if (e.phaseTimer <= 0) {
-      e.phaseTimer += p2.every;
+      e.phaseTimer += p2.every * (e.vengeance ? TWIN.phaseEvery : 1);
       bossPhaseMove(c, e, p2);
     }
   }
@@ -2345,7 +2354,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
       if (a.respawn > 0) continue;
       const d = Math.hypot(a.x - e.x, a.y - e.y);
       if (d < def.radius + 16) {
-        attackTick(c, e, () => damageAlly(c, a, def.gateDamage));
+        attackTick(c, e, () => damageAlly(c, a, def.gateDamage * (e.vengeance ? TWIN.damage : 1)));
         return;
       }
     }
@@ -2396,7 +2405,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
   const walledOff = !!c.reverse && !def.flying && e.y < WALL_Y && h.y > WALL_Y && wallIntact(c, segmentIndexAt(e.x));
   if (!def.kamikaze && !def.bomber && def.behavior !== "ranged" && !walledOff && heroD < (def.flying ? 160 : 70)) {
     if (heroD > reach) moveToward(c, e, h.x, h.y);
-    else attackTick(c, e, () => damageHero(c, def.gateDamage));
+    else attackTick(c, e, () => damageHero(c, def.gateDamage * (e.vengeance ? TWIN.damage : 1)));
     return;
   }
 
@@ -2487,7 +2496,7 @@ function updateEnemy(c: Camp, e: Enemy): void {
       return;
     }
     attackTick(c, e, () => {
-      damageWall(c, seg, def.gateDamage);
+      damageWall(c, seg, def.gateDamage * (e.vengeance ? TWIN.damage : 1));
       // Thorn Walls: the blow comes back (scaled like tower damage so it stays relevant later).
       if (c.mods.thorns > 0) {
         damageEnemy(c, e, def.gateDamage * c.mods.thorns * THORNS.scale * towerScale(c), "thorns");
@@ -2893,6 +2902,18 @@ function reap(c: Camp): void {
         if (spread) c.events.push({ type: "rule", rule: "wildfire", x: e.x, y: e.y });
       }
       c.events.push({ type: "kill", x: e.x, y: e.y, enemy: e.def, gold, eid: e.id, ...(e.elite ? { elite: true } : {}) });
+      // Twin Generals: the survivor takes vengeance for its fallen partner.
+      if (e.def.twin) {
+        for (const o of c.enemies) {
+          if (o === e || o.hp <= 0 || !o.def.twin) continue;
+          o.twinLost = (o.twinLost ?? 0) + e.maxHp + (e.twinLost ?? 0);
+          if (o.vengeance) continue;
+          o.vengeance = true;
+          if (!o.enraged) { o.enraged = true; c.events.push({ type: "enrage", x: o.x, y: o.y, name: o.def.name }); }
+          o.phaseTimer = Math.min(o.phaseTimer ?? 1.5, 1.5);
+          c.events.push({ type: "vengeance", x: o.x, y: o.y, name: o.def.name, fallen: e.def.name });
+        }
+      }
       if (e.elite === "splitting") {
         for (let i = 0; i < 2; i++) {
           const k = spawnEnemy(c, { at: 0, enemy: e.def.id, hpMult: e.hpMult, lane: null }, { x: e.x + (i ? 12 : -12), y: e.y - 4 });
@@ -2958,7 +2979,7 @@ function startWave(c: Camp): void {
   c.phase = "wave";
   c.events.push({
     type: "waveStart", wave: c.wave, breather: plan.breather, weather: c.weather,
-    boss: plan.boss ? ENEMIES[plan.boss].name : null, intro: plan.intro ? ENEMIES[plan.intro].name : null,
+    boss: plan.boss2 ? TWIN.title : plan.boss ? ENEMIES[plan.boss].name : null, intro: plan.intro ? ENEMIES[plan.intro].name : null,
     ...(c.nightEvent ? { event: c.nightEvent } : {}),
   });
 }

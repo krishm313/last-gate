@@ -3,7 +3,7 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { PRE_MASTERY, BALLISTA_LEVELS, CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
+import { PRE_MASTERY, BALLISTA_LEVELS, CAMP, TWIN, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
 
 /** Icons for buildings named in blessing requirements. */
 const BUILDING_ICON: Record<string, string> = { ballista: "🏹", watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
@@ -189,7 +189,7 @@ const portraits = new Map<string, string>();
 const PAINTED: Partial<Record<string, string>> = {
   footman: "enemy_footman", runner: "enemy_footman", brute: "enemy_brute", crossbow: "enemy_crossbow",
   shield: "enemy_shield", goblin: "enemy_goblin", mob: "enemy_mob", thief: "enemy_thief", wraith: "enemy_wraith", stalker: "enemy_stalker", sapper: "enemy_sapper", tunneler: "enemy_sapper", phalanx: "enemy_shield", climber: "enemy_goblin", banner: "enemy_footman", knight: "enemy_knight", shaman: "enemy_shaman", hag: "elite_mage",
-  ogre: "boss", troll: "boss", warlord: "boss", golem: "boss", colossus: "boss", magma: "boss", drowned: "boss", thundergiant: "boss", hollowking: "hollowking",
+  ogre: "boss", troll: "boss", warlord: "boss", golem: "boss", colossus: "boss", magma: "boss", drowned: "boss", thundergiant: "boss", jadegeneral: "boss", crimsongeneral: "boss", hollowking: "hollowking",
 };
 const FLYER_EMOJI: Partial<Record<string, string>> = { raven: "🐦‍⬛", imp: "👺", bomber: "🎈", siegetower: "🗼" };
 function portrait(id: EnemyId): string {
@@ -770,8 +770,13 @@ export class CampHud {
     // (Toasts drop below the boss bar while it's up — "New in the Bestiary" used to sit on top of it.)
     if (this.toastHost.classList.contains("below-boss") !== !!boss) this.toastHost.classList.toggle("below-boss", !!boss);
     if (boss) {
-      setText(this.bossName, boss.enraged ? `${boss.def.name} — ENRAGED` : boss.def.name);
-      const frac = Math.max(0, boss.hp / boss.maxHp);
+      // Twin bosses share one bar: summed HP over both (a slain partner's share stays as lost).
+      const twins = boss.def.twin ? c.enemies.filter((e) => e.def.twin && e.hp > 0) : [];
+      const title = twins.length > 1 ? TWIN.title : boss.def.name;
+      setText(this.bossName, boss.vengeance ? `${boss.def.name} — VENGEANCE` : boss.enraged ? `${title} — ENRAGED` : title);
+      const frac = twins.length
+        ? Math.max(0, twins.reduce((a, e) => a + e.hp, 0) / twins.reduce((a, e) => a + e.maxHp + (e.twinLost ?? 0), 0))
+        : Math.max(0, boss.hp / boss.maxHp);
       const bw = `${Math.round(frac * 1000) / 10}%`;
       if (this.bossFill.style.width !== bw) {
         this.bossFill.style.width = bw;

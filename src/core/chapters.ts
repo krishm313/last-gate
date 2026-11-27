@@ -255,8 +255,7 @@ export const STORM_COAST: ChapterDef = {
     { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.6, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, bomber: 0.5 }, boss: "thundergiant" },
   ],
 };
-/** Chapter 12 (built behind CH12_ENABLED; SUPERVISOR.md batch 5). The finale boss is a placeholder
- *  until the Twin Generals land (slice 3). */
+/** Chapter 12 (built behind CH12_ENABLED; SUPERVISOR.md batch 5). Finale: the Twin Generals. */
 export const BLOSSOM_PASS: ChapterDef = {
   id: 12,
   name: "The Blossom Pass",
@@ -277,7 +276,7 @@ export const BLOSSOM_PASS: ChapterDef = {
     { mix: { stalker: 0.8, knight: 1.8, wraith: 1.6, crossbow: 1.5, shaman: 1.1, banner: 1.1, phalanx: 0.7 } },
     { mix: { raven: 1.6, goblin: 2, bat: 2, imp: 1.2, bomber: 0.5 }, breather: true },
     { mix: { siegetower: 0.5, phalanx: 0.9, climber: 0.7, bomber: 0.5, shield: 2, knight: 1.9, wraith: 1.6, crossbow: 1.3, ram: 1, brute: 1.4, shaman: 1, banner: 1 } },
-    { mix: { footman: 2, shield: 1.4, knight: 1.7, phalanx: 0.8, crossbow: 1.2, brute: 1.2, banner: 1.1, shaman: 0.9, bomber: 0.5 }, boss: "warlord" },
+    { mix: { footman: 2, shield: 1.4, knight: 1.7, phalanx: 0.8, crossbow: 1.2, brute: 1.2, banner: 1.1, shaman: 0.9, bomber: 0.5 }, boss: "jadegeneral", boss2: "crimsongeneral" },
   ],
 };
 export const CHAPTERS: ChapterDef[] = [...BASE_CHAPTERS, ...(CH11_ENABLED ? [STORM_COAST] : []), ...(CH12_ENABLED ? [BLOSSOM_PASS] : [])];

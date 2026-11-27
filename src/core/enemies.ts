@@ -1,4 +1,4 @@
-import { CH11_ENABLED } from "./features";
+import { CH11_ENABLED, CH12_ENABLED } from "./features";
 /** Enemy roster. Pure data: tune numbers here, not in the simulation. */
 export type EnemyId =
   | "footman"
@@ -36,7 +36,9 @@ export type EnemyId =
   | "climber"
   | "bomber"
   | "siegetower"
-  | "thundergiant";
+  | "thundergiant"
+  | "jadegeneral"
+  | "crimsongeneral";
 
 export type Behavior =
   /** Walks to the wall and hits the gate. */
@@ -117,6 +119,9 @@ export interface EnemyDef {
   /** Phase 2 (below half HP): every `every` s a frost nova freezes towers within `radius` for `stun` s. */
   frostNova?: { every: number; radius: number; stun: number };
   /** Distinct second-phase move once enraged (below half HP). */
+  /** One of a pair of bosses fought together (chapter 12's Twin Generals): when one falls the other
+   *  takes vengeance (see TWIN in camp/sim.ts). */
+  twin?: boolean;
   phase2?: { kind: "slam" | "warcry" | "boulders" | "curse" | "eruption" | "tide" | "bloodmoon" | "graverise" | "breath" | "quake" | "bog" | "thunder"; every: number; radius: number; power: number };
 }
 
@@ -146,6 +151,18 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     ...base, id: "thundergiant", name: "The Thunder Giant", hp: 3400, speed: 13, radius: 37, gateDamage: 70, attackInterval: 2, gold: 280, color: "#4a6a9a",
     cost: 0, slowResist: 0.2, boss: true, armor: 0.2, behavior: "summoner", summon: { enemy: "raven", count: 3, interval: 8, enraged: "climber" },
     phase2: { kind: "thunder", every: 6.5, radius: 380, power: 2.4 },
+  },
+  // Chapter 12's Twin Generals: fought together, sharing one boss bar. Jade calls a Banner-bearer escort
+  // and rallies with a war cry; Crimson brings Brutes and shakes the ground.
+  jadegeneral: {
+    ...base, id: "jadegeneral", name: "The Jade General", hp: 1900, speed: 15, radius: 33, gateDamage: 55, attackInterval: 1.7, gold: 160, color: "#3a8a6a",
+    cost: 0, slowResist: 0.3, boss: true, armor: 0.15, twin: true, behavior: "summoner", summon: { enemy: "banner", count: 2, interval: 9, enraged: "knight" },
+    phase2: { kind: "warcry", every: 10, radius: 260, power: 6 },
+  },
+  crimsongeneral: {
+    ...base, id: "crimsongeneral", name: "The Crimson General", hp: 1900, speed: 16, radius: 33, gateDamage: 60, attackInterval: 1.6, gold: 160, color: "#a83a3a",
+    cost: 0, slowResist: 0.3, boss: true, armor: 0.15, twin: true, behavior: "summoner", summon: { enemy: "brute", count: 1, interval: 10, enraged: "runner" },
+    phase2: { kind: "quake", every: 10, radius: 230, power: 2.2 },
   },
   siegetower: { ...base, id: "siegetower", name: "Siege Tower", hp: 240, speed: 17, radius: 22, gateDamage: 6, attackInterval: 2, gold: 8, color: "#8a5a30", cost: 4, slowResist: 0.4, introCount: 1, unloads: { enemy: "climber", count: 3 } },
   bomber: { ...base, id: "bomber", name: "Balloon Bomber", hp: 30, speed: 34, radius: 14, gateDamage: 9, attackInterval: 2.6, gold: 4, color: "#c8503a", cost: 3, flying: true, bomber: { hover: 135 } },
@@ -245,5 +262,6 @@ export function enemyTraits(d: EnemyDef): string[] {
 
 /** Foes that belong to content still switched off (kept out of the Bestiary until it ships). */
 export function enemyEnabled(id: string): boolean {
+  if (id === "jadegeneral" || id === "crimsongeneral") return CH12_ENABLED;
   return id !== "thundergiant" || CH11_ENABLED;
 }

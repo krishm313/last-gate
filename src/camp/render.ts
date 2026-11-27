@@ -1486,6 +1486,15 @@ export class CampRenderer {
           fx.rings.push({ x: ev.x, y: ev.y, r: 120, color: "#ff2020", life: 0.8, max: 0.8, width: 6 });
           fx.shake(0.5);
           break;
+        case "vengeance":
+          // A twin's partner fell: a double shock ring, a red flash and a roar of sparks.
+          fx.rings.push({ x: ev.x, y: ev.y, r: 160, color: "#ff3a3a", life: 0.9, max: 0.9, width: 8 });
+          fx.rings.push({ x: ev.x, y: ev.y, r: 100, color: "#ffd84a", life: 0.6, max: 0.6, width: 4 });
+          fx.burst(ev.x, ev.y - 30, "#ff6a4a", 26, 260, { max: 0.9, size: 3.2, gravity: 80, shape: "spark" });
+          fx.flash = 0.3;
+          fx.flashColor = "#ff8a6a";
+          fx.shake(0.7);
+          break;
         case "waveClear": {
           this.cheerAt = this.time;
           // Final blow of the night: a beat of slow motion, a golden flash and a shock ring

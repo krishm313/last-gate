@@ -1376,6 +1376,7 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "breath":
     case "quake":
     case "thunder":
+    case "vengeance":
       sfx.event(ev.type);
       buzz(settings, 60);
       return;
@@ -1612,7 +1613,8 @@ function frame(now: number) {
         if (c.phase === "build") hud.banner("New building!", `${ev.label} unlocked`);
         else unlockedLabels.push(ev.label);
       }
-      if (ev.type === "kill" && ev.enemy.boss) hud.banner(`${ev.enemy.name} defeated!`, "👑 Boss slain");
+      if (ev.type === "kill" && ev.enemy.boss && !(ev.enemy.twin && c.enemies.some((e) => e.def.twin && e.hp > 0))) hud.banner(`${ev.enemy.name} defeated!`, "👑 Boss slain");
+      if (ev.type === "vengeance") hud.banner(`${ev.name}: VENGEANCE!`, `${ev.fallen} has fallen!`, "red");
       if (ev.type === "kill" && ev.enemy.id === "thief") hud.banner("Goblin caught!", `🪙 +${ev.gold} coins`);
       if (ev.type === "thief") hud.banner("Treasure goblin!", "Catch it before it escapes!");
       if (ev.type === "thiefEscaped") hud.banner("It got away…", undefined, "red");

@@ -265,6 +265,10 @@ const AURA: Record<string, Aura> = {
     mote: { rate: 9, fx: 13, ax: 0.8, y: 0.2, fy: 7, ay: 0.5, fc: 19, colors: ["#e8e0ff", "#9a7aff"], speed: 30, life: 0.9, size: 2.4, gravity: -50 } },
   magma: { key: "lavaglow", inner: "rgba(255,120,40,0.9)", outer: "rgba(255,60,10,0)", pulse: 3, rx: 2, ry: 1.6, alpha: [0.35, 0.55],
     mote: { rate: 12, fx: 17, ax: 0.6, y: 0.4, fy: 11, ay: 0.4, fc: 23, colors: ["#ffb040", "#ff5a1a"], speed: 40, life: 0.7, size: 2.6, gravity: -80 } },
+  jadegeneral: { key: "jadeglow", inner: "rgba(90,230,160,0.85)", outer: "rgba(20,140,90,0)", pulse: 2.2, rx: 2.1, ry: 1.6, alpha: [0.32, 0.52],
+    mote: { rate: 10, fx: 15, ax: 0.6, y: 0.4, fy: 9, ay: 0.4, fc: 21, colors: ["#b8ffd8", "#3ac88a"], speed: 32, life: 0.7, size: 2.4, gravity: -50 } },
+  crimsongeneral: { key: "crimsonglow", inner: "rgba(255,90,70,0.85)", outer: "rgba(170,20,20,0)", pulse: 2.6, rx: 2.1, ry: 1.6, alpha: [0.32, 0.52],
+    mote: { rate: 10, fx: 17, ax: 0.6, y: 0.4, fy: 11, ay: 0.4, fc: 23, colors: ["#ffb0a0", "#e03a2a"], speed: 36, life: 0.7, size: 2.4, gravity: -60 } },
   thundergiant: { key: "thunderaura", inner: "rgba(120,170,255,0.9)", outer: "rgba(40,70,200,0)", pulse: 2.4, rx: 2.2, ry: 1.7, alpha: [0.34, 0.55],
     mote: { rate: 12, fx: 19, ax: 0.8, y: 0.3, fy: 13, ay: 0.6, fc: 31, colors: ["#e8f0ff", "#7aa8ff"], speed: 60, life: 0.25, size: 2.2, gravity: 0 } },
 };
@@ -282,6 +286,8 @@ const ARENA: Record<string, { tint: string; mote: string; size: number; speed: n
   frostwyrm: { tint: "60,120,190", mote: "240,248,255", size: 2.6, speed: 40, sway: 26, rise: false, glow: false },
   drowned: { tint: "20,80,110", mote: "150,220,235", size: 2.2, speed: 50, sway: 8, rise: false, glow: true },
   bloodlord: { tint: "150,10,30", mote: "255,70,80", size: 2.2, speed: 24, sway: 18, rise: true, glow: true },
+  jadegeneral: { tint: "120,60,90", mote: "255,200,225", size: 2.6, speed: 18, sway: 26, rise: false, glow: false },
+  crimsongeneral: { tint: "120,60,90", mote: "255,200,225", size: 2.6, speed: 18, sway: 26, rise: false, glow: false },
   thundergiant: { tint: "40,60,110", mote: "200,225,255", size: 2.2, speed: 90, sway: 6, rise: false, glow: true },
   hollowking: { tint: "70,30,130", mote: "190,150,255", size: 2.6, speed: 20, sway: 24, rise: true, glow: true },
 };
