@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B2 slice 2: Conquest milestone in Next goals (first goal for graduates).
 - 2026-11-27 B2 slice 1: Conquest board (18 milestones, gold, Trophies panel, kingdom flags). Next: B2 slice 2 (look at what a chapter-10 graduate does next session — Endless / weekly payoff), interleave a game-feel slice.
 - 2026-11-27 B3 slice 1: bossFx.ts extracted (BossFxEnv adapter). Pattern for future slices: move a self-contained effect family + its state into a class, pass a small env object.
 - 2026-11-27 Game-feel slice: new-foe deaths (Shield Wall/Climber corpses; Balloon Bomber pop + falling basket).

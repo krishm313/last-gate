@@ -1,6 +1,8 @@
 import { ACHIEVEMENTS } from "./achievements";
 import { CHAPTERS } from "./chapters";
-import { chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, type SaveData } from "./meta";
+import { chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, totalStars, type SaveData } from "./meta";
+import { BANNER_BY_ID } from "./banners";
+import { CONQUEST, CONQUEST_BANNERS, conquestDone, conquestEntry } from "./conquest";
 import { nextSkillThreshold, SKILL_THRESHOLDS } from "./skills";
 import { HERO_BY_ID } from "./heroes";
 
@@ -54,9 +56,30 @@ export function nextGoals(s: SaveData, max = 3): Goal[] {
     const best = s.best[99] ?? 0;
     extra.push({ key: "endless", icon: "♾️", text: `Reach night ${m} in Endless`, progress: Math.min(1, best / m), label: `Best: night ${best}`, reward: endlessMilestoneReward(m), action: { kind: "chapter", id: 99 } });
   }
+  // Conquest: the next milestone under your banner (or a nudge to fly one), once chapter 1 is cleared.
+  let conquestGoal: Goal | null = null;
+  if ((s.stars[1] ?? 0) > 0) {
+    const stars = totalStars(s);
+    const flying = s.banner && s.banner !== "none" && stars >= BANNER_BY_ID[s.banner].stars ? s.banner : null;
+    const cands = CONQUEST_BANNERS.filter((b) => stars >= b.stars).sort((a, b) => (a.id === flying ? -1 : b.id === flying ? 1 : 0));
+    for (const b of cands) {
+      const e = conquestEntry(s.conquest, b.id);
+      const done = conquestDone(e);
+      if (done === 3) continue;
+      const step = !e.win ? { text: "win a chapter", reward: CONQUEST.gold.win, action: { kind: "chapter", id: Math.max(1, ...CHAPTERS.filter((c) => chapterUnlocked(s, c.id)).map((c) => c.id)) } as const }
+        : !e.ch10 && chapterUnlocked(s, 10) ? { text: "win chapter 10", reward: CONQUEST.gold.ch10, action: { kind: "chapter", id: 10 } as const }
+        : e.endless < CONQUEST.endlessGoal && chapterUnlocked(s, 99) ? { text: `hold ${CONQUEST.endlessGoal} Endless nights`, reward: CONQUEST.gold.endless, action: { kind: "chapter", id: 99 } as const }
+        : null;
+      if (!step) continue;
+      conquestGoal = { key: `cq-${b.id}`, icon: b.icon, text: `${flying === b.id ? "" : "Fly "}${b.name}: ${step.text}`, progress: done / 3, label: `Conquest ${done} / 3`, reward: step.reward, action: step.action };
+      break;
+    }
+  }
   // Interleave: one chapter goal, then the nearest trophies and extras by closeness.
   const out: Goal[] = [];
   if (chapter[0]) out.push(chapter[0]);
+  // A campaign graduate's first goal is the Conquest board (otherwise it would sort last at 0%).
+  if (conquestGoal && (!chapter.length || out.length < max)) out.push(conquestGoal);
   const rest = [...chapter.slice(1), ...trophies, ...extra].sort((a, b) => b.progress - a.progress);
   for (const g of rest) {
     if (out.length >= max) break;

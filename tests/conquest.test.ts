@@ -20,3 +20,17 @@ describe("Conquest board (B2)", () => {
     expect(sanitizeSave({ ...s, conquest: { pyre: { win: "yes", endless: 1e9 }, bogus: {} } }).conquest).toEqual({ pyre: { win: false, ch10: false, endless: 9999 } });
   });
 });
+
+describe("Conquest in Next goals (B2)", () => {
+  it("a campaign graduate's first goal is their banner's next Conquest milestone", async () => {
+    const { nextGoals } = await import("../src/core/goals");
+    const s = newSave();
+    for (let i = 1; i <= 10; i++) s.stars[i] = 3;
+    s.banner = "pyre";
+    s.conquest = { pyre: { win: true, ch10: false, endless: 0 } };
+    const g = nextGoals(s)[0]!;
+    expect(g.key).toBe("cq-pyre");
+    expect(g.reward).toBe(CONQUEST.gold.ch10);
+    expect(g.action).toEqual({ kind: "chapter", id: 10 });
+  });
+});
