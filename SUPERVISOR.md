@@ -120,6 +120,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch12 slice 2 (hidden): blossom look — scripts/tint_props.py (new, reproducible prop recolours) makes blossom.webp (pink-blossom round trees, spring-green pines / bushes), gen_terrain palette 12 → ground_12.webp, mood 12 wired (prop tint, painted ground, pink treeline burst, 18 drifting petals). Checked in-game with the switch on locally.
 - 2026-11-27 Ch12 slice 1 (hidden): CH12_ENABLED switch (off), BLOSSOM_PASS chapter data (10 nights, Ogre mini-boss n5, placeholder finale boss), CAMP_CHAPTER_HP[12] = 3.2; suite passes with the switch off and on.
 - 2026-11-27 Content batch 5 decided: Chapter 12 "The Blossom Pass" (two bosses at once — the Twin Generals), 5 slices behind CH12_ENABLED. Hero still deferred (art).
 - 2026-11-27 B3 slice: day life (cloud shadows, grass gusts, butterflies + crown perch, leaves, bird flocks) → src/camp/dayLife.ts (drawDayLife + DayLifeEnv + PERCH; render.ts −190 lines).

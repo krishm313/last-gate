@@ -150,6 +150,7 @@ export function drawDayLife(env: DayLifeEnv, ctx: CanvasRenderingContext2D, o: V
     2: { n: 6, cols: ["#5e8a4a", "#7a9a52", "#8aa83a", "#4e7a40"] },
     3: { n: 8, cols: ["#c8a050", "#b08840", "#d8b868", "#9a7a3a"] },
     5: { n: 22, cols: ["#d84a24", "#e8822a", "#f0b03a", "#b8341e", "#c86a2a"] },
+    12: { n: 18, cols: ["#ffc8dc", "#f4a8c8", "#ffe0ec", "#e88ab0", "#fff0f5"] }, // blossom petals
     99: { n: 7, cols: ["#d8a040", "#b8742a", "#8aa83a", "#c8582a"] },
   };
   const lf = LEAF[env.mood];

@@ -30,3 +30,5 @@ PROP_ATLAS.sunken = PROP_ATLAS.summer!;
 PROP_ATLAS.moor = PROP_ATLAS.summer!;
 /** Coast props for chapter 11 (summer atlas recoloured: windswept sea-green pines and shrubs). */
 PROP_ATLAS.coast = PROP_ATLAS.summer!;
+/** Blossom props for chapter 12 (scripts/tint_props.py blossom: pink-blossom round trees, spring-green pines). */
+PROP_ATLAS.blossom = PROP_ATLAS.summer!;
