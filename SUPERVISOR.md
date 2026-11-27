@@ -98,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Playtest polish round (fresh player · rusher · ch11 endgame autoplay): flows clean, no errors. Fix: the picked blessing's floating name rose into the dawn / "New building!" banner — now drawn under the hero.
 - 2026-11-27 Ch11 boss-night perf follow-up: same-scene A/B (aura on → off → on) shows the Thunder Giant aura is not the cost (19.7–28 ms at 4× throttle, swinging with foe/fill count; lite 2 already skips its additive glow). Aura sparks switched to cheap dots. Closed.
 - 2026-11-27 Perf regression caught by the late-game gate: arena vignette full-screen gradient (≈ 6 ms in software raster) → cached small canvas (ch10 boss night 10.5 → 5.4 ms). Ch11 boss night still ≈ 8.8 ms with weather/arena off vs ch10 5.4 — look into it later (Thunder Giant aura sparks / coast terrain?). Rule: run late.mjs after any per-frame effect.
 - 2026-11-27 Polish round: banner win end screen checked (Conquest lines, Ch 11 unlock, Next: Storm Coast) — added the missing Conquest row to the gold breakdown.

@@ -557,7 +557,8 @@ export class CampRenderer {
     }
     this.fx.rings.push({ x: h.x, y: h.y + 12, r: 70, color: "#bfe8ff", life: 0.6, max: 0.6, width: 5 });
     this.fx.burst(h.x, h.y - 10, "#fff2b0", 22, 170, { max: 0.8, size: 3, gravity: -90, shape: "spark" });
-    if (!this.flip) this.fx.number(h.x, h.y - 112, `${icon} ${name}`, "#bfe8ff", 18, 1.6);
+    // Below the hero: the dawn / "New building!" banner fills the middle of the screen above.
+    if (!this.flip) this.fx.number(h.x, h.y + 56, `${icon} ${name}`, "#bfe8ff", 18, 1.6);
   }
 
   /** Short fireworks burst for in-run milestones (e.g. a new endless record). */
