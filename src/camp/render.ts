@@ -64,6 +64,9 @@ const WINDOW_GLOW: Partial<Record<string, { base: number; spill: number; pts: [n
 
 /** Defender-side events whose popups are hidden from the attacker in Siege Lord. */
 const NO_SHAKE: Vec = { x: 0, y: 0 };
+/** Butterfly perch: butterfly `who` (blue) — after `after` s standing still by day it lands on the crown (offset dx, dy from the
+ *  King's feet), eases in/out at these rates per second, and rests facing `head` radians. */
+const PERCH = { who: 2, after: 3, dx: 3, dy: -43, inRate: 0.45, outRate: 1.8, head: -0.25 };
 const SIEGE_QUIET = new Set(["build", "noTarget", "callToArms", "sanctuary", "heroRespawn", "earlyBonus", "waveClear", "levelUp", "pickup", "unlock", "plotUnlocked", "specChosen"]);
 
 export class CampRenderer {
@@ -1648,6 +1651,15 @@ export class CampRenderer {
         this.prints.push({ x: c.hero.x + Math.cos(ang + Math.PI / 2) * (foot ? 3.5 : -3.5), y: c.hero.y + 12 + Math.sin(ang + Math.PI / 2) * (foot ? 2 : -2), a: ang, t: this.time });
       }
       this.heroFoot = foot;
+      // Stand still by day and a butterfly comes to rest on the crown (flits off when he moves).
+      this.heroStill = moved > 0.3 ? 0 : this.heroStill + dt;
+      const want = this.heroStill > PERCH.after && c.phase === "build" && !this.ambient ? 1 : 0;
+      this.perchK += Math.sign(want - this.perchK) * Math.min(Math.abs(want - this.perchK), dt * (want ? PERCH.inRate : PERCH.outRate));
+      this.perchAt.x = c.hero.x + PERCH.dx;
+      this.perchAt.y = c.hero.y + PERCH.dy;
+    } else {
+      this.heroStill = 0;
+      this.perchK = 0;
     }
     // Setting off kicks up a ring of dust behind the King; stopping short skids a puff ahead.
     if (!c.hero.dead) {
@@ -3972,19 +3984,35 @@ export class CampRenderer {
     for (let i = 0; i < (this.mood === 6 || this.mood === 7 || this.mood === 8 || this.mood === 9 ? 0 : 6); i++) {
       const [wx, wy] = bfPos(i, t);
       const [nx, ny] = bfPos(i, t + 0.15);
-      const [x, y] = this.screenAt(wx, wy, wy, o, sh);
+      let [x, y] = this.screenAt(wx, wy, wy, o, sh);
+      // The blue butterfly (reads against the gold crown) drifts over to perch on a King who has stood still a while (eased in and out).
+      const land = i === PERCH.who ? this.perchK * this.perchK * (3 - 2 * this.perchK) : 0;
+      if (land > 0) {
+        const [px, py] = this.screenAt(this.perchAt.x, this.perchAt.y, this.perchAt.y - PERCH.dy, o, sh);
+        // A little arc on the way in, so it swoops rather than slides.
+        x += (px - x) * land;
+        y += (py - y) * land - Math.sin(land * Math.PI) * 26;
+      }
       if (x < -10 || x > VIEW_W + 10 || y < -10 || y > VIEW_H + 10) continue;
       // Beat phase with a quick downstroke: warp the phase so the first 40% covers half the cycle.
       const raw = (t * 2.4 + i * 0.37) % 1;
       const ph = raw < 0.4 ? raw / 0.4 * 0.5 : 0.5 + (raw - 0.4) / 0.6 * 0.5;
-      const open = 0.18 + 0.82 * (0.5 + 0.5 * Math.cos(ph * Math.PI * 2)); // 1 = flat open, ~0 = up
-      const lift = Math.sin(ph * Math.PI * 2) * 1.6;
-      const head = Math.atan2(ny - wy, nx - wx) + Math.PI / 2;
-      ctx.globalAlpha = day;
+      let open = 0.18 + 0.82 * (0.5 + 0.5 * Math.cos(ph * Math.PI * 2)); // 1 = flat open, ~0 = up
+      let lift = Math.sin(ph * Math.PI * 2) * 1.6;
+      let head = Math.atan2(ny - wy, nx - wx) + Math.PI / 2;
+      if (land > 0) {
+        // Perched: wings fold up and open lazily, body still, facing up the screen.
+        const rest = 0.3 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.6));
+        open += (rest - open) * land;
+        lift *= 1 - land;
+        head += (PERCH.head - head) * land;
+      }
+      ctx.globalAlpha = day * (1 - land); // its ground shadow lands on the King instead
       ctx.fillStyle = "rgba(0,0,0,0.12)";
       ctx.beginPath();
       ctx.ellipse(x + 6, y + 14, 1.5 + 2.5 * open, 1.2, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.globalAlpha = day;
       ctx.save();
       ctx.translate(x, y - lift);
       ctx.rotate(head);
@@ -6061,6 +6089,10 @@ export class CampRenderer {
   }
 
   private cheerAt = -9;
+  /** Seconds the King has stood still, and how far (0..1) the perching butterfly has come in. */
+  private heroStill = 0;
+  private perchK = 0;
+  private perchAt: Vec = { x: 0, y: 0 };
   /** Current unit's hop height while drawing it (so its shadow can stay on the ground). */
   private cheerLift = 0;
   /** Night won: everyone hops for joy (two bounces, squashing on each landing), staggered by `seed`.

@@ -98,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Wild-idea slice: stand still by day for 3 s and the blue butterfly swoops in and perches on the King's crown (wings folded, opening lazily); it flits off as soon as he moves. Render-only (PERCH table), full-quality tier only like the other day life.
 - 2026-11-27 B3 slice: weather (rain + pond rings + splashes, summer sun shafts, endless crystal glints, dry-plains grit + dust devils, hollow-night mist + grave wisps, lightning with its flash/bolt state) → src/camp/weather.ts (WeatherFx + WeatherEnv; render.ts −237 lines). Checked ch2 rain, ch5 forced strike, ch4 mist.
 - 2026-11-27 C content: **Banner of the Week** — one unlocked banner featured per week (hashed rotation over the banners the player has unlocked); the first campaign win flying it that week pays +400 (save.bannerWeek, sanitized). Gold badge on its picker card ("✓" once claimed), end-screen row, run toast. Tests: rotation, one claim/week, save round-trip.
 - 2026-11-27 Game-feel/clarity slice: mid-game night frame review (ch5 n5). Fix: the "foes are hitting the wall — walk over" tip fired for ranged foes shooting from deep in the field (e.g. while the Siege Golem bombards), even with the King at the gate. Now only foes within 70 px of the palisade count (+ test).

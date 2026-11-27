@@ -297,6 +297,7 @@ Big features land in safe slices (sim + test first, then visuals), each slice sh
 ## Shipped (newest first)
 - Perf fix (found by the late-game check): the boss arena's edge tint was a full-screen gradient fill every frame — boss nights had crept from 4.4 to 10.5 ms per frame (52 ms at 4× slowed CPU). It's now pre-drawn once per theme into a small canvas and stretched over the view: 5.4 ms (≈24 ms at 4×), looks the same. Also the kingdom view's animation now pauses whenever the hub is hidden.
 - Polish (playtest of a banner win on chapter 10): the end screen's gold breakdown now has a "🚩 Conquest" row, so the rows add up to "Gold earned" (the Conquest payout was in the total but had no line).
+- Delight: stand still in daylight for a few seconds and a blue butterfly swoops down and rests on the King's crown, then flits off when you move.
 - Code health: all chapter and night weather (rain, sun shafts, dust, mist, lightning) moved into its own module.
 - C (phase 10) — **Banner of the Week**: each week one of your unlocked War Banners is featured (gold badge on its card); your first campaign win flying it that week pays +400 gold.
 - Polish: the "foes are hitting the wall — walk over" tip no longer fires for ranged foes shooting from far out in the field (where walking over isn't the answer).
