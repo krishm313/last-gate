@@ -1,3 +1,4 @@
+import type { BannerId } from "../core/banners";
 import { PET, type PetId } from "../core/pets";
 import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { CHAPTERS } from "../core/chapters";
@@ -535,6 +536,8 @@ export interface Camp {
   weapon: WeaponId;
   /** Companion pet, if any: where it is and what it's doing. */
   pet: PetState | null;
+  /** War Banner flown this run. */
+  banner: BannerId;
   /** Tonight has a boss (no Nightmare Blood Moon surge on those). */
   bossNight?: boolean;
   /** Building draft waiting on the player (kinds to choose from), else null. */
@@ -839,6 +842,8 @@ export interface CampSetup {
   weapon?: WeaponId;
   /** Companion pet (default none). */
   pet?: PetId;
+  /** War Banner flown this run (for its emblem on the plaza banners). */
+  banner?: BannerId;
   /** War Banner levers: per-building cost multipliers, level caps, and buildings open from the start. */
   costMult?: Partial<Record<PlotKind, number>>;
   maxLevels?: Partial<Record<PlotKind, number>>;
@@ -895,6 +900,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
   const camp: Camp = {
     lay,
     weapon: setup.weapon ?? "own",
+    banner: setup.banner ?? "none",
     pet: setup.pet && setup.pet !== "none" ? { kind: setup.pet, x: lay.heroSpawn.x - 24, y: lay.heroSpawn.y + 10, state: "follow", t: 1, target: 0, moving: false } : null,
     seed,
     rng: createRng(seed),

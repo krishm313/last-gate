@@ -47,6 +47,7 @@ export function bannerFor(save: SaveData): BannerId {
 /** Apply a War Banner's levers to a run setup. */
 export function applyBanner(s: CampSetup, id: BannerId): void {
   const m = s.mods!;
+  s.banner = id;
   if (id === "bastion") { m.wallHp *= 1.3; m.repairAfterWave += 0.1; s.costMult = { ...s.costMult, tower: 1.45 }; }
   else if (id === "hunter") { m.heroDamage *= 1.6; m.drops *= 2; m.income *= 0.5; }
   else if (id === "hoard") { s.startCoins = (s.startCoins ?? 12) + 60; m.income *= 1.3; s.enemyHpMult = (s.enemyHpMult ?? 1) * 1.15; }

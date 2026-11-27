@@ -1,3 +1,4 @@
+import { BANNER_BY_ID } from "../core/banners";
 import { Fx } from "../render/fx";
 import { BAT_ATLAS, DECOR_ATLAS, DRAGON_ATLAS, PROP_ATLAS, WALL_ATLAS } from "./propAtlas";
 import { animFrame, drawAnim, viewFor, type SpriteName, drawSprite, ENEMY_ANIMS, ENEMY_SPRITES, preloadAnims, preloadSprites, takeUnwarmed, type AnimName } from "./sprites";
@@ -1491,6 +1492,8 @@ export class CampRenderer {
   private groveMirror = false;
   /** The current camp's income pile (event pop-ups land there). */
   private incomeSpot: Vec = INCOME_PILE;
+  /** The run's War Banner emblem (stitched on the plaza banners), or "" for none. */
+  private warBanner = "";
   private heroSpot: Vec = HERO_SPAWN;
 
   draw(c: Camp, dt: number): void {
@@ -1507,6 +1510,7 @@ export class CampRenderer {
         this.terrain = null;
       }
       this.incomeSpot = c.lay.incomePile;
+      this.warBanner = c.banner && c.banner !== "none" ? BANNER_BY_ID[c.banner].icon : "";
       this.heroSpot = c.lay.heroSpawn;
       this.reveal = 0;
       this.revealPending = 0;
@@ -2614,6 +2618,22 @@ export class CampRenderer {
         const dy = (Math.sin(t - kk * 3.4) * 1.6 + Math.sin(t * 0.43 - kk * 1.7) * 0.7) * kk * (1 + gust * 2.2);
         const x0 = sx + pole + i * sw0;
         ctx.drawImage(img, x0, sy, sw0 + 0.6, sh, (-fx + pole + i * sw0) * k, (-fy + dy) * k, (sw0 + 0.6) * k, sh * k);
+      }
+      // War Banner: its emblem stitched on the cloth, riding the same ripple.
+      if (this.warBanner) {
+        const kk = 0.55, dy = (Math.sin(t - kk * 3.4) * 1.6 + Math.sin(t * 0.43 - kk * 1.7) * 0.7) * kk * (1 + gust * 2.2);
+        const ex = (-fx + pole + (sw - pole) * 0.27) * k, ey = (-fy + sh * 0.36 + dy) * k;
+        ctx.save();
+        if (pp.flip) { ctx.translate(ex, 0); ctx.scale(-1, 1); ctx.translate(-ex, 0); }
+        ctx.fillStyle = "#f2c443";
+        ctx.strokeStyle = "#5a3a10";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(ex, ey, 8.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.font = "11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(this.warBanner, ex, ey + 0.5);
+        ctx.restore();
       }
     } else ctx.drawImage(img, sx, sy, sw, sh, -fx * k, -fy * k, sw * k, sh * k);
     if (pp.n === "lantern1" && this.night > 0.02) {
