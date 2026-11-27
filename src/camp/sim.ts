@@ -889,7 +889,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90, 150], 4, [4, 8, 12, 18]), locked: true, unlockWave: 3 },
     { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140, 230], 4, [0, 0, 0, 18]), locked: true, unlockWave: 4 },
     { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120, 190], 4, [0, 0, 0, 16]), locked: true, unlockWave: 5 },
-    { ...makePlot("ballista", "ballista", "Ballista", 650, WALL_Y + 158, [70, 115, 180], 3, [0, 8, 14]), locked: true, unlockWave: 6 },
+    { ...makePlot("ballista", "ballista", "Ballista", 110, 960, [70, 115, 180], 3, [0, 8, 14]), locked: true, unlockWave: 6 },
     { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110, 180], 3, [6, 12, 18]), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
@@ -1697,9 +1697,9 @@ export const CATAPULT_LEVELS = [
 /** Catapults lob boulders at the densest enemy cluster outside the wall. */
 /** Ballista: slow, very heavy bolts that pierce every foe along a line (out to `range`). */
 export const BALLISTA_LEVELS = [
-  { damage: 32, interval: 3.2, range: 560 },
-  { damage: 48, interval: 2.8, range: 600 },
-  { damage: 70, interval: 2.4, range: 640 },
+  { damage: 32, interval: 3.2, range: 620 },
+  { damage: 48, interval: 2.8, range: 660 },
+  { damage: 70, interval: 2.4, range: 700 },
 ];
 const BALLISTA_WIDTH = 16;
 /** Foes a bolt from (x, y) toward angle `a` would skewer (out to `range`). */

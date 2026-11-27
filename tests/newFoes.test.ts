@@ -85,11 +85,11 @@ describe("C1 Ballista", () => {
     for (const p of c.plots) p.level = 0;
     const b = c.plots.find((p) => p.kind === "ballista")!;
     b.locked = false; b.level = 1;
-    // A column straight up the field from the ballista, and one stray off to the side.
-    const col = [0, 1, 2, 3].map((i) => spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: b.x, y: WALL_Y - 60 - i * 40 }));
-    const stray = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: 120, y: WALL_Y - 60 });
+    // A column straight up from the ballista (inside the camp, held in place), and one stray off to the side.
+    const col = [0, 1, 2, 3].map((i) => spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: b.x, y: WALL_Y + 60 + i * 50 }));
+    const stray = spawnEnemy(c, { at: 0, enemy: "footman", hpMult: 50, lane: null }, { x: 600, y: WALL_Y + 80 });
     let ev: { hits: number } | null = null;
-    for (let i = 0; i < 60 * 5 && !ev; i++) { c.hero.x = 40; c.hero.y = 1150; for (const e of [...col, stray]) e.y = Math.min(e.y, WALL_Y - 40); step(c, { move: { x: 0, y: 0 } }); ev = (drainEvents(c).find((e) => e.type === "ballista") as { hits: number } | undefined) ?? null; }
+    for (let i = 0; i < 60 * 5 && !ev; i++) { c.hero.x = 40; c.hero.y = 1150; for (const [k, e] of col.entries()) { e.x = b.x; e.y = WALL_Y + 60 + k * 50; } stray.x = 600; stray.y = WALL_Y + 80; step(c, { move: { x: 0, y: 0 } }); ev = (drainEvents(c).find((e) => e.type === "ballista") as { hits: number } | undefined) ?? null; }
     expect(ev?.hits).toBe(4);
     expect(col.every((e) => e.hp < e.maxHp)).toBe(true);
     expect(stray.hp).toBe(stray.maxHp);

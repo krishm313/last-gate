@@ -87,7 +87,8 @@ mastery at max level. Bot builds it like any plot → tune cost/damage with camp
    - balance: campsim A/B within noise on affected chapters (sim changes only); siegesim
      100/100/100/66/28/47; chapter 1 stays easily winnable;
    - perf: late-game chapter 10 draw median ≤ ~6 ms at 1×, no new stutter;
-   - clarity: effects never hide threats or text; nothing to read mid-fight beyond a few words.
+   - clarity: effects never hide threats or text; nothing to read mid-fight beyond a few words;
+   - new plots/pads: clear of every other plot (≥ 2 × plotHalf) and of the tree lines, in both layouts.
 5. Commit + push (goes live), add a ROADMAP "Shipped" line, tick the item here, log below.
 6. Re-arm the wake-up. At the end of each batch (about every 12–24 h) write the owner a summary.
 
@@ -97,6 +98,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ballista pad moved (overlapped the Barracks). New gate for future buildings: list all plot positions and check clearance (scratchpad plots.ts) before placing a pad.
 - 2026-11-27 C1 batch 3 ✅ Ballista. Balance detour: the bot's cheapest-first rule targeted the new pad but kept getting pulled off by loose coins and other pads, stalling whole nights (ch10 16% → 2–9% even though it never built it); bisected (locked → 16%, unaffordable → 16%) and excluded it from the bot like the Forge. Strength measured by force-building: 28% of damage at first (way over) → 15.7% (vs catapults 14.2%).
 - 2026-11-27 Content batch 3 decided: Ballista building (hero deferred — art style).
 - 2026-11-27 Game-feel slice: sounds for all phase-9/10 events (were silent). Next: choose content batch 3 (new hero vs chapter 12).
