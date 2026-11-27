@@ -24,8 +24,9 @@ describe("Conquest board (B2)", () => {
 describe("Conquest in Next goals (B2)", () => {
   it("a campaign graduate's first goal is their banner's next Conquest milestone", async () => {
     const { nextGoals } = await import("../src/core/goals");
+    const { CHAPTERS } = await import("../src/core/chapters");
     const s = newSave();
-    for (let i = 1; i <= 10; i++) s.stars[i] = 3;
+    for (const ch of CHAPTERS) s.stars[ch.id] = 3;
     s.banner = "pyre";
     s.conquest = { pyre: { win: true, ch10: false, endless: 0 } };
     const g = nextGoals(s)[0]!;

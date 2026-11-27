@@ -49,6 +49,25 @@ Unlock gradually by stars. Each validated with campsim (bot win rate near the no
 - C1 New content on a cadence (a chapter / enemy / hero per batch), each with a designed hook.
 - C2 Revisit priorities with whatever signal exists (owner reactions, bot fun metrics).
 
+**C1 batch 2 — Chapter 11 "The Storm Coast" (design, 2026-11-27)** — built behind `CH11_ENABLED`
+(src/core/features.ts) and switched on only when every slice is done.
+- Hook: a wind-lashed sea cliff where storms roll in most nights — lightning can smoke out a tower,
+  so you spread your defence; the boss calls the storm down on purpose.
+- Affixes: "Squall: storms most nights" (storm weather odds high) · "Gale: flyers +20% speed".
+- Waves: the late-game cast in new combinations (Siege Towers, Bombers, Shield Walls, Climbers,
+  Stalkers, Wraiths, Imps); a mid-chapter mini-boss (Bone Dragon, reduced HP) and the finale.
+- Boss — **The Thunder Giant**: the walking boss body tinted storm-blue with a crackling aura;
+  signature (enraged) "thunder": three telegraphed lightning strikes on towers / wall ahead of it
+  (stun + wall damage), plus the arena theme (rain-grey tint, blue sparks).
+- Terrain: new "coast" palette (grey-green windswept pines, pale sand, sea spray) via the
+  propgen tint pipeline; mood 11 everywhere a chapter mood is mapped.
+- Kingdom: an 11th landmark, a 3D **Storm Lighthouse** on the cliff edge.
+- Plumbing: heatAllowed / endless scenery / weekly pools take chapter 11; chapter 11 unlocks after
+  10; achievements stay "chapters 1–10" (no retroactive goalpost moves).
+Slices: (1) flag + chapter data + plumbing [hidden] → (2) terrain palette + mood → (3) boss +
+signature + arena → (4) lighthouse landmark + Bestiary/portraits → (5) balance + full playtest →
+switch on, ROADMAP line.
+
 ## Lanes inside every batch (rough share)
 40% current stage item · 30% game feel & animation · 20% bugs / perf / code health · 10% wild idea.
 
@@ -71,6 +90,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch11 slice 1 (hidden, flag off): CH11_ENABLED switch, Storm Coast chapter data (10 waves, storm-heavy weather, Bone Dragon mini-boss, placeholder finale boss), isCampaignChapter() replaces hard-coded ≤10 in Heat / Endless scenery / weekly pools, CAMP_CHAPTER_HP[11]=3.0 (first bot pass at 2.7: L8 13%, L10 35% — too easy). Flag-on run of the suite caught a 10-chapter assumption in a test.
 - 2026-11-27 C1 batch 1 ✅ Siege Tower (4 tuning rounds; night-6 debut spiked losses, moved to night 9). Next batch idea: a chapter 11 is the big one (terrain atlas + boss) — plan it as a multi-slice batch; meanwhile keep lanes (feel, health).
 - 2026-11-27 B1 ✅ B2 ✅ (B3 continues as the code-health lane). Stage C started: C1 batch 1 = Siege Tower (rolling tower that unloads Wall Climbers at the wall; 3D prop), ch 9–10 + Endless.
 - 2026-11-27 B3 slice 2: foeFx.ts. Lesson: when cutting by doc-comment boundaries, check for undocumented methods swallowed at the end (drawParts was; restored from HEAD).

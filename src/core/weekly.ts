@@ -1,3 +1,4 @@
+import { isCampaignChapter } from "./chapters";
 import { TWISTS, type Twist } from "./daily";
 import { HEATS } from "./heat";
 import { weekNumber } from "./quests";
@@ -33,7 +34,7 @@ function mix(n: number): number {
 export function weeklyFor(date: string, cleared: number[]): Gauntlet {
   const week = weekNumber(date);
   const h = mix(week * 7919 + 17);
-  const pool = cleared.filter((id) => id >= 3 && id <= 10);
+  const pool = cleared.filter((id) => id >= 3 && isCampaignChapter(id));
   const chapters = pool.length ? pool : cleared.length ? cleared : [1];
   const chapterId = chapters[h % chapters.length]!;
   const twists = TWISTS.filter((t) => !t.since || t.since <= date);

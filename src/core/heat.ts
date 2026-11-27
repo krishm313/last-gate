@@ -1,3 +1,4 @@
+import { isCampaignChapter } from "./chapters";
 /** Heat: optional challenge modifiers picked before a run, each adding a gold bonus. */
 export interface HeatDef {
   id: string;
@@ -37,5 +38,5 @@ export function heatGold(ids: string[]): number {
 
 /** Heat applies to campaign chapters and Endless (not the daily, Boss Rush or Siege Lord). */
 export function heatAllowed(chapterId: number): boolean {
-  return (chapterId >= 1 && chapterId <= 10) || chapterId === 99;
+  return isCampaignChapter(chapterId) || chapterId === 99;
 }

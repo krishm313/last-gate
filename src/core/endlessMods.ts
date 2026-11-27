@@ -1,3 +1,4 @@
+import { isCampaignChapter } from "./chapters";
 import { todayString } from "./daily";
 import { weekNumber } from "./quests";
 
@@ -56,7 +57,7 @@ export function endlessTwistFor(date = todayString()): EndlessTwist {
  * only — the waves, bosses and weather stay Endless's own). Picked from the week number.
  */
 export function endlessSceneryFor(date: string, cleared: number[]): number {
-  const pool = cleared.filter((id) => id >= 1 && id <= 10).sort((a, b) => a - b);
+  const pool = cleared.filter((id) => isCampaignChapter(id)).sort((a, b) => a - b);
   if (!pool.length) return 1;
   const w = weekNumber(date);
   return pool[(((w * 7) % pool.length) + pool.length) % pool.length]!;

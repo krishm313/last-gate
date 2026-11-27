@@ -1,7 +1,8 @@
 import type { ChapterDef } from "./waves";
+import { CH11_ENABLED } from "./features";
 
 /** The campaign. Each chapter is a separate 10-wave run; chapter N+1 unlocks when N is cleared. */
-export const CHAPTERS: ChapterDef[] = [
+const BASE_CHAPTERS: ChapterDef[] = [
   {
     id: 1,
     name: "The Border Keep",
@@ -230,6 +231,36 @@ export const CHAPTERS: ChapterDef[] = [
 ];
 
 /** Endless mode: unlocked by clearing chapter 1. */
+/** Chapter 11 (built behind CH11_ENABLED; see SUPERVISOR.md for the slices). */
+export const STORM_COAST: ChapterDef = {
+  id: 11,
+  name: "The Storm Coast",
+  blurb: "Past the throne, the land ends in black cliffs. Storms roll in off the sea — and something walks with them.",
+  hpMult: 4.6,
+  speedMult: 1.12,
+  gateDamageMult: 1.45,
+  affixes: ["Squall: storms roll in most nights", "Gale: the horde hits the gate 45% harder"],
+  ground: ["#4e5c5a", "#5c6a66"],
+  weatherOdds: { rain: 0.2, fog: 0.05, storm: 0.55 },
+  waves: [
+    { mix: { footman: 2, shield: 1.2, climber: 0.8, banner: 0.6 } },
+    { mix: { bomber: 0.7, stalker: 0.6, knight: 1.3, wraith: 1.2, crossbow: 1, raven: 1.2 } },
+    { mix: { phalanx: 0.8, shield: 1.6, brute: 1.1, ram: 0.8, sapper: 1.2, tunneler: 0.8, imp: 0.9 } },
+    { mix: { raven: 1.6, bat: 2, imp: 1.2, bomber: 0.4 }, breather: true },
+    { mix: { knight: 1.6, wraith: 1.6, brute: 1.1, crossbow: 1.2, banner: 0.9, climber: 0.6 }, boss: "dragon", bossHpMult: 0.55 },
+    { mix: { siegetower: 0.4, phalanx: 0.7, bomber: 0.6, footman: 2, shield: 2, brute: 1.3, ram: 0.9, sapper: 1.2, imp: 1 } },
+    { mix: { stalker: 0.8, knight: 1.8, wraith: 1.8, crossbow: 1.5, brute: 1.3, shaman: 1, banner: 0.9, climber: 0.7 } },
+    { mix: { raven: 1.6, goblin: 2, bat: 2, imp: 1.2, bomber: 0.5 }, breather: true },
+    { mix: { siegetower: 0.45, phalanx: 0.7, climber: 0.6, bomber: 0.5, stalker: 0.6, shield: 2, knight: 1.8, wraith: 1.8, crossbow: 1.3, ram: 1, brute: 1.3, sapper: 1, shaman: 0.9, imp: 0.9 } },
+    { mix: { footman: 2, shield: 1.3, knight: 1.6, wraith: 1.6, crossbow: 1.1, brute: 1.1, banner: 0.9, raven: 0.9, bomber: 0.5 }, boss: "hollowking", bossHpMult: 0.7 },
+  ],
+};
+export const CHAPTERS: ChapterDef[] = CH11_ENABLED ? [...BASE_CHAPTERS, STORM_COAST] : BASE_CHAPTERS;
+/** Campaign chapter ids (1..N): the chapters Heat, banners, Endless scenery and weekly pools draw from. */
+export function isCampaignChapter(id: number): boolean {
+  return CHAPTERS.some((c) => c.id === id);
+}
+
 export const ENDLESS_ID = 99;
 export const ENDLESS: ChapterDef = {
   id: ENDLESS_ID,
