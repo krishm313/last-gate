@@ -41,6 +41,8 @@ export interface ChapterDef {
   /** Battlefield palette. */
   ground: [string, string];
   /** Endless: waves cycle forever with a rotating boss every 5 waves; there is no victory. */
+  /** Warbands: half of every six foes arrive in tight packs (default: two of six). */
+  warbands?: boolean;
   /** Night weather odds for this chapter (defaults to the global odds). */
   weatherOdds?: { rain: number; fog: number; storm: number };
   /** Hard / Nightmare: bad weather is this many times as likely. */
@@ -110,7 +112,7 @@ export function planWave(chapter: ChapterDef, wave: number, seed = 1): WavePlan 
     spawns.push({ at: t, enemy, hpMult, lane: null });
     budget -= ENEMIES[enemy].cost;
     // Every few enemies a tight cluster arrives to create pressure spikes.
-    const cluster = i % 6 >= 4;
+    const cluster = i % 6 >= (chapter.warbands ? 3 : 4);
     t += (cluster ? interval * 0.35 : interval) * (0.6 + ENEMIES[enemy].cost * 0.4) * (0.85 + next(rng) * 0.3);
     i++;
   }

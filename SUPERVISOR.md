@@ -80,8 +80,8 @@ blocked on painted hero art) and over more small drops (banners/buildings just l
 `CH12_ENABLED` (src/core/features.ts), switched on only when every slice is done.
 - Hook: a spring mountain pass, petals on the wind — the horde's last two generals come at you
   *together*. The first chapter with two bosses at once.
-- Affixes: "Warbands: foes come in bigger, fewer packs" · "Rockslide: a falling rock cracks a random
-  wall segment each night" (telegraphed shadow first).
+- Affixes: "Warbands: tighter packs" (chapter.warbands: 3 of every 6 foes arrive clustered) · "Fury:
+  gate damage +50%" (gateDamageMult 1.5). (Rockslide dropped in slice 5: no mechanic worth its art.)
 - Waves: the full late cast, packs weighted to mixed melee + support (Banner-bearers, Shamans with
   Shield Walls); mini-boss night 5 (Ogre Champion + Marsh Troll together, reduced HP — a rehearsal).
 - Boss — **The Twin Generals**: two boss bodies (jade and crimson tints) sharing one boss bar

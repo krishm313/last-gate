@@ -263,8 +263,9 @@ export const BLOSSOM_PASS: ChapterDef = {
   hpMult: 4.8,
   speedMult: 1.12,
   gateDamageMult: 1.5,
-  affixes: ["Warbands: the horde comes in bigger packs", "Rockslide: falling rocks crack the wall"],
+  affixes: ["Warbands: the horde charges in tighter packs", "Fury: the horde hits the gate 50% harder"],
   ground: ["#5e7a3e", "#6c8a48"],
+  warbands: true,
   weatherOdds: { rain: 0.2, fog: 0.15, storm: 0.05 },
   waves: [
     { mix: { footman: 2, shield: 1.4, banner: 0.8, shaman: 0.5 } },
