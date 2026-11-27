@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B1 ✅ B2 ✅ (B3 continues as the code-health lane). Stage C started: C1 batch 1 = Siege Tower (rolling tower that unloads Wall Climbers at the wall; 3D prop), ch 9–10 + Endless.
 - 2026-11-27 B3 slice 2: foeFx.ts. Lesson: when cutting by doc-comment boundaries, check for undocumented methods swallowed at the end (drawParts was; restored from HEAD).
 - 2026-11-27 Game-feel slice: animated kingdom view (clouds, birds, chimney smoke, flag sway; on-screen only).
 - 2026-11-27 B2 slice 2: Conquest milestone in Next goals (first goal for graduates).
