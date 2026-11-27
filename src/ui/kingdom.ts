@@ -3,7 +3,7 @@
 // them up, Crowns grow the castle, and the next landmark waits as a faint build site.
 import { BUILDING_ATLAS, DECOR_ATLAS, TOWER_ATLAS } from "../camp/propAtlas";
 import { CHAPTERS } from "../core/chapters";
-import { CH11_ENABLED } from "../core/features";
+import { CH11_ENABLED, CH12_ENABLED } from "../core/features";
 import { totalStars, type SaveData } from "../core/meta";
 import { CONQUEST_BANNERS, conquestDone, conquestEntry } from "../core/conquest";
 import { getItem, setItem } from "./store";
@@ -39,6 +39,7 @@ const LANDMARKS: Landmark[] = [
   { ch: 10, name: "Royal Banners", sprite: () => "banner1", atlas: "decor", x: 134, y: 126, scale: 0.6, max: 1 },
   { ch: 10, name: "Royal Banners", sprite: () => "banner1", atlas: "decor", x: 206, y: 126, scale: 0.6, max: 1 },
   ...(CH11_ENABLED ? [{ ch: 11, name: "Storm Lighthouse", sprite: () => "lighthouse", atlas: "bld" as const, x: 300, y: 52, scale: 0.3, max: 1 }] : []),
+  ...(CH12_ENABLED ? [{ ch: 12, name: "Blossom Shrine", sprite: () => "gazebo", atlas: "bld" as const, x: 300, y: 150, scale: 0.55, max: 1 }] : []),
 ];
 /** Distinct landmarks (the paired banners and the starting towers count once). */
 const NAMES = [...new Set(LANDMARKS.map((l) => l.name))];

@@ -1,4 +1,4 @@
-import { CH11_ENABLED } from "./features";
+import { CH11_ENABLED, CH12_ENABLED } from "./features";
 import { enemyEnabled, ENEMIES } from "./enemies";
 import { HEROES } from "./heroes";
 import type { SaveData } from "./meta";
@@ -76,6 +76,7 @@ const ALL_ACHIEVEMENTS: Achievement[] = [
   { id: "moors", name: "Lord of the Moors", desc: "Clear chapter 9, Bloodmoon Moors", icon: "🌄", goal: 1, reward: 1300, progress: (s) => ((s.stars[9] ?? 0) > 0 ? 1 : 0) },
   { id: "hollow", name: "Uncrowned", desc: "Defeat the Hollow King", icon: "💀", goal: 1, reward: 600, progress: stat("hollowking") },
   ...(CH11_ENABLED ? [{ id: "storm", name: "Stormbreaker", desc: "Clear chapter 11, the Storm Coast", icon: "⚡", goal: 1, reward: 1800, progress: (s: SaveData) => ((s.stars[11] ?? 0) > 0 ? 1 : 0) }] : []),
+  ...(CH12_ENABLED ? [{ id: "twins", name: "Twinbreaker", desc: "Clear chapter 12, the Blossom Pass", icon: "🌸", goal: 1, reward: 2000, progress: (s: SaveData) => ((s.stars[12] ?? 0) > 0 ? 1 : 0) }] : []),
   { id: "throne", name: "Lord of the Hollow Throne", desc: "Clear chapter 10, the Hollow Throne", icon: "🏰", goal: 1, reward: 1500, progress: (s) => ((s.stars[10] ?? 0) > 0 ? 1 : 0) },
   { id: "throne-hard", name: "Iron Crown", desc: "Clear chapter 10 on Hard", icon: "🪖", goal: 1, reward: 800, progress: (s) => ((s.diffCleared[10] ?? 0) >= 1 ? 1 : 0) },
   { id: "throne-nightmare", name: "Nightmare's End", desc: "Clear chapter 10 on Nightmare", icon: "☠️", goal: 1, reward: 1500, progress: (s) => ((s.diffCleared[10] ?? 0) >= 2 ? 1 : 0) },

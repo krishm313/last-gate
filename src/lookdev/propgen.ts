@@ -1846,6 +1846,54 @@ function lighthouseModel(): void {
   root.add(ball);
 }
 
+/** Blossom Shrine (chapter 12 landmark): a little timber gazebo on a stone plinth with a tiled roof
+ *  and a hanging lantern, under a pink blossom tree. */
+function gazeboModel(): void {
+  const plinth = mesh(new THREE.BoxGeometry(2.6, 0.35, 2.6), std(0x8a8a84, 0.95));
+  plinth.position.y = 0.18;
+  root.add(plinth);
+  const step = mesh(new THREE.BoxGeometry(1.2, 0.18, 0.5), std(0x7a7a74, 0.95));
+  step.position.set(0, 0.09, 1.5);
+  root.add(step);
+  const wood = std(0x8a3a24, 0.75);
+  for (const [x, z] of [[-0.95, -0.95], [0.95, -0.95], [-0.95, 0.95], [0.95, 0.95]] as const) {
+    const post = mesh(new THREE.CylinderGeometry(0.09, 0.1, 1.9, 8), wood);
+    post.position.set(x, 0.35 + 0.95, z);
+    root.add(post);
+  }
+  const beam = mesh(new THREE.BoxGeometry(2.3, 0.16, 2.3), wood);
+  beam.position.y = 0.35 + 1.9;
+  root.add(beam);
+  // Roof: two stacked, flared tiers of dark green tile with a gold finial.
+  const tile = std(0x2e5a46, 0.7);
+  const roof1 = mesh(new THREE.ConeGeometry(2.05, 0.75, 4, 1), tile);
+  roof1.rotation.y = Math.PI / 4;
+  roof1.position.y = 0.35 + 1.9 + 0.45;
+  root.add(roof1);
+  const roof2 = mesh(new THREE.ConeGeometry(1.15, 0.7, 4, 1), tile);
+  roof2.rotation.y = Math.PI / 4;
+  roof2.position.y = 0.35 + 1.9 + 0.95;
+  root.add(roof2);
+  const fin = mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshStandardMaterial({ color: 0xf2c443, metalness: 0.6, roughness: 0.35 }));
+  fin.position.y = 0.35 + 1.9 + 1.38;
+  root.add(fin);
+  const lantern = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.32, 8), new THREE.MeshStandardMaterial({ color: 0xffe0a0, emissive: 0xffa040, emissiveIntensity: 1.4, roughness: 0.4 }));
+  lantern.position.y = 0.35 + 1.45;
+  root.add(lantern);
+  // Blossom tree behind and to the side.
+  const trunk = mesh(new THREE.CylinderGeometry(0.16, 0.24, 2.6, 7), std(0x5a3a26, 0.9));
+  trunk.position.set(1.5, 1.3, -1.3);
+  trunk.rotation.z = -0.15;
+  root.add(trunk);
+  const pinks = [0xf4a8c8, 0xffc0d8, 0xe890b4];
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2;
+    const blob = mesh(lumpy(new THREE.IcosahedronGeometry(0.75 + (i % 3) * 0.12, 1), 0.08), std(pinks[i % 3]!, 0.8));
+    blob.position.set(1.7 + Math.cos(a) * 0.75, 2.9 + Math.sin(a * 2) * 0.25, -1.3 + Math.sin(a) * 0.65);
+    root.add(blob);
+  }
+}
+
 /** Siege Tower: a tall timber tower on four wheels, hide-covered sides, a fighting top with merlons,
  *  and a closed drawbridge on the front (the open ramp is its own prop). */
 function siegeTowerModel(): void {
@@ -2221,6 +2269,7 @@ function stakeModel(iron: boolean): void {
   ballista3: () => { ballistaBaseModel(3); root.rotation.y = 0.35; },
   ballista_bow: () => { ballistaBowModel(); },
   lighthouse: () => { lighthouseModel(); root.rotation.y = 0.3; },
+  gazebo: () => { gazeboModel(); root.rotation.y = 0.5; },
   siegetower: () => { siegeTowerModel(); root.rotation.y = 0.25; },
   siege_ramp: () => { siegeRampModel(); root.rotation.y = 0.25; },
   hound: () => { houndModel(); root.rotation.y = -0.35; },

@@ -120,6 +120,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch12 slice 4 (hidden): 3D Blossom Shrine landmark (propgen gazeboModel: timber gazebo, tiled roof, lantern, pink tree; packed as "gazebo" in buildings.webp) as the kingdom's 13th landmark; "Twinbreaker" trophy (clear ch12, 2000); Bestiary / portraits via enemyEnabled + boss portrait. Kingdom checked with the switch on.
 - 2026-11-27 Ch12 slice 3 (hidden): the Twin Generals — jadegeneral (Banner-bearer escort, war cry) + crimsongeneral (Brutes, quake), 1900 HP each; WaveDef.boss2 spawns them side by side; one shared "The Twin Generals" boss bar (summed HP, fallen share kept via twinLost); when one falls the survivor takes vengeance (TWIN: speed ×1.2, damage ×1.3, signature every 0.6×, enrage) with banner, double shock ring, flash, roar sound; jade / crimson halos, rose petal arena. Test twinGenerals; checked in-game with the switch on.
 - 2026-11-27 Ch12 slice 2 (hidden): blossom look — scripts/tint_props.py (new, reproducible prop recolours) makes blossom.webp (pink-blossom round trees, spring-green pines / bushes), gen_terrain palette 12 → ground_12.webp, mood 12 wired (prop tint, painted ground, pink treeline burst, 18 drifting petals). Checked in-game with the switch on locally.
 - 2026-11-27 Ch12 slice 1 (hidden): CH12_ENABLED switch (off), BLOSSOM_PASS chapter data (10 nights, Ogre mini-boss n5, placeholder finale boss), CAMP_CHAPTER_HP[12] = 3.2; suite passes with the switch off and on.
