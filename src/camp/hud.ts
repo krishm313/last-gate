@@ -3,10 +3,10 @@ import { padConnected } from "./input";
 import { planWave } from "../core/waves";
 import { drawBat, LOOKS, unitSprite } from "./art";
 import { BLESSING_BY_ID, comboParts } from "./blessings";
-import { PRE_MASTERY, CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
+import { PRE_MASTERY, BALLISTA_LEVELS, CAMP, CATAPULT_LEVELS, carryCap, HEALER_LEVELS, MAGE_LEVELS, plotMaxed, rerollsLeft, SPIKES, TOWER_LEVELS, TOWER_SPECS, WATCH_LEVELS, WEATHER_INFO, NIGHT_EVENT_INFO, xpToNext, type Camp, type Plot, type PlotKind, type TowerSpec } from "./sim";
 
 /** Icons for buildings named in blessing requirements. */
-const BUILDING_ICON: Record<string, string> = { watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
+const BUILDING_ICON: Record<string, string> = { ballista: "🏹", watch: "🗼", mage: "🔮", healer: "⛺", spikes: "🪤", barracks: "⚔️", catapult: "🪨", lumber: "🪵", forge: "⚒️", fortify: "🧱", hall: "🏰" };
 /** Tower Spec Mastery (level 5), per path. */
 const MASTERY_TEXT: Record<string, string> = {
   fire: "Fire Mastery — burns twice as hard, 1.5 s longer",
@@ -112,6 +112,15 @@ function plotInfoBase(c: Camp, p: Plot): { title: string; lines: string[] } {
       return {
         title: `Watchtower · Lv ${p.level}`,
         lines: [`Reach ${arrow(cur.radius, nx?.radius ?? null)} · tower range ${arrow(pct(cur.range), nx ? pct(nx.range) : null)}`, `Fire rate ${arrow(pct(cur.rate), nx ? pct(nx.rate) : null)} · sees through fog`],
+      };
+    }
+    case "ballista": {
+      const cur = BALLISTA_LEVELS[p.level - 1];
+      const nx = next ? BALLISTA_LEVELS[next - 1]! : null;
+      if (!cur) return { title: "Build: Ballista", lines: [`Heavy bolts that pierce every foe in a line · ${nx!.damage} dmg`, "Best against packed columns and Shield Walls"] };
+      return {
+        title: `Ballista · Lv ${p.level}`,
+        lines: [`Damage ${arrow(cur.damage, nx?.damage ?? null)} to every foe in line`, `Reload ${arrow(`${cur.interval}s`, nx ? `${nx.interval}s` : null)} · reach ${arrow(cur.range, nx?.range ?? null)}`],
       };
     }
     case "spikes": {

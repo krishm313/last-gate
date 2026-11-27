@@ -1726,6 +1726,86 @@ function mageTowerModel(level: number): void {
 }
 
 /** One spike-trap stake (wood, or dark iron with a bright tip). */
+/** Ballista base (Lv 1–3): a timber turntable on a plank deck (Lv 1), iron-banded with a bolt rack
+ *  (Lv 2), on a dressed-stone plinth with gold trim (Lv 3). The bow is its own prop (it swivels). */
+function ballistaBaseModel(level: number): void {
+  const wood = (c: number) => std(c, 0.88);
+  if (level >= 3) {
+    const plinth = mesh(lumpy(new THREE.CylinderGeometry(1.5, 1.7, 0.6, 10), 0.03), std(0x9a948a, 0.95));
+    plinth.position.y = 0.3;
+    root.add(plinth);
+    const trim = mesh(new THREE.TorusGeometry(1.52, 0.06, 6, 24), new THREE.MeshStandardMaterial({ color: 0xf2c443, metalness: 0.8, roughness: 0.3 }));
+    trim.rotation.x = Math.PI / 2;
+    trim.position.y = 0.6;
+    root.add(trim);
+  } else {
+    for (let k = 0; k < 4; k++) {
+      const plank = mesh(new THREE.BoxGeometry(2.6, 0.18, 0.62), wood(k % 2 ? 0x7a4e2a : 0x8a5a30));
+      plank.position.set(0, 0.09, -0.93 + k * 0.62);
+      root.add(plank);
+    }
+  }
+  const y0 = level >= 3 ? 0.6 : 0.18;
+  const turn = mesh(new THREE.CylinderGeometry(0.9, 1.0, 0.35, 16), wood(0x6a4426));
+  turn.position.y = y0 + 0.17;
+  root.add(turn);
+  const post = mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.9, 10), wood(0x5a3a1c));
+  post.position.y = y0 + 0.75;
+  root.add(post);
+  if (level >= 2) {
+    for (const y of [y0 + 0.08, y0 + 0.28]) {
+      const band = mesh(new THREE.TorusGeometry(0.98, 0.05, 6, 20), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.65, roughness: 0.4 }));
+      band.rotation.x = Math.PI / 2;
+      band.position.y = y;
+      root.add(band);
+    }
+    // Bolt rack beside it.
+    const rack = mesh(new THREE.BoxGeometry(0.2, 0.7, 0.9), wood(0x5a3a1c));
+    rack.position.set(1.25, y0 + 0.35, 0.3);
+    root.add(rack);
+    for (let k = 0; k < 3; k++) {
+      const bolt = mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.3, 6), wood(0x9a6a36));
+      bolt.rotation.x = Math.PI / 2;
+      bolt.position.set(1.3, y0 + 0.75, 0.0 + k * 0.25);
+      root.add(bolt);
+      const tip = mesh(new THREE.ConeGeometry(0.09, 0.22, 6), new THREE.MeshStandardMaterial({ color: 0xc8ccd4, metalness: 0.7, roughness: 0.3 }));
+      tip.rotation.x = Math.PI / 2;
+      tip.position.set(1.3, y0 + 0.75, 0.0 + k * 0.25 + 0.75);
+      root.add(tip);
+    }
+  }
+}
+/** Ballista bow: stock, steel-tipped bolt and the two great limbs with the string, pointing up-screen. */
+function ballistaBowModel(): void {
+  const wood = (c: number) => std(c, 0.85);
+  const stock = mesh(new THREE.BoxGeometry(0.34, 0.24, 2.2), wood(0x7a4e2a));
+  stock.position.set(0, 0.2, 0);
+  root.add(stock);
+  for (const side of [-1, 1]) {
+    const limb = mesh(new THREE.BoxGeometry(1.5, 0.16, 0.2), wood(0x9a6a36));
+    limb.position.set(side * 0.82, 0.24, -0.75);
+    limb.rotation.y = side * 0.28;
+    root.add(limb);
+    const cap = mesh(new THREE.BoxGeometry(0.16, 0.2, 0.24), new THREE.MeshStandardMaterial({ color: 0x3a3e48, metalness: 0.7, roughness: 0.35 }));
+    cap.position.set(side * 1.52, 0.24, -0.53);
+    root.add(cap);
+    const str = mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.62, 4), std(0xe8dcc0, 0.6));
+    str.rotation.z = Math.PI / 2;
+    str.rotation.y = side * -0.33;
+    str.position.set(side * 0.76, 0.3, -0.25);
+    root.add(str);
+  }
+  const bolt = mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.0, 6), wood(0xc8a070));
+  bolt.rotation.x = Math.PI / 2;
+  bolt.position.set(0, 0.38, -0.25);
+  root.add(bolt);
+  const tip = mesh(new THREE.ConeGeometry(0.12, 0.36, 6), new THREE.MeshStandardMaterial({ color: 0xd8dce4, metalness: 0.8, roughness: 0.25 }));
+  tip.rotation.x = -Math.PI / 2;
+  tip.position.set(0, 0.38, -1.42);
+  root.add(tip);
+  ground.visible = false;
+}
+
 /** Storm Lighthouse (chapter 11 kingdom landmark): a red-and-white striped tower on a rocky outcrop,
  *  a glowing lantern room with a gallery rail, and a dark cap. */
 function lighthouseModel(): void {
@@ -2136,6 +2216,10 @@ function stakeModel(iron: boolean): void {
   stake: () => stakeModel(false),
   stake_iron: () => stakeModel(true),
   balloon: balloonEnvelope,
+  ballista1: () => { ballistaBaseModel(1); root.rotation.y = 0.35; },
+  ballista2: () => { ballistaBaseModel(2); root.rotation.y = 0.35; },
+  ballista3: () => { ballistaBaseModel(3); root.rotation.y = 0.35; },
+  ballista_bow: () => { ballistaBowModel(); },
   lighthouse: () => { lighthouseModel(); root.rotation.y = 0.3; },
   siegetower: () => { siegeTowerModel(); root.rotation.y = 0.25; },
   siege_ramp: () => { siegeRampModel(); root.rotation.y = 0.25; },

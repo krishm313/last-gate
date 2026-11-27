@@ -97,6 +97,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 C1 batch 3 ✅ Ballista. Balance detour: the bot's cheapest-first rule targeted the new pad but kept getting pulled off by loose coins and other pads, stalling whole nights (ch10 16% → 2–9% even though it never built it); bisected (locked → 16%, unaffordable → 16%) and excluded it from the bot like the Forge. Strength measured by force-building: 28% of damage at first (way over) → 15.7% (vs catapults 14.2%).
 - 2026-11-27 Content batch 3 decided: Ballista building (hero deferred — art style).
 - 2026-11-27 Game-feel slice: sounds for all phase-9/10 events (were silent). Next: choose content batch 3 (new hero vs chapter 12).
 - 2026-11-27 B3 slice 3: companions.ts. Note: the Vite dev server dies between wakes — always run tools/shots/ensure.sh in the same command as a screenshot script.

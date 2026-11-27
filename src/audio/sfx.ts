@@ -355,6 +355,12 @@ export class Sfx {
         if (!this.ok("climbOver", 0.2)) return;
         this.noise(0.15, 0.2, "lowpass", 600);
         break;
+      case "ballista":
+        if (!this.ok("ballista", 0.2)) return;
+        this.tone("triangle", 180, 60, 0.18, 0.3);
+        this.noise(0.12, 0.3, "bandpass", 1400, 2);
+        this.tone("sawtooth", 520, 300, 0.12, 0.05);
+        break;
       case "pierce":
         if (!this.ok("pierce", 0.08)) return;
         this.noise(0.08, 0.25, "bandpass", 2600, 3);

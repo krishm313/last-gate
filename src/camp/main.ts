@@ -1397,6 +1397,7 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "climb":
     case "climbOver":
     case "pierce":
+    case "ballista":
     case "orbBurst":
     case "petStrike":
     case "petFetch":

@@ -1563,3 +1563,62 @@ export function riseScale(since: number, level = 1): [number, number] {
   const w = 1 + (1 - h) * 0.6 + Math.sin(t * Math.PI) * 0.06;
   return [Math.max(0.2, w), Math.max(0.02, h)];
 }
+
+/** Ballista bolts in flight: a fast white streak along the line, fading (pushed on the "ballista" event). */
+export const ballistaShots: { x: number; y: number; tx: number; ty: number; t: number }[] = [];
+
+/** Ballista (Lv 1–3): its 3D base, and the 3D bow swivelled to aim (snaps back on each shot), plus bolts. */
+export function drawBallista(env: DrawEnv, ctx: CanvasRenderingContext2D, p: Plot): void {
+  const x = p.x, y = p.y;
+  const [sx, sy] = riseScale(env.time - (env.builtAt.get(p.id) ?? -9), p.level);
+  ctx.save();
+  ctx.translate(x, y + 16);
+  ctx.scale(sx, sy);
+  ctx.translate(-x, -(y + 16));
+  softShadow(ctx, x, y + 16, 40, 12, 0.32);
+  const base = buildingSprite(ctx, `ballista${Math.max(1, Math.min(3, p.level))}`, x, y + 16, 2.3);
+  if (!base) {
+    ctx.fillStyle = "#7a4e2a"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(x, y + 8, 22, 9, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  // The bow sits on the post and turns to the line it last fired along (straight up the field at rest).
+  const aim = p.fired < 99 && p.facing !== undefined ? p.facing : -Math.PI / 2;
+  const kick = p.fired < 0.18 ? (1 - p.fired / 0.18) * 7 : 0;
+  ctx.translate(x, y - 12);
+  ctx.rotate(aim + Math.PI / 2);
+  ctx.translate(0, kick);
+  if (!buildingSprite(ctx, "ballista_bow", 0, 13, 2.1)) {
+    ctx.strokeStyle = "#8a5a30"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-18, -4); ctx.lineTo(0, -8); ctx.lineTo(18, -4); ctx.moveTo(0, -14); ctx.lineTo(0, 10); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+export function drawBallistaShots(env: DrawEnv, ctx: CanvasRenderingContext2D): void {
+  if (!ballistaShots.length) return;
+  const DUR = 0.28;
+  for (const b of ballistaShots) {
+    const u = (env.time - b.t) / DUR;
+    if (u >= 1 || u < 0) continue;
+    const head = Math.min(1, u * 3);
+    const hx = b.x + (b.tx - b.x) * head, hy = b.y + (b.ty - b.y) * head;
+    const tailK = Math.max(0, head - 0.35);
+    const tx0 = b.x + (b.tx - b.x) * tailK, ty0 = b.y + (b.ty - b.y) * tailK;
+    ctx.save();
+    const g = ctx.createLinearGradient(tx0, ty0, hx, hy);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(1, `rgba(255,250,230,${(0.9 * (1 - u)).toFixed(3)})`);
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(tx0, ty0); ctx.lineTo(hx, hy); ctx.stroke();
+    // The bolt itself at the head.
+    const a = Math.atan2(b.ty - b.y, b.tx - b.x);
+    ctx.translate(hx, hy);
+    ctx.rotate(a);
+    ctx.fillStyle = "#c8a070"; ctx.fillRect(-14, -1.6, 14, 3.2);
+    ctx.fillStyle = "#d8dce4"; ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(-2, -3.5); ctx.lineTo(-2, 3.5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  for (let i = ballistaShots.length - 1; i >= 0; i--) if (env.time - ballistaShots[i]!.t >= DUR) ballistaShots.splice(i, 1);
+}

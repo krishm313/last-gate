@@ -47,7 +47,7 @@ export function campBotInput(c: Camp): CampInput {
   const towersBuilt = c.plots.filter((p) => p.kind === "tower" && p.level > 0).length;
   const candidates = c.plots.filter(
     // (Spec Mastery, a tower's 5th level, is a player's choice: the balance bot stops at level 4.)
-    (p) => !plotMaxed(p) && !(PRE_MASTERY[p.kind] !== undefined && p.level >= PRE_MASTERY[p.kind]!) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
+    (p) => !plotMaxed(p) && !(PRE_MASTERY[p.kind] !== undefined && p.level >= PRE_MASTERY[p.kind]!) && !p.locked && p.kind !== "repair" && p.kind !== "forge" && p.kind !== "ballista" && plotLogCost(p) - p.paidLogs <= h.logs + c.lumberPile && !(p.kind === "lumber" && towersBuilt < 2),
   );
   let target: Plot | undefined;
   const breached = c.segments.some((sg) => sg.hp <= 0);

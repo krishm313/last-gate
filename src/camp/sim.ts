@@ -138,7 +138,7 @@ export interface Enemy {
   targetX?: number;
 }
 
-export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage" | "healer" | "watch";
+export type PlotKind = "tower" | "repair" | "fortify" | "lumber" | "forge" | "hall" | "catapult" | "barracks" | "spikes" | "mage" | "healer" | "watch" | "ballista";
 
 export interface Plot {
   id: string;
@@ -424,6 +424,8 @@ export interface Hero {
 
 export type CampEvent =
   | { type: "shoot"; owner: "hero" | "tower" | "enemy" | "catapult"; x: number; y: number }
+  /** Ballista: a heavy bolt along a line from (x, y) to (tx, ty), skewering `hits` foes. */
+  | { type: "ballista"; plot: string; x: number; y: number; tx: number; ty: number; hits: number }
   | { type: "hit"; x: number; y: number; damage: number; crit: boolean; owner: string; eid?: number }
   | { type: "kill"; x: number; y: number; enemy: EnemyDef; gold: number; eid: number; elite?: boolean }
   | { type: "coinPickup"; x: number; y: number }
@@ -887,6 +889,7 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
     { ...makePlot("spikes", "spikes", "Spike Trap", 530, WALL_Y + 158, [30, 55, 90, 150], 4, [4, 8, 12, 18]), locked: true, unlockWave: 3 },
     { ...makePlot("mage", "mage", "Mage Tower", 110, WALL_Y + 158, [50, 85, 140, 230], 4, [0, 0, 0, 18]), locked: true, unlockWave: 4 },
     { ...makePlot("healer", "healer", "Healer's Tent", 250, 960, [40, 75, 120, 190], 4, [0, 0, 0, 16]), locked: true, unlockWave: 5 },
+    { ...makePlot("ballista", "ballista", "Ballista", 650, WALL_Y + 158, [70, 115, 180], 3, [0, 8, 14]), locked: true, unlockWave: 6 },
     { ...makePlot("watch", "watch", "Watchtower", WATCH.x, WATCH.y, [60, 110, 180], 3, [6, 12, 18]), locked: true, unlockWave: 5 },
   ];
   for (const id of setup.prebuilt ?? []) {
@@ -1148,7 +1151,7 @@ function updateHero(c: Camp, input: CampInput): void {
 }
 
 /** Buildings a Fire Imp goes for, and whether a building is on fire (out of action). */
-export const ARSON_TARGETS: PlotKind[] = ["catapult", "mage", "healer", "spikes", "watch", "forge"];
+export const ARSON_TARGETS: PlotKind[] = ["catapult", "mage", "healer", "spikes", "watch", "forge", "ballista"];
 export function onFire(p: Plot | undefined): boolean {
   return !!p && (p.fire ?? 0) > 0;
 }
@@ -1692,6 +1695,49 @@ export const CATAPULT_LEVELS = [
 ];
 
 /** Catapults lob boulders at the densest enemy cluster outside the wall. */
+/** Ballista: slow, very heavy bolts that pierce every foe along a line (out to `range`). */
+export const BALLISTA_LEVELS = [
+  { damage: 32, interval: 3.2, range: 560 },
+  { damage: 48, interval: 2.8, range: 600 },
+  { damage: 70, interval: 2.4, range: 640 },
+];
+const BALLISTA_WIDTH = 16;
+/** Foes a bolt from (x, y) toward angle `a` would skewer (out to `range`). */
+function ballistaLine(c: Camp, x: number, y: number, a: number, range: number): Enemy[] {
+  const dx = Math.cos(a), dy = Math.sin(a);
+  return c.enemies.filter((e) => {
+    if (e.hp <= 0 || (e.burrow && e.burrow > 0) || e.y < SPAWN_Y + 10) return false;
+    const rx = e.x - x, ry = e.y - y;
+    const along = rx * dx + ry * dy;
+    return along > 0 && along < range && Math.abs(rx * dy - ry * dx) < BALLISTA_WIDTH + e.def.radius;
+  });
+}
+function updateBallistas(c: Camp): void {
+  for (const p of c.plots) {
+    if (p.kind !== "ballista" || p.level === 0 || onFire(p)) continue;
+    const st = BALLISTA_LEVELS[Math.min(p.level, BALLISTA_LEVELS.length) - 1]!;
+    p.fired += STEP;
+    p.cooldown -= STEP * c.mods.towerRate * (c.overclock > 0 ? 2.5 : 1);
+    if (p.cooldown > 0) continue;
+    // Aim down the line that skewers the most (bosses count triple).
+    let bestA = 0, bestN = 0;
+    for (const e of c.enemies) {
+      if (e.hp <= 0 || Math.hypot(e.x - p.x, e.y - p.y) > st.range || e.y < SPAWN_Y + 10) continue;
+      const a = Math.atan2(e.y - p.y, e.x - p.x);
+      const n = ballistaLine(c, p.x, p.y - 18, a, st.range).reduce((k, o) => k + (o.def.boss ? 3 : 1), 0);
+      if (n > bestN) { bestN = n; bestA = a; }
+    }
+    if (!bestN) { p.cooldown = 0; continue; }
+    const hit = ballistaLine(c, p.x, p.y - 18, bestA, st.range);
+    const dmg = st.damage * c.mods.towerDamage * towerScale(c);
+    for (const e of hit) damageEnemy(c, e, dmg, "tower", false, "ballista");
+    p.facing = bestA;
+    p.cooldown += st.interval;
+    p.fired = 0;
+    c.events.push({ type: "ballista", plot: p.id, x: p.x, y: p.y - 18, tx: p.x + Math.cos(bestA) * st.range, ty: p.y - 18 + Math.sin(bestA) * st.range, hits: hit.length });
+  }
+}
+
 function updateCatapults(c: Camp): void {
   for (const p of c.plots) {
     if (p.kind !== "catapult" || p.level === 0 || onFire(p)) continue;
@@ -2967,6 +3013,7 @@ export function step(c: Camp, input: CampInput): void {
   updateTowers(c);
   updateMage(c);
   updateCatapults(c);
+  updateBallistas(c);
   updateHallDefense(c);
   updateEnemies(c);
   updateBolts(c);

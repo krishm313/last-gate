@@ -12,7 +12,7 @@ import { drawBat, drawIcon, drawRam, drawUnit, drawUnitCached, INK, LOOKS, makeT
 import { drawVisitor, VISITOR_LEAVE, type VisitorAnim } from "./visitors";
 import { BLESSING_BY_ID } from "./blessings";
 import { ACID, BANNER_R, PRE_MASTERY, ELITE_INFO, HEALER_LEVELS, LANES_X, RALLY, REVERSE, SPIKES, WATCH_LEVELS, type Weather } from "./sim";
-import { buildingSprite, riseScale, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
+import { ballistaShots, buildingSprite, drawBallista, drawBallistaShots, riseScale, coinIcon, drawBarracks, drawBowItem, drawCatapult, drawForge, drawForgeZones, drawHall, drawLogPile, drawLumberCamp, drawTower, outlined, stoneSegment } from "./buildings";
 import {
   BOWS_PER_TOWER, CAMP, GROVE, plotCost, plotLogCost, plotMaxed, reduction, repairNeeded, TOWER_LEVELS,
   type Ally, type Camp, type CampEvent, type Enemy, type Plot, type Vec, type Worker,
@@ -1013,6 +1013,11 @@ export class CampRenderer {
           fx.burst(ev.x, WALL_Y - WALL_THICK / 2 - 4, "#e8e0c8", 6, 90, { max: 0.35, size: 2, gravity: 240, shape: "dot" });
           fx.burst(ev.x, WALL_Y - WALL_THICK / 2, "#a8865a", 5, 70, { max: 0.4, size: 2.6, gravity: 300, shape: "chunk" });
           break;
+        case "ballista":
+          ballistaShots.push({ x: ev.x, y: ev.y, tx: ev.tx, ty: ev.ty, t: this.time });
+          fx.burst(ev.x, ev.y, "rgba(206,190,160,0.7)", 4, 50, { max: 0.4, size: 5, gravity: -10, drag: 4 });
+          if (ev.hits >= 3) fx.number(ev.x, ev.y - 30, `×${ev.hits}`, "#fff2c0", 14, 0.8);
+          break;
         case "unload":
           // The ramp slams down on the palisade: splinters, dust, a thud — and climbers pouring over.
           fx.burst(ev.x, WALL_Y - WALL_THICK / 2, "#a8865a", 10, 160, { max: 0.5, size: 3.2, gravity: 360, shape: "chunk" });
@@ -1831,6 +1836,7 @@ export class CampRenderer {
     for (const a of c.allies) if (a.respawn > 0) this.allySeen.delete(a.id);
     const vets = c.plots.some((p) => p.kind === "barracks" && p.level > (PRE_MASTERY.barracks ?? 9));
     for (const a of c.allies) if (a.respawn <= 0) items.push({ y: a.y, draw: () => { this.drawAlly(ctx, c, a); if (vets && a.temp === undefined) this.drawVeteranMark(ctx, a); } });
+    for (const p of c.plots) if (p.kind === "ballista" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => drawBallista(this, ctx, p)) });
     for (const p of c.plots) if (p.kind === "catapult" && p.level > 0) items.push({ y: p.y + 10, a: p.y, draw: () => this.faded(ctx, c, p, 34, 60, () => { if (p.level > (PRE_MASTERY.catapult ?? 9)) this.drawMasteryGlow(ctx, p, "255,120,40"); drawCatapult(this, ctx, p); }) });
     // Mastered buildings wear a bobbing gold star (towers fly their star pennant instead).
     const STAR_H: Partial<Record<string, number>> = { catapult: 62, mage: 104, healer: 78, watch: 150 };
@@ -1974,6 +1980,7 @@ export class CampRenderer {
     this.drawParts(ctx);
     this.foeFx.drawBombs(this.foeEnv(), ctx);
     this.foeFx.drawFallingBaskets(this.foeEnv(), ctx);
+    drawBallistaShots(this, ctx);
     this.bossFx.drawBreaths(this.bossEnv(), ctx);
     this.bossFx.drawQuakes(this.bossEnv(), ctx);
     this.bossFx.drawThunders(this.bossEnv(), ctx);
