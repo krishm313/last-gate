@@ -308,6 +308,71 @@ export class Sfx {
         for (const [i, f] of [1568, 2093, 2637, 3136].entries()) this.tone("sine", f, f * 1.01, 0.5, 0.04, i * 0.05);
         this.tone("triangle", 300, 90, 0.5, 0.18);
         break;
+      // Phase 9/10 content: boss signatures, new foes, hero weapons and pets.
+      case "breath":
+        if (!this.ok("breath", 1)) return;
+        this.noise(1.0, 0.45, "bandpass", 700, 0.8, 0, 2200);
+        this.tone("sawtooth", 140, 60, 0.9, 0.12);
+        break;
+      case "quake":
+        if (!this.ok("quake", 1)) return;
+        this.tone("sine", 70, 32, 1.1, 0.45);
+        this.noise(1.2, 0.4, "lowpass", 220, 1, 0, 90);
+        break;
+      case "bog":
+        if (!this.ok("bog", 1)) return;
+        for (const [i, f] of [180, 140, 220].entries()) this.tone("sine", f, f * 0.5, 0.18, 0.18, i * 0.12);
+        this.noise(0.5, 0.2, "lowpass", 500);
+        break;
+      case "thunder":
+        if (!this.ok("thunder", 1)) return;
+        this.noise(0.18, 0.55, "highpass", 1800, 1);
+        this.noise(1.6, 0.5, "lowpass", 600, 1, 0.08, 120);
+        this.tone("sine", 60, 35, 1.2, 0.3, 0.05);
+        break;
+      case "bombDrop":
+        if (!this.ok("bombDrop", 0.15)) return;
+        this.tone("sine", 1400, 500, 0.4, 0.06);
+        this.noise(0.35, 0.45, "lowpass", 900, 1, 0.42, 200);
+        this.tone("triangle", 110, 45, 0.3, 0.3, 0.42);
+        break;
+      case "pop":
+        if (!this.ok("pop", 0.1)) return;
+        this.noise(0.12, 0.45, "highpass", 1500, 1);
+        this.tone("sine", 900, 200, 0.18, 0.15);
+        break;
+      case "unload":
+        if (!this.ok("unload", 0.4)) return;
+        this.tone("triangle", 160, 70, 0.25, 0.35);
+        this.noise(0.4, 0.35, "lowpass", 800, 1, 0, 300);
+        break;
+      case "climb":
+        if (!this.ok("climb", 0.2)) return;
+        this.tone("square", 2100, 1700, 0.05, 0.05);
+        this.tone("square", 2400, 2000, 0.04, 0.04, 0.06);
+        break;
+      case "climbOver":
+        if (!this.ok("climbOver", 0.2)) return;
+        this.noise(0.15, 0.2, "lowpass", 600);
+        break;
+      case "pierce":
+        if (!this.ok("pierce", 0.08)) return;
+        this.noise(0.08, 0.25, "bandpass", 2600, 3);
+        break;
+      case "orbBurst":
+        if (!this.ok("orb", 0.08)) return;
+        this.tone("sine", 1200, 1800, 0.12, 0.07);
+        this.noise(0.18, 0.15, "highpass", 3000, 1, 0, 6000);
+        break;
+      case "petStrike":
+        if (!this.ok("petStrike", 0.2)) return;
+        this.tone("sine", 1800, 2600, 0.1, 0.06);
+        this.noise(0.1, 0.2, "highpass", 2500);
+        break;
+      case "petFetch":
+        if (!this.ok("petFetch", 0.25)) return;
+        this.tone("sine", 900, 1300, 0.08, 0.05);
+        break;
       case "towerFrozen":
         if (!this.ok("frozen", 0.12)) return;
         this.noise(0.18, 0.25, "bandpass", 3500, 4);

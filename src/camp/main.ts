@@ -1352,6 +1352,8 @@ const SIEGE_SILENT = new Set<CampEvent["type"]>(["coinPickup", "logPickup", "coi
 
 function playSfx(ev: CampEvent, c: Camp) {
   if (c.reverse && SIEGE_SILENT.has(ev.type)) return;
+  // A popped Balloon Bomber gets its pop on top of the usual kill sound.
+  if (ev.type === "kill" && ev.enemy.id === "bomber") sfx.event("pop");
   // Newer event types: synthesised in sfx.event (rate-limited there), plus a buzz for the big hits.
   switch (ev.type) {
     case "callToArms":
@@ -1362,6 +1364,9 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "eruption":
     case "tide":
     case "bossSlam":
+    case "breath":
+    case "quake":
+    case "thunder":
       sfx.event(ev.type);
       buzz(settings, 60);
       return;
@@ -1386,6 +1391,15 @@ function playSfx(ev: CampEvent, c: Camp) {
     case "specChosen":
     case "ablaze":
     case "fireOut":
+    case "bog":
+    case "bombDrop":
+    case "unload":
+    case "climb":
+    case "climbOver":
+    case "pierce":
+    case "orbBurst":
+    case "petStrike":
+    case "petFetch":
       sfx.event(ev.type);
       return;
   }
