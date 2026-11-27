@@ -1,3 +1,4 @@
+import { FoeFx, type FoeFxEnv } from "./foeFx";
 import { BossFx, type BossFxEnv } from "./bossFx";
 import { BANNER_BY_ID } from "../core/banners";
 import { Fx } from "../render/fx";
@@ -945,7 +946,7 @@ export class CampRenderer {
             fx.rings.push({ x: ev.x, y: top, r: 34, color: "#ffffff", life: 0.22, max: 0.22, width: 3 });
             fx.number(ev.x, top - 12, "POP!", "#ffe0d0", 14, 0.7);
             if (this.fx.trauma < 0.3) fx.shake(0.12);
-            this.fallingBaskets.push({ x: ev.x, y: ev.y - 22, gy: ev.y + 8, t: this.time, spin: ev.eid % 2 ? 1 : -1 });
+            this.foeFx.fallingBaskets.push({ x: ev.x, y: ev.y - 22, gy: ev.y + 8, t: this.time, spin: ev.eid % 2 ? 1 : -1 });
           }
           fx.burst(ev.x, ev.y, ev.enemy.color, ev.enemy.boss ? 30 : 10, ev.enemy.boss ? 260 : 150, { max: 0.55, size: 3.5, gravity: 260, shape: "chunk" });
           fx.rings.push({ x: ev.x, y: ev.y, r: ev.enemy.radius * 1.8, color: "#ffffff", life: 0.18, max: 0.18, width: 2 });
@@ -1018,7 +1019,7 @@ export class CampRenderer {
           fx.number(ev.x, ev.y - 30, "Over the wall!", "#ffb0a0", 12, 0.9);
           break;
         case "bombDrop":
-          this.bombs.push({ x: ev.x, y: ev.y, tx: ev.tx, ty: ev.ty, t: this.time });
+          this.foeFx.bombs.push({ x: ev.x, y: ev.y, tx: ev.tx, ty: ev.ty, t: this.time });
           break;
         case "burrow":
         case "emerge":
@@ -1500,6 +1501,11 @@ export class CampRenderer {
 
   /** Boss signature effects + boss arenas (bossFx.ts). */
   readonly bossFx = new BossFx();
+  /** Phase-9 foe effects (foeFx.ts). */
+  readonly foeFx = new FoeFx();
+  private foeEnv(): FoeFxEnv {
+    return { time: this.time, night: this.night, fx: this.fx, blob: (k, st) => this.blob(k, st), drawBlob: (ctx, b, x, y, rx, ry, a) => this.drawBlob(ctx, b, x, y, rx, ry, a), bankFor: (id, x, m) => this.bankFor(id, x, m) };
+  }
   /** The slice of renderer state the boss effects read. */
   private bossEnv(): BossFxEnv {
     return { time: this.time, night: this.night, lite: this.lite, ambient: this.ambient, fx: this.fx, base: this.base, blob: (k, st) => this.blob(k, st), drawBlob: (ctx, b, x, y, rx, ry, a) => this.drawBlob(ctx, b, x, y, rx, ry, a) };
@@ -1943,8 +1949,8 @@ export class CampRenderer {
     this.buildDust = this.buildDust.filter((d) => this.time < d.t);
     this.drawMasteryBeams(ctx);
     this.drawParts(ctx);
-    this.drawBombs(ctx);
-    this.drawFallingBaskets(ctx);
+    this.foeFx.drawBombs(this.foeEnv(), ctx);
+    this.foeFx.drawFallingBaskets(this.foeEnv(), ctx);
     this.bossFx.drawBreaths(this.bossEnv(), ctx);
     this.bossFx.drawQuakes(this.bossEnv(), ctx);
     this.drawFlyers(ctx, dt);
@@ -4607,12 +4613,12 @@ export class CampRenderer {
     if (e.def.id === "bloodlord") this.drawBloodAura(ctx, c, e);
     if (e.def.id === "hollowking") this.drawHollowAura(ctx, c, e);
     if (e.def.id === "drowned") this.drawDrownedAura(ctx, c, e);
-    if (e.def.guard && e.y < WALL_Y) this.drawShieldLane(ctx, e);
+    if (e.def.guard && e.y < WALL_Y) this.foeFx.drawShieldLane(this.foeEnv(), ctx, e);
     // Wall Climber: up the outside of the palisade on a grapnel rope, over the top (lifted into view
     // above the stakes), then down the inside.
     const climbing = !!(e.climb && e.climb > 0);
     const lift = climbing ? Math.sin((1 - e.climb! / (e.def.climber ?? 2.4)) * Math.PI) * 34 : 0;
-    if (climbing) this.drawClimbRope(ctx, e, lift);
+    if (climbing) this.foeFx.drawClimbRope(this.foeEnv(), ctx, e, lift);
     if (lift) {
       ctx.save();
       ctx.translate(0, -lift);
@@ -4624,7 +4630,7 @@ export class CampRenderer {
       ctx.restore();
     } else this.drawEnemyInner(ctx, c, e);
     if (lift) ctx.restore();
-    if (e.guarded) this.drawGuardPip(ctx, e);
+    if (e.guarded) this.foeFx.drawGuardPip(this.foeEnv(), ctx, e);
     if (e.elite) this.drawEliteMarks(ctx, c, e);
     if (e.snared && e.snared > 0) this.drawSnare(ctx, c, e);
   }
@@ -4982,75 +4988,6 @@ export class CampRenderer {
     ctx.restore();
   }
 
-  /** Shield Wall: a faint steel-blue lane behind it marks where foes shelter from arrows. */
-  private drawShieldLane(ctx: CanvasRenderingContext2D, e: Enemy): void {
-    const g = e.def.guard!;
-    const top = e.y - g.depth, w = g.width;
-    const grad = ctx.createLinearGradient(0, e.y, 0, top);
-    const a = 0.16 + this.night * 0.12;
-    grad.addColorStop(0, `rgba(140,180,255,${a.toFixed(3)})`);
-    grad.addColorStop(1, "rgba(140,180,255,0)");
-    ctx.save();
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(e.x - w, e.y - 4);
-    ctx.lineTo(e.x + w, e.y - 4);
-    ctx.lineTo(e.x + w * 0.8, top);
-    ctx.lineTo(e.x - w * 0.8, top);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  /** A small blue shield over a foe sheltering behind a Shield Wall (it takes half damage). */
-  private drawGuardPip(ctx: CanvasRenderingContext2D, e: Enemy): void {
-    const x = e.x, y = e.y - e.def.radius * 2.6;
-    ctx.save();
-    ctx.fillStyle = "#6a9aff";
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(x - 4.5, y - 4);
-    ctx.lineTo(x + 4.5, y - 4);
-    ctx.lineTo(x + 4.5, y + 0.5);
-    ctx.quadraticCurveTo(x + 4, y + 4.5, x, y + 6);
-    ctx.quadraticCurveTo(x - 4, y + 4.5, x - 4.5, y + 0.5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  /** Wall Climber's grapnel and rope, from the top of the palisade down to its hands. */
-  private drawClimbRope(ctx: CanvasRenderingContext2D, e: Enemy, lift: number): void {
-    const hookY = WALL_Y - WALL_THICK / 2 - 14;
-    const hands = e.y - lift - e.def.radius * 1.4;
-    ctx.save();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3.4;
-    ctx.beginPath();
-    ctx.moveTo(e.x + 2, hookY);
-    ctx.quadraticCurveTo(e.x + 5, (hookY + hands) / 2, e.x + 1, hands);
-    ctx.stroke();
-    ctx.strokeStyle = "#d8b070";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(e.x + 2, hookY);
-    ctx.quadraticCurveTo(e.x + 5, (hookY + hands) / 2, e.x + 1, hands);
-    ctx.stroke();
-    // Three-pronged iron grapnel hooked over the stakes.
-    ctx.strokeStyle = "#c8ccd4";
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = "round";
-    for (const dx of [-4, 0, 4]) {
-      ctx.beginPath();
-      ctx.moveTo(e.x + 2, hookY);
-      ctx.quadraticCurveTo(e.x + 2 + dx * 1.2, hookY - 6, e.x + 2 + dx * 1.6, hookY - 1);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   private drawEnemyInner(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy): void {
     const r = e.def.radius;
     if (e.def.boss) {
@@ -5157,7 +5094,7 @@ export class CampRenderer {
         ctx.fill();
       }
     }
-    else if (id === "bomber") this.drawBomber(ctx, c, e, flash);
+    else if (id === "bomber") this.foeFx.drawBomber(this.foeEnv(), ctx, c, e, flash);
     else if (id === "dragon" || id === "frostwyrm") this.drawDragon(ctx, c, e, flash);
     else {
       // Attackers swing their weapon down at the wall.
@@ -6147,43 +6084,48 @@ export class CampRenderer {
   /** Upgrade parts in flight from the hero to the building. */
   private parts: { fx: number; fy: number; tx: number; ty: number; t: number; kind: string; spin: number }[] = [];
 
-  /** Balloon Bomber bombs in flight: a lit fuse tumbling down onto the hall, then a burst of fire. */
-  private bombs: { x: number; y: number; tx: number; ty: number; t: number }[] = [];
-  private drawBombs(ctx: CanvasRenderingContext2D): void {
-    if (!this.bombs.length) return;
-    const DUR = 0.45;
-    for (const b of this.bombs) {
-      const u = (this.time - b.t) / DUR;
+  private drawParts(ctx: CanvasRenderingContext2D): void {
+    if (!this.parts.length) return;
+    const DUR = 0.32;
+    for (const q of this.parts) {
+      const u = (this.time - q.t) / DUR;
+      if (u < 0) continue;
       if (u >= 1) {
-        const fx = this.fx;
-        fx.burst(b.tx, b.ty, "#ffb040", 22, 210, { max: 0.5, size: 3.6, gravity: 120, shape: "dot" });
-        fx.burst(b.tx, b.ty, "#ff5a1a", 10, 140, { max: 0.4, size: 4.5, gravity: 60, shape: "dot" });
-        fx.burst(b.tx, b.ty, "#8a7a6a", 6, 160, { max: 0.6, size: 3, gravity: 420, shape: "chunk" });
-        fx.burst(b.tx, b.ty - 6, "rgba(60,50,45,0.75)", 10, 80, { max: 1.1, size: 9, gravity: -40, drag: 2 });
-        fx.rings.push({ x: b.tx, y: b.ty, r: 48, color: "#ffcf60", life: 0.32, max: 0.32, width: 5 });
-        if (fx.trauma < 0.3) fx.shake(0.14);
+        if (!(q as { landed?: boolean }).landed) {
+          (q as { landed?: boolean }).landed = true;
+          this.fx.burst(q.tx, q.ty, "#f4ecd8", 4, 70, { max: 0.3, size: 4, gravity: -10, drag: 3, shape: "dot" });
+        }
         continue;
       }
-      // Falls with gravity (slow off the basket, fast at the end), spinning; the fuse spits sparks.
-      const k = u * u;
-      const bx = b.x + (b.tx - b.x) * u, by = b.y + (b.ty - b.y) * k;
+      const e = u * u * (3 - 2 * u);
+      const x = q.fx + (q.tx - q.fx) * e;
+      const y = q.fy + (q.ty - q.fy) * e - Math.sin(u * Math.PI) * 70;
       ctx.save();
-      ctx.translate(bx, by);
-      ctx.rotate(u * 7);
-      ctx.fillStyle = "#24242a";
+      ctx.translate(x, y);
+      ctx.rotate(q.spin + u * 9);
       ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(0, 0, 6.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
-      ctx.beginPath(); ctx.arc(-2, -2, 2, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#8a6a3a"; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.moveTo(0, -5); ctx.quadraticCurveTo(3, -8, 2, -10); ctx.stroke();
+      ctx.lineWidth = 1.4;
+      if (q.kind === "catapult") {
+        ctx.fillStyle = "#8a8a92"; ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      } else if (q.kind === "mage") {
+        ctx.fillStyle = "#b07aff"; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(4, 0); ctx.lineTo(0, 7); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (q.kind === "barracks") {
+        ctx.fillStyle = "#3d6aa8"; ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.lineTo(5, 1); ctx.quadraticCurveTo(0, 7, -5, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ffd23a"; ctx.fillRect(-1, -4, 2, 7);
+      } else if (q.kind === "tower") {
+        ctx.strokeStyle = "#6a4422"; ctx.lineWidth = 2;
+        for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, 6); ctx.lineTo(o, -6); ctx.stroke(); }
+        ctx.fillStyle = "#e8e8ee"; for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, -9); ctx.lineTo(o + 1.6, -6); ctx.lineTo(o - 1.6, -6); ctx.fill(); }
+      } else if (q.kind === "spikes") {
+        ctx.fillStyle = "#a8743e"; ctx.beginPath(); ctx.moveTo(-1.8, 7); ctx.lineTo(1.8, 7); ctx.lineTo(0, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else {
+        ctx.fillStyle = q.spin > 1 && q.spin < 2 ? "#9a9aa6" : "#b8844a";
+        ctx.beginPath(); ctx.roundRect(-7, -2.5, 14, 5, 1.5); ctx.fill(); ctx.stroke();
+      }
       ctx.restore();
-      if (this.fx.particles.length < 400) this.fx.burst(bx + 2, by - 10, Math.sin(this.time * 40) > 0 ? "#ffe080" : "#ff8a20", 1, 40, { max: 0.25, size: 2, gravity: 60, shape: "dot" });
     }
-    this.bombs = this.bombs.filter((b) => this.time - b.t < DUR);
+    this.parts = this.parts.filter((q) => this.time - q.t < DUR + 0.05);
   }
-
   /** Companion pet: the hound lopes along at the King's heel (bounding hop, flips to face where it
    *  runs); the falcon glides overhead, wingbeats while it flies, banks into turns and stoops on a dive. */
   private petPrev = { x: 0, y: 0, flip: false, ph: 0, bank: 0 };
@@ -6229,113 +6171,6 @@ export class CampRenderer {
     }
     ctx.restore();
     if (diving && this.fx.particles.length < 400 && Math.floor(this.time * 30) % 2 === 0) this.fx.burst(p.x, p.y - alt, "rgba(255,255,255,0.7)", 1, 10, { max: 0.2, size: 2.2, gravity: 0, shape: "dot" });
-  }
-
-  /** Popped Balloon Bombers: the wicker basket drops (accelerating, tumbling) and thuds into the dirt. */
-  private fallingBaskets: { x: number; y: number; gy: number; t: number; spin: number }[] = [];
-  private drawFallingBaskets(ctx: CanvasRenderingContext2D): void {
-    if (!this.fallingBaskets.length) return;
-    const FALL = 0.45, LIE = 1.4;
-    for (const b of this.fallingBaskets) {
-      const age = this.time - b.t;
-      const u = Math.min(1, age / FALL);
-      const y = b.y + (b.gy - b.y) * u * u;
-      const rot = b.spin * u * 1.9;
-      if (age >= FALL && age - FALL < 0.05 && !(b as { thud?: boolean }).thud) {
-        (b as { thud?: boolean }).thud = true;
-        this.fx.burst(b.x, b.gy + 4, "rgba(206,190,160,0.85)", 8, 70, { max: 0.6, size: 6, gravity: -12, drag: 3 });
-        this.fx.burst(b.x, b.gy, "#8a6030", 5, 110, { max: 0.45, size: 2.6, gravity: 320, shape: "chunk" });
-      }
-      const fade = age > FALL + LIE - 0.4 ? Math.max(0, (FALL + LIE - age) / 0.4) : 1;
-      ctx.save();
-      ctx.globalAlpha *= fade;
-      softShadow(ctx, b.x, b.gy + 4, 10 * (0.5 + 0.5 * u), 3.5, 0.3 * u);
-      ctx.translate(b.x, y);
-      ctx.rotate(rot);
-      if (!buildingSprite(ctx, "basket", 0, 8, 1.8)) {
-        ctx.fillStyle = "#b88a4a"; ctx.fillRect(-7, -4, 14, 10);
-      }
-      ctx.restore();
-    }
-    this.fallingBaskets = this.fallingBaskets.filter((b) => this.time - b.t < FALL + LIE);
-  }
-
-  /** Balloon Bomber: a striped 3D balloon with a goblin bombardier leaning out of its basket. */
-  private drawBomber(ctx: CanvasRenderingContext2D, c: Camp, e: Enemy, flash: boolean): void {
-    const r = e.def.radius;
-    const bob = Math.sin(c.time * 1.7 + e.sway) * 3;
-    const tilt = this.bankFor(e.id, e.x, 0.3) * 0.25;
-    const bx = e.x, by = e.y - 22 + bob; // basket rim
-    const dropping = e.attackTimer < 0.35 && Math.hypot(HALL.x - e.x, HALL.y - e.def.bomber!.hover - e.y) < 120;
-    ctx.save();
-    ctx.translate(bx, by);
-    ctx.rotate(tilt);
-    const ok = buildingSprite(ctx, "balloon", 0, 7, 1.8);
-    if (ok) {
-      // The goblin bombardier: leans over the rim (and winds up when a bomb is about to go).
-      drawAnim(ctx, "goblin_anim", dropping ? "attack" : "idle", dropping ? 2 : animFrame("idle", c.time + e.sway, 5), 0, 6 - (dropping ? 2 : 0), 30, { flip: e.x > HALL.x, flash: flash ? 0.6 : 0, key: `b${e.id}` });
-      buildingSprite(ctx, "basket", 0, 13, 1.8);
-    } else {
-      ctx.fillStyle = "#c8402e"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.ellipse(0, -28, r * 1.3, r * 1.6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#b88a4a"; ctx.fillRect(-7, -2, 14, 10); ctx.strokeRect(-7, -2, 14, 10);
-    }
-    if (flash) {
-      ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = "rgba(255,255,255,0.3)";
-      ctx.beginPath(); ctx.ellipse(0, -26, r * 1.5, r * 1.9, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
-    // The burner breathes: a soft orange glow at the neck after dark.
-    if (this.night > 0.2) {
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      this.drawBlob(ctx, this.blob("lavaglow", [[0, "rgba(255,120,40,0.9)"], [1, "rgba(255,60,10,0)"]]), bx, by - 10, 14, 10, 0.4 * this.night * (0.8 + 0.2 * Math.sin(c.time * 9 + e.id)));
-      ctx.restore();
-    }
-  }
-
-  private drawParts(ctx: CanvasRenderingContext2D): void {
-    if (!this.parts.length) return;
-    const DUR = 0.32;
-    for (const q of this.parts) {
-      const u = (this.time - q.t) / DUR;
-      if (u < 0) continue;
-      if (u >= 1) {
-        if (!(q as { landed?: boolean }).landed) {
-          (q as { landed?: boolean }).landed = true;
-          this.fx.burst(q.tx, q.ty, "#f4ecd8", 4, 70, { max: 0.3, size: 4, gravity: -10, drag: 3, shape: "dot" });
-        }
-        continue;
-      }
-      const e = u * u * (3 - 2 * u);
-      const x = q.fx + (q.tx - q.fx) * e;
-      const y = q.fy + (q.ty - q.fy) * e - Math.sin(u * Math.PI) * 70;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(q.spin + u * 9);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.4;
-      if (q.kind === "catapult") {
-        ctx.fillStyle = "#8a8a92"; ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      } else if (q.kind === "mage") {
-        ctx.fillStyle = "#b07aff"; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(4, 0); ctx.lineTo(0, 7); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
-      } else if (q.kind === "barracks") {
-        ctx.fillStyle = "#3d6aa8"; ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.lineTo(5, 1); ctx.quadraticCurveTo(0, 7, -5, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffd23a"; ctx.fillRect(-1, -4, 2, 7);
-      } else if (q.kind === "tower") {
-        ctx.strokeStyle = "#6a4422"; ctx.lineWidth = 2;
-        for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, 6); ctx.lineTo(o, -6); ctx.stroke(); }
-        ctx.fillStyle = "#e8e8ee"; for (const o of [-2.5, 0, 2.5]) { ctx.beginPath(); ctx.moveTo(o, -9); ctx.lineTo(o + 1.6, -6); ctx.lineTo(o - 1.6, -6); ctx.fill(); }
-      } else if (q.kind === "spikes") {
-        ctx.fillStyle = "#a8743e"; ctx.beginPath(); ctx.moveTo(-1.8, 7); ctx.lineTo(1.8, 7); ctx.lineTo(0, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
-      } else {
-        ctx.fillStyle = q.spin > 1 && q.spin < 2 ? "#9a9aa6" : "#b8844a";
-        ctx.beginPath(); ctx.roundRect(-7, -2.5, 14, 5, 1.5); ctx.fill(); ctx.stroke();
-      }
-      ctx.restore();
-    }
-    this.parts = this.parts.filter((q) => this.time - q.t < DUR + 0.05);
   }
 
   /** Mastery moments: a column of light from the sky onto the building (1.2 s). */
