@@ -155,12 +155,12 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   // Chapter 12's Twin Generals: fought together, sharing one boss bar. Jade calls a Banner-bearer escort
   // and rallies with a war cry; Crimson brings Brutes and shakes the ground.
   jadegeneral: {
-    ...base, id: "jadegeneral", name: "The Jade General", hp: 1900, speed: 15, radius: 33, gateDamage: 55, attackInterval: 1.7, gold: 160, color: "#3a8a6a",
+    ...base, id: "jadegeneral", name: "The Jade General", hp: 1500, speed: 15, radius: 33, gateDamage: 32, attackInterval: 1.7, gold: 160, color: "#3a8a6a",
     cost: 0, slowResist: 0.3, boss: true, armor: 0.15, twin: true, behavior: "summoner", summon: { enemy: "banner", count: 2, interval: 9, enraged: "knight" },
     phase2: { kind: "warcry", every: 10, radius: 260, power: 6 },
   },
   crimsongeneral: {
-    ...base, id: "crimsongeneral", name: "The Crimson General", hp: 1900, speed: 16, radius: 33, gateDamage: 60, attackInterval: 1.6, gold: 160, color: "#a83a3a",
+    ...base, id: "crimsongeneral", name: "The Crimson General", hp: 1500, speed: 16, radius: 33, gateDamage: 36, attackInterval: 1.6, gold: 160, color: "#a83a3a",
     cost: 0, slowResist: 0.3, boss: true, armor: 0.15, twin: true, behavior: "summoner", summon: { enemy: "brute", count: 1, interval: 10, enraged: "runner" },
     phase2: { kind: "quake", every: 10, radius: 230, power: 2.2 },
   },

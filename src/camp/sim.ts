@@ -69,7 +69,7 @@ export const CAMP = {
 /** Twin bosses (chapter 12): the shared boss-bar title, and what the survivor gains when its partner falls. */
 export const TWIN = { title: "The Twin Generals", speed: 1.2, damage: 1.3, phaseEvery: 0.6 };
 
-export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 9: 2.45, 10: 2.6, 11: 3.0, 12: 3.2, 98: 2.3, 99: 1 };
+export const CAMP_CHAPTER_HP: Record<number, number> = { 1: 1, 2: 1.4, 3: 1.45, 4: 2.85, 5: 2.0, 6: 1.9, 7: 2.5, 8: 2.0, 9: 2.45, 10: 2.6, 11: 3.0, 12: 2.6, 98: 2.3, 99: 1 };
 
 export const TOWER_LEVELS = [
   // level 1..4
