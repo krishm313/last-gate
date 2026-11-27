@@ -1726,6 +1726,46 @@ function mageTowerModel(level: number): void {
 }
 
 /** One spike-trap stake (wood, or dark iron with a bright tip). */
+/** Storm Lighthouse (chapter 11 kingdom landmark): a red-and-white striped tower on a rocky outcrop,
+ *  a glowing lantern room with a gallery rail, and a dark cap. */
+function lighthouseModel(): void {
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const rock = mesh(lumpy(new THREE.IcosahedronGeometry(0.7 + (i % 2) * 0.25, 1), 0.12), std(i % 2 ? 0x6a6e72 : 0x7a7e80, 0.95));
+    rock.position.set(Math.cos(a) * 1.1, 0.3, Math.sin(a) * 1.1);
+    root.add(rock);
+  }
+  const H = 4.6, bands = 6;
+  for (let k = 0; k < bands; k++) {
+    const r0 = 0.95 - (k / bands) * 0.35, r1 = 0.95 - ((k + 1) / bands) * 0.35;
+    const seg = mesh(new THREE.CylinderGeometry(r1, r0, H / bands, 20), std(k % 2 ? 0xc8302a : 0xf2ece0, 0.7));
+    seg.position.y = 0.6 + (k + 0.5) * (H / bands);
+    root.add(seg);
+  }
+  const gallery = mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.12, 20), std(0x3a3e48, 0.6));
+  gallery.position.y = 0.6 + H + 0.06;
+  root.add(gallery);
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const post = mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.35, 4), std(0x2a2e36, 0.5));
+    post.position.set(Math.cos(a) * 0.8, 0.6 + H + 0.28, Math.sin(a) * 0.8);
+    root.add(post);
+  }
+  const rail = mesh(new THREE.TorusGeometry(0.8, 0.025, 4, 24), std(0x2a2e36, 0.5));
+  rail.rotation.x = Math.PI / 2;
+  rail.position.y = 0.6 + H + 0.45;
+  root.add(rail);
+  const lamp = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.7, 12), new THREE.MeshStandardMaterial({ color: 0xffe9a0, emissive: 0xffc040, emissiveIntensity: 1.8, roughness: 0.3 }));
+  lamp.position.y = 0.6 + H + 0.47;
+  root.add(lamp);
+  const cap = mesh(new THREE.ConeGeometry(0.62, 0.6, 12), std(0x2a2e36, 0.6));
+  cap.position.y = 0.6 + H + 1.12;
+  root.add(cap);
+  const ball = mesh(new THREE.SphereGeometry(0.1, 8, 6), std(0xf2c443, 0.4));
+  ball.position.y = 0.6 + H + 1.5;
+  root.add(ball);
+}
+
 /** Siege Tower: a tall timber tower on four wheels, hide-covered sides, a fighting top with merlons,
  *  and a closed drawbridge on the front (the open ramp is its own prop). */
 function siegeTowerModel(): void {
@@ -2096,6 +2136,7 @@ function stakeModel(iron: boolean): void {
   stake: () => stakeModel(false),
   stake_iron: () => stakeModel(true),
   balloon: balloonEnvelope,
+  lighthouse: () => { lighthouseModel(); root.rotation.y = 0.3; },
   siegetower: () => { siegeTowerModel(); root.rotation.y = 0.25; },
   siege_ramp: () => { siegeRampModel(); root.rotation.y = 0.25; },
   hound: () => { houndModel(); root.rotation.y = -0.35; },

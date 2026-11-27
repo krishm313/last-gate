@@ -3,6 +3,7 @@
 // them up, Crowns grow the castle, and the next landmark waits as a faint build site.
 import { BUILDING_ATLAS, DECOR_ATLAS, TOWER_ATLAS } from "../camp/propAtlas";
 import { CHAPTERS } from "../core/chapters";
+import { CH11_ENABLED } from "../core/features";
 import { totalStars, type SaveData } from "../core/meta";
 import { CONQUEST_BANNERS, conquestDone, conquestEntry } from "../core/conquest";
 import { getItem, setItem } from "./store";
@@ -37,6 +38,7 @@ const LANDMARKS: Landmark[] = [
   { ch: 9, name: "Old Shrine", sprite: () => "shrine", atlas: "bld", x: 206, y: 62, scale: 0.34, max: 1 },
   { ch: 10, name: "Royal Banners", sprite: () => "banner1", atlas: "decor", x: 134, y: 126, scale: 0.6, max: 1 },
   { ch: 10, name: "Royal Banners", sprite: () => "banner1", atlas: "decor", x: 206, y: 126, scale: 0.6, max: 1 },
+  ...(CH11_ENABLED ? [{ ch: 11, name: "Storm Lighthouse", sprite: () => "lighthouse", atlas: "bld" as const, x: 300, y: 52, scale: 0.3, max: 1 }] : []),
 ];
 /** Distinct landmarks (the paired banners and the starting towers count once). */
 const NAMES = [...new Set(LANDMARKS.map((l) => l.name))];
@@ -211,6 +213,18 @@ function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>, t = 0):
   };
   if (cleared(save, 1)) smoke(40, 91, 0.1);
   if (cleared(save, 3)) smoke(109, 73, 0.6);
+  // The Storm Lighthouse's lamp pulses.
+  if (CH11_ENABLED && cleared(save, 11)) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const g = ctx.createRadialGradient(299, 38, 0, 299, 38, 10);
+    const a = 0.45 + 0.35 * Math.sin(t * 2.4);
+    g.addColorStop(0, `rgba(255,230,150,${a.toFixed(3)})`);
+    g.addColorStop(1, "rgba(255,200,80,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(289, 28, 20, 20);
+    ctx.restore();
+  }
   return true;
 }
 

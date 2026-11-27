@@ -90,6 +90,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Ch11 slice 4 (hidden): 3D Storm Lighthouse kingdom landmark (12th, only when CH11 is on) with a pulsing lamp; flag-on check: map pin, chapter sheet (boss named), kingdom 12/12.
 - 2026-11-27 Ch11 slice 3 (hidden): The Thunder Giant boss (walking boss body, storm-blue crackling aura, summons ravens → climbers when enraged; signature "thunder": 3 jagged lightning strikes on the nearest towers (stun) / the wall in front (scorch), screen flash, arena theme), telegraph colours for all phase-2 kinds, Bestiary gated by enemyEnabled() until CH11 ships.
 - 2026-11-27 Ch11 slice 2 (hidden): coast palette — painted ground_11.webp (grey-green grass, pale sand) from gen_terrain.py palette 11, coast.webp props (summer atlas HSV-shifted to windswept sea-green), mood 11 wired (prop tint, painted ground, leaf colour). Checked in-game with the flag on locally.
 - 2026-11-27 Ch11 slice 1 (hidden, flag off): CH11_ENABLED switch, Storm Coast chapter data (10 waves, storm-heavy weather, Bone Dragon mini-boss, placeholder finale boss), isCampaignChapter() replaces hard-coded ≤10 in Heat / Endless scenery / weekly pools, CAMP_CHAPTER_HP[11]=3.0 (first bot pass at 2.7: L8 13%, L10 35% — too easy). Flag-on run of the suite caught a 10-chapter assumption in a test.
