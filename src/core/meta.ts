@@ -253,6 +253,8 @@ export interface RunReward {
   newStars: number;
   firstClear: boolean;
   unlockedHeroes: HeroId[];
+  /** Conquest milestones reached under this run's War Banner. */
+  conquestBonus?: number;
   /** Endless: one-time milestone bonus (every 5 nights) and the nights it was for. */
   milestoneBonus?: number;
   milestones?: number[];

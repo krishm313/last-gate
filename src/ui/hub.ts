@@ -1791,6 +1791,7 @@ export class Hub {
     if (reward.streakBonus) row(`🔥 Streak bonus (${r.dailyStreak ?? 0} days)`, `● ${reward.streakBonus}`, "best");
     if (reward.milestoneBonus) row(`Milestone${reward.milestones!.length > 1 ? "s" : ""}: night ${reward.milestones!.join(", ")}`, `● ${reward.milestoneBonus}`, "best");
     if (reward.heatBonus) row("🔥 Heat bonus", `● ${reward.heatBonus}`, "best");
+    if (reward.conquestBonus) row("🚩 Conquest", `● ${reward.conquestBonus}`, "best");
     const total = row("Gold earned", `● 0`, "total");
     // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
     const nRows = rows.childElementCount;

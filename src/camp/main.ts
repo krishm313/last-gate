@@ -1093,6 +1093,7 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
     for (const g of got) {
       save.gold += g.gold;
       reward.gold += g.gold;
+      reward.conquestBonus = (reward.conquestBonus ?? 0) + g.gold;
       earnedThisRun.push(`🚩 ${bd.icon} ${bd.name}: ${g.label} (+${g.gold})`);
     }
   }
