@@ -1532,3 +1532,13 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgbn-panel .lgbn-up { color: #a8e890; }
 .lgbn-panel .lgbn-down { color: #ffa898; }
 .lgbn-panel .lgh-chip.locked { opacity: 0.55; }
+
+/* Conquest board (Trophies tab): one row per War Banner, three milestone pips. */
+.lgcq-hint { font-size: calc(10 * var(--tu)); color: #c8d4ee; margin: calc(2 * var(--u)) 0 calc(6 * var(--u)); }
+.lgcq-row { display: flex; align-items: center; gap: calc(5 * var(--u)); padding: calc(5 * var(--u)) calc(4 * var(--u)); border-top: 1px solid #ffffff14; }
+.lgcq-row.locked { opacity: 0.5; }
+.lgcq-row.done .lgcq-name { color: #ffd84a; }
+.lgcq-icon { font-size: calc(16 * var(--tu)); width: calc(22 * var(--u)); text-align: center; }
+.lgcq-name { flex: 1; font-weight: 800; font-size: calc(12 * var(--tu)); color: #f4e6c8; }
+.lgcq-pip { font-size: calc(9.5 * var(--tu)); font-weight: 800; padding: calc(2 * var(--u)) calc(6 * var(--u)); border-radius: calc(8 * var(--u)); background: #0006; color: #8a96b0; border: 1px solid #ffffff1c; }
+.lgcq-pip.on { background: linear-gradient(#ffe27a, #e8a020); color: #2a1a04; border-color: #7a4a10; }

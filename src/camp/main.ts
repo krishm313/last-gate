@@ -1,3 +1,4 @@
+import { recordConquest } from "../core/conquest";
 import { BANNER_BY_ID } from "../core/banners";
 import { ENEMIES, enemyTraits } from "../core/enemies";
 import { getItem, setItem } from "../ui/store";
@@ -1085,6 +1086,16 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
   // Abandoned between waves (build phase): wave N is held, so it counts like falling on wave N+1.
   const waveReached = !won && c.phase === "build" ? c.wave + 1 : c.wave;
   const reward = applyRun(save, { chapter: c.chapter.id, won, wave: waveReached, gateFrac: c.hallHp / c.hallMaxHp, goldFromKills: Math.round(c.goldEarned * LOOT_TO_GOLD), difficulty: runDifficulty, heatMult: dailyRun ? 1 : runHeatMult });
+  // Conquest board: milestones flown under this run's War Banner pay out now.
+  if (c.banner !== "none") {
+    const got = recordConquest((save.conquest ??= {}), c.banner, { chapter: c.chapter.id, endless: !!c.chapter.endless, won, nights: rec.nights });
+    const bd = BANNER_BY_ID[c.banner];
+    for (const g of got) {
+      save.gold += g.gold;
+      reward.gold += g.gold;
+      earnedThisRun.push(`🚩 ${bd.icon} ${bd.name}: ${g.label} (+${g.gold})`);
+    }
+  }
   pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
   if (c.chapter.endless) pushEndlessTop(save.endlessTop, { nights: rec.nights, hero: rec.hero, date: rec.date });
   writeSave(save);

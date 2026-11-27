@@ -2,6 +2,7 @@ import { kingdomCard } from "./kingdom";
 import { WEAPONS, WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { PETS, type PetId } from "../core/pets";
 import { BANNERS, BANNER_BY_ID } from "../core/banners";
+import { CONQUEST, CONQUEST_BANNERS, conquestDone, conquestEntry, conquestTotal } from "../core/conquest";
 import { GIFT_GOLD, giftView } from "../core/gift";
 import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
@@ -1055,6 +1056,25 @@ export class Hub {
     }
   }
 
+  /** Conquest board: three milestones per War Banner (gold paid at the end of the run that earns them). */
+  private conquestPanel(save: SaveData): HTMLElement {
+    const box = el("div", "lgs-panel lgcq-panel");
+    const head = el("div", "lgs-head");
+    const total = conquestTotal(save.conquest);
+    head.append(el("div", "lgs-title", "🚩 Conquest"), el("div", "lgs-pts", `${total} / ${CONQUEST_BANNERS.length * 3}`));
+    box.append(head, el("div", "lgcq-hint", `Fly a War Banner (chapter sheet) and: win a chapter (+${CONQUEST.gold.win}) · win chapter 10 (+${CONQUEST.gold.ch10}) · hold ${CONQUEST.endlessGoal} Endless nights (+${CONQUEST.gold.endless})`));
+    const have = totalStars(save);
+    for (const b of CONQUEST_BANNERS) {
+      const e = conquestEntry(save.conquest, b.id);
+      const open = have >= b.stars;
+      const row = el("div", `lgcq-row${open ? "" : " locked"}${conquestDone(e) === 3 ? " done" : ""}`);
+      const pip = (on: boolean, label: string) => el("span", `lgcq-pip${on ? " on" : ""}`, label);
+      row.append(el("span", "lgcq-icon", open ? b.icon : "🔒"), el("span", "lgcq-name", b.name), pip(e.win, "Win"), pip(e.ch10, "Ch 10"), pip(e.endless >= CONQUEST.endlessGoal, e.endless >= CONQUEST.endlessGoal ? "∞ 15" : `∞ ${e.endless}`));
+      box.append(row);
+    }
+    return box;
+  }
+
   private trophiesTab(body: HTMLElement, save: SaveData): void {
     const earned = save.claimed.length;
     const summary = el("div", "trophy-summary");
@@ -1065,6 +1085,7 @@ export class Hub {
     summary.append(el("div", "trophy-summary-icon", "🏆"), bar);
     body.append(summary);
     this.questsSection(body, save);
+    if ((save.stars[1] ?? 0) > 0) body.append(this.conquestPanel(save));
     body.append(el("div", "hub-hint", "Achievements — claim them for gold."));
     const rank = (a: (typeof ACHIEVEMENTS)[number]) => {
       const f = Math.min(1, a.progress(save) / a.goal);

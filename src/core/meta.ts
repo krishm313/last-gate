@@ -1,6 +1,7 @@
 import type { WeaponId } from "./weapons";
 import type { PetId } from "./pets";
 import type { BannerId } from "./banners";
+import { sanitizeConquest, type Conquest } from "./conquest";
 import { CHAPTERS, ENDLESS_ID } from "./chapters";
 import { HERO_BY_ID, HEROES, type HeroId } from "./heroes";
 import { DIFF_BY_ID, isDifficulty, type DifficultyId } from "./difficulty";
@@ -80,6 +81,8 @@ export interface SaveData {
   pet?: PetId;
   /** War Banner for campaign runs (default: none). */
   banner?: BannerId;
+  /** Conquest board: milestones reached per War Banner. */
+  conquest?: Conquest;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
   runs: number;
@@ -152,6 +155,7 @@ export function sanitizeSave(raw: unknown): SaveData {
   if (wpn === "crossbow" || wpn === "staff" || wpn === "own") d.weapon = wpn;
   const pet = (r as { pet?: unknown }).pet;
   if (pet === "hound" || pet === "falcon" || pet === "none") d.pet = pet;
+  if ((r as { conquest?: unknown }).conquest !== undefined) d.conquest = sanitizeConquest((r as { conquest?: unknown }).conquest);
   const ban = (r as { banner?: unknown }).banner;
   if (typeof ban === "string" && ["none", "bastion", "hunter", "hoard", "engineers", "levy", "pyre"].includes(ban)) d.banner = ban as BannerId;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";

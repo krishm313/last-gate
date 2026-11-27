@@ -4,6 +4,7 @@
 import { BUILDING_ATLAS, DECOR_ATLAS, TOWER_ATLAS } from "../camp/propAtlas";
 import { CHAPTERS } from "../core/chapters";
 import { totalStars, type SaveData } from "../core/meta";
+import { CONQUEST_BANNERS, conquestDone, conquestEntry } from "../core/conquest";
 import { getItem, setItem } from "./store";
 
 type Atlas = Record<string, [number, number, number, number, number, number]>;
@@ -149,6 +150,26 @@ function draw(cv: HTMLCanvasElement, save: SaveData, fresh: Set<string>): boolea
       }
     } });
   }
+  // Conquest: every War Banner with a milestone flies its flag along the horizon.
+  const flown = CONQUEST_BANNERS.filter((b) => conquestDone(conquestEntry(save.conquest, b.id)) > 0);
+  const flagX = [36, 92, 132, 210, 250, 306];
+  flown.forEach((b, i) => {
+    const x = flagX[i]!, y = 50;
+    items.push({ y, draw: () => {
+      sprite(DECOR_ATLAS, dec, "banner1", x, y, 0.42, 1);
+      const full = conquestDone(conquestEntry(save.conquest, b.id)) === 3;
+      ctx.save();
+      ctx.fillStyle = full ? "#ffd84a" : "#f2c443";
+      ctx.strokeStyle = "#5a3a10";
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.arc(x + 4.5, y - 11.5, 3.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.font = "4.8px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(b.icon, x + 4.5, y - 11.2);
+      ctx.restore();
+    } });
+  });
   // The castle grows a little with each Crown.
   const crowns = save.crowns ?? 0;
   items.push({ y: 106, draw: () => {
