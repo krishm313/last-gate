@@ -68,6 +68,13 @@ Slices: (1) flag + chapter data + plumbing [hidden] → (2) terrain palette + mo
 signature + arena → (4) lighthouse landmark + Bestiary/portraits → (5) balance + full playtest →
 switch on, ROADMAP line.
 
+**C1 batch 3 — decision (2026-11-27): a new building, the Ballista.** A new hero was considered and
+deferred: heroes use painted character art cut from the owner's artwork; KayKit 3D renders would not
+match it. A building fits the 3D prop pipeline and adds a real decision. Ballista: a mounted bolt
+thrower on a new pad behind the wall; slow, very heavy bolts that pierce every foe in a line (great
+against Shield Walls / packed columns, weak against spread swarms); 3 levels with distinct 3D looks;
+mastery at max level. Bot builds it like any plot → tune cost/damage with campsim A/B.
+
 ## Lanes inside every batch (rough share)
 40% current stage item · 30% game feel & animation · 20% bugs / perf / code health · 10% wild idea.
 
@@ -90,6 +97,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Content batch 3 decided: Ballista building (hero deferred — art style).
 - 2026-11-27 Game-feel slice: sounds for all phase-9/10 events (were silent). Next: choose content batch 3 (new hero vs chapter 12).
 - 2026-11-27 B3 slice 3: companions.ts. Note: the Vite dev server dies between wakes — always run tools/shots/ensure.sh in the same command as a screenshot script.
 - 2026-11-27 Ch11 ✅ SHIPPED (flag on): balance L8 7% / L10 31%, Endless rotation + Stormbreaker trophy, both flag states pass the suite. Next content batch: a new hero (needs hero art pipeline review) or chapter 12 — decide after a lanes round (feel + health).
