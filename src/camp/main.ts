@@ -1,4 +1,4 @@
-import { recordConquest } from "../core/conquest";
+import { claimBannerOfWeek, recordConquest } from "../core/conquest";
 import { BANNER_BY_ID } from "../core/banners";
 import { ENEMIES, enemyTraits } from "../core/enemies";
 import { getItem, setItem } from "../ui/store";
@@ -39,7 +39,7 @@ import { atlasDebug, crispCache, crispStats, preloadAnims, preloadAnimsFor } fro
 import type { GameEvent } from "../core/events";
 import type { ChapterDef } from "../core/waves";
 import { CHAPTER_BY_ID } from "../core/chapters";
-import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS, starsFor } from "../core/meta";
+import { applyRun, ascend, buyPerm, canBuy, chapterUnlocked, ENDLESS_MILESTONE_STEP, endlessMilestoneReward, grantHeroXp, heroUnlocked, MAX_GOLD, newSave, nextEndlessMilestone, PERMS, starsFor, totalStars } from "../core/meta";
 import { buyFlair } from "../core/flair";
 import { heroWins } from "../core/mastery";
 import { cleanHeat, HEAT_BY_ID, heatAllowed, heatGold } from "../core/heat";
@@ -53,7 +53,7 @@ import { learnSkill, resetSkills } from "../core/skills";
 import { pushEndlessTop, pushHistory, type RunRecord } from "../core/history";
 import { applyEndlessTwist, endlessSceneryFor, endlessTwistFor } from "../core/endlessMods";
 import { chapterOnDifficulty, DIFF_BY_ID, difficultyOpen, type DifficultyId } from "../core/difficulty";
-import { claimQuest, questsReady, questViews, refreshQuests } from "../core/quests";
+import { claimQuest, questsReady, questViews, refreshQuests, weekNumber } from "../core/quests";
 import { claim, claimable, foeMet } from "../core/achievements";
 import { DAILY_BONUS, dailyFor, dailyStreakBonus, recordDailyWin, todayString, type DailyChallenge, type Twist } from "../core/daily";
 import { applyDisplaySettings, buzz, loadSettings, saveSettings } from "../ui/settings";
@@ -1096,6 +1096,14 @@ function finishRun(c: Camp, won: boolean, abandoned = false) {
       reward.conquestBonus = (reward.conquestBonus ?? 0) + g.gold;
       earnedThisRun.push(`🚩 ${bd.icon} ${bd.name}: ${g.label} (+${g.gold})`);
     }
+  }
+  const weekGold = claimBannerOfWeek(save, weekNumber(todayString()), totalStars(save), { banner: c.banner, won, endless: !!c.chapter.endless });
+  if (weekGold) {
+    const bd = BANNER_BY_ID[c.banner];
+    save.gold += weekGold;
+    reward.gold += weekGold;
+    reward.weekBannerBonus = weekGold;
+    earnedThisRun.push(`🗓️ Banner of the Week: ${bd.icon} ${bd.name} (+${weekGold})`);
   }
   pushHistory(save.history, { ...rec, chapter: c.chapter.id, gold: reward.gold });
   if (c.chapter.endless) pushEndlessTop(save.endlessTop, { nights: rec.nights, hero: rec.hero, date: rec.date });

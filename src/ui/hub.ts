@@ -2,7 +2,7 @@ import { kingdomCard } from "./kingdom";
 import { WEAPONS, WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { PETS, type PetId } from "../core/pets";
 import { BANNERS, BANNER_BY_ID } from "../core/banners";
-import { CONQUEST, CONQUEST_BANNERS, conquestDone, conquestEntry, conquestTotal } from "../core/conquest";
+import { CONQUEST, CONQUEST_BANNERS, conquestDone, conquestEntry, conquestTotal, bannerOfWeek, BANNER_OF_WEEK_GOLD } from "../core/conquest";
 import { GIFT_GOLD, giftView } from "../core/gift";
 import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
@@ -702,6 +702,9 @@ export class Hub {
     const head = el("div", "lgh-head");
     const grid = el("div", "lgh-grid");
     const have = totalStars(save);
+    const week = weekNumber(todayString());
+    const featured = bannerOfWeek(week, have);
+    const claimed = save.bannerWeek === week;
     const paint = () => {
       const cur = bannerFor(save);
       const b = BANNER_BY_ID[cur];
@@ -713,6 +716,7 @@ export class Hub {
       const chip = el("button", `lgh-chip lgbn-chip${open ? "" : " locked"}`);
       chip.dataset.id = b.id;
       chip.append(el("div", "lgh-icon", open ? b.icon : "🔒"), el("div", "lgh-name", b.name), el("div", "lgh-desc lgbn-up", open ? b.up : `${have} / ${b.stars} ★`), ...(open && b.down ? [el("div", "lgh-desc lgbn-down", b.down)] : []));
+      if (b.id === featured) chip.append(el("div", `lgbn-week${claimed ? " done" : ""}`, claimed ? "🗓️ Week's bonus ✓" : `🗓️ Banner of the week · win +${BANNER_OF_WEEK_GOLD}`));
       chip.onclick = () => {
         if (!open) return this.denied(chip);
         this.cb.onClick();
@@ -1792,6 +1796,7 @@ export class Hub {
     if (reward.milestoneBonus) row(`Milestone${reward.milestones!.length > 1 ? "s" : ""}: night ${reward.milestones!.join(", ")}`, `● ${reward.milestoneBonus}`, "best");
     if (reward.heatBonus) row("🔥 Heat bonus", `● ${reward.heatBonus}`, "best");
     if (reward.conquestBonus) row("🚩 Conquest", `● ${reward.conquestBonus}`, "best");
+    if (reward.weekBannerBonus) row("🗓️ Banner of the Week", `● ${reward.weekBannerBonus}`, "best");
     const total = row("Gold earned", `● 0`, "total");
     // Rows deal in one by one (CSS, 70 ms apart); the total starts counting once it has landed.
     const nRows = rows.childElementCount;

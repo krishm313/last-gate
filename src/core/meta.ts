@@ -83,6 +83,8 @@ export interface SaveData {
   banner?: BannerId;
   /** Conquest board: milestones reached per War Banner. */
   conquest?: Conquest;
+  /** Week number whose Banner of the Week bonus was claimed. */
+  bannerWeek?: number;
   /** chapter id → best wave reached. */
   best: Record<number, number>;
   runs: number;
@@ -156,6 +158,8 @@ export function sanitizeSave(raw: unknown): SaveData {
   const pet = (r as { pet?: unknown }).pet;
   if (pet === "hound" || pet === "falcon" || pet === "none") d.pet = pet;
   if ((r as { conquest?: unknown }).conquest !== undefined) d.conquest = sanitizeConquest((r as { conquest?: unknown }).conquest);
+  const bw = (r as { bannerWeek?: unknown }).bannerWeek;
+  if (typeof bw === "number" && Number.isFinite(bw) && bw >= 0) d.bannerWeek = Math.floor(bw);
   const ban = (r as { banner?: unknown }).banner;
   if (typeof ban === "string" && BANNERS.some((b) => b.id === ban)) d.banner = ban as BannerId;
   d.flair = typeof (r as { flair?: unknown }).flair === "string" ? ((r as { flair: string }).flair).slice(0, 20) : "none";
@@ -255,6 +259,8 @@ export interface RunReward {
   unlockedHeroes: HeroId[];
   /** Conquest milestones reached under this run's War Banner. */
   conquestBonus?: number;
+  /** Banner of the Week bonus paid this run. */
+  weekBannerBonus?: number;
   /** Endless: one-time milestone bonus (every 5 nights) and the nights it was for. */
   milestoneBonus?: number;
   milestones?: number[];

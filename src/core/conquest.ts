@@ -14,6 +14,24 @@ export type Conquest = Partial<Record<BannerId, ConquestEntry>>;
 export const CONQUEST = { endlessGoal: 15, gold: { win: 300, ch10: 800, endless: 600 } };
 export const CONQUEST_BANNERS = BANNERS.filter((b) => b.id !== "none");
 
+/** Banner of the Week (phase 10 C): one unlocked banner is featured each week; the first campaign win
+ *  flying it that week pays a bonus. Rotates through the banners the player has unlocked. */
+export const BANNER_OF_WEEK_GOLD = 400;
+export function bannerOfWeek(week: number, stars: number): BannerId | null {
+  const open = CONQUEST_BANNERS.filter((b) => stars >= b.stars);
+  if (!open.length) return null;
+  // A fixed shuffle per week (not a plain cycle), so consecutive weeks don't just step along the list.
+  let h = Math.imul((week * 2654435761) ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  return open[h % open.length]!.id;
+}
+/** Pays (returns the gold) if this run claims this week's banner bonus; marks the week claimed. */
+export function claimBannerOfWeek(save: { bannerWeek?: number }, week: number, stars: number, run: { banner: BannerId; won: boolean; endless: boolean }): number {
+  if (!run.won || run.endless || run.banner === "none" || save.bannerWeek === week || bannerOfWeek(week, stars) !== run.banner) return 0;
+  save.bannerWeek = week;
+  return BANNER_OF_WEEK_GOLD;
+}
+
 export function conquestEntry(c: Conquest | undefined, id: BannerId): ConquestEntry {
   return c?.[id] ?? { win: false, ch10: false, endless: 0 };
 }
