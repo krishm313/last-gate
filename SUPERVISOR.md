@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 Game-feel slice: new-foe deaths (Shield Wall/Climber corpses; Balloon Bomber pop + falling basket).
 - 2026-11-27 B1 slice 3: banner blessings (one exclusive epic per banner, ×3 weight). Next: game-feel lane slice, then B1 close-out review (does a banner run *feel* different? playtest each once).
 - 2026-11-27 B1 slice 2: War Banner emblem on the plaza banners (in-run identity).
 - 2026-11-27 B1 slice 1 ✅ War Banners shipped (6 banners, chapter sheet, tuned in 3 rounds: Bastion was 31/27/54% → 13/8/16; Pyre/Hunter/Levy buffed). Next B1 slice: give banners visible identity in-run (HUD chip + themed camp flag) and see whether a second fork (mid-run) is needed — prefer extending existing systems over new prompts.

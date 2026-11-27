@@ -936,6 +936,16 @@ export class CampRenderer {
             const mv = this.enemyMove.get(ev.eid);
             this.corpses.push({ x: ev.x, y: ev.y, id: ev.enemy.id, r: ev.enemy.radius, t: this.time, dir: mv ? (mv.flip ? 1 : -1) : this.corpseFlip });
           }
+          if (ev.enemy.id === "bomber") {
+            // The balloon pops: cloth scraps flutter out of the envelope, the basket tumbles down.
+            const top = ev.y - 50;
+            fx.burst(ev.x, top, "#c8402e", 14, 190, { max: 1.1, size: 4, gravity: 120, drag: 2.5, shape: "chunk" });
+            fx.burst(ev.x, top, "#f0e2c0", 12, 170, { max: 1.1, size: 4, gravity: 120, drag: 2.5, shape: "chunk" });
+            fx.rings.push({ x: ev.x, y: top, r: 34, color: "#ffffff", life: 0.22, max: 0.22, width: 3 });
+            fx.number(ev.x, top - 12, "POP!", "#ffe0d0", 14, 0.7);
+            if (this.fx.trauma < 0.3) fx.shake(0.12);
+            this.fallingBaskets.push({ x: ev.x, y: ev.y - 22, gy: ev.y + 8, t: this.time, spin: ev.eid % 2 ? 1 : -1 });
+          }
           fx.burst(ev.x, ev.y, ev.enemy.color, ev.enemy.boss ? 30 : 10, ev.enemy.boss ? 260 : 150, { max: 0.55, size: 3.5, gravity: 260, shape: "chunk" });
           fx.rings.push({ x: ev.x, y: ev.y, r: ev.enemy.radius * 1.8, color: "#ffffff", life: 0.18, max: 0.18, width: 2 });
           if (ev.enemy.boss) {
@@ -1927,6 +1937,7 @@ export class CampRenderer {
     this.drawMasteryBeams(ctx);
     this.drawParts(ctx);
     this.drawBombs(ctx);
+    this.drawFallingBaskets(ctx);
     this.drawBreaths(ctx);
     this.drawQuakes(ctx);
     this.drawFlyers(ctx, dt);
@@ -6366,6 +6377,35 @@ export class CampRenderer {
     }
     ctx.restore();
     if (diving && this.fx.particles.length < 400 && Math.floor(this.time * 30) % 2 === 0) this.fx.burst(p.x, p.y - alt, "rgba(255,255,255,0.7)", 1, 10, { max: 0.2, size: 2.2, gravity: 0, shape: "dot" });
+  }
+
+  /** Popped Balloon Bombers: the wicker basket drops (accelerating, tumbling) and thuds into the dirt. */
+  private fallingBaskets: { x: number; y: number; gy: number; t: number; spin: number }[] = [];
+  private drawFallingBaskets(ctx: CanvasRenderingContext2D): void {
+    if (!this.fallingBaskets.length) return;
+    const FALL = 0.45, LIE = 1.4;
+    for (const b of this.fallingBaskets) {
+      const age = this.time - b.t;
+      const u = Math.min(1, age / FALL);
+      const y = b.y + (b.gy - b.y) * u * u;
+      const rot = b.spin * u * 1.9;
+      if (age >= FALL && age - FALL < 0.05 && !(b as { thud?: boolean }).thud) {
+        (b as { thud?: boolean }).thud = true;
+        this.fx.burst(b.x, b.gy + 4, "rgba(206,190,160,0.85)", 8, 70, { max: 0.6, size: 6, gravity: -12, drag: 3 });
+        this.fx.burst(b.x, b.gy, "#8a6030", 5, 110, { max: 0.45, size: 2.6, gravity: 320, shape: "chunk" });
+      }
+      const fade = age > FALL + LIE - 0.4 ? Math.max(0, (FALL + LIE - age) / 0.4) : 1;
+      ctx.save();
+      ctx.globalAlpha *= fade;
+      softShadow(ctx, b.x, b.gy + 4, 10 * (0.5 + 0.5 * u), 3.5, 0.3 * u);
+      ctx.translate(b.x, y);
+      ctx.rotate(rot);
+      if (!buildingSprite(ctx, "basket", 0, 8, 1.8)) {
+        ctx.fillStyle = "#b88a4a"; ctx.fillRect(-7, -4, 14, 10);
+      }
+      ctx.restore();
+    }
+    this.fallingBaskets = this.fallingBaskets.filter((b) => this.time - b.t < FALL + LIE);
   }
 
   /** Balloon Bomber: a striped 3D balloon with a goblin bombardier leaning out of its basket. */
