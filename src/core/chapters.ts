@@ -273,10 +273,10 @@ export const BLOSSOM_PASS: ChapterDef = {
     { mix: { brute: 1, shield: 1.6, footman: 1.5, ram: 0.5, sapper: 0.5, climber: 0.7, imp: 0.6 } },
     { mix: { goblin: 2, bat: 2, raven: 1.4, bomber: 0.4 }, breather: true },
     { mix: { knight: 1.5, phalanx: 0.8, shaman: 1, banner: 1, brute: 1.1, crossbow: 1 }, boss: "ogre", bossHpMult: 0.6 },
-    { mix: { siegetower: 0.4, phalanx: 0.7, bomber: 0.5, shield: 2, footman: 1.5, brute: 1.2, ram: 0.7, sapper: 0.8, climber: 0.6 } },
+    { mix: { siegetower: 0.3, phalanx: 0.6, bomber: 0.4, shield: 2, footman: 2, brute: 1, ram: 0.6, sapper: 0.6, climber: 0.5 } },
     { mix: { stalker: 0.8, knight: 1.8, wraith: 1.6, crossbow: 1.5, shaman: 1.1, banner: 1.1, phalanx: 0.7 } },
     { mix: { raven: 1.6, goblin: 2, bat: 2, imp: 1.2, bomber: 0.5 }, breather: true },
-    { mix: { siegetower: 0.5, phalanx: 0.9, climber: 0.7, bomber: 0.5, shield: 2, knight: 1.9, wraith: 1.6, crossbow: 1.3, ram: 1, brute: 1.4, shaman: 1, banner: 1 } },
+    { mix: { siegetower: 0.4, phalanx: 0.8, climber: 0.6, bomber: 0.4, shield: 2, footman: 1.5, knight: 1.6, wraith: 1.4, crossbow: 1.2, ram: 0.8, brute: 1.2, shaman: 1, banner: 1 } },
     { mix: { footman: 2, shield: 1.4, knight: 1.7, phalanx: 0.8, crossbow: 1.2, brute: 1.2, banner: 1.1, shaman: 0.9, bomber: 0.5 }, boss: "jadegeneral", boss2: "crimsongeneral" },
   ],
 };
