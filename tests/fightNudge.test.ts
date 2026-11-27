@@ -29,4 +29,20 @@ describe("fight nudge (A1)", () => {
     expect(store.get("lastgate.tipFight")).toBe("done");
     for (let i = 0; i < 60 * 6; i++) expect(t.fightNudge(c, 1 / 60)).toBeNull();
   });
+  it("tips skip ahead once night falls, and a towerless player at dawn with coins is told to build", async () => {
+    const { Tutorial } = await import("../src/camp/tutorial");
+    const { CHAPTER_BY_ID } = await import("../src/core/chapters");
+    const { createCamp } = await import("../src/camp/sim");
+    const t = new Tutorial();
+    const c = createCamp(1, CHAPTER_BY_ID[1]!, {});
+    c.wave = 1; c.phase = "wave";
+    expect(t.update(c, 1 / 60, false)).toMatch(/shoot automatically/);
+    c.phase = "build";
+    c.hero.coins = 30;
+    let tip = null;
+    for (let i = 0; i < 60 * 3 && !tip; i++) tip = t.buildNudge(c, 1 / 60);
+    expect(tip).toMatch(/build an Archer Tower/);
+    c.plots.find((p) => p.kind === "tower")!.level = 1;
+    expect(t.buildNudge(c, 1 / 60)).toBeNull();
+  });
 });

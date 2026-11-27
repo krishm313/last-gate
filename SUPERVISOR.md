@@ -59,6 +59,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 A1 slice 2: "rusher" persona (taps Start the night without building) saw "Drag to walk" all night and the go-fight nudge was hidden behind it — 0 kills in a minute. Fixed: pre-night tips skip once night falls; the go-fight nudge outranks tutorial tips; a towerless player back at dawn with coins gets the build tip again.
 - 2026-11-27 A1 slice 1: fresh-player playtest (real drags, tutorial-following bot) found two problems — the tower info card covered the screen all night (and mentioned the Forge before it exists), and nothing told an idle new player to go fight, so night 1 dragged past a minute. Fixed: card shrinks to its title at night, Forge line only once a Forge is built; new "foes at the wall — walk over" nudge + guide arrow (retires after being answered twice). Night 1 now clears in ~43 s when followed.
 - 2026-11-27 A0 ✅ dated rotations verified for Nov 22 → Mar 2027 (Endless twists incl. Tidal from Jan 4, daily hero pool with Cleric/Marshal, weekly quests; side-game quests stay filtered). Test added.
 - 2026-11-27 Supervisor plan written; Stage A started.

@@ -1685,8 +1685,9 @@ function frame(now: number) {
     }
     // (No tutorial tip while the hero is down: "drag to walk" means nothing until he rises.)
     const tutTip = (c.phase === "build" || c.phase === "wave") && !c.hero.dead ? tutorial.update(c, realDt, Math.hypot(move.x, move.y) > 0.2) : null;
-    const nudge = tutTip || paused ? null : tutorial.fightNudge(c, realDt);
-    hud.setTip(tutTip ?? nudge?.text ?? null);
+    // The go-fight nudge outranks a tutorial tip: it's about what's happening right now.
+    const nudge = paused ? null : tutorial.fightNudge(c, realDt);
+    hud.setTip(nudge?.text ?? tutTip ?? (paused ? null : tutorial.buildNudge(c, realDt)));
     // First run: the first day's sunset waits while the walk / build-a-tower tips are still up.
     if (tutorial.holdsClock && c.phase === "build" && c.wave === 0 && !dailyRun && !c.reverse) c.timer = Math.max(c.timer, 12);
     renderer.guideOverride = nudge ? nudge.at : tutorial.focus === "income" && c.phase === "build" ? c.lay.incomePile : null;

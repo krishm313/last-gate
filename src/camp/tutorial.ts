@@ -79,11 +79,24 @@ export class Tutorial {
     return { text: "⚔️ Foes are hitting the wall — walk over, you fight automatically", at: near };
   }
 
+  /** A player who skipped building (started the night straight away) and is back at dawn with coins
+   *  and no tower gets the build tip again (the guide arrow already points at the cheapest plot). */
+  private noTower = 0;
+  buildNudge(c: Camp, dt: number): string | null {
+    if (c.phase !== "build" || c.wave === 0 || c.reverse || c.plots.some((p) => p.kind === "tower" && p.level > 0)) { this.noTower = 0; return null; }
+    const cheapest = Math.min(...c.plots.filter((p) => p.kind === "tower" && !p.locked).map((p) => p.costs[0]! - p.paid));
+    if (c.hero.coins < cheapest) { this.noTower = 0; return null; }
+    this.noTower += dt;
+    return this.noTower > 2 ? "🏹 Walk onto a glowing plot to build an Archer Tower" : null;
+  }
+
   /** Returns the tip to show (or null). */
   update(c: Camp, dt: number, moving: boolean): string | null {
     if (!this.active) return null;
     if (moving) this.state.moved += dt;
     if (this.step === 2 && this.state.startCoins === 0) this.state.startCoins = c.hero.coins;
+    // A player who starts the night before finishing the day's tips: those tips no longer apply.
+    if (c.wave > 0 && this.step < 4) this.step = 4;
     while (this.step < STEPS.length && STEPS[this.step]!.done(c, this.state)) {
       this.step++;
       if (this.step === 2) this.state.startCoins = c.hero.coins;
