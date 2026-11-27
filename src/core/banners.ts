@@ -14,11 +14,11 @@ export interface BannerDef {
 
 export const BANNERS: BannerDef[] = [
   { id: "none", name: "No banner", icon: "🏳️", up: "The classic siege.", down: "", stars: 0 },
-  { id: "bastion", name: "Iron Bastion", icon: "🏰", up: "Walls ×1.8 HP, mend 25% at dawn", down: "Archer Towers cost 35% more", stars: 3 },
-  { id: "hunter", name: "Hunter's Pact", icon: "🗡️", up: "Hero +50% damage, foes drop double coins", down: "The hall sends ¼ the income", stars: 3 },
-  { id: "hoard", name: "Golden Hoard", icon: "💰", up: "+60 coins at the start, income +30%", down: "Foes +20% HP", stars: 6 },
-  { id: "engineers", name: "Siege Engineers", icon: "⚙️", up: "Catapults & Mage Tower open now, −30% cost", down: "Archer Towers stop at Lv 3", stars: 9 },
-  { id: "levy", name: "The Levy", icon: "🛡️", up: "Barracks open now, soldiers +60% HP & damage", down: "Hero −25% damage", stars: 12 },
-  { id: "pyre", name: "Pyre Lords", icon: "🔥", up: "Every arrow sets foes burning", down: "Towers −20% direct damage", stars: 15 },
+  { id: "bastion", name: "Iron Bastion", icon: "🏰", up: "Walls ×1.4 HP, mend 10% at dawn", down: "Archer Towers cost 45% more", stars: 3 },
+  { id: "hunter", name: "Hunter's Pact", icon: "🗡️", up: "Hero +60% damage, foes drop double coins", down: "The hall sends half the income", stars: 3 },
+  { id: "hoard", name: "Golden Hoard", icon: "💰", up: "+60 coins at the start, income +30%", down: "Foes +15% HP", stars: 6 },
+  { id: "engineers", name: "Siege Engineers", icon: "⚙️", up: "Catapults & Mage Tower open now, −35% cost", down: "Archer Towers stop at Lv 4", stars: 9 },
+  { id: "levy", name: "The Levy", icon: "🛡️", up: "Barracks open now, soldiers +90% HP & damage", down: "Hero −20% damage", stars: 12 },
+  { id: "pyre", name: "Pyre Lords", icon: "🔥", up: "Every arrow sets foes burning", down: "Towers −15% direct damage", stars: 15 },
 ];
 export const BANNER_BY_ID: Record<BannerId, BannerDef> = Object.fromEntries(BANNERS.map((b) => [b.id, b])) as Record<BannerId, BannerDef>;

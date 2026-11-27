@@ -25,7 +25,7 @@ describe("War Banners (B1)", () => {
     expect(camp("hoard").hero.coins).toBe(base.hero.coins + 60);
     const eng = camp("engineers");
     expect(eng.plots.filter((p) => p.kind === "catapult" || p.kind === "mage").every((p) => !p.locked)).toBe(true);
-    expect(tower(eng).maxLevel).toBe(3);
+    expect(tower(eng).maxLevel).toBe(4);
     expect(camp("levy").plots.find((p) => p.kind === "barracks")!.locked).toBe(false);
     expect(camp("pyre").mods.burn).toBeGreaterThan(base.mods.burn);
   });

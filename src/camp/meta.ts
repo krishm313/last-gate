@@ -47,12 +47,12 @@ export function bannerFor(save: SaveData): BannerId {
 /** Apply a War Banner's levers to a run setup. */
 export function applyBanner(s: CampSetup, id: BannerId): void {
   const m = s.mods!;
-  if (id === "bastion") { m.wallHp *= 1.8; m.repairAfterWave += 0.25; s.costMult = { ...s.costMult, tower: 1.35 }; }
-  else if (id === "hunter") { m.heroDamage *= 1.5; m.drops *= 2; m.income *= 0.25; }
-  else if (id === "hoard") { s.startCoins = (s.startCoins ?? 12) + 60; m.income *= 1.3; s.enemyHpMult = (s.enemyHpMult ?? 1) * 1.2; }
-  else if (id === "engineers") { s.openEarly = [...(s.openEarly ?? []), "catapult", "mage"]; s.costMult = { ...s.costMult, catapult: 0.7, mage: 0.7 }; s.maxLevels = { ...s.maxLevels, tower: 3 }; }
-  else if (id === "levy") { s.openEarly = [...(s.openEarly ?? []), "barracks"]; m.allyPower *= 1.6; m.heroDamage *= 0.75; }
-  else if (id === "pyre") { m.burn += 0.35; m.towerDamage *= 0.8; }
+  if (id === "bastion") { m.wallHp *= 1.4; m.repairAfterWave += 0.1; s.costMult = { ...s.costMult, tower: 1.45 }; }
+  else if (id === "hunter") { m.heroDamage *= 1.6; m.drops *= 2; m.income *= 0.5; }
+  else if (id === "hoard") { s.startCoins = (s.startCoins ?? 12) + 60; m.income *= 1.3; s.enemyHpMult = (s.enemyHpMult ?? 1) * 1.15; }
+  else if (id === "engineers") { s.openEarly = [...(s.openEarly ?? []), "catapult", "mage"]; s.costMult = { ...s.costMult, catapult: 0.65, mage: 0.65 }; s.maxLevels = { ...s.maxLevels, tower: 4 }; }
+  else if (id === "levy") { s.openEarly = [...(s.openEarly ?? []), "barracks"]; m.allyPower *= 1.9; m.heroDamage *= 0.8; }
+  else if (id === "pyre") { m.burn += 0.5; m.towerDamage *= 0.85; }
 }
 export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): CampSetup {
   const lv = (id: string) => save.perms[id] ?? 0;
