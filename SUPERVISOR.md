@@ -71,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B1 slice 1 ✅ War Banners shipped (6 banners, chapter sheet, tuned in 3 rounds: Bastion was 31/27/54% → 13/8/16; Pyre/Hunter/Levy buffed). Next B1 slice: give banners visible identity in-run (HUD chip + themed camp flag) and see whether a second fork (mid-run) is needed — prefer extending existing systems over new prompts.
 - 2026-11-27 B0 ✅ audit written above; B1 War Banners designed.
 - 2026-11-27 A3 ✅ 3D-castle icon (192/512/apple), share-link preview image + og/twitter meta. Stage A complete (A4 parked by rule). Next: B0 variety audit.
 - 2026-11-27 A2 ✅ perf profile at 4× CPU: JS ≈ small, raster dominates, no hotspot → S3 closed, S4 done. Save guards added (field-coverage check vs sanitizeSave, round-trip of weapon/pet/crowns, 400-round junk fuzz). A1 ✅ after two slices.
