@@ -1,3 +1,4 @@
+import { BANNER_BY_ID, type BannerId } from "../core/banners";
 import { PET_BY_ID, type PetId } from "../core/pets";
 import { WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { HERO_BY_ID, vetLookOn, type HeroId } from "../core/heroes";
@@ -37,6 +38,21 @@ export function weaponFor(save: SaveData): WeaponId {
 export function petFor(save: SaveData): PetId {
   const p = save.pet ? PET_BY_ID[save.pet] : undefined;
   return p && totalStars(save) >= p.stars ? p.id : "none";
+}
+/** The banner a campaign run flies: the saved pick if it's unlocked, else none. */
+export function bannerFor(save: SaveData): BannerId {
+  const b = save.banner ? BANNER_BY_ID[save.banner] : undefined;
+  return b && totalStars(save) >= b.stars ? b.id : "none";
+}
+/** Apply a War Banner's levers to a run setup. */
+export function applyBanner(s: CampSetup, id: BannerId): void {
+  const m = s.mods!;
+  if (id === "bastion") { m.wallHp *= 1.8; m.repairAfterWave += 0.25; s.costMult = { ...s.costMult, tower: 1.35 }; }
+  else if (id === "hunter") { m.heroDamage *= 1.5; m.drops *= 2; m.income *= 0.25; }
+  else if (id === "hoard") { s.startCoins = (s.startCoins ?? 12) + 60; m.income *= 1.3; s.enemyHpMult = (s.enemyHpMult ?? 1) * 1.2; }
+  else if (id === "engineers") { s.openEarly = [...(s.openEarly ?? []), "catapult", "mage"]; s.costMult = { ...s.costMult, catapult: 0.7, mage: 0.7 }; s.maxLevels = { ...s.maxLevels, tower: 3 }; }
+  else if (id === "levy") { s.openEarly = [...(s.openEarly ?? []), "barracks"]; m.allyPower *= 1.6; m.heroDamage *= 0.75; }
+  else if (id === "pyre") { m.burn += 0.35; m.towerDamage *= 0.8; }
 }
 export function campSetupFromSave(save: SaveData, hero: HeroId = save.hero): CampSetup {
   const lv = (id: string) => save.perms[id] ?? 0;

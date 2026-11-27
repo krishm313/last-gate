@@ -1,3 +1,4 @@
+import { BANNER_BY_ID } from "../core/banners";
 import { ENEMIES, enemyTraits } from "../core/enemies";
 import { getItem, setItem } from "../ui/store";
 import { Music } from "../audio/music";
@@ -44,7 +45,7 @@ import { cleanHeat, HEAT_BY_ID, heatAllowed, heatGold } from "../core/heat";
 import { recordWeekly, WEEKLY, weeklyFor, weeklyReward, type Gauntlet } from "../core/weekly";
 import { Hub } from "../ui/hub";
 import { exportSave, importSave, loadSave, resetSave, SAVE_KEY, writeSave } from "../ui/save";
-import { campSetupFromSave, LOOT_TO_GOLD } from "./meta";
+import { applyBanner, bannerFor, campSetupFromSave, LOOT_TO_GOLD } from "./meta";
 import { campBotInput, campBotPick, campBotStep } from "./bot";
 import { HERO_BY_ID } from "../core/heroes";
 import { learnSkill, resetSkills } from "../core/skills";
@@ -261,6 +262,7 @@ const hub = new Hub(uiRoot, {
     sfx.unlockChime();
     hub.showHub(save, "heroes");
   },
+  onBanner: () => writeSave(save),
   onPet: (id) => {
     save.pet = id;
     writeSave(save);
@@ -427,6 +429,14 @@ function newRun(id = chapterId, setup = campSetupFromSave(save), seed = (Date.no
     window.setTimeout(() => hud.toast(`${twist.icon} This week: ${twist.name} — ${twist.desc}`), 500);
   }
   if (weatherOdds) played = { ...played, weatherOdds };
+  // War Banner (chosen in the chapter sheet): campaign and Endless runs only.
+  const banner = heatAllowed(id) && !setup.classicBlessings && !heatOverride && (save.stars[1] ?? 0) > 0 ? bannerFor(save) : "none";
+  if (banner !== "none") {
+    setup = { ...setup, mods: { ...setup.mods! } };
+    applyBanner(setup, banner);
+    const bd = BANNER_BY_ID[banner];
+    window.setTimeout(() => hud.toast(`${bd.icon} ${bd.name} flies over your camp`), 300);
+  }
   // Heat: the challenge modifiers switched on in the chapter sheet.
   const heat = heatOverride ? cleanHeat(heatOverride) : heatAllowed(id) && !setup.classicBlessings ? cleanHeat(save.heat) : [];
   runHeatMult = heatGold(heat);

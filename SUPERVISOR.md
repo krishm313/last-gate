@@ -33,6 +33,18 @@ as steady lanes, and grow content on a rhythm.
 - B2 Reasons to come back after chapter 10: long goals, Endless/weekly rewards that matter.
 - B3 Refactor while touching: split render.ts by area as code is changed (no big-bang rewrite).
 
+**B0 audit (2026-11-27)** — variety that exists: 44 blessings (8 rule-changers + combos), tower paths,
+night events, visitors (merchant/shrine), weather, mirrored layouts, Heat, elites, weekly/daily twists,
+hero weapons, pets, building masteries. Finding: almost all of it changes *numbers* or *the moment*,
+not *strategy*. Every run unlocks the same buildings on the same nights at the same prices, so the best
+build order is the same every run — the root of "I finished it / repetitive". Gap to fill: a choice
+before the run that changes what you build and how you play.
+**B1 design — War Banners**: in the chapter sheet (next to Heat, once chapter 1 is cleared; never a
+mid-game prompt), pick one banner for the run — each a real strategic fork with an upside and a
+cost: Iron Bastion (walls), Hunter's Pact (hero economy), Siege Engineers (catapults/mage early,
+towers capped), Golden Hoard (rich start, tougher foes), Levy (soldiers), Pyre Lords (burning arrows).
+Unlock gradually by stars. Each validated with campsim (bot win rate near the no-banner baseline).
+
 **Stage C — Grow (long term, on a rhythm)**
 - C1 New content on a cadence (a chapter / enemy / hero per batch), each with a designed hook.
 - C2 Revisit priorities with whatever signal exists (owner reactions, bot fun metrics).
@@ -59,6 +71,7 @@ collection · balance-neutral unless the item is about balance · nothing unrela
 in this repo.
 
 ## Log (newest first)
+- 2026-11-27 B0 ✅ audit written above; B1 War Banners designed.
 - 2026-11-27 A3 ✅ 3D-castle icon (192/512/apple), share-link preview image + og/twitter meta. Stage A complete (A4 parked by rule). Next: B0 variety audit.
 - 2026-11-27 A2 ✅ perf profile at 4× CPU: JS ≈ small, raster dominates, no hotspot → S3 closed, S4 done. Save guards added (field-coverage check vs sanitizeSave, round-trip of weapon/pet/crowns, 400-round junk fuzz). A1 ✅ after two slices.
 - 2026-11-27 A1 slice 2: "rusher" persona (taps Start the night without building) saw "Drag to walk" all night and the go-fight nudge was hidden behind it — 0 kills in a minute. Fixed: pre-night tips skip once night falls; the go-fight nudge outranks tutorial tips; a towerless player back at dawn with coins gets the build tip again.

@@ -2,7 +2,8 @@
 import { CHAPTER_BY_ID } from "../src/core/chapters";
 import { campBotStep } from "../src/camp/bot";
 import { campLayout, createCamp, drainEvents } from "../src/camp/sim";
-import { campSetupFromSave } from "../src/camp/meta";
+import { applyBanner, campSetupFromSave } from "../src/camp/meta";
+import type { BannerId } from "../src/core/banners";
 import { newSave, PERMS } from "../src/core/meta";
 import { chapterOnDifficulty, DIFF_BY_ID, type DifficultyId } from "../src/core/difficulty";
 
@@ -14,7 +15,8 @@ for (const p of PERMS) if (!p.capstone) save.perms[p.id] = Math.min(p.max, permL
 const hero = (process.argv[5] ?? "ranger") as Parameters<typeof campSetupFromSave>[1];
 const diff = DIFF_BY_ID[(process.argv[6] ?? "normal") as DifficultyId];
 // Same as a real run: difficulty HP + elites through the setup, speed and gate damage through the chapter.
-const setup = () => { const s = campSetupFromSave(save, hero); return diff.rank > 0 ? { ...s, enemyHpMult: (s.enemyHpMult ?? 1) * diff.hp, eliteChance: diff.elite } : s; };
+// BANNER=<id> flies a War Banner for every run (default none).
+const setup = () => { const s = campSetupFromSave(save, hero); if (process.env.BANNER) applyBanner(s, process.env.BANNER as BannerId); return diff.rank > 0 ? { ...s, enemyHpMult: (s.enemyHpMult ?? 1) * diff.hp, eliteChance: diff.elite } : s; };
 const played = chapterOnDifficulty(chapter, diff.id);
 const reached: number[] = [];
 let wins = 0;

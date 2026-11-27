@@ -1,6 +1,7 @@
 import { kingdomCard } from "./kingdom";
 import { WEAPONS, WEAPON_BY_ID, type WeaponId } from "../core/weapons";
 import { PETS, type PetId } from "../core/pets";
+import { BANNERS, BANNER_BY_ID } from "../core/banners";
 import { GIFT_GOLD, giftView } from "../core/gift";
 import { DAILY_SIEGE_PRIZE, dailySiegeFor, dailySiegeOpen } from "../core/dailySiege";
 import { fairPick, openMinis } from "../mini/fair";
@@ -10,7 +11,7 @@ import { HINT_FLAGS } from "./save";
 import { canVibrate, QUALITIES, type Quality } from "./settings";
 import { nextGoals } from "../core/goals";
 import { mastered, masteryGoals, masteryPerk } from "../core/mastery";
-import { cleanHeat, HEAT_BY_ID, HEATS, heatGold } from "../core/heat";
+import { cleanHeat, HEAT_BY_ID, HEATS, heatAllowed, heatGold } from "../core/heat";
 import { WEEKLY, weeklyFor } from "../core/weekly";
 import { exportSave, importSave } from "./save";
 import { canPromptInstall, needsIosHint, promptInstall } from "./install";
@@ -30,7 +31,7 @@ import { DIFF_BY_ID, DIFFICULTIES, difficultyOpen, type DifficultyId } from "../
 import { questsReady, questViews, refreshQuests } from "../core/quests";
 import { HERO_BY_ID, HEROES, VET_NIGHTS, vetLookOn, vetLookOpen, type HeroId } from "../core/heroes";
 import { ASCEND, canAscend, canBuy, permOpen, chapterUnlocked, endlessMilestoneReward, nextEndlessMilestone, heroUnlocked, PERMS, permCost, totalStars, type RunReward, type SaveData } from "../core/meta";
-import { CAMP_HEROES, petFor, weaponFor } from "../camp/meta";
+import { bannerFor, CAMP_HEROES, petFor, weaponFor } from "../camp/meta";
 
 /** Painted portraits cut from the owner's character sheet. */
 const HERO_PORTRAIT: Record<string, string> = {
@@ -131,6 +132,7 @@ export interface HubCallbacks {
   onFlair?: (id: string) => void;
   onWeapon?: (id: WeaponId) => void;
   onPet?: (id: PetId) => void;
+  onBanner?: () => void;
   /** Picked a campaign difficulty. */
   onDifficulty?: (id: DifficultyId) => void;
   /** Opened today's Royal Gift chest (Battle tab); returns the gold it held. */
@@ -693,6 +695,40 @@ export class Hub {
 
   /** A chapter's details, opened from the map. */
   /** Heat: challenge toggles for a run (saved), with the gold multiplier they add up to. */
+  /** War Banner picker (chapter sheet): one run-defining choice, upside and cost on every chip. */
+  private bannerPanel(save: SaveData): HTMLElement {
+    const box = el("div", "lgh-panel lgbn-panel");
+    const head = el("div", "lgh-head");
+    const grid = el("div", "lgh-grid");
+    const have = totalStars(save);
+    const paint = () => {
+      const cur = bannerFor(save);
+      const b = BANNER_BY_ID[cur];
+      head.replaceChildren(el("span", "", "🚩 War Banner"), el("span", `lgh-mult${cur !== "none" ? " hot" : ""}`, cur === "none" ? "none — pick one to change how this run plays" : `${b.icon} ${b.name}`));
+      for (const chip of grid.children) chip.classList.toggle("on", (chip as HTMLElement).dataset.id === cur);
+    };
+    for (const b of BANNERS) {
+      const open = have >= b.stars;
+      const chip = el("button", `lgh-chip lgbn-chip${open ? "" : " locked"}`);
+      chip.dataset.id = b.id;
+      chip.append(el("div", "lgh-icon", open ? b.icon : "🔒"), el("div", "lgh-name", b.name), el("div", "lgh-desc lgbn-up", open ? b.up : `${have} / ${b.stars} ★`), ...(open && b.down ? [el("div", "lgh-desc lgbn-down", b.down)] : []));
+      chip.onclick = () => {
+        if (!open) return this.denied(chip);
+        this.cb.onClick();
+        save.banner = b.id;
+        this.cb.onBanner?.();
+        paint();
+        chip.classList.remove("pulse");
+        void chip.offsetWidth;
+        chip.classList.add("pulse");
+      };
+      grid.append(chip);
+    }
+    box.append(head, grid);
+    paint();
+    return box;
+  }
+
   private heatPanel(save: SaveData): HTMLElement {
     const box = el("div", "lgh-panel");
     const head = el("div", "lgh-head");
@@ -728,6 +764,8 @@ export class Hub {
   private chapterSheet(save: SaveData, ch: (typeof CHAPTERS)[number], diff: (typeof DIFFICULTIES)[number], seen: Set<number>): void {
     const box = el("div", "panel pop-in lgm-sheet");
     box.append(this.chapterCard(save, ch, diff, seen));
+    // War Banners open once chapter 1 is cleared: one strategic fork for the whole run.
+    if ((save.stars[1] ?? 0) > 0 && heatAllowed(ch.id)) box.append(this.bannerPanel(save));
     // Heat opens once the chapter has been cleared (a veteran's dial, not a new player's trap).
     if ((save.stars[ch.id] ?? 0) > 0) box.append(this.heatPanel(save));
     box.append(this.button("Back to the map", "btn btn-ghost", () => this.showHub(save, "battle")));

@@ -839,6 +839,10 @@ export interface CampSetup {
   weapon?: WeaponId;
   /** Companion pet (default none). */
   pet?: PetId;
+  /** War Banner levers: per-building cost multipliers, level caps, and buildings open from the start. */
+  costMult?: Partial<Record<PlotKind, number>>;
+  maxLevels?: Partial<Record<PlotKind, number>>;
+  openEarly?: PlotKind[];
   /** Force a camp layout (tests, tools); default: hashed from the seed. */
   layout?: CampLayout;
   /** Siege Lord: sieges already won (opens the later war cards). */
@@ -877,6 +881,14 @@ export function createCamp(seed: number, chapter: ChapterDef = CHAPTERS[0]!, set
   for (const id of setup.prebuilt ?? []) {
     const p = plots.find((q) => q.id === id);
     if (p && p.level === 0) p.level = 1;
+  }
+  // War Banner levers.
+  for (const p of plots) {
+    const k = setup.costMult?.[p.kind];
+    if (k) p.costs = p.costs.map((v) => Math.max(1, Math.round(v * k)));
+    const cap = setup.maxLevels?.[p.kind];
+    if (cap !== undefined) p.maxLevel = Math.min(p.maxLevel, cap);
+    if (setup.openEarly?.includes(p.kind) && p.locked && p.unlockWave !== undefined) { p.locked = false; p.unlockWave = 0; }
   }
   const lay = setup.layout ?? layoutFor(seed, chapter.id, !!setup.reverse || !!setup.classicBlessings);
   applyLayout(plots, lay);

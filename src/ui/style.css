@@ -1527,3 +1527,8 @@ body.hero-dead canvas { filter: saturate(0.25) brightness(0.8); }
 .lgk-fresh { animation: lgk-pop 0.7s cubic-bezier(.2,1.6,.4,1) both; }
 .lgk-fresh .lgk-sub { color: #ffe27a; }
 @keyframes lgk-pop { 0% { transform: scale(0.94); } 100% { transform: scale(1); } }
+
+/* War Banner chips (chapter sheet): the upside in green, the cost in red. */
+.lgbn-panel .lgbn-up { color: #a8e890; }
+.lgbn-panel .lgbn-down { color: #ffa898; }
+.lgbn-panel .lgh-chip.locked { opacity: 0.55; }

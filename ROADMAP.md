@@ -19,7 +19,7 @@ Goal: a game that keeps getting better — new features and content first, polis
 
 | 9 | **Look & feel overhaul** (owner Nov 21 night: "no features… repetitive · upgrade animations aren't extravagant · watch tower / cart / health tent are 2D, not proper" → "through that whole plan… don't stop until fully finished") | ✅ B3 upgrade sequence for every building · ✅ B4 Mastery moment · ✅ B5 new parts fly in · ✅ A1 3D re-model: Watchtower, Healer's Tent, Merchant cart, Shrine, Mage Tower, spikes · ✅ A2 per-level looks per building · ✅ D12 less reading mid-game · ✅ C6 random camp layouts · ✅ C7 new enemy types · ✅ C8 boss signature attacks · ✅ C9 hero weapons · ✅ C10 companion pet · ✅ C11 kingdom view · ✅ FINAL full self-review |
 
-| 10 | **Ready for players → replay depth** (owner Nov 27: run it start to end as supervisor; plan in SUPERVISOR.md) | ✅ A0 dated checks · ✅ A1 first five minutes · ✅ A2 stability · ✅ A3 shareable · ⏸ A4 player stats (needs owner OK) · ☐ B0 variety audit · ☐ B1 runs that play differently · ☐ B2 reasons to come back · ☐ B3 refactor while touching · ☐ C content rhythm |
+| 10 | **Ready for players → replay depth** (owner Nov 27: run it start to end as supervisor; plan in SUPERVISOR.md) | ✅ A0 dated checks · ✅ A1 first five minutes · ✅ A2 stability · ✅ A3 shareable · ⏸ A4 player stats (needs owner OK) · ✅ B0 variety audit · ☐ B1 runs that play differently · ☐ B2 reasons to come back · ☐ B3 refactor while touching · ☐ C content rhythm |
 
 Order (owner approved all): S1, S2 → R6 → R1 → R2 → R4 → R5 → R8 → R3 → R7 → R9 → R10 → S3–S10 interleaved (S8 with every sim change). Each item ships in small verified slices; balance rule applies to every sim change.
 
